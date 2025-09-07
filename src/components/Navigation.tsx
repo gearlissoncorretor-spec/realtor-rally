@@ -19,7 +19,7 @@ const Navigation = () => {
 
   const navItems = [
     {
-      href: "/",
+      href: "/dashboard",
       label: "Dashboard",
       icon: LayoutDashboard
     },
