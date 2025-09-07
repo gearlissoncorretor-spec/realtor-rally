@@ -14,7 +14,237 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      brokers: {
+        Row: {
+          avatar_url: string | null
+          commission_rate: number | null
+          cpf: string | null
+          created_at: string | null
+          creci: string | null
+          email: string
+          hire_date: string | null
+          id: string
+          meta_monthly: number | null
+          name: string
+          phone: string | null
+          status: Database["public"]["Enums"]["broker_status"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          commission_rate?: number | null
+          cpf?: string | null
+          created_at?: string | null
+          creci?: string | null
+          email: string
+          hire_date?: string | null
+          id?: string
+          meta_monthly?: number | null
+          name: string
+          phone?: string | null
+          status?: Database["public"]["Enums"]["broker_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          commission_rate?: number | null
+          cpf?: string | null
+          created_at?: string | null
+          creci?: string | null
+          email?: string
+          hire_date?: string | null
+          id?: string
+          meta_monthly?: number | null
+          name?: string
+          phone?: string | null
+          status?: Database["public"]["Enums"]["broker_status"] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brokers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          broker_id: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          commission_value: number | null
+          contract_date: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          property_address: string
+          property_type: Database["public"]["Enums"]["property_type"]
+          property_value: number
+          sale_date: string | null
+          status: Database["public"]["Enums"]["sale_status"] | null
+          updated_at: string | null
+          vgc: number
+          vgv: number
+        }
+        Insert: {
+          broker_id?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          commission_value?: number | null
+          contract_date?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_address: string
+          property_type: Database["public"]["Enums"]["property_type"]
+          property_value: number
+          sale_date?: string | null
+          status?: Database["public"]["Enums"]["sale_status"] | null
+          updated_at?: string | null
+          vgc: number
+          vgv: number
+        }
+        Update: {
+          broker_id?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          commission_value?: number | null
+          contract_date?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          property_address?: string
+          property_type?: Database["public"]["Enums"]["property_type"]
+          property_value?: number
+          sale_date?: string | null
+          status?: Database["public"]["Enums"]["sale_status"] | null
+          updated_at?: string | null
+          vgc?: number
+          vgv?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      targets: {
+        Row: {
+          achieved_sales_count: number | null
+          achieved_value: number | null
+          broker_id: string | null
+          created_at: string | null
+          id: string
+          month: number
+          target_sales_count: number | null
+          target_value: number
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          achieved_sales_count?: number | null
+          achieved_value?: number | null
+          broker_id?: string | null
+          created_at?: string | null
+          id?: string
+          month: number
+          target_sales_count?: number | null
+          target_value?: number
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          achieved_sales_count?: number | null
+          achieved_value?: number | null
+          broker_id?: string | null
+          created_at?: string | null
+          id?: string
+          month?: number
+          target_sales_count?: number | null
+          target_value?: number
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "targets_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +253,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      broker_status: "ativo" | "inativo" | "ferias"
+      property_type: "apartamento" | "casa" | "terreno" | "comercial" | "rural"
+      sale_status: "pendente" | "confirmada" | "cancelada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +382,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      broker_status: ["ativo", "inativo", "ferias"],
+      property_type: ["apartamento", "casa", "terreno", "comercial", "rural"],
+      sale_status: ["pendente", "confirmada", "cancelada"],
+    },
   },
 } as const
