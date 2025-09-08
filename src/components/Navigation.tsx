@@ -1,57 +1,37 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { 
-  LayoutDashboard, 
-  Trophy, 
-  Home, 
-  Settings, 
-  BarChart3,
-  Users,
-  Menu,
-  X
-} from "lucide-react";
+import { LayoutDashboard, Trophy, Home, Settings, BarChart3, Users, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  const navItems = [
-    {
-      href: "/dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard
-    },
-    {
-      href: "/ranking",
-      label: "Ranking",
-      icon: Trophy
-    },
-    {
-      href: "/vendas",
-      label: "Vendas",
-      icon: Home
-    },
-    {
-      href: "/relatorios",
-      label: "Relatórios",
-      icon: BarChart3
-    },
-    {
-      href: "/corretores",
-      label: "Corretores",
-      icon: Users
-    },
-    {
-      href: "/configuracoes",
-      label: "Configurações",
-      icon: Settings
-    }
-  ];
-
-  return (
-    <>
+  const navItems = [{
+    href: "/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard
+  }, {
+    href: "/ranking",
+    label: "Ranking",
+    icon: Trophy
+  }, {
+    href: "/vendas",
+    label: "Vendas",
+    icon: Home
+  }, {
+    href: "/relatorios",
+    label: "Relatórios",
+    icon: BarChart3
+  }, {
+    href: "/corretores",
+    label: "Corretores",
+    icon: Users
+  }, {
+    href: "/configuracoes",
+    label: "Configurações",
+    icon: Settings
+  }];
+  return <>
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-card border-b border-border z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
@@ -62,11 +42,7 @@ const Navigation = () => {
             <h1 className="text-lg font-bold text-foreground">RealEstate</h1>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => setIsMobileOpen(!isMobileOpen)}>
           {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </Button>
       </div>
@@ -79,43 +55,27 @@ const Navigation = () => {
               <Home className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">RealEstate</h1>
+              <h1 className="text-xl font-bold text-foreground">Gestão MB SC</h1>
               <p className="text-sm text-muted-foreground">Dashboard</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                    isActive 
-                      ? "bg-primary text-primary-foreground shadow-glow" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  )}
-                >
+            {navItems.map(item => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.href;
+            return <Link key={item.href} to={item.href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200", isActive ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-accent")}>
                   <Icon className="w-5 h-5" />
                   {item.label}
-                </Link>
-              );
-            })}
+                </Link>;
+          })}
           </div>
         </div>
       </nav>
 
       {/* Mobile Sidebar Overlay */}
-      {isMobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div 
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-            onClick={() => setIsMobileOpen(false)}
-          />
+      {isMobileOpen && <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
           <nav className="absolute left-0 top-0 h-full w-64 bg-gradient-card border-r border-border">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-8">
@@ -129,34 +89,18 @@ const Navigation = () => {
               </div>
 
               <div className="space-y-2">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.href;
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={() => setIsMobileOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                        isActive 
-                          ? "bg-primary text-primary-foreground shadow-glow" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                      )}
-                    >
+                {navItems.map(item => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              return <Link key={item.href} to={item.href} onClick={() => setIsMobileOpen(false)} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200", isActive ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-accent")}>
                       <Icon className="w-5 h-5" />
                       {item.label}
-                    </Link>
-                  );
-                })}
+                    </Link>;
+            })}
               </div>
             </div>
           </nav>
-        </div>
-      )}
-    </>
-  );
+        </div>}
+    </>;
 };
-
 export default Navigation;
