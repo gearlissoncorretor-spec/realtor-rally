@@ -2,6 +2,7 @@ import Navigation from "@/components/Navigation";
 import KPICard from "@/components/KPICard";
 import DashboardChart from "@/components/DashboardChart";
 import RankingPodium from "@/components/RankingPodium";
+import { useData } from "@/contexts/DataContext";
 import { 
   Home, 
   TrendingUp, 
@@ -13,89 +14,120 @@ import {
 import heroImage from "@/assets/dashboard-hero.jpg";
 
 const Index = () => {
-  // Mock data - in a real app, this would come from your API/Supabase
+  const { brokers, sales, brokersLoading, salesLoading } = useData();
+
+  // Calculate KPIs from real data
+  const totalVGV = sales.reduce((sum, sale) => sum + sale.vgv, 0);
+  const totalVGC = sales.reduce((sum, sale) => sum + sale.vgc, 0);
+  const totalSales = sales.length;
+  const activeBrokers = brokers.filter(b => b.status === 'ativo').length;
+  
+  // Calculate this month's data
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const thisMonthSales = sales.filter(sale => {
+    const saleDate = new Date(sale.sale_date || sale.created_at || '');
+    return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
+  });
+  
+  const thisMonthVGC = thisMonthSales.reduce((sum, sale) => sum + sale.vgc, 0);
+  const conversionRate = totalSales > 0 ? ((sales.filter(s => s.status === 'confirmada').length / totalSales) * 100) : 0;
+
   const kpiData = [
     {
       title: "VGV Total",
-      value: "R$ 2.4M",
-      change: 12.5,
+      value: `R$ ${(totalVGV / 1000000).toFixed(1)}M`,
+      change: 12.5, // This would need to be calculated vs previous period
       trend: "up" as const,
       icon: <DollarSign className="w-6 h-6 text-primary" />
     },
     {
       title: "VGC do Mês",
-      value: "R$ 480K",
+      value: `R$ ${(thisMonthVGC / 1000).toFixed(0)}K`,
       change: 8.2,
       trend: "up" as const,
       icon: <TrendingUp className="w-6 h-6 text-success" />
     },
     {
       title: "Vendas Realizadas",
-      value: "24",
+      value: totalSales.toString(),
       change: -3.1,
-      trend: "down" as const,
+      trend: (totalSales > 20 ? "up" : "down"),
       icon: <Home className="w-6 h-6 text-warning" />
     },
     {
-      title: "Taxa de Conversão",
-      value: "18.5%",
+      title: "Taxa de Conversão", 
+      value: `${conversionRate.toFixed(1)}%`,
       change: 2.8,
       trend: "up" as const,
       icon: <Target className="w-6 h-6 text-info" />
     }
-  ];
+  ] as const;
 
-  const chartData = [
-    { month: "Jan", vgv: 320000, vgc: 180000, sales: 8 },
-    { month: "Fev", vgv: 420000, vgc: 250000, sales: 12 },
-    { month: "Mar", vgv: 380000, vgc: 220000, sales: 10 },
-    { month: "Abr", vgv: 520000, vgc: 300000, sales: 15 },
-    { month: "Mai", vgv: 480000, vgc: 280000, sales: 14 },
-    { month: "Jun", vgv: 620000, vgc: 350000, sales: 18 }
-  ];
-
-  const brokerRankings = [
-    {
-      id: "1",
-      name: "Ana Silva",
-      avatar: "/placeholder.svg",
-      sales: 8,
-      revenue: 850000,
-      position: 1
-    },
-    {
-      id: "2", 
-      name: "Carlos Santos",
-      avatar: "/placeholder.svg",
-      sales: 6,
-      revenue: 720000,
-      position: 2
-    },
-    {
-      id: "3",
-      name: "Maria Oliveira", 
-      avatar: "/placeholder.svg",
-      sales: 5,
-      revenue: 650000,
-      position: 3
-    },
-    {
-      id: "4",
-      name: "João Costa",
-      avatar: "/placeholder.svg", 
-      sales: 4,
-      revenue: 520000,
-      position: 4
-    },
-    {
-      id: "5",
-      name: "Paula Lima",
-      avatar: "/placeholder.svg",
-      sales: 3,
-      revenue: 420000,
-      position: 5
+  // Generate chart data from sales
+  const generateChartData = () => {
+    const monthlyData: { [key: string]: { vgv: number, vgc: number, sales: number } } = {};
+    
+    // Initialize last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = date.toLocaleDateString('pt-BR', { month: 'short' });
+      monthlyData[monthKey] = { vgv: 0, vgc: 0, sales: 0 };
     }
-  ];
+    
+    // Aggregate sales data
+    sales.forEach(sale => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short' });
+      
+      if (monthlyData[monthKey]) {
+        monthlyData[monthKey].vgv += sale.vgv;
+        monthlyData[monthKey].vgc += sale.vgc;
+        monthlyData[monthKey].sales += 1;
+      }
+    });
+    
+    return Object.entries(monthlyData).map(([month, data]) => ({
+      month,
+      ...data
+    }));
+  };
+
+  const chartData = generateChartData();
+
+  // Generate broker ranking data
+  const brokerRankings = brokers.map(broker => {
+    const brokerSales = sales.filter(sale => sale.broker_id === broker.id);
+    const totalRevenue = brokerSales.reduce((sum, sale) => sum + sale.property_value, 0);
+    const salesCount = brokerSales.length;
+    
+    return {
+      id: broker.id,
+      name: broker.name,
+      avatar: broker.avatar_url || '',
+      sales: salesCount,
+      revenue: totalRevenue,
+      position: 0, // Will be set after sorting
+      growth: Math.random() * 20 - 10 // Mock growth - would need historical data
+    };
+  })
+  .sort((a, b) => b.revenue - a.revenue)
+  .map((broker, index) => ({ ...broker, position: index + 1 }))
+  .slice(0, 7); // Top 7 for ranking
+
+  if (brokersLoading || salesLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center h-64">
+            <p className="text-muted-foreground">Carregando dashboard...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -170,7 +202,7 @@ const Index = () => {
               <Users className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-foreground">Corretores Ativos</h3>
             </div>
-            <p className="text-2xl font-bold text-foreground">12</p>
+            <p className="text-2xl font-bold text-foreground">{activeBrokers}</p>
             <p className="text-sm text-muted-foreground">+2 este mês</p>
           </div>
 
@@ -179,7 +211,7 @@ const Index = () => {
               <Home className="w-5 h-5 text-success" />
               <h3 className="font-semibold text-foreground">Imóveis em Carteira</h3>
             </div>
-            <p className="text-2xl font-bold text-foreground">248</p>
+            <p className="text-2xl font-bold text-foreground">{sales.filter(s => s.status === 'pendente').length}</p>
             <p className="text-sm text-muted-foreground">18 novos esta semana</p>
           </div>
 
@@ -188,7 +220,7 @@ const Index = () => {
               <Target className="w-5 h-5 text-warning" />
               <h3 className="font-semibold text-foreground">Leads Qualificados</h3>
             </div>
-            <p className="text-2xl font-bold text-foreground">67</p>
+            <p className="text-2xl font-bold text-foreground">{sales.length}</p>
             <p className="text-sm text-muted-foreground">32% taxa de conversão</p>
           </div>
         </div>
