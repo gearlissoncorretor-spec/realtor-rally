@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
-  broker_id: z.string().optional(),
+  broker_id: z.string().min(1, 'Selecione um corretor'),
   client_name: z.string().min(2, 'Nome do cliente deve ter pelo menos 2 caracteres'),
   client_email: z.string().email('Email inválido').optional().or(z.literal('')),
   client_phone: z.string().optional(),
@@ -46,7 +46,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
-      broker_id: sale?.broker_id || '',
+      broker_id: sale?.broker_id || undefined,
       client_name: sale?.client_name || '',
       client_email: sale?.client_email || '',
       client_phone: sale?.client_phone || '',
@@ -94,14 +94,13 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Corretor</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o corretor" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhum corretor</SelectItem>
                         {brokers.map((broker) => (
                           <SelectItem key={broker.id} value={broker.id}>
                             {broker.name}
@@ -120,7 +119,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o status" />
@@ -189,7 +188,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo do Imóvel</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o tipo" />
