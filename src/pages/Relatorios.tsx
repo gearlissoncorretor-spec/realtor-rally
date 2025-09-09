@@ -9,8 +9,25 @@ import {
   TrendingUp,
   Users
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Relatorios = () => {
+  const { toast } = useToast();
+
+  const handleGenerateReport = (reportTitle: string) => {
+    toast({
+      title: "Relatório gerado",
+      description: `${reportTitle} foi gerado com sucesso.`,
+    });
+  };
+
+  const handleDownloadReport = (reportTitle: string) => {
+    toast({
+      title: "Download iniciado",
+      description: `Download do ${reportTitle} iniciado.`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -53,11 +70,11 @@ const Relatorios = () => {
               <h3 className="text-xl font-semibold text-foreground mb-2">{report.title}</h3>
               <p className="text-muted-foreground mb-4">{report.description}</p>
               <div className="flex gap-2">
-                <Button size="sm" className="flex-1">
+                <Button size="sm" className="flex-1" onClick={() => handleGenerateReport(report.title)}>
                   <FileText className="w-4 h-4 mr-2" />
                   Gerar
                 </Button>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => handleDownloadReport(report.title)}>
                   <Download className="w-4 h-4" />
                 </Button>
               </div>

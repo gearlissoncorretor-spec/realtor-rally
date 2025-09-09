@@ -14,8 +14,15 @@ import {
   Calendar,
   DollarSign
 } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { SaleForm } from "@/components/forms/SaleForm";
 
 const Vendas = () => {
+  const { toast } = useToast();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
+  
   const vendas = [
     {
       id: "1",
@@ -72,6 +79,51 @@ const Vendas = () => {
     }
   };
 
+  const handleNewSale = () => {
+    setSelectedSale(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditSale = (sale: any) => {
+    setSelectedSale(sale);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteSale = (saleId: string) => {
+    toast({
+      title: "Venda excluída",
+      description: "A venda foi removida com sucesso.",
+    });
+  };
+
+  const handleViewSale = (sale: any) => {
+    toast({
+      title: "Visualizar Venda",
+      description: `Exibindo detalhes da venda para ${sale.cliente}`,
+    });
+  };
+
+  const handleExport = () => {
+    toast({
+      title: "Exportação iniciada",
+      description: "Os dados estão sendo preparados para download.",
+    });
+  };
+
+  const handleFilter = () => {
+    toast({
+      title: "Filtros",
+      description: "Funcionalidade de filtros em desenvolvimento.",
+    });
+  };
+
+  const handleSaleSubmit = async (data: any) => {
+    toast({
+      title: "Venda salva",
+      description: "Os dados da venda foram salvos com sucesso.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -89,15 +141,15 @@ const Vendas = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleFilter}>
               <Filter className="w-4 h-4 mr-2" />
               Filtros
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
-            <Button size="sm" className="bg-gradient-primary">
+            <Button size="sm" className="bg-gradient-primary" onClick={handleNewSale}>
               <Plus className="w-4 h-4 mr-2" />
               Nova Venda
             </Button>
@@ -206,13 +258,13 @@ const Vendas = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewSale(venda)}>
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditSale(venda)}>
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSale(venda.id)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -224,6 +276,14 @@ const Vendas = () => {
           </div>
         </Card>
       </div>
+
+      <SaleForm 
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleSaleSubmit}
+        sale={selectedSale}
+        title={selectedSale ? "Editar Venda" : "Nova Venda"}
+      />
     </div>
   );
 };

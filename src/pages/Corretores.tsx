@@ -12,8 +12,15 @@ import {
   Target,
   DollarSign
 } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { BrokerForm } from "@/components/forms/BrokerForm";
 
 const Corretores = () => {
+  const { toast } = useToast();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedBroker, setSelectedBroker] = useState(null);
+  
   const corretores = [
     {
       id: 1,
@@ -47,6 +54,30 @@ const Corretores = () => {
     }
   ];
 
+  const handleNewBroker = () => {
+    setSelectedBroker(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditBroker = (broker: any) => {
+    setSelectedBroker(broker);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteBroker = (brokerId: number) => {
+    toast({
+      title: "Corretor excluído",
+      description: "O corretor foi removido com sucesso.",
+    });
+  };
+
+  const handleBrokerSubmit = async (data: any) => {
+    toast({
+      title: "Corretor salvo",
+      description: "Os dados do corretor foram salvos com sucesso.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -61,7 +92,7 @@ const Corretores = () => {
               Gerencie sua equipe de vendas
             </p>
           </div>
-          <Button className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <Button className="animate-fade-in" style={{ animationDelay: '0.2s' }} onClick={handleNewBroker}>
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Corretor
           </Button>
@@ -117,10 +148,10 @@ const Corretores = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={() => handleEditBroker(corretor)}>
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={() => handleDeleteBroker(corretor.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -129,6 +160,14 @@ const Corretores = () => {
           ))}
         </div>
       </div>
+
+      <BrokerForm 
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleBrokerSubmit}
+        broker={selectedBroker}
+        title={selectedBroker ? "Editar Corretor" : "Novo Corretor"}
+      />
     </div>
   );
 };

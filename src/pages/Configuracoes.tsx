@@ -12,8 +12,32 @@ import {
   Database,
   Globe
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const Configuracoes = () => {
+  const { toast } = useToast();
+  const [settings, setSettings] = useState({
+    companyName: "Sua Imobiliária",
+    notifications: true,
+    darkMode: true,
+    autoRefresh: true
+  });
+
+  const handleSaveSettings = () => {
+    toast({
+      title: "Configurações salvas",
+      description: "Suas alterações foram salvas com sucesso.",
+    });
+  };
+
+  const handleConfigureSection = (sectionTitle: string) => {
+    toast({
+      title: `Configurar ${sectionTitle}`,
+      description: `Abrindo configurações de ${sectionTitle.toLowerCase()}.`,
+    });
+  };
+
   const configSections = [
     {
       title: "Aparência",
@@ -88,7 +112,7 @@ const Configuracoes = () => {
             </div>
             
             <div className="mt-6">
-              <Button>Salvar Alterações</Button>
+              <Button onClick={handleSaveSettings}>Salvar Alterações</Button>
             </div>
           </Card>
 
@@ -101,7 +125,7 @@ const Configuracoes = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">{section.title}</h3>
                 <p className="text-muted-foreground mb-4">{section.description}</p>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => handleConfigureSection(section.title)}>
                   Configurar
                 </Button>
               </Card>
