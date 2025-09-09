@@ -22,6 +22,7 @@ const saleSchema = z.object({
   vgc: z.number().min(1, 'VGC deve ser maior que 0'),
   status: z.enum(['pendente', 'confirmada', 'cancelada']),
   notes: z.string().optional(),
+  commission_value: z.number().optional(),
 });
 
 type SaleFormData = z.infer<typeof saleSchema>;
@@ -65,11 +66,12 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       // Calculate commission based on broker's rate
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
-      const commission_value = (data.property_value * commissionRate) / 100;
+      const commission_value = (data.property_value * Number(commissionRate)) / 100;
       
       await onSubmit({
         ...data,
-        client_email: data.client_email || undefined,
+        commission_value,
+        client_email: data.client_email || null,
       });
       form.reset();
       onClose();

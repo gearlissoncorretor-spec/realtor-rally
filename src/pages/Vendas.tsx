@@ -17,65 +17,41 @@ import {
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SaleForm } from "@/components/forms/SaleForm";
+import { useSales } from "@/hooks/useSales";
+import { useBrokers } from "@/hooks/useBrokers";
+import type { Sale } from "@/contexts/DataContext";
 
 const Vendas = () => {
   const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedSale, setSelectedSale] = useState(null);
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   
-  const vendas = [
-    {
-      id: "1",
-      cliente: "João da Silva",
-      corretor: "Ana Silva",
-      imovel: "Apt 101 - Edifício Sunset",
-      valor: 450000,
-      status: "Fechada",
-      data: "2024-01-15",
-      comissao: 22500
-    },
-    {
-      id: "2",
-      cliente: "Maria Santos",
-      corretor: "Carlos Santos", 
-      imovel: "Casa Jardim América",
-      valor: 680000,
-      status: "Em Negociação",
-      data: "2024-01-18",
-      comissao: 34000
-    },
-    {
-      id: "3",
-      cliente: "Pedro Oliveira",
-      corretor: "Maria Oliveira",
-      imovel: "Cobertura Vista Mar",
-      valor: 850000,
-      status: "Proposta Enviada",
-      data: "2024-01-20",
-      comissao: 42500
-    },
-    {
-      id: "4",
-      cliente: "Ana Costa",
-      corretor: "João Costa",
-      imovel: "Terreno Industrial",
-      valor: 320000,
-      status: "Fechada",
-      data: "2024-01-22", 
-      comissao: 16000
-    }
-  ];
+  const { sales, loading: salesLoading, createSale, updateSale, deleteSale } = useSales();
+  const { brokers } = useBrokers();
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Fechada":
+      case "confirmada":
         return "bg-success text-success-foreground";
-      case "Em Negociação":
+      case "pendente":
         return "bg-warning text-warning-foreground";
-      case "Proposta Enviada":
-        return "bg-info text-info-foreground";
+      case "cancelada":
+        return "bg-destructive text-destructive-foreground";
       default:
         return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "confirmada":
+        return "Confirmada";
+      case "pendente":
+        return "Pendente";
+      case "cancelada":
+        return "Cancelada";
+      default:
+        return status;
     }
   };
 
@@ -89,17 +65,18 @@ const Vendas = () => {
     setIsFormOpen(true);
   };
 
-  const handleDeleteSale = (saleId: string) => {
-    toast({
-      title: "Venda excluída",
-      description: "A venda foi removida com sucesso.",
-    });
+  const handleDeleteSale = async (saleId: string) => {
+    try {
+      await deleteSale(saleId);
+    } catch (error) {
+      console.error('Erro ao excluir venda:', error);
+    }
   };
 
-  const handleViewSale = (sale: any) => {
+  const handleViewSale = (sale: Sale) => {
     toast({
       title: "Visualizar Venda",
-      description: `Exibindo detalhes da venda para ${sale.cliente}`,
+      description: `Exibindo detalhes da venda para ${sale.client_name}`,
     });
   };
 
@@ -118,11 +95,40 @@ const Vendas = () => {
   };
 
   const handleSaleSubmit = async (data: any) => {
-    toast({
-      title: "Venda salva",
-      description: "Os dados da venda foram salvos com sucesso.",
-    });
+    try {
+      // Calculate commission based on broker's rate
+      const selectedBroker = brokers.find(b => b.id === data.broker_id);
+      const commissionRate = selectedBroker?.commission_rate || 5;
+      const commission_value = (data.property_value * Number(commissionRate)) / 100;
+      
+      const saleData = {
+        ...data,
+        commission_value,
+        client_email: data.client_email || null,
+      };
+
+      if (selectedSale) {
+        await updateSale(selectedSale.id, saleData);
+      } else {
+        await createSale(saleData);
+      }
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error('Erro ao salvar venda:', error);
+    }
   };
+
+  // Calculate totals from real data
+  const totalSales = sales.length;
+  const totalValue = sales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
+  const confirmedSales = sales.filter(sale => sale.status === 'confirmada');
+  const totalCommissions = confirmedSales.reduce((sum, sale) => sum + Number(sale.commission_value || 0), 0);
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  const thisMonthSales = sales.filter(sale => {
+    const saleDate = new Date(sale.created_at);
+    return saleDate.getMonth() + 1 === currentMonth && saleDate.getFullYear() === currentYear;
+  }).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -162,7 +168,7 @@ const Vendas = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Vendas</p>
-                <p className="text-2xl font-bold text-foreground">24</p>
+                <p className="text-2xl font-bold text-foreground">{totalSales}</p>
               </div>
               <Home className="w-8 h-8 text-primary opacity-80" />
             </div>
@@ -172,7 +178,11 @@ const Vendas = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
-                <p className="text-2xl font-bold text-foreground">R$ 2.4M</p>
+                <p className="text-2xl font-bold text-foreground">
+                  R$ {totalValue > 1000000 
+                    ? `${(totalValue / 1000000).toFixed(1)}M` 
+                    : `${(totalValue / 1000).toFixed(0)}K`}
+                </p>
               </div>
               <DollarSign className="w-8 h-8 text-success opacity-80" />
             </div>
@@ -182,7 +192,11 @@ const Vendas = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Comissões</p>
-                <p className="text-2xl font-bold text-foreground">R$ 120K</p>
+                <p className="text-2xl font-bold text-foreground">
+                  R$ {totalCommissions > 1000000 
+                    ? `${(totalCommissions / 1000000).toFixed(1)}M` 
+                    : `${(totalCommissions / 1000).toFixed(0)}K`}
+                </p>
               </div>
               <Calendar className="w-8 h-8 text-warning opacity-80" />
             </div>
@@ -192,7 +206,7 @@ const Vendas = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Este Mês</p>
-                <p className="text-2xl font-bold text-foreground">8</p>
+                <p className="text-2xl font-bold text-foreground">{thisMonthSales}</p>
               </div>
               <Home className="w-8 h-8 text-info opacity-80" />
             </div>
@@ -219,58 +233,74 @@ const Vendas = () => {
                 </tr>
               </thead>
               <tbody>
-                {vendas.map((venda, index) => (
-                  <tr 
-                    key={venda.id} 
-                    className="border-b border-border hover:bg-accent/50 transition-colors animate-fade-in"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="text-xs">
-                            {venda.cliente.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium text-foreground">{venda.cliente}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span className="text-sm text-foreground">{venda.corretor}</span>
-                    </td>
-                    <td className="p-4">
-                      <span className="text-sm text-foreground">{venda.imovel}</span>
-                    </td>
-                    <td className="p-4">
-                      <span className="font-semibold text-foreground">
-                        R$ {venda.valor.toLocaleString('pt-BR')}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <Badge className={getStatusColor(venda.status)}>
-                        {venda.status}
-                      </Badge>
-                    </td>
-                    <td className="p-4">
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(venda.data).toLocaleDateString('pt-BR')}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleViewSale(venda)}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleEditSale(venda)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSale(venda.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                {salesLoading ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                      Carregando vendas...
                     </td>
                   </tr>
-                ))}
+                ) : sales.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                      Nenhuma venda encontrada. Clique em "Nova Venda" para adicionar a primeira.
+                    </td>
+                  </tr>
+                ) : (
+                  sales.map((sale, index) => (
+                    <tr 
+                      key={sale.id} 
+                      className="border-b border-border hover:bg-accent/50 transition-colors animate-fade-in"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback className="text-xs">
+                              {sale.client_name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-foreground">{sale.client_name}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-foreground">
+                          {sale.broker?.name || 'Sem corretor'}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-foreground">{sale.property_address}</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-semibold text-foreground">
+                          R$ {Number(sale.property_value).toLocaleString('pt-BR')}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <Badge className={getStatusColor(sale.status)}>
+                          {getStatusLabel(sale.status)}
+                        </Badge>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(sale.created_at).toLocaleDateString('pt-BR')}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => handleViewSale(sale)}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditSale(sale)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSale(sale.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
