@@ -105,59 +105,89 @@ export type Database = {
       }
       sales: {
         Row: {
+          ano: number | null
           broker_id: string | null
+          captador: string | null
           client_email: string | null
           client_name: string
           client_phone: string | null
           commission_value: number | null
           contract_date: string | null
           created_at: string | null
+          estilo: string | null
+          gerente: string | null
           id: string
+          latitude: string | null
+          mes: number | null
           notes: string | null
+          origem: string | null
+          pagos: number | null
+          produto: string | null
           property_address: string
           property_type: Database["public"]["Enums"]["property_type"]
           property_value: number
           sale_date: string | null
           status: Database["public"]["Enums"]["sale_status"] | null
           updated_at: string | null
+          vendedor: string | null
           vgc: number
           vgv: number
         }
         Insert: {
+          ano?: number | null
           broker_id?: string | null
+          captador?: string | null
           client_email?: string | null
           client_name: string
           client_phone?: string | null
           commission_value?: number | null
           contract_date?: string | null
           created_at?: string | null
+          estilo?: string | null
+          gerente?: string | null
           id?: string
+          latitude?: string | null
+          mes?: number | null
           notes?: string | null
+          origem?: string | null
+          pagos?: number | null
+          produto?: string | null
           property_address: string
           property_type: Database["public"]["Enums"]["property_type"]
           property_value: number
           sale_date?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
           updated_at?: string | null
+          vendedor?: string | null
           vgc: number
           vgv: number
         }
         Update: {
+          ano?: number | null
           broker_id?: string | null
+          captador?: string | null
           client_email?: string | null
           client_name?: string
           client_phone?: string | null
           commission_value?: number | null
           contract_date?: string | null
           created_at?: string | null
+          estilo?: string | null
+          gerente?: string | null
           id?: string
+          latitude?: string | null
+          mes?: number | null
           notes?: string | null
+          origem?: string | null
+          pagos?: number | null
+          produto?: string | null
           property_address?: string
           property_type?: Database["public"]["Enums"]["property_type"]
           property_value?: number
           sale_date?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
           updated_at?: string | null
+          vendedor?: string | null
           vgc?: number
           vgv?: number
         }

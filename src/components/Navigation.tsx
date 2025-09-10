@@ -3,6 +3,7 @@ import { useState } from "react";
 import { LayoutDashboard, Trophy, Home, Settings, BarChart3, Users, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -42,9 +43,12 @@ const Navigation = () => {
             <h1 className="text-lg font-bold text-foreground">RealEstate</h1>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setIsMobileOpen(!isMobileOpen)}>
-          {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button variant="ghost" size="sm" onClick={() => setIsMobileOpen(!isMobileOpen)}>
+            {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
       </div>
 
       {/* Desktop Sidebar */}
@@ -69,6 +73,10 @@ const Navigation = () => {
                   {item.label}
                 </Link>;
           })}
+          </div>
+          
+          <div className="mt-8 flex justify-center">
+            <ThemeToggle />
           </div>
         </div>
       </nav>

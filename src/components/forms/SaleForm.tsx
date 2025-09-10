@@ -23,6 +23,17 @@ const saleSchema = z.object({
   status: z.enum(['pendente', 'confirmada', 'cancelada']),
   notes: z.string().optional(),
   commission_value: z.number().optional(),
+  // Novos campos obrigatórios
+  origem: z.string().min(1, 'Origem é obrigatória'),
+  estilo: z.string().min(1, 'Estilo é obrigatório'),
+  produto: z.string().min(1, 'Produto é obrigatório'),
+  vendedor: z.string().min(1, 'Vendedor é obrigatório'),
+  captador: z.string().min(1, 'Captador é obrigatório'),
+  gerente: z.string().min(1, 'Gerente é obrigatório'),
+  pagos: z.number().min(0, 'Pagos deve ser maior ou igual a 0'),
+  ano: z.number().min(2020, 'Ano deve ser válido').max(new Date().getFullYear() + 1),
+  mes: z.number().min(1, 'Mês deve ser entre 1 e 12').max(12),
+  latitude: z.string().min(1, 'Latitude é obrigatória'),
 });
 
 type SaleFormData = z.infer<typeof saleSchema>;
@@ -58,6 +69,17 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       vgc: sale?.vgc || 0,
       status: sale?.status || 'pendente',
       notes: sale?.notes || '',
+      // Novos campos
+      origem: sale?.origem || '',
+      estilo: sale?.estilo || '',
+      produto: sale?.produto || '',
+      vendedor: sale?.vendedor || '',
+      captador: sale?.captador || '',
+      gerente: sale?.gerente || '',
+      pagos: sale?.pagos || 0,
+      ano: sale?.ano || new Date().getFullYear(),
+      mes: sale?.mes || new Date().getMonth() + 1,
+      latitude: sale?.latitude || '',
     },
   });
 
@@ -276,6 +298,182 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                         {...field}
                         onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="origem"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Origem *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Indicação, Site, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="estilo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estilo *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Moderno, Clássico, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="produto"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Produto *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do produto/empreendimento" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="vendedor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vendedor *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do vendedor" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="captador"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Captador *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do captador" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="gerente"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gerente *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do gerente" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="pagos"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pagos (R$) *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="0" 
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="ano"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ano *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="2024" 
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="mes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mês *</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString() || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o mês" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1">Janeiro</SelectItem>
+                        <SelectItem value="2">Fevereiro</SelectItem>
+                        <SelectItem value="3">Março</SelectItem>
+                        <SelectItem value="4">Abril</SelectItem>
+                        <SelectItem value="5">Maio</SelectItem>
+                        <SelectItem value="6">Junho</SelectItem>
+                        <SelectItem value="7">Julho</SelectItem>
+                        <SelectItem value="8">Agosto</SelectItem>
+                        <SelectItem value="9">Setembro</SelectItem>
+                        <SelectItem value="10">Outubro</SelectItem>
+                        <SelectItem value="11">Novembro</SelectItem>
+                        <SelectItem value="12">Dezembro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="latitude"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Latitude *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="-23.550520" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
