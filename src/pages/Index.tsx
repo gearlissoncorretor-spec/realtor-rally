@@ -1,8 +1,13 @@
 import Navigation from "@/components/Navigation";
 import KPICard from "@/components/KPICard";
 import DashboardChart from "@/components/DashboardChart";
+import PropertyTypeChart from "@/components/PropertyTypeChart";
+import TicketMedioChart from "@/components/TicketMedioChart";
+import VGCPercentageCard from "@/components/VGCPercentageCard";
+import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
 import { useData } from "@/contexts/DataContext";
+import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
 import { 
   Home, 
   TrendingUp, 
@@ -11,15 +16,39 @@ import {
   Target,
   BarChart3 
 } from "lucide-react";
+import { useState, useMemo } from "react";
 import heroImage from "@/assets/dashboard-hero.jpg";
 
 const Index = () => {
   const { brokers, sales, brokersLoading, salesLoading } = useData();
+  
+  // Estado para filtros de período
+  const [selectedMonth, setSelectedMonth] = useState(0); // 0 = todos os meses
+  const [selectedYear, setSelectedYear] = useState(0); // 0 = todos os anos
 
-  // Calculate KPIs from real data
-  const totalVGV = sales.reduce((sum, sale) => sum + sale.vgv, 0);
-  const totalVGC = sales.reduce((sum, sale) => sum + sale.vgc, 0);
-  const totalSales = sales.length;
+  // Filtrar vendas baseado no período selecionado
+  const filteredSales = useMemo(() => {
+    return sales.filter(sale => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      
+      // Filtro de ano
+      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) {
+        return false;
+      }
+      
+      // Filtro de mês (1-12, onde 0 = todos os meses)
+      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [sales, selectedMonth, selectedYear]);
+
+  // Calculate KPIs from filtered data
+  const totalVGV = filteredSales.reduce((sum, sale) => sum + sale.vgv, 0);
+  const totalVGC = filteredSales.reduce((sum, sale) => sum + sale.vgc, 0);
+  const totalSales = filteredSales.length;
   const activeBrokers = brokers.filter(b => b.status === 'ativo').length;
   
   // Calculate this month's data
@@ -31,19 +60,19 @@ const Index = () => {
   });
   
   const thisMonthVGC = thisMonthSales.reduce((sum, sale) => sum + sale.vgc, 0);
-  const conversionRate = totalSales > 0 ? ((sales.filter(s => s.status === 'confirmada').length / totalSales) * 100) : 0;
+  const conversionRate = totalSales > 0 ? ((filteredSales.filter(s => s.status === 'confirmada').length / totalSales) * 100) : 0;
 
   const kpiData = [
     {
       title: "VGV Total",
-      value: `R$ ${(totalVGV / 1000000).toFixed(1)}M`,
+      value: formatCurrencyCompact(totalVGV),
       change: 12.5, // This would need to be calculated vs previous period
       trend: "up" as const,
       icon: <DollarSign className="w-6 h-6 text-primary" />
     },
     {
       title: "VGC do Mês",
-      value: `R$ ${(thisMonthVGC / 1000).toFixed(0)}K`,
+      value: formatCurrencyCompact(thisMonthVGC),
       change: 8.2,
       trend: "up" as const,
       icon: <TrendingUp className="w-6 h-6 text-success" />
@@ -57,14 +86,14 @@ const Index = () => {
     },
     {
       title: "Taxa de Conversão", 
-      value: `${conversionRate.toFixed(1)}%`,
+      value: `${conversionRate.toFixed(1).replace('.', ',')}%`,
       change: 2.8,
       trend: "up" as const,
       icon: <Target className="w-6 h-6 text-info" />
     }
   ] as const;
 
-  // Generate chart data from sales
+  // Generate chart data from filtered sales
   const generateChartData = () => {
     const monthlyData: { [key: string]: { vgv: number, vgc: number, sales: number } } = {};
     
@@ -76,8 +105,8 @@ const Index = () => {
       monthlyData[monthKey] = { vgv: 0, vgc: 0, sales: 0 };
     }
     
-    // Aggregate sales data
-    sales.forEach(sale => {
+    // Aggregate filtered sales data
+    filteredSales.forEach(sale => {
       const saleDate = new Date(sale.sale_date || sale.created_at || '');
       const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short' });
       
@@ -154,6 +183,14 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Filtros de Período */}
+        <PeriodFilter
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthChange={setSelectedMonth}
+          onYearChange={setSelectedYear}
+        />
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {kpiData.map((kpi, index) => (
@@ -174,16 +211,17 @@ const Index = () => {
               title="VGV & VGC Mensal"
               height={350}
             />
-            <DashboardChart
-              data={chartData}
-              type="bar"
-              title="Vendas por Mês"
+            <TicketMedioChart
+              sales={filteredSales}
+              title="Ticket Médio das Vendas"
               height={250}
             />
           </div>
           
           <div className="space-y-6">
             <RankingPodium brokers={brokerRankings} />
+            
+            <VGCPercentageCard sales={filteredSales} />
             
             <KPICard
               title="Meta do Mês"
@@ -195,33 +233,33 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Charts Adicionais */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <PropertyTypeChart
+            sales={filteredSales}
+            title="Tipos de Imóveis Vendidos"
+            height={300}
+          />
+          
           <div className="bg-gradient-card rounded-xl p-6 border border-border animate-fade-in">
             <div className="flex items-center gap-3 mb-4">
               <Users className="w-5 h-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Corretores Ativos</h3>
+              <h3 className="font-semibold text-foreground">Estatísticas Rápidas</h3>
             </div>
-            <p className="text-2xl font-bold text-foreground">{activeBrokers}</p>
-            <p className="text-sm text-muted-foreground">+2 este mês</p>
-          </div>
-
-          <div className="bg-gradient-card rounded-xl p-6 border border-border animate-fade-in">
-            <div className="flex items-center gap-3 mb-4">
-              <Home className="w-5 h-5 text-success" />
-              <h3 className="font-semibold text-foreground">Imóveis em Carteira</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Corretores Ativos</span>
+                <span className="text-2xl font-bold text-foreground">{activeBrokers}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Imóveis Pendentes</span>
+                <span className="text-2xl font-bold text-foreground">{sales.filter(s => s.status === 'pendente').length}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Total de Vendas</span>
+                <span className="text-2xl font-bold text-foreground">{sales.length}</span>
+              </div>
             </div>
-            <p className="text-2xl font-bold text-foreground">{sales.filter(s => s.status === 'pendente').length}</p>
-            <p className="text-sm text-muted-foreground">18 novos esta semana</p>
-          </div>
-
-          <div className="bg-gradient-card rounded-xl p-6 border border-border animate-fade-in">
-            <div className="flex items-center gap-3 mb-4">
-              <Target className="w-5 h-5 text-warning" />
-              <h3 className="font-semibold text-foreground">Leads Qualificados</h3>
-            </div>
-            <p className="text-2xl font-bold text-foreground">{sales.length}</p>
-            <p className="text-sm text-muted-foreground">32% taxa de conversão</p>
           </div>
         </div>
       </div>

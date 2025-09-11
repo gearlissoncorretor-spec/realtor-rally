@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,17 +8,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import ImageUpload from '@/components/ImageUpload';
 import { Broker } from '@/contexts/DataContext';
 
 const brokerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   phone: z.string().optional(),
-  cpf: z.string().optional(),
+  cpf: z.string().optional(), // Removido campo obrigatório
   creci: z.string().optional(),
   status: z.enum(['ativo', 'inativo', 'ferias']),
   commission_rate: z.number().min(0).max(100).optional(),
   meta_monthly: z.number().min(0).optional(),
+  avatar_url: z.string().optional(),
 });
 
 type BrokerFormData = z.infer<typeof brokerSchema>;
@@ -38,6 +40,8 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
   broker,
   title,
 }) => {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(broker?.avatar_url || null);
+  
   const form = useForm<BrokerFormData>({
     resolver: zodResolver(brokerSchema),
     defaultValues: {
@@ -49,13 +53,19 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       status: broker?.status || 'ativo',
       commission_rate: broker?.commission_rate || 5,
       meta_monthly: broker?.meta_monthly || 0,
+      avatar_url: broker?.avatar_url || '',
     },
   });
 
   const handleSubmit = async (data: BrokerFormData) => {
     try {
-      await onSubmit(data);
+      const submitData = {
+        ...data,
+        avatar_url: avatarUrl || undefined,
+      };
+      await onSubmit(submitData);
       form.reset();
+      setAvatarUrl(null);
       onClose();
     } catch (error) {
       console.error('Error submitting broker form:', error);
@@ -70,7 +80,16 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Upload de Foto */}
+            <div className="flex justify-center">
+              <ImageUpload
+                currentImage={avatarUrl || undefined}
+                onImageChange={setAvatarUrl}
+                placeholder="Foto do Corretor"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -121,7 +140,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                 name="cpf"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>CPF</FormLabel>
+                    <FormLabel>CPF (Opcional)</FormLabel>
                     <FormControl>
                       <Input placeholder="000.000.000-00" {...field} />
                     </FormControl>

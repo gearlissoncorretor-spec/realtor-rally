@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, TrendingUp, TrendingDown } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
+import { formatCurrency } from "@/utils/formatting";
 
 const Ranking = () => {
   const { brokers, sales, brokersLoading, salesLoading } = useData();
@@ -55,12 +56,12 @@ const Ranking = () => {
         </div>
 
         {/* Podium Section */}
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-in">
           <RankingPodium brokers={brokerRankings.slice(0, 3)} />
         </div>
 
         {/* Detailed Ranking */}
-        <Card className="p-6">
+        <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center gap-3 mb-6">
             <Trophy className="w-6 h-6 text-warning" />
             <h2 className="text-xl font-semibold">Classificação Completa</h2>
@@ -79,7 +80,11 @@ const Ranking = () => {
               </thead>
               <tbody>
                 {brokerRankings.map((broker, index) => (
-                  <tr key={broker.id} className="border-b hover:bg-muted/50">
+                  <tr 
+                    key={broker.id} 
+                    className="border-b hover:bg-muted/50 transition-colors animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-lg">#{broker.position}</span>
@@ -114,7 +119,7 @@ const Ranking = () => {
                     </td>
                     <td className="py-4 px-4">
                       <p className="font-medium">
-                        R$ {broker.revenue.toLocaleString('pt-BR')}
+                        {formatCurrency(broker.revenue)}
                       </p>
                     </td>
                     <td className="py-4 px-4">

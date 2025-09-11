@@ -3,6 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import PeriodFilter from "@/components/PeriodFilter";
+import SaleConfirmationDialog from "@/components/SaleConfirmationDialog";
 import { 
   Home, 
   Plus, 
@@ -14,20 +16,46 @@ import {
   Calendar,
   DollarSign
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SaleForm } from "@/components/forms/SaleForm";
 import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
+import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
 import type { Sale } from "@/contexts/DataContext";
 
 const Vendas = () => {
   const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [confirmedSale, setConfirmedSale] = useState<Sale | null>(null);
+  
+  // Estados para filtros de período
+  const [selectedMonth, setSelectedMonth] = useState(0);
+  const [selectedYear, setSelectedYear] = useState(0);
   
   const { sales, loading: salesLoading, createSale, updateSale, deleteSale } = useSales();
   const { brokers } = useBrokers();
+
+  // Filtrar vendas baseado no período selecionado
+  const filteredSales = useMemo(() => {
+    return sales.filter(sale => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      
+      // Filtro de ano
+      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) {
+        return false;
+      }
+      
+      // Filtro de mês (1-12, onde 0 = todos os meses)
+      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [sales, selectedMonth, selectedYear]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -107,21 +135,26 @@ const Vendas = () => {
         client_email: data.client_email || null,
       };
 
+      let savedSale;
       if (selectedSale) {
-        await updateSale(selectedSale.id, saleData);
+        savedSale = await updateSale(selectedSale.id, saleData);
       } else {
-        await createSale(saleData);
+        savedSale = await createSale(saleData);
       }
+      
+      // Mostrar tela de confirmação
+      setConfirmedSale(savedSale);
+      setIsConfirmationOpen(true);
       setIsFormOpen(false);
     } catch (error) {
       console.error('Erro ao salvar venda:', error);
     }
   };
 
-  // Calculate totals from real data
-  const totalSales = sales.length;
-  const totalValue = sales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
-  const confirmedSales = sales.filter(sale => sale.status === 'confirmada');
+  // Calculate totals from filtered data
+  const totalSales = filteredSales.length;
+  const totalValue = filteredSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
+  const confirmedSales = filteredSales.filter(sale => sale.status === 'confirmada');
   const totalCommissions = confirmedSales.reduce((sum, sale) => sum + Number(sale.commission_value || 0), 0);
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -162,6 +195,14 @@ const Vendas = () => {
           </div>
         </div>
 
+        {/* Filtros de Período */}
+        <PeriodFilter
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthChange={setSelectedMonth}
+          onYearChange={setSelectedYear}
+        />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="p-6 bg-gradient-card border-border">
@@ -179,9 +220,7 @@ const Vendas = () => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
                 <p className="text-2xl font-bold text-foreground">
-                  R$ {totalValue > 1000000 
-                    ? `${(totalValue / 1000000).toFixed(1)}M` 
-                    : `${(totalValue / 1000).toFixed(0)}K`}
+                  {formatCurrencyCompact(totalValue)}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-success opacity-80" />
@@ -193,9 +232,7 @@ const Vendas = () => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Comissões</p>
                 <p className="text-2xl font-bold text-foreground">
-                  R$ {totalCommissions > 1000000 
-                    ? `${(totalCommissions / 1000000).toFixed(1)}M` 
-                    : `${(totalCommissions / 1000).toFixed(0)}K`}
+                  {formatCurrencyCompact(totalCommissions)}
                 </p>
               </div>
               <Calendar className="w-8 h-8 text-warning opacity-80" />
@@ -239,14 +276,14 @@ const Vendas = () => {
                       Carregando vendas...
                     </td>
                   </tr>
-                ) : sales.length === 0 ? (
+                ) : filteredSales.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-muted-foreground">
                       Nenhuma venda encontrada. Clique em "Nova Venda" para adicionar a primeira.
                     </td>
                   </tr>
                 ) : (
-                  sales.map((sale, index) => (
+                  filteredSales.map((sale, index) => (
                     <tr 
                       key={sale.id} 
                       className="border-b border-border hover:bg-accent/50 transition-colors animate-fade-in"
@@ -272,7 +309,7 @@ const Vendas = () => {
                       </td>
                       <td className="p-4">
                         <span className="font-semibold text-foreground">
-                          R$ {Number(sale.property_value).toLocaleString('pt-BR')}
+                          {formatCurrency(Number(sale.property_value))}
                         </span>
                       </td>
                       <td className="p-4">
@@ -314,6 +351,18 @@ const Vendas = () => {
         sale={selectedSale}
         title={selectedSale ? "Editar Venda" : "Nova Venda"}
       />
+
+      {confirmedSale && (
+        <SaleConfirmationDialog
+          isOpen={isConfirmationOpen}
+          onClose={() => {
+            setIsConfirmationOpen(false);
+            setConfirmedSale(null);
+          }}
+          sale={confirmedSale}
+          isEdit={!!selectedSale}
+        />
+      )}
     </div>
   );
 };
