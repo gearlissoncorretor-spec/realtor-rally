@@ -57,7 +57,7 @@ const Home = () => {
         <div className="container mx-auto text-center relative z-10">
           <h1 className="text-5xl text-foreground mb-6 animate-fade-in md:text-7xl font-bold">
             Transforme Suas
-            <span className="block bg-gradient-primary bg-clip-text text-transparent animate-glow-pulse">Equipe </span>
+            <span className="block bg-gradient-primary bg-clip-text text-transparent animate-glow-pulse">Vendas em Dados</span>
           </h1>
           
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto animate-fade-in" style={{
