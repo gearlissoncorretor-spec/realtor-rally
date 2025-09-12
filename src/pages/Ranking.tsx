@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import RankingPodium from "@/components/RankingPodium";
+import VictoryEffects from "@/components/VictoryEffects";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -82,9 +83,12 @@ const Ranking = () => {
                 {brokerRankings.map((broker, index) => (
                   <tr 
                     key={broker.id} 
-                    className="border-b hover:bg-muted/50 transition-colors animate-fade-in"
+                    className="border-b hover:bg-muted/50 transition-colors animate-fade-in relative"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
+                    {broker.position === 1 && (
+                      <VictoryEffects isFirstPlace={true} brokerName={broker.name} />
+                    )}
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-lg">#{broker.position}</span>
@@ -100,11 +104,11 @@ const Ranking = () => {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={broker.avatar} />
-                          <AvatarFallback>{broker.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage src={broker.avatar} />
+                            <AvatarFallback>{broker.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          </Avatar>
                         <div>
                           <p className="font-medium">{broker.name}</p>
                           <p className="text-sm text-muted-foreground">{broker.email}</p>

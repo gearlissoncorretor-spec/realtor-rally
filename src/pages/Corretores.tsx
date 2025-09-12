@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BrokerForm } from "@/components/forms/BrokerForm";
+import BrokerDetailsModal from "@/components/BrokerDetailsModal";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
 import type { Broker } from "@/contexts/DataContext";
@@ -23,6 +24,7 @@ const Corretores = () => {
   const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedBroker, setSelectedBroker] = useState<Broker | null>(null);
+  const [detailsBroker, setDetailsBroker] = useState<Broker | null>(null);
   
   const { brokers, loading: brokersLoading, createBroker, updateBroker, deleteBroker } = useBrokers();
   const { sales } = useSales();
@@ -148,10 +150,10 @@ const Corretores = () => {
                       <div className="text-center">
                         <div className="flex items-center gap-2 mb-1">
                           <TrendingUp className="w-4 h-4 text-info" />
-                          <span className="text-sm text-muted-foreground">Taxa</span>
+                          <span className="text-sm text-muted-foreground">Ticket Médio</span>
                         </div>
                         <p className="text-2xl font-bold text-foreground">
-                          {stats.conversionRate}%
+                          R$ {stats.salesCount > 0 ? (stats.totalRevenue / stats.salesCount / 1000).toFixed(0) : '0'}K
                         </p>
                       </div>
                     </div>

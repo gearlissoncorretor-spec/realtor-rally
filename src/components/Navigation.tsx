@@ -20,6 +20,10 @@ const Navigation = () => {
     label: "Vendas",
     icon: Home
   }, {
+    href: "/acompanhamento",
+    label: "Acompanhamento",
+    icon: BarChart3
+  }, {
     href: "/relatorios",
     label: "Relatórios",
     icon: BarChart3
