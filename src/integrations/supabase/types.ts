@@ -127,6 +127,7 @@ export type Database = {
           property_type: Database["public"]["Enums"]["property_type"]
           property_value: number
           sale_date: string | null
+          sale_type: string | null
           status: Database["public"]["Enums"]["sale_status"] | null
           updated_at: string | null
           vendedor: string | null
@@ -156,6 +157,7 @@ export type Database = {
           property_type: Database["public"]["Enums"]["property_type"]
           property_value: number
           sale_date?: string | null
+          sale_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
           updated_at?: string | null
           vendedor?: string | null
@@ -185,6 +187,7 @@ export type Database = {
           property_type?: Database["public"]["Enums"]["property_type"]
           property_value?: number
           sale_date?: string | null
+          sale_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
           updated_at?: string | null
           vendedor?: string | null

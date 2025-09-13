@@ -286,6 +286,7 @@ const Vendas = () => {
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Corretor</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Imóvel</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Valor</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Tipo</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Data</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Ações</th>
@@ -294,13 +295,13 @@ const Vendas = () => {
               <tbody>
                 {salesLoading ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
                       Carregando vendas...
                     </td>
                   </tr>
                 ) : filteredSales.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
                       Nenhuma venda encontrada. Clique em "Nova Venda" para adicionar a primeira.
                     </td>
                   </tr>
@@ -332,6 +333,11 @@ const Vendas = () => {
                       <td className="p-4">
                         <span className="font-semibold text-foreground">
                           {formatCurrency(Number(sale.property_value))}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm text-foreground capitalize">
+                          {sale.sale_type || 'Não informado'}
                         </span>
                       </td>
                       <td className="p-4">

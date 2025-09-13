@@ -42,9 +42,16 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
 }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(broker?.avatar_url || null);
   
+  // Sincronizar avatar com dados do broker
+  React.useEffect(() => {
+    if (broker?.avatar_url) {
+      setAvatarUrl(broker.avatar_url);
+    }
+  }, [broker]);
+  
   const form = useForm<BrokerFormData>({
     resolver: zodResolver(brokerSchema),
-    defaultValues: {
+    values: {
       name: broker?.name || '',
       email: broker?.email || '',
       phone: broker?.phone || '',

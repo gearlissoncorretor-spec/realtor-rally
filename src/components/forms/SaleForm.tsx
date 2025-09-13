@@ -22,8 +22,8 @@ const saleSchema = z.object({
   status: z.enum(['pendente', 'confirmada', 'cancelada']),
   notes: z.string().optional(),
   commission_value: z.number().optional(),
-  // sale_type: z.enum(['lancamento', 'revenda']),
-  // sale_date: z.string().min(1, 'Data da venda é obrigatória'),
+  sale_type: z.enum(['lancamento', 'revenda']),
+  sale_date: z.string().min(1, 'Data da venda é obrigatória'),
   // Novos campos obrigatórios
   origem: z.string().min(1, 'Origem é obrigatória'),
   estilo: z.string().min(1, 'Estilo é obrigatório'),
@@ -68,8 +68,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       vgc: sale?.vgc || 0,
       status: sale?.status || 'pendente',
       notes: sale?.notes || '',
-      // sale_type: sale?.sale_type || 'lancamento',
-      // sale_date: sale?.sale_date || new Date().toISOString().split('T')[0],
+      sale_type: (sale?.sale_type as 'lancamento' | 'revenda') || 'lancamento',
+      sale_date: sale?.sale_date || new Date().toISOString().split('T')[0],
       // Novos campos
       origem: sale?.origem || '',
       estilo: sale?.estilo || '',
@@ -286,7 +286,6 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               />
             </div>
             
-            {/* Comentado temporariamente até adicionar campos à base de dados
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -329,7 +328,6 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 )}
               />
             </div>
-            */}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
