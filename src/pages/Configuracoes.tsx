@@ -14,9 +14,12 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import UserPermissionsManager from "@/components/UserPermissionsManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   const [settings, setSettings] = useState({
     companyName: "Sua Imobiliária",
     notifications: true,
@@ -131,6 +134,11 @@ const Configuracoes = () => {
               </Card>
             ))}
           </div>
+
+          {/* Gerenciamento de Usuários - Apenas para Admin */}
+          {isAdmin() && (
+            <UserPermissionsManager />
+          )}
 
           {/* Preferências */}
           <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.7s' }}>

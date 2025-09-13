@@ -75,29 +75,35 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allowed_screens: string[] | null
           avatar_url: string | null
           created_at: string | null
           email: string
           full_name: string
           id: string
+          is_admin: boolean | null
           role: string | null
           updated_at: string | null
         }
         Insert: {
+          allowed_screens?: string[] | null
           avatar_url?: string | null
           created_at?: string | null
           email: string
           full_name: string
           id: string
+          is_admin?: boolean | null
           role?: string | null
           updated_at?: string | null
         }
         Update: {
+          allowed_screens?: string[] | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string
           full_name?: string
           id?: string
+          is_admin?: boolean | null
           role?: string | null
           updated_at?: string | null
         }
@@ -283,7 +289,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_allowed_screens: {
+        Args: { user_id: string }
+        Returns: string[]
+      }
+      is_user_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       broker_status: "ativo" | "inativo" | "ferias"

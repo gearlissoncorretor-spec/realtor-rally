@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { BarChart3, TrendingUp, Users, Target, ArrowRight, Star, Award, DollarSign, Home as HomeIcon } from "lucide-react";
+import AuthButton from "@/components/AuthButton";
 const Home = () => {
   const features = [{
     icon: <BarChart3 className="w-8 h-8 text-primary" />,
@@ -32,6 +33,7 @@ const Home = () => {
           </div>
           
           <div className="flex items-center gap-4">
+            <AuthButton />
             <Link to="/dashboard">
               <Button variant="outline" className="animate-fade-in">
                 Acessar Dashboard

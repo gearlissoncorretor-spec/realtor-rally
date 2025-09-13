@@ -4,38 +4,52 @@ import { LayoutDashboard, Trophy, Home, Settings, BarChart3, Users, Menu, X } fr
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import AuthButton from "@/components/AuthButton";
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const navItems = [{
+  const { hasAccess, isAdmin } = useAuth();
+  
+  const allNavItems = [{
     href: "/dashboard",
     label: "Dashboard",
-    icon: LayoutDashboard
+    icon: LayoutDashboard,
+    screen: "dashboard"
   }, {
     href: "/ranking",
     label: "Ranking",
-    icon: Trophy
+    icon: Trophy,
+    screen: "ranking"
   }, {
     href: "/vendas",
     label: "Vendas",
-    icon: Home
+    icon: Home,
+    screen: "vendas"
   }, {
     href: "/acompanhamento",
     label: "Acompanhamento",
-    icon: BarChart3
+    icon: BarChart3,
+    screen: "acompanhamento"
   }, {
     href: "/relatorios",
     label: "Relatórios",
-    icon: BarChart3
+    icon: BarChart3,
+    screen: "relatorios"
   }, {
     href: "/corretores",
     label: "Corretores",
-    icon: Users
+    icon: Users,
+    screen: "corretores"
   }, {
     href: "/configuracoes",
     label: "Configurações",
-    icon: Settings
+    icon: Settings,
+    screen: "configuracoes"
   }];
+
+  // Filter nav items based on user permissions
+  const navItems = allNavItems.filter(item => hasAccess(item.screen));
   return <>
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-card border-b border-border z-50 flex items-center justify-between px-4">
@@ -48,6 +62,7 @@ const Navigation = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <AuthButton />
           <ThemeToggle />
           <Button variant="ghost" size="sm" onClick={() => setIsMobileOpen(!isMobileOpen)}>
             {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -79,7 +94,8 @@ const Navigation = () => {
           })}
           </div>
           
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <AuthButton />
             <ThemeToggle />
           </div>
         </div>
