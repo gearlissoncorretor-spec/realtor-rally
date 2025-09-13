@@ -16,6 +16,7 @@ import {
   Calendar,
   DollarSign
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SaleForm } from "@/components/forms/SaleForm";
@@ -23,6 +24,7 @@ import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
 import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
 import type { Sale } from "@/contexts/DataContext";
+import StatusDropdown from "@/components/StatusDropdown";
 
 const Vendas = () => {
   const { toast } = useToast();
@@ -98,6 +100,26 @@ const Vendas = () => {
       await deleteSale(saleId);
     } catch (error) {
       console.error('Erro ao excluir venda:', error);
+    }
+  };
+
+  const handleStatusChange = async (saleId: string, newStatus: 'pendente' | 'confirmada' | 'cancelada') => {
+    try {
+      const sale = sales.find(s => s.id === saleId);
+      if (sale) {
+        await updateSale(saleId, { ...sale, status: newStatus });
+        toast({
+          title: "Status atualizado",
+          description: `Status da venda alterado para ${getStatusLabel(newStatus)}`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status da venda",
+        variant: "destructive",
+      });
     }
   };
 
@@ -313,15 +335,16 @@ const Vendas = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <Badge className={getStatusColor(sale.status)}>
-                          {getStatusLabel(sale.status)}
-                        </Badge>
+                        <StatusDropdown 
+                          currentStatus={sale.status}
+                          onStatusChange={(newStatus) => handleStatusChange(sale.id, newStatus)}
+                        />
                       </td>
-                      <td className="p-4">
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(sale.created_at).toLocaleDateString('pt-BR')}
-                        </span>
-                      </td>
+                       <td className="p-4">
+                         <span className="text-sm text-muted-foreground">
+                           {sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : new Date(sale.created_at).toLocaleDateString('pt-BR')}
+                         </span>
+                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="sm" onClick={() => handleViewSale(sale)}>

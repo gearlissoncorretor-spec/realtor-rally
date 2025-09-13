@@ -9,9 +9,10 @@ interface VGCPercentageCardProps {
 }
 
 const VGCPercentageCard = ({ sales, className }: VGCPercentageCardProps) => {
-  // Calcular totais de VGV e VGC
-  const totalVGV = sales.reduce((sum, sale) => sum + sale.vgv, 0);
-  const totalVGC = sales.reduce((sum, sale) => sum + sale.vgc, 0);
+  // Calcular totais de VGV e VGC - usar apenas vendas confirmadas
+  const confirmedSales = sales.filter(sale => sale.status === 'confirmada');
+  const totalVGV = confirmedSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
+  const totalVGC = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgc || 0), 0);
   
   // Calcular porcentagem do VGC em relação ao VGV
   const vgcPercentage = totalVGV > 0 ? (totalVGC / totalVGV) * 100 : 0;

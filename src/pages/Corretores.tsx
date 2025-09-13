@@ -138,7 +138,7 @@ const Corretores = () => {
                       <div className="text-center">
                         <div className="flex items-center gap-2 mb-1">
                           <DollarSign className="w-4 h-4 text-success" />
-                          <span className="text-sm text-muted-foreground">Revenue</span>
+                          <span className="text-sm text-muted-foreground">Meta</span>
                         </div>
                         <p className="text-2xl font-bold text-foreground">
                           R$ {stats.totalRevenue > 1000000 

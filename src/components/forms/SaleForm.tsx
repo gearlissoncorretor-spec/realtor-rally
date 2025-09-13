@@ -18,16 +18,16 @@ const saleSchema = z.object({
   property_address: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
   property_type: z.enum(['apartamento', 'casa', 'comercial', 'terreno', 'rural']),
   property_value: z.number().min(1, 'Valor do imóvel deve ser maior que 0'),
-  vgv: z.number().min(1, 'VGV deve ser maior que 0'),
   vgc: z.number().min(1, 'VGC deve ser maior que 0'),
   status: z.enum(['pendente', 'confirmada', 'cancelada']),
   notes: z.string().optional(),
   commission_value: z.number().optional(),
+  // sale_type: z.enum(['lancamento', 'revenda']),
+  // sale_date: z.string().min(1, 'Data da venda é obrigatória'),
   // Novos campos obrigatórios
   origem: z.string().min(1, 'Origem é obrigatória'),
   estilo: z.string().min(1, 'Estilo é obrigatório'),
   produto: z.string().min(1, 'Produto é obrigatório'),
-  vendedor: z.string().min(1, 'Vendedor é obrigatório'),
   captador: z.string().min(1, 'Captador é obrigatório'),
   gerente: z.string().min(1, 'Gerente é obrigatório'),
   pagos: z.number().min(0, 'Pagos deve ser maior ou igual a 0'),
@@ -65,15 +65,15 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       property_address: sale?.property_address || '',
       property_type: sale?.property_type || 'apartamento',
       property_value: sale?.property_value || 0,
-      vgv: sale?.vgv || 0,
       vgc: sale?.vgc || 0,
       status: sale?.status || 'pendente',
       notes: sale?.notes || '',
+      // sale_type: sale?.sale_type || 'lancamento',
+      // sale_date: sale?.sale_date || new Date().toISOString().split('T')[0],
       // Novos campos
       origem: sale?.origem || '',
       estilo: sale?.estilo || '',
       produto: sale?.produto || '',
-      vendedor: sale?.vendedor || '',
       captador: sale?.captador || '',
       gerente: sale?.gerente || '',
       pagos: sale?.pagos || 0,
@@ -246,32 +246,13 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               )}
             />
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="property_value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor do Imóvel (R$)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="500000" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="vgv"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>VGV (R$)</FormLabel>
+                    <FormLabel>Valor do Imóvel / VGV (R$)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -304,6 +285,51 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 )}
               />
             </div>
+            
+            {/* Comentado temporariamente até adicionar campos à base de dados
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="sale_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Venda *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="lancamento">Lançamento</SelectItem>
+                        <SelectItem value="revenda">Revenda</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="sale_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data da Venda *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field}
+                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            */}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -335,35 +361,19 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="produto"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Produto *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do produto/empreendimento" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="vendedor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Vendedor *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do vendedor" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="produto"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Produto *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome do produto/empreendimento" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

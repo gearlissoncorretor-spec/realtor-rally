@@ -52,6 +52,7 @@ const BrokerDetailsModal = ({
   const brokerSales = sales.filter(sale => sale.broker_id === broker.id);
   const confirmedSales = brokerSales.filter(sale => sale.status === 'confirmada');
   const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
+  const totalVGC = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgc || 0), 0);
   const totalCommission = confirmedSales.reduce((sum, sale) => {
     const commissionRate = Number(broker.commission_rate || 5) / 100;
     return sum + (Number(sale.property_value || 0) * commissionRate);
@@ -112,23 +113,31 @@ const BrokerDetailsModal = ({
 
         <div className="space-y-6 mt-6">
           {/* Performance Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Card className="p-4 text-center">
               <DollarSign className="w-6 h-6 text-success mx-auto mb-2" />
               <p className="text-2xl font-bold text-foreground">
-                {formatCurrency(totalCommission)}
+                {formatCurrency(totalVGC)}
               </p>
-              <p className="text-sm text-muted-foreground">Comissão Total</p>
+              <p className="text-sm text-muted-foreground">VGC Total</p>
+            </Card>
+            
+            <Card className="p-4 text-center">
+              <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
+              <p className="text-2xl font-bold text-foreground">
+                {formatCurrency(totalRevenue)}
+              </p>
+              <p className="text-sm text-muted-foreground">VGV Total</p>
             </Card>
 
             <Card className="p-4 text-center">
-              <Target className="w-6 h-6 text-primary mx-auto mb-2" />
+              <Target className="w-6 h-6 text-info mx-auto mb-2" />
               <p className="text-2xl font-bold text-foreground">{salesCount}</p>
               <p className="text-sm text-muted-foreground">Vendas Realizadas</p>
             </Card>
 
             <Card className="p-4 text-center">
-              <TrendingUp className="w-6 h-6 text-info mx-auto mb-2" />
+              <TrendingUp className="w-6 h-6 text-warning mx-auto mb-2" />
               <p className="text-2xl font-bold text-foreground">
                 {salesCount > 0 ? formatCurrency(totalRevenue / salesCount) : 'R$ 0,00'}
               </p>
