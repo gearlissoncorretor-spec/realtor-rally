@@ -1,20 +1,45 @@
 import Navigation from "@/components/Navigation";
 import RankingPodium from "@/components/RankingPodium";
 import VictoryEffects from "@/components/VictoryEffects";
+import PeriodFilter from "@/components/PeriodFilter";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, TrendingUp, TrendingDown } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
+import { useState, useMemo } from "react";
 
 const Ranking = () => {
   const { brokers, sales, brokersLoading, salesLoading } = useData();
+  
+  // Estado para filtros de período
+  const [selectedMonth, setSelectedMonth] = useState(0); // 0 = todos os meses
+  const [selectedYear, setSelectedYear] = useState(0); // 0 = todos os anos
 
-  // Generate broker ranking data from real data
+  // Filtrar vendas baseado no período selecionado
+  const filteredSales = useMemo(() => {
+    return sales.filter(sale => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      
+      // Filtro de ano
+      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) {
+        return false;
+      }
+      
+      // Filtro de mês (1-12, onde 0 = todos os meses)
+      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [sales, selectedMonth, selectedYear]);
+
+  // Generate broker ranking data from filtered data
   const brokerRankings = brokers.map(broker => {
-    const brokerSales = sales.filter(sale => sale.broker_id === broker.id);
-    const totalRevenue = brokerSales.reduce((sum, sale) => sum + sale.property_value, 0);
+    const brokerSales = filteredSales.filter(sale => sale.broker_id === broker.id);
+    const totalRevenue = brokerSales.reduce((sum, sale) => sum + Number(sale.property_value), 0);
     const salesCount = brokerSales.length;
     
     return {
@@ -55,6 +80,14 @@ const Ranking = () => {
             <p className="text-muted-foreground">Performance e classificação da equipe</p>
           </div>
         </div>
+
+        {/* Filtros de Período */}
+        <PeriodFilter
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthChange={setSelectedMonth}
+          onYearChange={setSelectedYear}
+        />
 
         {/* Podium Section */}
         <div className="mb-8 animate-fade-in">

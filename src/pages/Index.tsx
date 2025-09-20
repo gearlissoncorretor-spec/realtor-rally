@@ -47,8 +47,8 @@ const Index = () => {
   }, [sales, selectedMonth, selectedYear]);
 
   // Calculate KPIs from filtered data
-  const totalVGV = filteredSales.reduce((sum, sale) => sum + sale.vgv, 0);
-  const totalVGC = filteredSales.reduce((sum, sale) => sum + sale.vgc, 0);
+  const totalVGV = filteredSales.reduce((sum, sale) => sum + Number(sale.vgv), 0);
+  const totalVGC = filteredSales.reduce((sum, sale) => sum + Number(sale.vgc), 0);
   const totalSales = filteredSales.length;
   const activeBrokers = brokers.filter(b => b.status === 'ativo').length;
   
@@ -60,7 +60,7 @@ const Index = () => {
     return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
   });
   
-  const thisMonthVGC = thisMonthSales.reduce((sum, sale) => sum + sale.vgc, 0);
+  const thisMonthVGC = thisMonthSales.reduce((sum, sale) => sum + Number(sale.vgc), 0);
   const conversionRate = totalSales > 0 ? ((filteredSales.filter(s => s.status === 'confirmada').length / totalSales) * 100) : 0;
 
   const kpiData = [
@@ -86,8 +86,8 @@ const Index = () => {
       icon: <Home className="w-6 h-6 text-warning" />
     },
     {
-      title: "Taxa de Conversão", 
-      value: `${conversionRate.toFixed(1).replace('.', ',')}%`,
+      title: "Percentual VGC", 
+      value: `${totalVGV > 0 ? ((totalVGC / totalVGV) * 100).toFixed(2).replace('.', ',') : '0,00'}%`,
       change: 2.8,
       trend: "up" as const,
       icon: <Target className="w-6 h-6 text-info" />
@@ -112,8 +112,8 @@ const Index = () => {
       const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short' });
       
       if (monthlyData[monthKey]) {
-        monthlyData[monthKey].vgv += sale.vgv;
-        monthlyData[monthKey].vgc += sale.vgc;
+        monthlyData[monthKey].vgv += Number(sale.vgv);
+        monthlyData[monthKey].vgc += Number(sale.vgc);
         monthlyData[monthKey].sales += 1;
       }
     });
@@ -129,7 +129,7 @@ const Index = () => {
   // Generate broker ranking data
   const brokerRankings = brokers.map(broker => {
     const brokerSales = sales.filter(sale => sale.broker_id === broker.id);
-    const totalRevenue = brokerSales.reduce((sum, sale) => sum + sale.property_value, 0);
+    const totalRevenue = brokerSales.reduce((sum, sale) => sum + Number(sale.property_value), 0);
     const salesCount = brokerSales.length;
     
     return {

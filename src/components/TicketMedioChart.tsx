@@ -28,7 +28,7 @@ const TicketMedioChart = ({ sales, title, height = 300 }: TicketMedioChartProps)
       const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short' });
       
       if (monthlyData[monthKey]) {
-        monthlyData[monthKey].totalValue += sale.property_value;
+        monthlyData[monthKey].totalValue += Number(sale.property_value);
         monthlyData[monthKey].count += 1;
       }
     });
@@ -69,7 +69,7 @@ const TicketMedioChart = ({ sales, title, height = 300 }: TicketMedioChartProps)
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
             fontSize={12}
-            tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}K`}
+            tickFormatter={(value) => formatCurrency(value)}
           />
           <Tooltip content={<CustomTooltip />} />
           <Line 
