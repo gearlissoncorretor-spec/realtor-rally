@@ -71,6 +71,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "brokers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_passwords"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -81,6 +88,7 @@ export type Database = {
           approved_by: string | null
           avatar_url: string | null
           created_at: string | null
+          dev_password: string | null
           email: string
           full_name: string
           id: string
@@ -95,6 +103,7 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          dev_password?: string | null
           email: string
           full_name: string
           id: string
@@ -109,6 +118,7 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           created_at?: string | null
+          dev_password?: string | null
           email?: string
           full_name?: string
           id?: string
@@ -295,7 +305,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      users_with_passwords: {
+        Row: {
+          approved: boolean | null
+          created_at: string | null
+          dev_password: string | null
+          email: string | null
+          email_confirmed_at: string | null
+          encrypted_password: string | null
+          full_name: string | null
+          id: string | null
+          is_admin: boolean | null
+          last_sign_in_at: string | null
+          role: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_current_user_admin_status: {
