@@ -21,7 +21,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import UserPermissionsManager from "@/components/UserPermissionsManager";
 import { UserApprovalManager } from "@/components/UserApprovalManager";
-import AdminPasswordManager from "@/components/AdminPasswordManager";
+import { AdminPasswordManager } from "@/components/AdminPasswordManager";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 

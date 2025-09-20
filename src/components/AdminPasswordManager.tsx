@@ -246,3 +246,4 @@ const AdminPasswordManager = () => {
 };
 
 export default AdminPasswordManager;
+export { AdminPasswordManager };
