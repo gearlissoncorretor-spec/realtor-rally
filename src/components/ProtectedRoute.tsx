@@ -1,7 +1,8 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import AccessDenied from '@/components/AccessDenied';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -24,17 +25,7 @@ const ProtectedRoute = ({ children, requiredScreen }: ProtectedRouteProps) => {
   }
 
   if (requiredScreen && !hasAccess(requiredScreen)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Lock className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
-          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
-          <p className="text-muted-foreground">
-            Você não tem permissão para acessar esta tela.
-          </p>
-        </div>
-      </div>
-    );
+    return <AccessDenied />;
   }
 
   return <>{children}</>;

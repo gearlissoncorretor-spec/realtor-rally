@@ -7,6 +7,7 @@ interface Profile {
   full_name: string;
   email: string;
   is_admin: boolean;
+  role: string;
   allowed_screens: string[];
 }
 
@@ -21,6 +22,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   hasAccess: (screen: string) => boolean;
   isAdmin: () => boolean;
+  getUserRole: () => string;
+  getDefaultRoute: () => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -145,6 +148,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return profile?.is_admin ?? false;
   };
 
+  const getUserRole = (): string => {
+    return profile?.role ?? 'cliente';
+  };
+
+  const getDefaultRoute = (): string => {
+    if (!profile) return '/dashboard';
+    
+    switch (profile.role) {
+      case 'admin':
+        return '/dashboard';
+      case 'corretor':
+        return '/vendas';
+      case 'cliente':
+        return '/dashboard';
+      default:
+        return '/dashboard';
+    }
+  };
+
   const value = {
     user,
     session,
@@ -156,6 +178,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     hasAccess,
     isAdmin,
+    getUserRole,
+    getDefaultRoute,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DataProvider } from "@/contexts/DataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import RoleRedirect from "@/components/RoleRedirect";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -29,7 +30,14 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/auth" element={<Auth />} />
+              <Route 
+                path="/auth" 
+                element={
+                  <RoleRedirect>
+                    <Auth />
+                  </RoleRedirect>
+                } 
+              />
               <Route 
                 path="/dashboard" 
                 element={

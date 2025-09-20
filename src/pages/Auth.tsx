@@ -12,7 +12,7 @@ import { Loader2, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
-  const { signIn, signUp, user, loading } = useAuth();
+  const { signIn, signUp, user, loading, getDefaultRoute } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -38,7 +38,10 @@ const Auth = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !loading) {
-      navigate('/dashboard');
+      // Use the default route based on user role
+      const { getDefaultRoute } = useAuth();
+      const defaultRoute = getDefaultRoute();
+      navigate(defaultRoute);
     }
   }, [user, loading, navigate]);
 
@@ -61,9 +64,9 @@ const Auth = () => {
       } else {
         toast({
           title: "Login realizado com sucesso",
-          description: "Redirecionando para o dashboard...",
+          description: "Redirecionando...",
         });
-        navigate('/dashboard');
+        // Redirect will happen automatically via useEffect when user state updates
       }
     } catch (err) {
       setError('Erro interno. Tente novamente.');
