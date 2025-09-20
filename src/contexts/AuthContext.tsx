@@ -9,6 +9,10 @@ interface Profile {
   is_admin: boolean;
   role: string;
   allowed_screens: string[];
+  approved: boolean;
+  approved_by?: string;
+  approved_at?: string;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
@@ -141,6 +145,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const hasAccess = (screen: string): boolean => {
     if (!profile) return false;
+    
+    // Check if user is approved
+    if (!profile.approved) return false;
+    
+    // If user is admin, grant access to all screens
+    if (profile.is_admin) return true;
+    
+    // Check specific screen permissions
     return profile.allowed_screens.includes(screen);
   };
 

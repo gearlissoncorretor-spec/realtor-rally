@@ -1,30 +1,39 @@
 import Navigation from "@/components/Navigation";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { 
   Settings, 
   Palette, 
   Bell,
   Shield,
   Database,
-  Globe
+  Globe,
+  User,
+  Users,
+  CheckCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import UserPermissionsManager from "@/components/UserPermissionsManager";
+import { UserApprovalManager } from "@/components/UserApprovalManager";
 import AdminPasswordManager from "@/components/AdminPasswordManager";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Configuracoes = () => {
   const { toast } = useToast();
   const { isAdmin } = useAuth();
+  const { theme } = useTheme();
+  
   const [settings, setSettings] = useState({
     companyName: "Sua Imobiliária",
     notifications: true,
-    darkMode: true,
+    darkMode: theme === 'dark',
     autoRefresh: true
   });
 
@@ -136,6 +145,13 @@ const Configuracoes = () => {
             ))}
           </div>
 
+          {/* User Approval Management - Only for Admins */}
+          {isAdmin() && (
+            <div className="mb-8">
+              <UserApprovalManager />
+            </div>
+          )}
+
           {/* Gerenciamento de Usuários - Apenas para Admin */}
           {isAdmin() && (
             <>
@@ -144,34 +160,69 @@ const Configuracoes = () => {
             </>
           )}
 
-          {/* Preferências */}
+          {/* Preferências do Usuário */}
           <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.7s' }}>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Preferências</h2>
-            <div className="space-y-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Preferências do Usuário
+              </CardTitle>
+              <CardDescription>
+                Configure suas preferências pessoais do sistema.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="notifications">Notificações por Email</Label>
-                  <p className="text-sm text-muted-foreground">Receber alertas sobre vendas e metas</p>
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Tema</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Alterne entre tema claro, escuro ou automático
+                  </p>
                 </div>
-                <Switch id="notifications" />
+                <ThemeToggle />
+              </div>
+              
+              <Separator />
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="notifications" className="text-base font-medium">Notificações por Email</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Receber alertas sobre vendas e metas
+                  </p>
+                </div>
+                <Switch 
+                  id="notifications" 
+                  checked={settings.notifications}
+                  onCheckedChange={(checked) => 
+                    setSettings(prev => ({ ...prev, notifications: checked }))
+                  }
+                />
               </div>
               
               <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="dark-mode">Modo Escuro</Label>
-                  <p className="text-sm text-muted-foreground">Usar tema escuro por padrão</p>
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-refresh" className="text-base font-medium">Atualização Automática</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Atualizar dados automaticamente a cada 30 segundos
+                  </p>
                 </div>
-                <Switch id="dark-mode" defaultChecked />
+                <Switch 
+                  id="auto-refresh" 
+                  checked={settings.autoRefresh}
+                  onCheckedChange={(checked) => 
+                    setSettings(prev => ({ ...prev, autoRefresh: checked }))
+                  }
+                />
               </div>
               
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="auto-refresh">Atualização Automática</Label>
-                  <p className="text-sm text-muted-foreground">Atualizar dados automaticamente</p>
-                </div>
-                <Switch id="auto-refresh" defaultChecked />
+              <div className="pt-4">
+                <Button onClick={handleSaveSettings} className="w-full">
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Salvar Preferências
+                </Button>
               </div>
-            </div>
+            </CardContent>
           </Card>
         </div>
       </div>

@@ -130,8 +130,8 @@ const Auth = () => {
         }
       } else {
         toast({
-          title: "Conta criada com sucesso",
-          description: "Verifique seu email para confirmar a conta",
+          title: "Cadastro realizado com sucesso!",
+          description: "Sua conta foi criada e será analisada pelos administradores. Você receberá um email quando for aprovada.",
         });
       }
     } catch (err) {

@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
+import { AccessDeniedMessage } from '@/components/AccessDeniedMessage';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredScreen }: ProtectedRouteProps) => {
-  const { user, loading, hasAccess } = useAuth();
+  const { user, loading, hasAccess, profile } = useAuth();
 
   if (loading) {
     return (
@@ -22,6 +23,11 @@ const ProtectedRoute = ({ children, requiredScreen }: ProtectedRouteProps) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Check if user is approved
+  if (profile && !profile.approved) {
+    return <AccessDeniedMessage type="approval" />;
   }
 
   if (requiredScreen && !hasAccess(requiredScreen)) {
