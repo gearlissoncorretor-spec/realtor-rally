@@ -18,6 +18,7 @@ const saleSchema = z.object({
   property_address: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
   property_type: z.enum(['apartamento', 'casa', 'comercial', 'terreno', 'rural']),
   property_value: z.number().min(1, 'Valor do imóvel deve ser maior que 0'),
+  vgv: z.number().optional(), // VGV é o valor total de vendas do empreendimento
   vgc: z.number().min(1, 'VGC deve ser maior que 0'),
   status: z.enum(['pendente', 'confirmada', 'cancelada']),
   notes: z.string().optional(),
@@ -58,44 +59,112 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
-      broker_id: sale?.broker_id || undefined,
-      client_name: sale?.client_name || '',
-      client_email: sale?.client_email || '',
-      client_phone: sale?.client_phone || '',
-      property_address: sale?.property_address || '',
-      property_type: sale?.property_type || 'apartamento',
-      property_value: sale?.property_value || 0,
-      vgc: sale?.vgc || 0,
-      status: sale?.status || 'pendente',
-      notes: sale?.notes || '',
-      sale_type: (sale?.sale_type as 'lancamento' | 'revenda') || 'lancamento',
-      sale_date: sale?.sale_date || new Date().toISOString().split('T')[0],
-      // Novos campos
-      origem: sale?.origem || '',
-      estilo: sale?.estilo || '',
-      produto: sale?.produto || '',
-      captador: sale?.captador || '',
-      gerente: sale?.gerente || '',
-      pagos: sale?.pagos || 0,
-      ano: sale?.ano || new Date().getFullYear(),
-      mes: sale?.mes || new Date().getMonth() + 1,
-      latitude: sale?.latitude || '',
+      broker_id: undefined,
+      client_name: '',
+      client_email: '',
+      client_phone: '',
+      property_address: '',
+      property_type: 'apartamento',
+      property_value: 0,
+      vgc: 0,
+      status: 'pendente',
+      notes: '',
+      sale_type: 'lancamento',
+      sale_date: new Date().toISOString().split('T')[0],
+      origem: '',
+      estilo: '',
+      produto: '',
+      captador: '',
+      gerente: '',
+      pagos: 0,
+      ano: new Date().getFullYear(),
+      mes: new Date().getMonth() + 1,
+      latitude: '',
     },
   });
 
+  // Reset form when sale data changes
+  React.useEffect(() => {
+    if (isOpen) {
+      if (sale) {
+        // Editing existing sale - populate form with sale data
+        form.reset({
+          broker_id: sale.broker_id || undefined,
+          client_name: sale.client_name || '',
+          client_email: sale.client_email || '',
+          client_phone: sale.client_phone || '',
+          property_address: sale.property_address || '',
+          property_type: sale.property_type || 'apartamento',
+          property_value: Number(sale.property_value) || 0,
+          vgv: Number(sale.vgv) || 0,
+          vgc: Number(sale.vgc) || 0,
+          status: sale.status || 'pendente',
+          notes: sale.notes || '',
+          sale_type: (sale.sale_type as 'lancamento' | 'revenda') || 'lancamento',
+          sale_date: sale.sale_date || new Date().toISOString().split('T')[0],
+          origem: sale.origem || '',
+          estilo: sale.estilo || '',
+          produto: sale.produto || '',
+          captador: sale.captador || '',
+          gerente: sale.gerente || '',
+          pagos: Number(sale.pagos) || 0,
+          ano: sale.ano || new Date().getFullYear(),
+          mes: sale.mes || new Date().getMonth() + 1,
+          latitude: sale.latitude || '',
+        });
+      } else {
+        // New sale - reset to default values
+        form.reset({
+          broker_id: undefined,
+          client_name: '',
+          client_email: '',
+          client_phone: '',
+          property_address: '',
+          property_type: 'apartamento',
+          property_value: 0,
+          vgv: 0,
+          vgc: 0,
+          status: 'pendente',
+          notes: '',
+          sale_type: 'lancamento',
+          sale_date: new Date().toISOString().split('T')[0],
+          origem: '',
+          estilo: '',
+          produto: '',
+          captador: '',
+          gerente: '',
+          pagos: 0,
+          ano: new Date().getFullYear(),
+          mes: new Date().getMonth() + 1,
+          latitude: '',
+        });
+      }
+    }
+  }, [isOpen, sale, form]);
+
   const handleSubmit = async (data: SaleFormData) => {
     try {
-      // Calculate commission based on broker's rate
+      // Calculate commission based on broker's rate and VGC
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
-      const commission_value = (data.property_value * Number(commissionRate)) / 100;
+      
+      // VGC é o valor sobre o qual será calculada a comissão
+      // Se não informado, usar o valor do imóvel
+      const vgcValue = data.vgc > 0 ? data.vgc : data.property_value;
+      const commission_value = (vgcValue * Number(commissionRate)) / 100;
       
       await onSubmit({
         ...data,
+        vgv: data.property_value, // VGV é o valor total de vendas do empreendimento
+        vgc: vgcValue, // VGC é o valor da comissão geral
         commission_value,
         client_email: data.client_email || null,
       });
-      form.reset();
+      
+      if (!sale) {
+        // Only reset form for new sales, not edits
+        form.reset();
+      }
       onClose();
     } catch (error) {
       console.error('Error submitting sale form:', error);
@@ -271,7 +340,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 name="vgc"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>VGC (R$)</FormLabel>
+                    <FormLabel>VGC - Valor da Comissão Geral (R$)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -281,6 +350,9 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                       />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      Valor base para cálculo da comissão. Se não informado, será usado o VGV.
+                    </p>
                   </FormItem>
                 )}
               />

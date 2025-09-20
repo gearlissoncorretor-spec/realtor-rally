@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PeriodFilter from "@/components/PeriodFilter";
 import SaleConfirmationDialog from "@/components/SaleConfirmationDialog";
+import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import { 
   Home, 
   Plus, 
@@ -32,6 +33,8 @@ const Vendas = () => {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [confirmedSale, setConfirmedSale] = useState<Sale | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [viewingSale, setViewingSale] = useState<Sale | null>(null);
   
   // Estados para filtros de período
   const [selectedMonth, setSelectedMonth] = useState(0);
@@ -124,10 +127,14 @@ const Vendas = () => {
   };
 
   const handleViewSale = (sale: Sale) => {
-    toast({
-      title: "Visualizar Venda",
-      description: `Exibindo detalhes da venda para ${sale.client_name}`,
-    });
+    setViewingSale(sale);
+    setIsDetailsOpen(true);
+  };
+
+  const handleEditFromDetails = (sale: Sale) => {
+    setIsDetailsOpen(false);
+    setSelectedSale(sale);
+    setIsFormOpen(true);
   };
 
   const handleExport = () => {
@@ -146,13 +153,19 @@ const Vendas = () => {
 
   const handleSaleSubmit = async (data: any) => {
     try {
-      // Calculate commission based on broker's rate
+      // Calculate commission based on broker's rate and VGC
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
-      const commission_value = (data.property_value * Number(commissionRate)) / 100;
+      
+      // VGC é o valor sobre o qual será calculada a comissão
+      // Se não informado, usar o valor do imóvel
+      const vgcValue = data.vgc > 0 ? data.vgc : data.property_value;
+      const commission_value = (vgcValue * Number(commissionRate)) / 100;
       
       const saleData = {
         ...data,
+        vgv: data.property_value, // VGV é o valor total de vendas do empreendimento
+        vgc: vgcValue, // VGC é o valor da comissão geral
         commission_value,
         client_email: data.client_email || null,
       };
@@ -284,9 +297,10 @@ const Vendas = () => {
                 <tr>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Cliente</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Corretor</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Imóvel</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Valor</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Tipo</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Produto</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">VGV</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">VGC</th>
+                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Comissão</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Data</th>
                   <th className="text-left p-4 text-sm font-medium text-muted-foreground">Ações</th>
@@ -295,13 +309,13 @@ const Vendas = () => {
               <tbody>
                 {salesLoading ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="p-8 text-center text-muted-foreground">
                       Carregando vendas...
                     </td>
                   </tr>
                 ) : filteredSales.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                    <td colSpan={9} className="p-8 text-center text-muted-foreground">
                       Nenhuma venda encontrada. Clique em "Nova Venda" para adicionar a primeira.
                     </td>
                   </tr>
@@ -328,16 +342,31 @@ const Vendas = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className="text-sm text-foreground">{sale.property_address}</span>
+                        <span className="text-sm text-foreground font-medium">
+                          {sale.produto || 'Não informado'}
+                        </span>
+                        <br />
+                        <span className="text-xs text-muted-foreground">
+                          {sale.property_address}
+                        </span>
                       </td>
                       <td className="p-4">
                         <span className="font-semibold text-foreground">
                           {formatCurrency(Number(sale.property_value))}
                         </span>
+                        <br />
+                        <span className="text-xs text-muted-foreground">VGV</span>
                       </td>
                       <td className="p-4">
-                        <span className="text-sm text-foreground capitalize">
-                          {sale.sale_type || 'Não informado'}
+                        <span className="font-semibold text-primary">
+                          {formatCurrency(Number(sale.vgc))}
+                        </span>
+                        <br />
+                        <span className="text-xs text-muted-foreground">VGC</span>
+                      </td>
+                      <td className="p-4">
+                        <span className="font-semibold text-success">
+                          {formatCurrency(Number(sale.commission_value || 0))}
                         </span>
                       </td>
                       <td className="p-4">
@@ -392,6 +421,16 @@ const Vendas = () => {
           isEdit={!!selectedSale}
         />
       )}
+
+      <SaleDetailsDialog
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setViewingSale(null);
+        }}
+        sale={viewingSale}
+        onEdit={handleEditFromDetails}
+      />
     </div>
   );
 };
