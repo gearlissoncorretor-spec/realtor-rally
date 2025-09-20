@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import UserPermissionsManager from "@/components/UserPermissionsManager";
+import AdminPasswordManager from "@/components/AdminPasswordManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -137,7 +138,10 @@ const Configuracoes = () => {
 
           {/* Gerenciamento de Usuários - Apenas para Admin */}
           {isAdmin() && (
-            <UserPermissionsManager />
+            <>
+              <UserPermissionsManager />
+              <AdminPasswordManager />
+            </>
           )}
 
           {/* Preferências */}

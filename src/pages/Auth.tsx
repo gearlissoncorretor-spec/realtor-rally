@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +18,8 @@ const Auth = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetEmail, setResetEmail] = useState('');
+  const [showResetForm, setShowResetForm] = useState(false);
   
   // Login form state
   const [loginData, setLoginData] = useState({
@@ -61,6 +64,33 @@ const Auth = () => {
           description: "Redirecionando para o dashboard...",
         });
         navigate('/dashboard');
+      }
+    } catch (err) {
+      setError('Erro interno. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        toast({
+          title: "Email enviado",
+          description: "Verifique seu email para redefinir sua senha",
+        });
+        setShowResetForm(false);
+        setResetEmail('');
       }
     } catch (err) {
       setError('Erro interno. Tente novamente.');
@@ -167,7 +197,47 @@ const Auth = () => {
                   {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Entrar
                 </Button>
+                <div className="text-center">
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => setShowResetForm(!showResetForm)}
+                    className="text-muted-foreground"
+                  >
+                    Esqueceu sua senha?
+                  </Button>
+                </div>
               </form>
+              
+              {showResetForm && (
+                <form onSubmit={handleResetPassword} className="space-y-4 mt-6 pt-6 border-t">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email para recuperação</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="Digite seu email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={isLoading}>
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Enviar Link
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowResetForm(false)}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </form>
+              )}
             </TabsContent>
             
             <TabsContent value="signup" className="space-y-4">
