@@ -76,6 +76,9 @@ export type Database = {
       profiles: {
         Row: {
           allowed_screens: string[] | null
+          approved: boolean | null
+          approved_at: string | null
+          approved_by: string | null
           avatar_url: string | null
           created_at: string | null
           email: string
@@ -87,6 +90,9 @@ export type Database = {
         }
         Insert: {
           allowed_screens?: string[] | null
+          approved?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email: string
@@ -98,6 +104,9 @@ export type Database = {
         }
         Update: {
           allowed_screens?: string[] | null
+          approved?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string | null
           email?: string
@@ -289,6 +298,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_admin_status: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       get_user_allowed_screens: {
         Args: { user_id: string }
         Returns: string[]
