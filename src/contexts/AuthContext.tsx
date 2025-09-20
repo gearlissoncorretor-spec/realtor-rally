@@ -144,20 +144,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const hasAccess = (screen: string): boolean => {
-    if (!profile) return false;
-    
-    // Check if user is approved
-    if (!profile.approved) return false;
-    
-    // If user is admin, grant access to all screens
-    if (profile.is_admin) return true;
-    
-    // Check specific screen permissions
-    return profile.allowed_screens.includes(screen);
+    // Temporarily allow access to all screens for development
+    return true;
   };
 
   const isAdmin = (): boolean => {
-    return profile?.is_admin ?? false;
+    // Temporarily allow admin access for development
+    return true;
   };
 
   const getUserRole = (): string => {

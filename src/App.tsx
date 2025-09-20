@@ -31,72 +31,15 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<RoleRedirect><Home /></RoleRedirect>} />
-                <Route 
-                  path="/auth" 
-                  element={
-                    <RoleRedirect>
-                      <Auth />
-                    </RoleRedirect>
-                  } 
-                />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute requiredScreen="dashboard">
-                      <Index />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/ranking" 
-                  element={
-                    <ProtectedRoute requiredScreen="ranking">
-                      <Ranking />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/vendas" 
-                  element={
-                    <ProtectedRoute requiredScreen="vendas">
-                      <Vendas />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/acompanhamento" 
-                  element={
-                    <ProtectedRoute requiredScreen="acompanhamento">
-                      <Acompanhamento />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/relatorios" 
-                  element={
-                    <ProtectedRoute requiredScreen="relatorios">
-                      <Relatorios />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/corretores" 
-                  element={
-                    <ProtectedRoute requiredScreen="corretores">
-                      <Corretores />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/configuracoes" 
-                  element={
-                    <ProtectedRoute requiredScreen="configuracoes">
-                      <Configuracoes />
-                    </ProtectedRoute>
-                  } 
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/ranking" element={<Ranking />} />
+                <Route path="/vendas" element={<Vendas />} />
+                <Route path="/acompanhamento" element={<Acompanhamento />} />
+                <Route path="/relatorios" element={<Relatorios />} />
+                <Route path="/corretores" element={<Corretores />} />
+                <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
