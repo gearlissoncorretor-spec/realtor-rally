@@ -108,7 +108,66 @@ const Vendas = () => {
                   </DialogTitle>
                 </DialogHeader>
                 <SaleForm 
-                  sale={selectedSale} 
+                  isOpen={isFormOpen}
+                  onClose={() => {
+                    setIsFormOpen(false);
+                    setSelectedSale(null);
+                  }}
+                  onSubmit={async (data) => {
+                    // Handle form submission
+                    try {
+                      // Transform form data to match Sale interface
+                      const saleData = {
+                        client_name: data.client_name!,
+                        property_address: data.property_address!,
+                        property_type: data.property_type!,
+                        broker_id: data.broker_id!,
+                        status: data.status!,
+                        origem: data.origem!,
+                        estilo: data.estilo!,
+                        produto: data.produto!,
+                        captador: data.captador!,
+                        gerente: data.gerente!,
+                        latitude: data.latitude!,
+                        sale_type: data.sale_type!,
+                        sale_date: data.sale_date!,
+                        client_email: data.client_email || null,
+                        client_phone: data.client_phone || null,
+                        notes: data.notes || null,
+                        property_value: Number(data.property_value),
+                        vgv: Number(data.vgv || data.property_value),
+                        vgc: Number(data.vgc),
+                        commission_value: Number(data.commission_value || 0),
+                        pagos: Number(data.pagos || 0),
+                        ano: Number(data.ano),
+                        mes: Number(data.mes),
+                      };
+
+                      if (selectedSale) {
+                        await updateSale(selectedSale.id, saleData);
+                        toast({
+                          title: "Venda atualizada",
+                          description: "A venda foi atualizada com sucesso.",
+                        });
+                      } else {
+                        await createSale(saleData);
+                        toast({
+                          title: "Venda criada",
+                          description: "A nova venda foi criada com sucesso.",
+                        });
+                      }
+                      setIsFormOpen(false);
+                      setSelectedSale(null);
+                    } catch (error) {
+                      toast({
+                        title: "Erro",
+                        description: "Não foi possível salvar a venda.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  sale={selectedSale}
+                  title={selectedSale ? "Editar Venda" : "Nova Venda"}
                 />
               </DialogContent>
             </Dialog>
