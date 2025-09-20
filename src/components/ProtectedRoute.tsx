@@ -8,10 +8,11 @@ import { AccessDeniedMessage } from '@/components/AccessDeniedMessage';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredScreen?: string;
+  adminOnly?: boolean;
 }
 
-const ProtectedRoute = ({ children, requiredScreen }: ProtectedRouteProps) => {
-  const { user, loading, hasAccess, profile } = useAuth();
+const ProtectedRoute = ({ children, requiredScreen, adminOnly }: ProtectedRouteProps) => {
+  const { user, loading, hasAccess, profile, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -28,6 +29,11 @@ const ProtectedRoute = ({ children, requiredScreen }: ProtectedRouteProps) => {
   // Check if user is approved
   if (profile && !profile.approved) {
     return <AccessDeniedMessage type="approval" />;
+  }
+
+  // Check if admin access is required
+  if (adminOnly && !isAdmin()) {
+    return <AccessDenied />;
   }
 
   if (requiredScreen && !hasAccess(requiredScreen)) {

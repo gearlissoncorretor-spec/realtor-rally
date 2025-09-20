@@ -1,436 +1,368 @@
 import Navigation from "@/components/Navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import PeriodFilter from "@/components/PeriodFilter";
-import SaleConfirmationDialog from "@/components/SaleConfirmationDialog";
+import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
+import ExcelImport from "@/components/ExcelImport";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
-  Home, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
   Plus, 
-  Filter, 
-  Download, 
-  Eye, 
+  Search, 
   Edit, 
-  Trash2,
+  Trash2, 
+  Eye,
+  DollarSign,
   Calendar,
-  DollarSign
+  User,
+  MapPin,
+  Filter,
+  ChevronRight,
+  ChevronDown
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { SaleForm } from "@/components/forms/SaleForm";
 import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
-import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
+import { formatCurrency } from "@/utils/formatting";
 import type { Sale } from "@/contexts/DataContext";
-import StatusDropdown from "@/components/StatusDropdown";
 
 const Vendas = () => {
   const { toast } = useToast();
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [confirmedSale, setConfirmedSale] = useState<Sale | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [viewingSale, setViewingSale] = useState<Sale | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   
-  // Estados para filtros de período
-  const [selectedMonth, setSelectedMonth] = useState(0);
-  const [selectedYear, setSelectedYear] = useState(0);
-  
-  const { sales, loading: salesLoading, createSale, updateSale, deleteSale } = useSales();
+  const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
 
-  // Filtrar vendas baseado no período selecionado
+  // Filter sales based on search term
   const filteredSales = useMemo(() => {
-    return sales.filter(sale => {
-      const saleDate = new Date(sale.sale_date || sale.created_at || '');
-      
-      // Filtro de ano
-      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) {
-        return false;
-      }
-      
-      // Filtro de mês (1-12, onde 0 = todos os meses)
-      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) {
-        return false;
-      }
-      
-      return true;
-    });
-  }, [sales, selectedMonth, selectedYear]);
+    return sales.filter(sale =>
+      sale.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sale.property_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      brokers.find(b => b.id === sale.broker_id)?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [sales, searchTerm, brokers]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmada":
-        return "bg-success text-success-foreground";
-      case "pendente":
-        return "bg-warning text-warning-foreground";
-      case "cancelada":
-        return "bg-destructive text-destructive-foreground";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "confirmada":
-        return "Confirmada";
-      case "pendente":
-        return "Pendente";
-      case "cancelada":
-        return "Cancelada";
-      default:
-        return status;
-    }
-  };
-
-  const handleNewSale = () => {
-    setSelectedSale(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEditSale = (sale: any) => {
-    setSelectedSale(sale);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteSale = async (saleId: string) => {
+  const handleDelete = async (saleId: string) => {
     try {
       await deleteSale(saleId);
+      toast({
+        title: "Venda excluída",
+        description: "A venda foi excluída com sucesso.",
+      });
     } catch (error) {
-      console.error('Erro ao excluir venda:', error);
-    }
-  };
-
-  const handleStatusChange = async (saleId: string, newStatus: 'pendente' | 'confirmada' | 'cancelada') => {
-    try {
-      const sale = sales.find(s => s.id === saleId);
-      if (sale) {
-        await updateSale(saleId, { ...sale, status: newStatus });
-        toast({
-          title: "Status atualizado",
-          description: `Status da venda alterado para ${getStatusLabel(newStatus)}`,
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o status da venda",
+        description: "Não foi possível excluir a venda.",
         variant: "destructive",
       });
     }
   };
 
-  const handleViewSale = (sale: Sale) => {
-    setViewingSale(sale);
-    setIsDetailsOpen(true);
-  };
-
-  const handleEditFromDetails = (sale: Sale) => {
-    setIsDetailsOpen(false);
-    setSelectedSale(sale);
-    setIsFormOpen(true);
-  };
-
-  const handleExport = () => {
-    toast({
-      title: "Exportação iniciada",
-      description: "Os dados estão sendo preparados para download.",
-    });
-  };
-
-  const handleFilter = () => {
-    toast({
-      title: "Filtros",
-      description: "Funcionalidade de filtros em desenvolvimento.",
-    });
-  };
-
-  const handleSaleSubmit = async (data: any) => {
-    try {
-      // Calculate commission based on broker's rate and VGC
-      const selectedBroker = brokers.find(b => b.id === data.broker_id);
-      const commissionRate = selectedBroker?.commission_rate || 5;
-      
-      // VGC é o valor sobre o qual será calculada a comissão
-      // Se não informado, usar o valor do imóvel
-      const vgcValue = data.vgc > 0 ? data.vgc : data.property_value;
-      const commission_value = (vgcValue * Number(commissionRate)) / 100;
-      
-      const saleData = {
-        ...data,
-        vgv: data.property_value, // VGV é o valor total de vendas do empreendimento
-        vgc: vgcValue, // VGC é o valor da comissão geral
-        commission_value,
-        client_email: data.client_email || null,
-      };
-
-      let savedSale;
-      if (selectedSale) {
-        savedSale = await updateSale(selectedSale.id, saleData);
-      } else {
-        savedSale = await createSale(saleData);
-      }
-      
-      // Mostrar tela de confirmação
-      setConfirmedSale(savedSale);
-      setIsConfirmationOpen(true);
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('Erro ao salvar venda:', error);
+  const toggleRowExpansion = (saleId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(saleId)) {
+      newExpanded.delete(saleId);
+    } else {
+      newExpanded.add(saleId);
     }
+    setExpandedRows(newExpanded);
   };
-
-  // Calculate totals from filtered data
-  const totalSales = filteredSales.length;
-  const totalValue = filteredSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
-  const confirmedSales = filteredSales.filter(sale => sale.status === 'confirmada');
-  const totalCommissions = confirmedSales.reduce((sum, sale) => sum + Number(sale.commission_value || 0), 0);
-  const currentMonth = new Date().getMonth() + 1;
-  const currentYear = new Date().getFullYear();
-  const thisMonthSales = sales.filter(sale => {
-    const saleDate = new Date(sale.created_at);
-    return saleDate.getMonth() + 1 === currentMonth && saleDate.getFullYear() === currentYear;
-  }).length;
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Home className="w-8 h-8 text-primary" />
-              <h1 className="text-3xl font-bold text-foreground">Gestão de Vendas</h1>
-            </div>
-            <p className="text-muted-foreground">
-              Controle completo de vendas e negociações
-            </p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Gestão de Vendas</h1>
+            <p className="text-muted-foreground">Controle completo de vendas e negociações</p>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={handleFilter}>
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="w-4 h-4 mr-2" />
-              Exportar
-            </Button>
-            <Button size="sm" className="bg-gradient-primary" onClick={handleNewSale}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Venda
-            </Button>
+          <div className="flex gap-2">
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Nova Venda
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {selectedSale ? "Editar Venda" : "Nova Venda"}
+                  </DialogTitle>
+                </DialogHeader>
+                <SaleForm 
+                  sale={selectedSale} 
+                />
+              </DialogContent>
+            </Dialog>
+            
+            <ExcelImport onImportComplete={() => refreshSales()} />
           </div>
         </div>
 
-        {/* Filtros de Período */}
-        <PeriodFilter
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          onMonthChange={setSelectedMonth}
-          onYearChange={setSelectedYear}
-        />
+        {/* Search and Filters */}
+        <div className="flex gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Buscar por cliente, endereço ou corretor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
 
-        {/* Stats Cards */}
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 bg-gradient-card border-border">
+          <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Vendas</p>
-                <p className="text-2xl font-bold text-foreground">{totalSales}</p>
+                <p className="text-sm text-muted-foreground">Total de Vendas</p>
+                <p className="text-2xl font-bold">{filteredSales.length}</p>
               </div>
-              <Home className="w-8 h-8 text-primary opacity-80" />
+              <User className="w-8 h-8 text-primary opacity-80" />
             </div>
           </Card>
-
-          <Card className="p-6 bg-gradient-card border-border">
+          
+          <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Valor Total</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {formatCurrencyCompact(totalValue)}
+                <p className="text-sm text-muted-foreground">Valor Total</p>
+                <p className="text-2xl font-bold text-success">
+                  {formatCurrency(filteredSales.reduce((sum, sale) => sum + Number(sale.property_value), 0))}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-success opacity-80" />
             </div>
           </Card>
-
-          <Card className="p-6 bg-gradient-card border-border">
+          
+          <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Comissões</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {formatCurrencyCompact(totalCommissions)}
+                <p className="text-sm text-muted-foreground">VGC Total</p>
+                <p className="text-2xl font-bold text-info">
+                  {formatCurrency(filteredSales.reduce((sum, sale) => sum + Number(sale.vgc), 0))}
                 </p>
               </div>
-              <Calendar className="w-8 h-8 text-warning opacity-80" />
+              <Calendar className="w-8 h-8 text-info opacity-80" />
             </div>
           </Card>
-
-          <Card className="p-6 bg-gradient-card border-border">
+          
+          <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Este Mês</p>
-                <p className="text-2xl font-bold text-foreground">{thisMonthSales}</p>
+                <p className="text-sm text-muted-foreground">Vendas Confirmadas</p>
+                <p className="text-2xl font-bold text-warning">
+                  {filteredSales.filter(sale => sale.status === 'confirmada').length}
+                </p>
               </div>
-              <Home className="w-8 h-8 text-info opacity-80" />
+              <MapPin className="w-8 h-8 text-warning opacity-80" />
             </div>
           </Card>
         </div>
 
         {/* Sales Table */}
-        <Card className="bg-gradient-card border-border">
-          <div className="p-6 border-b border-border">
-            <h3 className="text-lg font-semibold text-foreground">Vendas Recentes</h3>
+        <Card className="overflow-hidden">
+          <div className="p-6 border-b">
+            <h3 className="text-lg font-semibold">Lista de Vendas</h3>
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b border-border">
-                <tr>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Cliente</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Corretor</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Produto</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">VGV</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">VGC</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Comissão</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Data</th>
-                  <th className="text-left p-4 text-sm font-medium text-muted-foreground">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {salesLoading ? (
-                  <tr>
-                    <td colSpan={9} className="p-8 text-center text-muted-foreground">
-                      Carregando vendas...
-                    </td>
-                  </tr>
-                ) : filteredSales.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="p-8 text-center text-muted-foreground">
-                      Nenhuma venda encontrada. Clique em "Nova Venda" para adicionar a primeira.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredSales.map((sale, index) => (
-                    <tr 
-                      key={sale.id} 
-                      className="border-b border-border hover:bg-accent/50 transition-colors animate-fade-in"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-8 h-8">
-                            <AvatarFallback className="text-xs">
-                              {sale.client_name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium text-foreground">{sale.client_name}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-sm text-foreground">
-                          {sale.broker?.name || 'Sem corretor'}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className="text-sm text-foreground font-medium">
-                          {sale.produto || 'Não informado'}
-                        </span>
-                        <br />
-                        <span className="text-xs text-muted-foreground">
-                          {sale.property_address}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className="font-semibold text-foreground">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12"></TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Imóvel</TableHead>
+                <TableHead>Corretor</TableHead>
+                <TableHead>Valor do Imóvel</TableHead>
+                <TableHead>VGC</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-32 text-center">
+                    Carregando vendas...
+                  </TableCell>
+                </TableRow>
+              ) : filteredSales.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
+                    {searchTerm ? 'Nenhuma venda encontrada para o filtro aplicado.' : 'Nenhuma venda cadastrada ainda.'}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredSales.map((sale) => {
+                  const broker = brokers.find(b => b.id === sale.broker_id);
+                  const isExpanded = expandedRows.has(sale.id);
+                  return (
+                    <>
+                      <TableRow key={sale.id} className="hover:bg-muted/50">
+                        <TableCell className="w-12">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleRowExpansion(sale.id)}
+                            className="p-1 h-6 w-6"
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </TableCell>
+                        <TableCell className="font-medium">{sale.client_name}</TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div className="font-medium">{sale.property_address}</div>
+                            <div className="text-muted-foreground">
+                              {sale.property_type}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {broker ? broker.name : "Sem corretor"}
+                        </TableCell>
+                        <TableCell className="font-semibold">
                           {formatCurrency(Number(sale.property_value))}
-                        </span>
-                        <br />
-                        <span className="text-xs text-muted-foreground">VGV</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="font-semibold text-primary">
+                        </TableCell>
+                        <TableCell className="font-semibold text-success">
                           {formatCurrency(Number(sale.vgc))}
-                        </span>
-                        <br />
-                        <span className="text-xs text-muted-foreground">VGC</span>
-                      </td>
-                      <td className="p-4">
-                        <span className="font-semibold text-success">
-                          {formatCurrency(Number(sale.commission_value || 0))}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <StatusDropdown 
-                          currentStatus={sale.status}
-                          onStatusChange={(newStatus) => handleStatusChange(sale.id, newStatus)}
-                        />
-                      </td>
-                       <td className="p-4">
-                         <span className="text-sm text-muted-foreground">
-                           {sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : new Date(sale.created_at).toLocaleDateString('pt-BR')}
-                         </span>
-                       </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleViewSale(sale)}>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleEditSale(sale)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteSale(sale.id)}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              sale.status === 'confirmada' ? 'default' :
+                              sale.status === 'pendente' ? 'secondary' :
+                              'destructive'
+                            }
+                          >
+                            {sale.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : 'Sem data'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedSale(sale);
+                                setIsDetailsOpen(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedSale(sale);
+                                setIsFormOpen(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => handleDelete(sale.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+
+                      {/* Expanded Row Details */}
+                      {isExpanded && (
+                        <TableRow>
+                          <TableCell colSpan={9} className="bg-muted/20">
+                            <div className="p-4 space-y-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                  <h4 className="font-medium text-sm">Informações do Cliente</h4>
+                                  <div className="text-sm space-y-1">
+                                    <p><strong>Nome:</strong> {sale.client_name}</p>
+                                    <p><strong>Telefone:</strong> {sale.client_phone || 'Não informado'}</p>
+                                    <p><strong>Email:</strong> {sale.client_email || 'Não informado'}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <h4 className="font-medium text-sm">Detalhes da Venda</h4>
+                                  <div className="text-sm space-y-1">
+                                    <p><strong>VGV:</strong> {formatCurrency(Number(sale.vgv))}</p>
+                                    <p><strong>VGC:</strong> {formatCurrency(Number(sale.vgc))}</p>
+                                    <p><strong>Tipo de Venda:</strong> {sale.sale_type || 'Não informado'}</p>
+                                    <p><strong>Origem:</strong> {sale.origem || 'Não informado'}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                  <h4 className="font-medium text-sm">Informações Adicionais</h4>
+                                  <div className="text-sm space-y-1">
+                                    <p><strong>Captador:</strong> {sale.captador || 'Não informado'}</p>
+                                    <p><strong>Gerente:</strong> {sale.gerente || 'Não informado'}</p>
+                                    <p><strong>Produto:</strong> {sale.produto || 'Não informado'}</p>
+                                    <p><strong>Estilo:</strong> {sale.estilo || 'Não informado'}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {sale.notes && (
+                                <div className="pt-2 border-t">
+                                  <h4 className="font-medium text-sm mb-1">Observações</h4>
+                                  <p className="text-sm text-muted-foreground">{sale.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
         </Card>
-      </div>
 
-      <SaleForm 
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleSaleSubmit}
-        sale={selectedSale}
-        title={selectedSale ? "Editar Venda" : "Nova Venda"}
-      />
-
-      {confirmedSale && (
-        <SaleConfirmationDialog
-          isOpen={isConfirmationOpen}
+        {/* Dialogs */}
+        <SaleDetailsDialog
+          sale={selectedSale}
+          isOpen={isDetailsOpen}
           onClose={() => {
-            setIsConfirmationOpen(false);
-            setConfirmedSale(null);
+            setIsDetailsOpen(false);
+            setSelectedSale(null);
           }}
-          sale={confirmedSale}
-          isEdit={!!selectedSale}
         />
-      )}
-
-      <SaleDetailsDialog
-        isOpen={isDetailsOpen}
-        onClose={() => {
-          setIsDetailsOpen(false);
-          setViewingSale(null);
-        }}
-        sale={viewingSale}
-        onEdit={handleEditFromDetails}
-      />
+      </div>
     </div>
   );
 };

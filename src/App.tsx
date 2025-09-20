@@ -1,23 +1,20 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { DataProvider } from "@/contexts/DataContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import RoleRedirect from "@/components/RoleRedirect";
-import Home from "./pages/Home";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Relatorios from "./pages/Relatorios";
-import Vendas from "./pages/Vendas";
-import Ranking from "./pages/Ranking";
-import Corretores from "./pages/Corretores";
-import Configuracoes from "./pages/Configuracoes";
-import Acompanhamento from "./pages/Acompanhamento";
-import NotFound from "./pages/NotFound";
+import Index from "@/pages/Index";
+import Auth from "@/pages/Auth";
+import Vendas from "@/pages/Vendas";
+import Corretores from "@/pages/Corretores";
+import Ranking from "@/pages/Ranking";
+import Acompanhamento from "@/pages/Acompanhamento";
+import Relatorios from "@/pages/Relatorios";
+import Configuracoes from "@/pages/Configuracoes";
+import NotFound from "@/pages/NotFound";
+import "./App.css";
 
 const queryClient = new QueryClient();
 
@@ -26,24 +23,48 @@ const App = () => (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <AuthProvider>
         <DataProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Index />} />
-                <Route path="/ranking" element={<Ranking />} />
-                <Route path="/vendas" element={<Vendas />} />
-                <Route path="/acompanhamento" element={<Acompanhamento />} />
-                <Route path="/relatorios" element={<Relatorios />} />
-                <Route path="/corretores" element={<Corretores />} />
-                <Route path="/configuracoes" element={<Configuracoes />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+          <Toaster />
+          <Router>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/vendas" element={
+                <ProtectedRoute>
+                  <Vendas />
+                </ProtectedRoute>
+              } />
+              <Route path="/corretores" element={
+                <ProtectedRoute>
+                  <Corretores />
+                </ProtectedRoute>
+              } />
+              <Route path="/ranking" element={
+                <ProtectedRoute>
+                  <Ranking />
+                </ProtectedRoute>
+              } />
+              <Route path="/acompanhamento" element={
+                <ProtectedRoute>
+                  <Acompanhamento />
+                </ProtectedRoute>
+              } />
+              <Route path="/relatorios" element={
+                <ProtectedRoute>
+                  <Relatorios />
+                </ProtectedRoute>
+              } />
+              <Route path="/configuracoes" element={
+                <ProtectedRoute adminOnly>
+                  <Configuracoes />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
         </DataProvider>
       </AuthProvider>
     </ThemeProvider>

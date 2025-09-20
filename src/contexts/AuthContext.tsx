@@ -41,6 +41,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  // Authentication state - restored to use actual Supabase auth
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -144,13 +145,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const hasAccess = (screen: string): boolean => {
-    // Temporarily allow access to all screens for development
-    return true;
+    // Check if user profile has access to the screen
+    return profile?.allowed_screens?.includes(screen) ?? false;
   };
 
   const isAdmin = (): boolean => {
-    // Temporarily allow admin access for development
-    return true;
+    return profile?.is_admin ?? false;
   };
 
   const getUserRole = (): string => {
