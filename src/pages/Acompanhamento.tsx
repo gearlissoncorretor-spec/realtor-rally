@@ -216,9 +216,9 @@ const Acompanhamento = () => {
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-6 overflow-x-auto pb-4 min-h-[600px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 auto-cols-max overflow-x-auto">
             {stages.map((stage) => (
-              <div key={stage.id} className="flex flex-col min-w-[280px] flex-shrink-0">
+              <div key={stage.id} className="flex flex-col min-w-[280px]">
                 <Card className="mb-4">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -326,14 +326,14 @@ const Acompanhamento = () => {
                                       {card.brokerName}
                                     </span>
                                   </div>
-                                  <div className="pt-2 border-t">
-                                    <p className="text-sm font-medium text-primary">
-                                      {formatCurrency(card.value)}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {new Date(card.saleDate).toLocaleDateString('pt-BR')}
-                                    </p>
-                                  </div>
+                                   <div className="pt-2 border-t">
+                                     <p className="text-sm font-medium text-primary">
+                                       VGV: {formatCurrency(card.value)}
+                                     </p>
+                                     <p className="text-xs text-muted-foreground">
+                                       {new Date(card.saleDate).toLocaleDateString('pt-BR')}
+                                     </p>
+                                   </div>
                                 </div>
                               </CardContent>
                             </Card>
