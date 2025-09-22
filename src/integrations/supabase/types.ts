@@ -73,6 +73,36 @@ export type Database = {
           },
         ]
       }
+      process_stages: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_default: boolean
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           allowed_screens: string[] | null
@@ -137,6 +167,7 @@ export type Database = {
           notes: string | null
           origem: string | null
           pagos: number | null
+          process_stage_id: string | null
           produto: string | null
           property_address: string
           property_type: Database["public"]["Enums"]["property_type"]
@@ -167,6 +198,7 @@ export type Database = {
           notes?: string | null
           origem?: string | null
           pagos?: number | null
+          process_stage_id?: string | null
           produto?: string | null
           property_address: string
           property_type: Database["public"]["Enums"]["property_type"]
@@ -197,6 +229,7 @@ export type Database = {
           notes?: string | null
           origem?: string | null
           pagos?: number | null
+          process_stage_id?: string | null
           produto?: string | null
           property_address?: string
           property_type?: Database["public"]["Enums"]["property_type"]
@@ -215,6 +248,13 @@ export type Database = {
             columns: ["broker_id"]
             isOneToOne: false
             referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_process_stage_id_fkey"
+            columns: ["process_stage_id"]
+            isOneToOne: false
+            referencedRelation: "process_stages"
             referencedColumns: ["id"]
           },
         ]

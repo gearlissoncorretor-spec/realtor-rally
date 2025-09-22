@@ -91,7 +91,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('sales')
         .select(`
           *,
-          broker:brokers(name, email)
+          broker:brokers(name, email),
+          process_stages (
+            id,
+            title,
+            color,
+            order_index
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -377,6 +383,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fetchBrokers();
     fetchSales();
     fetchTargets();
+
+    // Set up real-time subscription for sales
+    const salesChannel = supabase
+      .channel('sales_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sales'
+        },
+        () => {
+          fetchSales();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(salesChannel);
+    };
   }, []);
 
   const value: DataContextType = {
