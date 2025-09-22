@@ -66,14 +66,14 @@ const Index = () => {
   const kpiData = [
     {
       title: "VGV Total",
-      value: formatCurrencyCompact(totalVGV),
+      value: formatCurrency(totalVGV),
       change: 12.5, // This would need to be calculated vs previous period
       trend: "up" as const,
       icon: <DollarSign className="w-6 h-6 text-primary" />
     },
     {
       title: "VGC do Mês",
-      value: formatCurrencyCompact(thisMonthVGC),
+      value: formatCurrency(thisMonthVGC),
       change: 8.2,
       trend: "up" as const,
       icon: <TrendingUp className="w-6 h-6 text-success" />
