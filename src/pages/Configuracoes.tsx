@@ -23,7 +23,7 @@ import UserPermissionsManager from "@/components/UserPermissionsManager";
 import { UserApprovalManager } from "@/components/UserApprovalManager";
 import { AdminPasswordManager } from "@/components/AdminPasswordManager";
 import { UsersDebugPanel } from "@/components/UsersDebugPanel";
-import { DevModeWarning } from "@/components/DevModeWarning";
+
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -147,8 +147,6 @@ const Configuracoes = () => {
             ))}
           </div>
 
-          {/* Development Mode Warning */}
-          <DevModeWarning />
 
           {/* Debug Panel - Usuários do Banco (DESENVOLVIMENTO) */}
           <div className="mb-8">

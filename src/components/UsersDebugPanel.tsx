@@ -14,10 +14,9 @@ interface UserData {
   is_admin: boolean;
   approved: boolean;
   dev_password?: string;
-  encrypted_password?: string;
-  email_confirmed_at?: string;
-  last_sign_in_at?: string;
   created_at: string;
+  updated_at?: string;
+  allowed_screens?: string[];
 }
 
 export const UsersDebugPanel = () => {
@@ -29,8 +28,9 @@ export const UsersDebugPanel = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('users_with_passwords')
-        .select('*');
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setUsers(data || []);
@@ -68,8 +68,7 @@ export const UsersDebugPanel = () => {
           Painel de Debug - Usuários do Banco
         </CardTitle>
         <CardDescription>
-          Visualização de usuários e senhas para desenvolvimento. 
-          <span className="text-destructive font-semibold"> REMOVER EM PRODUÇÃO!</span>
+          Visualização de usuários registrados no sistema (somente perfis seguros).
         </CardDescription>
         <div className="flex gap-2">
           <Button
@@ -137,23 +136,19 @@ export const UsersDebugPanel = () => {
                   </div>
                   
                   <div>
-                    <span className="font-medium text-muted-foreground">Hash Supabase:</span>
-                    <p className="font-mono text-xs break-all">
-                      {showPasswords 
-                        ? (user.encrypted_password || 'N/A')
-                        : (user.encrypted_password ? '••••••••' : 'N/A')
-                      }
-                    </p>
+                    <span className="font-medium text-muted-foreground">Telas Permitidas:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {user.allowed_screens?.map((screen) => (
+                        <Badge key={screen} variant="outline" className="text-xs">
+                          {screen}
+                        </Badge>
+                      )) || <span className="text-muted-foreground text-xs">Nenhuma</span>}
+                    </div>
                   </div>
                   
                   <div>
-                    <span className="font-medium text-muted-foreground">Email Confirmado:</span>
-                    <p>{user.email_confirmed_at ? 'Sim' : 'Não'}</p>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-muted-foreground">Último Login:</span>
-                    <p>{formatDate(user.last_sign_in_at)}</p>
+                    <span className="font-medium text-muted-foreground">Atualizado em:</span>
+                    <p>{formatDate(user.updated_at)}</p>
                   </div>
                   
                   <div>

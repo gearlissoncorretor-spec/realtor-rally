@@ -6,7 +6,7 @@ import TicketMedioChart from "@/components/TicketMedioChart";
 import VGCPercentageCard from "@/components/VGCPercentageCard";
 import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
-import { DevModeWarning } from "@/components/DevModeWarning";
+
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
 import { 
@@ -165,8 +165,6 @@ const Index = () => {
       
       {/* Main Content */}
       <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
-        {/* Development Mode Warning */}
-        <DevModeWarning />
         
         {/* Hero Section */}
         <div 
