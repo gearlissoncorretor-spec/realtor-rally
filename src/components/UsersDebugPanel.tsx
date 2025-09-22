@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, EyeOff, Database, RefreshCw } from 'lucide-react';
+import { Database, RefreshCw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface UserData {
@@ -13,7 +13,6 @@ interface UserData {
   role: string;
   is_admin: boolean;
   approved: boolean;
-  dev_password?: string;
   created_at: string;
   updated_at?: string;
   allowed_screens?: string[];
@@ -22,7 +21,6 @@ interface UserData {
 export const UsersDebugPanel = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showPasswords, setShowPasswords] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -55,11 +53,6 @@ export const UsersDebugPanel = () => {
     return new Date(dateString).toLocaleString('pt-BR');
   };
 
-  const maskPassword = (password?: string) => {
-    if (!password) return 'N/A';
-    return showPasswords ? password : '••••••••';
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -71,15 +64,6 @@ export const UsersDebugPanel = () => {
           Visualização de usuários registrados no sistema (somente perfis seguros).
         </CardDescription>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowPasswords(!showPasswords)}
-            className="flex items-center gap-2"
-          >
-            {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {showPasswords ? 'Ocultar' : 'Mostrar'} Senhas
-          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -128,11 +112,6 @@ export const UsersDebugPanel = () => {
                   <div>
                     <span className="font-medium text-muted-foreground">ID:</span>
                     <p className="font-mono text-xs break-all">{user.id}</p>
-                  </div>
-                  
-                  <div>
-                    <span className="font-medium text-muted-foreground">Senha Dev:</span>
-                    <p className="font-mono">{maskPassword(user.dev_password)}</p>
                   </div>
                   
                   <div>
