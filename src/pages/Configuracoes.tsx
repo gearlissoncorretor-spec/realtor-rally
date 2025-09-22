@@ -23,6 +23,7 @@ import UserPermissionsManager from "@/components/UserPermissionsManager";
 import { UserApprovalManager } from "@/components/UserApprovalManager";
 import { AdminPasswordManager } from "@/components/AdminPasswordManager";
 import { UsersDebugPanel } from "@/components/UsersDebugPanel";
+import { AdminRoleManager } from "@/components/AdminRoleManager";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
@@ -163,6 +164,7 @@ const Configuracoes = () => {
           {/* Gerenciamento de Usuários - Apenas para Admin */}
           {isAdmin() && (
             <>
+              <AdminRoleManager />
               <UserPermissionsManager />
               <AdminPasswordManager />
             </>
