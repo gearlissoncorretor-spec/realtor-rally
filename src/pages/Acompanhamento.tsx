@@ -216,9 +216,9 @@ const Acompanhamento = () => {
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          <div className="flex gap-6 overflow-x-auto pb-4 min-h-[600px]">
             {stages.map((stage) => (
-              <div key={stage.id} className="flex flex-col">
+              <div key={stage.id} className="flex flex-col min-w-[280px] flex-shrink-0">
                 <Card className="mb-4">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
