@@ -63,6 +63,48 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
     );
   };
 
+  const formatDateToISO = (dateValue: any): string => {
+    if (!dateValue) return new Date().toISOString().split('T')[0];
+    
+    // If it's already a string in the format YYYY-MM-DD, return as is
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      return dateValue;
+    }
+    
+    // If it's an Excel date number
+    if (typeof dateValue === 'number') {
+      const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
+      return excelDate.toISOString().split('T')[0];
+    }
+    
+    // Try to parse as regular date
+    const parsedDate = new Date(dateValue);
+    if (!isNaN(parsedDate.getTime())) {
+      return parsedDate.toISOString().split('T')[0];
+    }
+    
+    return new Date().toISOString().split('T')[0];
+  };
+
+  const mapPropertyType = (tipo: string): 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural' => {
+    if (!tipo) return 'apartamento';
+    const tipoLower = tipo.toLowerCase();
+    if (tipoLower.includes('apartamento') || tipoLower.includes('apt')) return 'apartamento';
+    if (tipoLower.includes('casa')) return 'casa';
+    if (tipoLower.includes('terreno')) return 'terreno';
+    if (tipoLower.includes('comercial')) return 'comercial';
+    if (tipoLower.includes('rural')) return 'rural';
+    return 'apartamento';
+  };
+
+  const mapStatus = (status: string): 'pendente' | 'confirmada' | 'cancelada' => {
+    if (!status) return 'pendente';
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('fechado') || statusLower.includes('confirmada')) return 'confirmada';
+    if (statusLower.includes('cancelada') || statusLower.includes('cancelado')) return 'cancelada';
+    return 'pendente';
+  };
+
   const processExcelData = async () => {
     if (!selectedFile) return;
 
@@ -80,44 +122,76 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
 
         let successCount = 0;
         let errorCount = 0;
+        const errors: string[] = [];
 
-        for (const row of jsonData) {
+        for (const [index, row] of jsonData.entries()) {
           try {
-            // Map common Excel column names to our database fields
-            const broker = findBrokerByName(row.corretor || row.vendedor || row.broker || '');
+            // Map broker based on VENDEDOR field
+            const vendedorName = row.VENDEDOR || row.vendedor || row.VENDEDOR || '';
+            const broker = findBrokerByName(vendedorName);
+            
+            // Extract client name from PRODUTO field (everything after the last space)
+            const produto = row.PRODUTO || row.produto || '';
+            const produtoParts = produto.split(' ');
+            const clientName = produtoParts.length > 3 ? produtoParts.slice(-2).join(' ') : `Cliente ${row.GID || index + 1}`;
             
             const saleData = {
-              client_name: row.cliente || row.client_name || row.nome_cliente || '',
-              client_phone: row.telefone || row.phone || row.cliente_telefone || '',
-              client_email: row.email || row.client_email || row.cliente_email || '',
-              property_address: row.endereco || row.address || row.imovel_endereco || row.property_address || '',
-              property_type: (row.tipo_imovel || row.property_type || row.tipo || 'apartamento').toLowerCase(),
-              property_value: Number(row.valor_imovel || row.property_value || row.valor || 0),
-              vgv: Number(row.vgv || row.valor_imovel || row.property_value || 0),
-              vgc: Number(row.vgc || row.comissao || row.commission || 0),
-              commission_value: Number(row.comissao_corretor || row.broker_commission || 0),
+              client_name: clientName,
+              client_phone: null,
+              client_email: null,
+              property_address: produto || `Imóvel ${row.GID || index + 1}`,
+              property_type: mapPropertyType(row.TIPO || row.ESTILO || row.tipo || row.estilo),
+              property_value: Number(row.VGV || 0),
+              vgv: Number(row.VGV || 0),
+              vgc: Number(row.VGC || 0),
+              commission_value: Number(row.VGC || 0) * 0.1, // Assuming 10% commission
               broker_id: broker?.id || null,
-              sale_date: row.data_venda || row.sale_date || new Date().toISOString().split('T')[0],
-              status: (row.status || 'pendente').toLowerCase(),
-              notes: row.observacoes || row.notes || row.obs || '',
-              origem: row.origem || row.origin || '',
-              captador: row.captador || '',
-              sale_type: row.tipo_venda || row.sale_type || 'lancamento'
+              sale_date: formatDateToISO(row['DATA COMPETÊNCIA'] || row.data_competencia || row.DATA_COMPETENCIA),
+              contract_date: formatDateToISO(row['DATA VENCIMENTO'] || row.data_vencimento || row.DATA_VENCIMENTO),
+              status: mapStatus(row.STATUS || row.status || ''),
+              notes: `GID: ${row.GID || ''} | Importado automaticamente`,
+              origem: row.ORIGEM || row.origem || '',
+              estilo: row.ESTILO || row.estilo || '',
+              produto: produto,
+              vendedor: row.VENDEDOR || row.vendedor || '',
+              captador: row.CAPTADOR || row.captador || '',
+              gerente: row.GERENTE || row.gerente || '',
+              pagos: Number(row.PAGOS || row.pagos || 0),
+              ano: Number(row.ANO || row.ano || new Date().getFullYear()),
+              mes: Number(row.MÊS || row.MES || row.mes || new Date().getMonth() + 1),
+              latitude: row.LATITUDE || row.latitude || '',
+              sale_type: 'lancamento'
             };
+
+            // Validation
+            if (!saleData.property_address || saleData.property_value <= 0) {
+              errors.push(`Linha ${index + 2}: Dados insuficientes (endereço ou valor inválido)`);
+              errorCount++;
+              continue;
+            }
 
             await createSale(saleData);
             successCount++;
           } catch (error) {
             console.error('Erro ao processar linha:', row, error);
+            errors.push(`Linha ${index + 2}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
             errorCount++;
           }
         }
 
+        // Show detailed results
+        const message = `${successCount} vendas importadas com sucesso.${errorCount > 0 ? ` ${errorCount} erros encontrados.` : ''}`;
+        
         toast({
           title: "Importação concluída",
-          description: `${successCount} vendas importadas com sucesso. ${errorCount} erros encontrados.`,
+          description: message,
           variant: successCount > 0 ? "default" : "destructive",
         });
+
+        // Log errors to console for debugging
+        if (errors.length > 0) {
+          console.log('Erros de importação:', errors);
+        }
 
         setIsOpen(false);
         setSelectedFile(null);
@@ -165,7 +239,7 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               ref={fileInputRef}
             />
             <p className="text-sm text-muted-foreground">
-              Aceita arquivos .xlsx e .xls. Colunas esperadas: cliente, telefone, email, endereco, tipo_imovel, valor_imovel, corretor, etc.
+              Aceita arquivos .xlsx e .xls. Formato esperado: GID, DATA COMPETÊNCIA, DATA VENCIMENTO, ORIGEM, ESTILO, PRODUTO, VGV, VGC, TIPO, VENDEDOR, CAPTADOR, GERENTE, STATUS, PAGOS, ANO, MÊS, LATITUDE.
             </p>
           </div>
 
@@ -206,26 +280,37 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
           <div className="bg-muted/50 p-4 rounded-lg">
             <h4 className="font-medium mb-2 flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              Mapeamento de colunas
+              Mapeamento de colunas da planilha
             </h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <strong>Colunas reconhecidas:</strong>
+                <strong>Colunas principais:</strong>
                 <ul className="mt-1 space-y-1 text-muted-foreground">
-                  <li>• cliente, client_name, nome_cliente</li>
-                  <li>• telefone, phone, cliente_telefone</li>
-                  <li>• email, client_email, cliente_email</li>
-                  <li>• endereco, address, property_address</li>
+                  <li>• GID - Identificador único</li>
+                  <li>• DATA COMPETÊNCIA - Data da venda</li>
+                  <li>• DATA VENCIMENTO - Data do contrato</li>
+                  <li>• PRODUTO - Endereço do imóvel</li>
+                  <li>• VGV - Valor do imóvel</li>
+                  <li>• VGC - Valor da comissão</li>
                 </ul>
               </div>
               <div>
-                <ul className="mt-6 space-y-1 text-muted-foreground">
-                  <li>• tipo_imovel, property_type, tipo</li>
-                  <li>• valor_imovel, property_value, valor</li>
-                  <li>• corretor, vendedor, broker</li>
-                  <li>• vgc, comissao, commission</li>
+                <strong>Informações adicionais:</strong>
+                <ul className="mt-1 space-y-1 text-muted-foreground">
+                  <li>• TIPO/ESTILO - Tipo do imóvel</li>
+                  <li>• VENDEDOR - Nome do corretor</li>
+                  <li>• STATUS - Status da venda</li>
+                  <li>• ORIGEM - Origem da venda</li>
+                  <li>• CAPTADOR/GERENTE - Equipe</li>
+                  <li>• ANO/MÊS - Período da venda</li>
                 </ul>
               </div>
+            </div>
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>Importante:</strong> O sistema irá mapear automaticamente os corretores pelo campo VENDEDOR. 
+                Vendas sem corretor correspondente serão importadas sem associação.
+              </p>
             </div>
           </div>
 
