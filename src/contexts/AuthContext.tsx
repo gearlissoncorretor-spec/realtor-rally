@@ -158,17 +158,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const getDefaultRoute = (): string => {
-    if (!profile) return '/dashboard';
+    if (!profile) return '/';
     
     switch (profile.role) {
       case 'admin':
-        return '/dashboard';
+        return '/';
       case 'corretor':
         return '/vendas';
       case 'cliente':
-        return '/dashboard';
+        return '/';
       default:
-        return '/dashboard';
+        return '/';
     }
   };
 

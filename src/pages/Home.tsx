@@ -34,7 +34,7 @@ const Home = () => {
           
           <div className="flex items-center gap-4">
             <AuthButton />
-            <Link to="/dashboard">
+            <Link to="/">
               <Button variant="outline" className="animate-fade-in">
                 Acessar Dashboard
               </Button>
@@ -71,7 +71,7 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
           animationDelay: '0.4s'
         }}>
-            <Link to="/dashboard">
+            <Link to="/">
               <Button size="lg" className="bg-gradient-primary text-primary-foreground hover:shadow-glow transition-all duration-300 transform hover:scale-105">
                 Começar Agora
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -166,7 +166,7 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{
           animationDelay: '0.2s'
         }}>
-            <Link to="/dashboard">
+            <Link to="/">
               <Button size="lg" variant="secondary" className="bg-background text-foreground hover:bg-background/90 hover:scale-105 transition-all duration-300">
                 Acessar Dashboard
                 <ArrowRight className="ml-2 w-5 h-5" />

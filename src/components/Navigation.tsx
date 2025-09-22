@@ -12,7 +12,7 @@ const Navigation = () => {
   const { hasAccess, isAdmin } = useAuth();
   
   const allNavItems = [{
-    href: "/dashboard",
+    href: "/",
     label: "Dashboard",
     icon: LayoutDashboard,
     screen: "dashboard"
