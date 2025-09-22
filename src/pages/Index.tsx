@@ -52,15 +52,8 @@ const Index = () => {
   const totalSales = filteredSales.length;
   const activeBrokers = brokers.filter(b => b.status === 'ativo').length;
   
-  // Calculate this month's data
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const thisMonthSales = sales.filter(sale => {
-    const saleDate = new Date(sale.sale_date || sale.created_at || '');
-    return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
-  });
-  
-  const thisMonthVGC = thisMonthSales.reduce((sum, sale) => sum + Number(sale.vgc), 0);
+  // Calculate filtered VGC (respects period filter)
+  const filteredVGC = filteredSales.reduce((sum, sale) => sum + Number(sale.vgc), 0);
   const conversionRate = totalSales > 0 ? ((filteredSales.filter(s => s.status === 'confirmada').length / totalSales) * 100) : 0;
 
   const kpiData = [
@@ -72,8 +65,8 @@ const Index = () => {
       icon: <DollarSign className="w-6 h-6 text-primary" />
     },
     {
-      title: "VGC do Mês",
-      value: formatCurrency(thisMonthVGC),
+      title: "VGC Total",
+      value: formatCurrency(filteredVGC),
       change: 8.2,
       trend: "up" as const,
       icon: <TrendingUp className="w-6 h-6 text-success" />
@@ -164,22 +157,22 @@ const Index = () => {
       <Navigation />
       
       {/* Main Content */}
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
         
         {/* Hero Section */}
         <div 
-          className="relative h-48 rounded-xl mb-8 overflow-hidden bg-gradient-hero flex items-center justify-center"
+          className="relative h-32 sm:h-40 md:h-48 rounded-xl mb-6 md:mb-8 overflow-hidden bg-gradient-hero flex items-center justify-center"
           style={{
             backgroundImage: `linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9)), url(${heroImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
         >
-          <div className="text-center text-primary-foreground">
-            <h1 className="text-4xl font-bold mb-2 animate-fade-in">
+          <div className="text-center text-primary-foreground px-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2 animate-fade-in">
               Dashboard Imobiliário
             </h1>
-            <p className="text-xl opacity-90 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <p className="text-sm sm:text-lg md:text-xl opacity-90 animate-fade-in" style={{ animationDelay: '0.2s' }}>
               Gestão completa de vendas e performance
             </p>
           </div>
@@ -194,7 +187,7 @@ const Index = () => {
         />
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
           {kpiData.map((kpi, index) => (
             <KPICard
               key={kpi.title}
@@ -205,8 +198,8 @@ const Index = () => {
         </div>
 
         {/* Charts and Ranking */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             <DashboardChart
               data={chartData}
               type="line"
@@ -220,7 +213,7 @@ const Index = () => {
             />
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <RankingPodium brokers={brokerRankings} />
             
             <VGCPercentageCard sales={filteredSales} />
@@ -236,7 +229,7 @@ const Index = () => {
         </div>
 
         {/* Charts Adicionais */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
           <PropertyTypeChart
             sales={filteredSales}
             title="Tipos de Imóveis Vendidos"
