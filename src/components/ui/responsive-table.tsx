@@ -50,26 +50,37 @@ const ResponsiveTable = React.forwardRef<HTMLDivElement, ResponsiveTableProps>(
 );
 ResponsiveTable.displayName = "ResponsiveTable";
 
-const ResponsiveTableHeader: React.FC<{ columns: ColumnConfig[] }> = ({ columns }) => (
-  <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-muted/50 font-medium text-sm border-b" role="row">
-    <div className="col-span-1" aria-hidden="true"></div>
-    {columns.map((column, index) => (
-      <div 
-        key={column.key}
-        className={cn(
-          "col-span-2 text-left",
-          column.hideOnMobile && "hidden md:block",
-          column.priority === 'low' && "hidden lg:block"
-        )}
-        role="columnheader"
-        tabIndex={0}
-      >
-        {column.label}
-      </div>
-    ))}
-    <div className="col-span-1" role="columnheader">Ações</div>
-  </div>
-);
+const ResponsiveTableHeader: React.FC<{ columns: ColumnConfig[] }> = ({ columns }) => {
+  const getColumnSpan = (index: number, total: number) => {
+    // Distribute columns more evenly based on content
+    if (total <= 6) {
+      return index === 0 ? "col-span-2" : "col-span-2"; // Even distribution
+    }
+    return "col-span-1";
+  };
+
+  return (
+    <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-muted/50 font-medium text-sm border-b text-muted-foreground" role="row">
+      <div className="col-span-1" aria-hidden="true"></div>
+      {columns.map((column, index) => (
+        <div 
+          key={column.key}
+          className={cn(
+            getColumnSpan(index, columns.length),
+            "text-left font-semibold",
+            column.hideOnMobile && "hidden md:block",
+            column.priority === 'low' && "hidden lg:block"
+          )}
+          role="columnheader"
+          tabIndex={0}
+        >
+          {column.label}
+        </div>
+      ))}
+      <div className="col-span-1 font-semibold" role="columnheader">Ações</div>
+    </div>
+  );
+};
 
 const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({ 
   data, 
@@ -206,7 +217,10 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
   return (
     <>
       <div 
-        className={cn("grid grid-cols-12 gap-4 p-4 hover:bg-muted/50 border-b", className)}
+        className={cn(
+          "grid grid-cols-12 gap-4 p-4 hover:bg-muted/30 border-b transition-colors duration-200 cursor-pointer", 
+          className
+        )}
         role="row"
         tabIndex={0}
         onKeyDown={handleKeyDown}
@@ -227,19 +241,29 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
           )}
         </div>
         
-        {columns.map((column) => (
-          <div 
-            key={column.key}
-            className={cn(
-              "col-span-2 flex items-center text-sm",
-              column.hideOnMobile && "hidden md:block",
-              column.priority === 'low' && "hidden lg:block"
-            )}
-            role="gridcell"
-          >
-            {column.render ? column.render(data[column.key], data) : data[column.key]}
-          </div>
-        ))}
+        {columns.map((column, index) => {
+          const getColumnSpan = (index: number, total: number) => {
+            if (total <= 6) {
+              return index === 0 ? "col-span-2" : "col-span-2";
+            }
+            return "col-span-1";
+          };
+
+          return (
+            <div 
+              key={column.key}
+              className={cn(
+                getColumnSpan(index, columns.length),
+                "flex items-center text-sm min-w-0",
+                column.hideOnMobile && "hidden md:block",
+                column.priority === 'low' && "hidden lg:block"
+              )}
+              role="gridcell"
+            >
+              {column.render ? column.render(data[column.key], data) : data[column.key]}
+            </div>
+          );
+        })}
         
         <div className="col-span-1 flex items-center">
           {actions.length > 0 && (

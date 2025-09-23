@@ -158,25 +158,34 @@ const Vendas = () => {
       key: 'client_name',
       label: 'Cliente',
       priority: 'high',
+      render: (value) => (
+        <div className="font-medium text-foreground">
+          {value}
+        </div>
+      ),
     },
     {
       key: 'property_address',
       label: 'Imóvel',
       priority: 'high',
       render: (value, row) => (
-        <div className="text-sm">
-          <div className="font-medium">{value}</div>
-          <div className="text-muted-foreground">{row.property_type}</div>
+        <div className="min-w-0">
+          <div className="font-medium text-foreground truncate">{value}</div>
+          <div className="text-sm text-muted-foreground capitalize">{row.property_type}</div>
         </div>
       ),
     },
     {
       key: 'broker_name',
       label: 'Corretor',
-      priority: 'medium',
+      priority: 'high',
       render: (_, row) => {
         const broker = brokers.find(b => b.id === row.broker_id);
-        return broker ? broker.name : "Sem corretor";
+        return (
+          <div className="font-medium text-foreground">
+            {broker ? broker.name : "Sem corretor"}
+          </div>
+        );
       },
     },
     {
@@ -184,19 +193,19 @@ const Vendas = () => {
       label: 'Valor do Imóvel',
       priority: 'medium',
       render: (value) => (
-        <span className="font-semibold">
+        <div className="font-semibold text-foreground">
           {formatCurrency(Number(value))}
-        </span>
+        </div>
       ),
     },
     {
       key: 'vgc',
       label: 'VGC',
-      priority: 'low',
+      priority: 'medium',
       render: (value) => (
-        <span className="font-semibold text-success">
+        <div className="font-semibold text-success">
           {formatCurrency(Number(value))}
-        </span>
+        </div>
       ),
     },
     {
@@ -210,6 +219,7 @@ const Vendas = () => {
             value === 'pendente' ? 'secondary' :
             'destructive'
           }
+          className="capitalize"
         >
           {value}
         </Badge>
@@ -218,9 +228,12 @@ const Vendas = () => {
     {
       key: 'sale_date',
       label: 'Data',
-      priority: 'low',
-      render: (value) => 
-        value ? new Date(value).toLocaleDateString('pt-BR') : 'Sem data',
+      priority: 'medium',
+      render: (value) => (
+        <div className="text-sm text-foreground">
+          {value ? new Date(value).toLocaleDateString('pt-BR') : 'Sem data'}
+        </div>
+      ),
     },
   ];
 
@@ -412,84 +425,110 @@ const Vendas = () => {
           </Card>
         </div>
 
-        {/* Enhanced Responsive Sales Table */}
-        <div className="overflow-hidden">
-          <Card className="overflow-hidden">
-            <div className="p-4 sm:p-6 border-b">
-              <h3 className="text-base sm:text-lg font-semibold">Lista de Vendas</h3>
+        {/* Sales Table */}
+        <Card className="overflow-hidden">
+          <div className="p-4 sm:p-6 border-b bg-muted/30">
+            <h3 className="text-lg font-semibold text-foreground">Lista de Vendas</h3>
+          </div>
+          
+          {loading ? (
+            <div className="h-32 flex items-center justify-center">
+              <p className="text-muted-foreground">Carregando vendas...</p>
             </div>
-            
-            {loading ? (
-              <div className="h-32 flex items-center justify-center">
-                <p className="text-muted-foreground">Carregando vendas...</p>
-              </div>
-            ) : filteredSales.length === 0 ? (
-              <div className="h-32 flex items-center justify-center px-4">
-                <p className="text-muted-foreground text-center text-sm">
-                  {searchTerm || activeFilters.length > 0 
-                    ? 'Nenhuma venda encontrada para os filtros aplicados.' 
-                    : 'Nenhuma venda cadastrada ainda.'}
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <ResponsiveTable>
-                  <ResponsiveTableHeader columns={tableColumns} />
-                  {filteredSales.map((sale) => (
-                    <ResponsiveTableRow
-                      key={sale.id}
-                      data={sale}
-                      columns={tableColumns}
-                      actions={tableActions}
-                      isExpandable={true}
-                      expandedContent={
-                        <div className="space-y-3 p-2 sm:p-0">
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-sm">Informações do Cliente</h4>
-                              <div className="text-xs sm:text-sm space-y-1">
-                                <p><strong>Nome:</strong> <span className="break-words">{sale.client_name}</span></p>
-                                <p><strong>Telefone:</strong> <span className="break-all">{sale.client_phone || 'Não informado'}</span></p>
-                                <p><strong>Email:</strong> <span className="break-all">{sale.client_email || 'Não informado'}</span></p>
+          ) : filteredSales.length === 0 ? (
+            <div className="h-32 flex items-center justify-center px-4">
+              <p className="text-muted-foreground text-center text-sm">
+                {searchTerm || activeFilters.length > 0 
+                  ? 'Nenhuma venda encontrada para os filtros aplicados.' 
+                  : 'Nenhuma venda cadastrada ainda.'}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <ResponsiveTable>
+                <ResponsiveTableHeader columns={tableColumns} />
+                {filteredSales.map((sale) => (
+                  <ResponsiveTableRow
+                    key={sale.id}
+                    data={sale}
+                    columns={tableColumns}
+                    actions={tableActions}
+                    isExpandable={true}
+                    expandedContent={
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-foreground border-b pb-2">Informações do Cliente</h4>
+                            <div className="text-sm space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Nome:</span>
+                                <span className="font-medium text-foreground">{sale.client_name}</span>
                               </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-sm">Detalhes da Venda</h4>
-                              <div className="text-xs sm:text-sm space-y-1">
-                                <p><strong>VGV:</strong> {formatCurrency(Number(sale.vgv))}</p>
-                                <p><strong>VGC:</strong> {formatCurrency(Number(sale.vgc))}</p>
-                                <p><strong>Tipo de Venda:</strong> {sale.sale_type || 'Não informado'}</p>
-                                <p><strong>Origem:</strong> <span className="break-words">{sale.origem || 'Não informado'}</span></p>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Telefone:</span>
+                                <span className="font-medium text-foreground">{sale.client_phone || 'Não informado'}</span>
                               </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-sm">Informações Adicionais</h4>
-                              <div className="text-xs sm:text-sm space-y-1">
-                                <p><strong>Captador:</strong> <span className="break-words">{sale.captador || 'Não informado'}</span></p>
-                                <p><strong>Gerente:</strong> <span className="break-words">{sale.gerente || 'Não informado'}</span></p>
-                                <p><strong>Produto:</strong> <span className="break-words">{sale.produto || 'Não informado'}</span></p>
-                                <p><strong>Estilo:</strong> <span className="break-words">{sale.estilo || 'Não informado'}</span></p>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Email:</span>
+                                <span className="font-medium text-foreground break-all">{sale.client_email || 'Não informado'}</span>
                               </div>
                             </div>
                           </div>
                           
-                          {sale.notes && (
-                            <div className="pt-2 border-t">
-                              <h4 className="font-medium text-sm mb-1">Observações</h4>
-                              <p className="text-xs sm:text-sm text-muted-foreground break-words">{sale.notes}</p>
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-foreground border-b pb-2">Detalhes da Venda</h4>
+                            <div className="text-sm space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">VGV:</span>
+                                <span className="font-semibold text-foreground">{formatCurrency(Number(sale.vgv))}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">VGC:</span>
+                                <span className="font-semibold text-success">{formatCurrency(Number(sale.vgc))}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tipo de Venda:</span>
+                                <span className="font-medium text-foreground">{sale.sale_type || 'Não informado'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Origem:</span>
+                                <span className="font-medium text-foreground">{sale.origem || 'Não informado'}</span>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      }
-                    />
-                  ))}
-                </ResponsiveTable>
-              </div>
-            )}
-          </Card>
-        </div>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-foreground border-b pb-2">Dados Adicionais</h4>
+                            <div className="text-sm space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Captador:</span>
+                                <span className="font-medium text-foreground">{sale.captador || 'Não informado'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Gerente:</span>
+                                <span className="font-medium text-foreground">{sale.gerente || 'Não informado'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Produto:</span>
+                                <span className="font-medium text-foreground">{sale.produto || 'Não informado'}</span>
+                              </div>
+                              {sale.notes && (
+                                <div className="flex flex-col space-y-1">
+                                  <span className="text-muted-foreground">Observações:</span>
+                                  <span className="font-medium text-foreground text-wrap">{sale.notes}</span>
+                                </div>
+                               )}
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                     }
+                   />
+                 ))}
+               </ResponsiveTable>
+             </div>
+           )}
+         </Card>
         </div>
       </div>
 
