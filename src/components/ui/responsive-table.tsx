@@ -60,7 +60,7 @@ const ResponsiveTableHeader: React.FC<{ columns: ColumnConfig[] }> = ({ columns 
   };
 
   return (
-    <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-muted/50 font-medium text-sm border-b text-muted-foreground" role="row">
+    <div className="hidden md:grid grid-cols-12 gap-6 px-6 py-5 bg-muted/50 font-medium text-sm border-b text-muted-foreground" role="row">
       <div className="col-span-1" aria-hidden="true"></div>
       {columns.map((column, index) => (
         <div 
@@ -112,9 +112,9 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
   if (isMobile) {
     // Mobile card layout
     return (
-      <Card className={cn("mb-4", className)}>
+      <Card className={cn("mb-6", className)}>
         <div 
-          className="p-4 space-y-3"
+          className="p-6 space-y-4"
           role="row"
           tabIndex={0}
           onKeyDown={handleKeyDown}
@@ -122,11 +122,11 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
         >
           {/* Primary info - always visible */}
           <div className="flex justify-between items-start">
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-3">
               {columns
                 .filter(col => col.priority === 'high')
                 .map(column => (
-                  <div key={column.key} className="flex flex-col">
+                  <div key={column.key} className="flex flex-col space-y-1">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       {column.label}
                     </span>
@@ -184,16 +184,16 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
               {isExpanded && (
                 <div 
                   id={`expanded-content-${data.id || 'row'}`}
-                  className="pt-3 border-t space-y-2"
+                  className="pt-4 border-t space-y-3"
                   role="region"
                   aria-label="Detalhes expandidos"
                 >
                   {expandedContent || (
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 gap-4">
                       {columns
                         .filter(col => col.priority !== 'high')
                         .map(column => (
-                          <div key={column.key} className="flex justify-between">
+                          <div key={column.key} className="flex justify-between py-1">
                             <span className="text-xs font-medium text-muted-foreground">
                               {column.label}:
                             </span>
@@ -218,7 +218,7 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
     <>
       <div 
         className={cn(
-          "grid grid-cols-12 gap-4 p-4 hover:bg-muted/30 border-b transition-colors duration-200 cursor-pointer", 
+          "grid grid-cols-12 gap-6 px-6 py-5 hover:bg-muted/30 border-b transition-colors duration-200 cursor-pointer", 
           className
         )}
         role="row"
@@ -267,7 +267,7 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
         
         <div className="col-span-1 flex items-center">
           {actions.length > 0 && (
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               {actions.slice(0, 2).map((action, index) => (
                 <Button
                   key={index}
@@ -313,7 +313,7 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
       {/* Expanded content for desktop */}
       {isExpanded && expandedContent && (
         <div 
-          className="col-span-12 bg-muted/20 p-4 border-b"
+          className="col-span-12 bg-muted/20 px-6 py-5 border-b"
           role="region"
           aria-label="Detalhes expandidos"
         >
