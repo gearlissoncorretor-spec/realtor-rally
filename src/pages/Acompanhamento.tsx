@@ -166,9 +166,9 @@ const Acompanhamento = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <Navigation />
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Acompanhamento de Vendas</h1>
+      <div className="container mx-auto p-4 md:p-6 max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Acompanhamento de Vendas</h1>
           <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
             <DialogTrigger asChild>
               <Button>
@@ -216,9 +216,10 @@ const Acompanhamento = () => {
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex flex-row gap-6 overflow-x-auto overflow-y-hidden pb-4">
-            {stages.map((stage) => (
-              <div key={stage.id} className="flex flex-col min-w-[280px]">
+          <div className="relative">
+            <div className="flex flex-row gap-4 md:gap-6 overflow-x-auto scrollbar-styled pb-4 -mx-2 px-2 md:mx-0 md:px-0">
+              {stages.map((stage) => (
+                <div key={stage.id} className="flex flex-col min-w-[260px] md:min-w-[280px] max-w-[320px] flex-shrink-0">
                 <Card className="mb-4">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -345,7 +346,11 @@ const Acompanhamento = () => {
                   )}
                 </Droppable>
               </div>
-            ))}
+              ))}
+            </div>
+            {/* Scroll indicators */}
+            <div className="absolute top-0 left-0 w-8 h-full bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none opacity-50" />
+            <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none opacity-50" />
           </div>
         </DragDropContext>
       </div>
