@@ -3,17 +3,16 @@ import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+  ResponsiveTable, 
+  ResponsiveTableHeader, 
+  ResponsiveTableRow,
+  type ColumnConfig,
+  type ActionConfig 
+} from "@/components/ui/responsive-table";
+import SearchWithFilters, { useSearchAndFilters } from "@/components/SearchWithFilters";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Plus, 
@@ -38,23 +37,64 @@ import type { Sale } from "@/contexts/DataContext";
 
 const Vendas = () => {
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   
   const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
 
-  // Filter sales based on search term
-  const filteredSales = useMemo(() => {
-    return sales.filter(sale =>
-      sale.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sale.property_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      brokers.find(b => b.id === sale.broker_id)?.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [sales, searchTerm, brokers]);
+  // Enhanced search and filter configuration
+  const filterConfigs = useMemo(() => [
+    {
+      id: 'status',
+      label: 'Status',
+      type: 'select' as const,
+      icon: <Filter className="w-4 h-4" />,
+      options: [
+        { value: 'pendente', label: 'Pendente' },
+        { value: 'confirmada', label: 'Confirmada' },
+        { value: 'cancelada', label: 'Cancelada' },
+      ],
+    },
+    {
+      id: 'broker_id',
+      label: 'Corretor',
+      type: 'select' as const,
+      icon: <User className="w-4 h-4" />,
+      options: brokers.map(broker => ({
+        value: broker.id,
+        label: broker.name,
+      })),
+    },
+    {
+      id: 'property_type',
+      label: 'Tipo de Imóvel',
+      type: 'select' as const,
+      icon: <MapPin className="w-4 h-4" />,
+      options: [
+        { value: 'apartamento', label: 'Apartamento' },
+        { value: 'casa', label: 'Casa' },
+        { value: 'terreno', label: 'Terreno' },
+        { value: 'comercial', label: 'Comercial' },
+      ],
+    },
+  ], [brokers]);
+
+  const {
+    searchTerm,
+    setSearchTerm,
+    activeFilters,
+    filteredData: filteredSales,
+    handleFilterChange,
+    handleClearFilter,
+    handleClearAllFilters,
+    resultCount,
+  } = useSearchAndFilters(
+    sales,
+    ['client_name', 'property_address'],
+    filterConfigs
+  );
 
   const handleDelete = async (saleId: string) => {
     try {
@@ -72,15 +112,103 @@ const Vendas = () => {
     }
   };
 
-  const toggleRowExpansion = (saleId: string) => {
-    const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(saleId)) {
-      newExpanded.delete(saleId);
-    } else {
-      newExpanded.add(saleId);
-    }
-    setExpandedRows(newExpanded);
-  };
+  // Define table columns for responsive table
+  const tableColumns: ColumnConfig[] = [
+    {
+      key: 'client_name',
+      label: 'Cliente',
+      priority: 'high',
+    },
+    {
+      key: 'property_address',
+      label: 'Imóvel',
+      priority: 'high',
+      render: (value, row) => (
+        <div className="text-sm">
+          <div className="font-medium">{value}</div>
+          <div className="text-muted-foreground">{row.property_type}</div>
+        </div>
+      ),
+    },
+    {
+      key: 'broker_name',
+      label: 'Corretor',
+      priority: 'medium',
+      render: (_, row) => {
+        const broker = brokers.find(b => b.id === row.broker_id);
+        return broker ? broker.name : "Sem corretor";
+      },
+    },
+    {
+      key: 'property_value',
+      label: 'Valor do Imóvel',
+      priority: 'medium',
+      render: (value) => (
+        <span className="font-semibold">
+          {formatCurrency(Number(value))}
+        </span>
+      ),
+    },
+    {
+      key: 'vgc',
+      label: 'VGC',
+      priority: 'low',
+      render: (value) => (
+        <span className="font-semibold text-success">
+          {formatCurrency(Number(value))}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      priority: 'high',
+      render: (value) => (
+        <Badge
+          variant={
+            value === 'confirmada' ? 'default' :
+            value === 'pendente' ? 'secondary' :
+            'destructive'
+          }
+        >
+          {value}
+        </Badge>
+      ),
+    },
+    {
+      key: 'sale_date',
+      label: 'Data',
+      priority: 'low',
+      render: (value) => 
+        value ? new Date(value).toLocaleDateString('pt-BR') : 'Sem data',
+    },
+  ];
+
+  // Define table actions
+  const tableActions: ActionConfig[] = [
+    {
+      label: 'Ver detalhes',
+      icon: <Eye className="w-4 h-4" />,
+      onClick: (sale) => {
+        setSelectedSale(sale as Sale);
+        setIsDetailsOpen(true);
+      },
+    },
+    {
+      label: 'Editar',
+      icon: <Edit className="w-4 h-4" />,
+      onClick: (sale) => {
+        setSelectedSale(sale as Sale);
+        setIsFormOpen(true);
+      },
+    },
+    {
+      label: 'Excluir',
+      icon: <Trash2 className="w-4 h-4" />,
+      variant: 'destructive' as const,
+      onClick: (sale) => handleDelete(sale.id),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -176,18 +304,20 @@ const Vendas = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Buscar por cliente, endereço ou corretor..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+        {/* Enhanced Search and Filters */}
+        <SearchWithFilters
+          searchPlaceholder="Buscar por cliente, endereço ou corretor..."
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          filters={filterConfigs}
+          activeFilters={activeFilters}
+          onFilterChange={handleFilterChange}
+          onClearFilter={handleClearFilter}
+          onClearAllFilters={handleClearAllFilters}
+          showResultCount={true}
+          resultCount={resultCount}
+          className="mb-6"
+        />
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -238,178 +368,79 @@ const Vendas = () => {
           </Card>
         </div>
 
-        {/* Sales Table */}
+        {/* Enhanced Responsive Sales Table */}
         <Card className="overflow-hidden">
           <div className="p-6 border-b">
             <h3 className="text-lg font-semibold">Lista de Vendas</h3>
           </div>
           
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12"></TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Imóvel</TableHead>
-                <TableHead>Corretor</TableHead>
-                <TableHead>Valor do Imóvel</TableHead>
-                <TableHead>VGC</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-32 text-center">
-                    Carregando vendas...
-                  </TableCell>
-                </TableRow>
-              ) : filteredSales.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
-                    {searchTerm ? 'Nenhuma venda encontrada para o filtro aplicado.' : 'Nenhuma venda cadastrada ainda.'}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredSales.map((sale) => {
-                  const broker = brokers.find(b => b.id === sale.broker_id);
-                  const isExpanded = expandedRows.has(sale.id);
-                  return (
-                    <>
-                      <TableRow key={sale.id} className="hover:bg-muted/50">
-                        <TableCell className="w-12">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleRowExpansion(sale.id)}
-                            className="p-1 h-6 w-6"
-                          >
-                            {isExpanded ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                          </Button>
-                        </TableCell>
-                        <TableCell className="font-medium">{sale.client_name}</TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div className="font-medium">{sale.property_address}</div>
-                            <div className="text-muted-foreground">
-                              {sale.property_type}
-                            </div>
+          {loading ? (
+            <div className="h-32 flex items-center justify-center">
+              <p className="text-muted-foreground">Carregando vendas...</p>
+            </div>
+          ) : filteredSales.length === 0 ? (
+            <div className="h-32 flex items-center justify-center">
+              <p className="text-muted-foreground">
+                {searchTerm || activeFilters.length > 0 
+                  ? 'Nenhuma venda encontrada para os filtros aplicados.' 
+                  : 'Nenhuma venda cadastrada ainda.'}
+              </p>
+            </div>
+          ) : (
+            <ResponsiveTable>
+              <ResponsiveTableHeader columns={tableColumns} />
+              {filteredSales.map((sale) => (
+                <ResponsiveTableRow
+                  key={sale.id}
+                  data={sale}
+                  columns={tableColumns}
+                  actions={tableActions}
+                  isExpandable={true}
+                  expandedContent={
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm">Informações do Cliente</h4>
+                          <div className="text-sm space-y-1">
+                            <p><strong>Nome:</strong> {sale.client_name}</p>
+                            <p><strong>Telefone:</strong> {sale.client_phone || 'Não informado'}</p>
+                            <p><strong>Email:</strong> {sale.client_email || 'Não informado'}</p>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {broker ? broker.name : "Sem corretor"}
-                        </TableCell>
-                        <TableCell className="font-semibold">
-                          {formatCurrency(Number(sale.property_value))}
-                        </TableCell>
-                        <TableCell className="font-semibold text-success">
-                          {formatCurrency(Number(sale.vgc))}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              sale.status === 'confirmada' ? 'default' :
-                              sale.status === 'pendente' ? 'secondary' :
-                              'destructive'
-                            }
-                          >
-                            {sale.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : 'Sem data'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedSale(sale);
-                                setIsDetailsOpen(true);
-                              }}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => {
-                                setSelectedSale(sale);
-                                setIsFormOpen(true);
-                              }}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              onClick={() => handleDelete(sale.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm">Detalhes da Venda</h4>
+                          <div className="text-sm space-y-1">
+                            <p><strong>VGV:</strong> {formatCurrency(Number(sale.vgv))}</p>
+                            <p><strong>VGC:</strong> {formatCurrency(Number(sale.vgc))}</p>
+                            <p><strong>Tipo de Venda:</strong> {sale.sale_type || 'Não informado'}</p>
+                            <p><strong>Origem:</strong> {sale.origem || 'Não informado'}</p>
                           </div>
-                        </TableCell>
-                      </TableRow>
-
-                      {/* Expanded Row Details */}
-                      {isExpanded && (
-                        <TableRow>
-                          <TableCell colSpan={9} className="bg-muted/20">
-                            <div className="p-4 space-y-3">
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                  <h4 className="font-medium text-sm">Informações do Cliente</h4>
-                                  <div className="text-sm space-y-1">
-                                    <p><strong>Nome:</strong> {sale.client_name}</p>
-                                    <p><strong>Telefone:</strong> {sale.client_phone || 'Não informado'}</p>
-                                    <p><strong>Email:</strong> {sale.client_email || 'Não informado'}</p>
-                                  </div>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <h4 className="font-medium text-sm">Detalhes da Venda</h4>
-                                  <div className="text-sm space-y-1">
-                                    <p><strong>VGV:</strong> {formatCurrency(Number(sale.vgv))}</p>
-                                    <p><strong>VGC:</strong> {formatCurrency(Number(sale.vgc))}</p>
-                                    <p><strong>Tipo de Venda:</strong> {sale.sale_type || 'Não informado'}</p>
-                                    <p><strong>Origem:</strong> {sale.origem || 'Não informado'}</p>
-                                  </div>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                  <h4 className="font-medium text-sm">Informações Adicionais</h4>
-                                  <div className="text-sm space-y-1">
-                                    <p><strong>Captador:</strong> {sale.captador || 'Não informado'}</p>
-                                    <p><strong>Gerente:</strong> {sale.gerente || 'Não informado'}</p>
-                                    <p><strong>Produto:</strong> {sale.produto || 'Não informado'}</p>
-                                    <p><strong>Estilo:</strong> {sale.estilo || 'Não informado'}</p>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              {sale.notes && (
-                                <div className="pt-2 border-t">
-                                  <h4 className="font-medium text-sm mb-1">Observações</h4>
-                                  <p className="text-sm text-muted-foreground">{sale.notes}</p>
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm">Informações Adicionais</h4>
+                          <div className="text-sm space-y-1">
+                            <p><strong>Captador:</strong> {sale.captador || 'Não informado'}</p>
+                            <p><strong>Gerente:</strong> {sale.gerente || 'Não informado'}</p>
+                            <p><strong>Produto:</strong> {sale.produto || 'Não informado'}</p>
+                            <p><strong>Estilo:</strong> {sale.estilo || 'Não informado'}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {sale.notes && (
+                        <div className="pt-2 border-t">
+                          <h4 className="font-medium text-sm mb-1">Observações</h4>
+                          <p className="text-sm text-muted-foreground">{sale.notes}</p>
+                        </div>
                       )}
-                    </>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                  }
+                />
+              ))}
+            </ResponsiveTable>
+          )}
         </Card>
 
         {/* Dialogs */}

@@ -1,11 +1,15 @@
 import Navigation from "@/components/Navigation";
 import KPICard from "@/components/KPICard";
-import DashboardChart from "@/components/DashboardChart";
-import PropertyTypeChart from "@/components/PropertyTypeChart";
-import TicketMedioChart from "@/components/TicketMedioChart";
-import VGCPercentageCard from "@/components/VGCPercentageCard";
 import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
+import VGCPercentageCard from "@/components/VGCPercentageCard";
+import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
+import React from "react";
+
+// Lazy load heavy chart components for better performance
+const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
+const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
+const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"));
 
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
@@ -200,17 +204,21 @@ const Index = () => {
         {/* Charts and Ranking */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
           <div className="lg:col-span-2 space-y-4 md:space-y-6">
-            <DashboardChart
-              data={chartData}
-              type="line"
-              title="VGV & VGC Mensal"
-              height={350}
-            />
-            <TicketMedioChart
-              sales={filteredSales}
-              title="Ticket Médio das Vendas"
-              height={250}
-            />
+            <LazyComponentLoader fallback={<ChartSkeleton height={350} />}>
+              <DashboardChart
+                data={chartData}
+                type="line"
+                title="VGV & VGC Mensal"
+                height={350}
+              />
+            </LazyComponentLoader>
+            <LazyComponentLoader fallback={<ChartSkeleton height={250} />}>
+              <TicketMedioChart
+                sales={filteredSales}
+                title="Ticket Médio das Vendas"
+                height={250}
+              />
+            </LazyComponentLoader>
           </div>
           
           <div className="space-y-4 md:space-y-6">
@@ -230,11 +238,13 @@ const Index = () => {
 
         {/* Charts Adicionais */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-          <PropertyTypeChart
-            sales={filteredSales}
-            title="Tipos de Imóveis Vendidos"
-            height={300}
-          />
+          <LazyComponentLoader fallback={<ChartSkeleton height={300} />}>
+            <PropertyTypeChart
+              sales={filteredSales}
+              title="Tipos de Imóveis Vendidos"
+              height={300}
+            />
+          </LazyComponentLoader>
           
           <div className="bg-gradient-card rounded-xl p-6 border border-border animate-fade-in">
             <div className="flex items-center gap-3 mb-4">
