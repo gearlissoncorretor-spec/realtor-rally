@@ -56,7 +56,9 @@ const Corretores = () => {
       }
       setIsFormOpen(false);
     } catch (error) {
+      // Error handling is done in DataContext with toast messages
       console.error('Erro ao salvar corretor:', error);
+      // Don't close the form if there's an error
     }
   };
 

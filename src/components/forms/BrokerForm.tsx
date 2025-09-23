@@ -68,7 +68,11 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
     try {
       const submitData = {
         ...data,
-        avatar_url: avatarUrl || undefined,
+        // Convert empty strings to null for unique constraint fields
+        cpf: data.cpf?.trim() || null,
+        phone: data.phone?.trim() || null,
+        creci: data.creci?.trim() || null,
+        avatar_url: avatarUrl || null,
       };
       await onSubmit(submitData);
       form.reset();
@@ -76,6 +80,8 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       onClose();
     } catch (error) {
       console.error('Error submitting broker form:', error);
+      // Re-throw to let parent handle the toast
+      throw error;
     }
   };
 
