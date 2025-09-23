@@ -59,7 +59,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       cpf: broker?.cpf || '',
       creci: broker?.creci || '',
       status: broker?.status || 'ativo',
-      observations: (broker as any)?.observations || '',
+      observations: broker?.observations || '',
       meta_monthly: broker?.meta_monthly || 0,
       avatar_url: broker?.avatar_url || '',
     },
