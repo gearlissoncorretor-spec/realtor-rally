@@ -254,245 +254,254 @@ const Vendas = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Gestão de Vendas</h1>
-            <p className="text-muted-foreground">Controle completo de vendas e negociações</p>
-          </div>
-          
-          <div className="flex gap-2">
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Nova Venda
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {selectedSale ? "Editar Venda" : "Nova Venda"}
-                  </DialogTitle>
-                </DialogHeader>
-                <SaleForm 
-                  isOpen={isFormOpen}
-                  onClose={() => {
-                    setIsFormOpen(false);
-                    setSelectedSale(null);
-                  }}
-                  onSubmit={async (data) => {
-                    // Handle form submission
-                    try {
-                      // Transform form data to match Sale interface
-                      const saleData = {
-                        client_name: data.client_name!,
-                        property_address: data.property_address!,
-                        property_type: data.property_type!,
-                        broker_id: data.broker_id!,
-                        status: data.status!,
-                        origem: data.origem!,
-                        estilo: data.estilo!,
-                        produto: data.produto!,
-                        captador: data.captador!,
-                        gerente: data.gerente!,
-                        latitude: data.latitude!,
-                        sale_type: data.sale_type!,
-                        sale_date: data.sale_date!,
-                        client_email: data.client_email || null,
-                        client_phone: data.client_phone || null,
-                        notes: data.notes || null,
-                        property_value: Number(data.property_value),
-                        vgv: Number(data.vgv || data.property_value),
-                        vgc: Number(data.vgc),
-                        commission_value: Number(data.commission_value || 0),
-                        pagos: Number(data.pagos || 0),
-                        ano: Number(data.ano),
-                        mes: Number(data.mes),
-                      };
-
-                      if (selectedSale) {
-                        await updateSale(selectedSale.id, saleData);
-                        toast({
-                          title: "Venda atualizada",
-                          description: "A venda foi atualizada com sucesso.",
-                        });
-                      } else {
-                        await createSale(saleData);
-                        toast({
-                          title: "Venda criada",
-                          description: "A nova venda foi criada com sucesso.",
-                        });
-                      }
+      <div className="lg:ml-64 pt-16 lg:pt-0 p-2 sm:p-4 lg:p-6 min-h-screen overflow-x-hidden">
+        <div className="max-w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 truncate">Gestão de Vendas</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Controle completo de vendas e negociações</p>
+            </div>
+            
+            <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 w-full xs:w-auto">
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden xs:inline">Nova Venda</span>
+                    <span className="xs:hidden">Nova</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {selectedSale ? "Editar Venda" : "Nova Venda"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <SaleForm 
+                    isOpen={isFormOpen}
+                    onClose={() => {
                       setIsFormOpen(false);
                       setSelectedSale(null);
-                    } catch (error) {
-                      toast({
-                        title: "Erro",
-                        description: "Não foi possível salvar a venda.",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                  sale={selectedSale}
-                  title={selectedSale ? "Editar Venda" : "Nova Venda"}
-                />
-              </DialogContent>
-            </Dialog>
-            
-            <ExcelImport onImportComplete={() => refreshSales()} />
+                    }}
+                    onSubmit={async (data) => {
+                      // ... keep existing code
+                      try {
+                        // Transform form data to match Sale interface
+                        const saleData = {
+                          client_name: data.client_name!,
+                          property_address: data.property_address!,
+                          property_type: data.property_type!,
+                          broker_id: data.broker_id!,
+                          status: data.status!,
+                          origem: data.origem!,
+                          estilo: data.estilo!,
+                          produto: data.produto!,
+                          captador: data.captador!,
+                          gerente: data.gerente!,
+                          latitude: data.latitude!,
+                          sale_type: data.sale_type!,
+                          sale_date: data.sale_date!,
+                          client_email: data.client_email || null,
+                          client_phone: data.client_phone || null,
+                          notes: data.notes || null,
+                          property_value: Number(data.property_value),
+                          vgv: Number(data.vgv || data.property_value),
+                          vgc: Number(data.vgc),
+                          commission_value: Number(data.commission_value || 0),
+                          pagos: Number(data.pagos || 0),
+                          ano: Number(data.ano),
+                          mes: Number(data.mes),
+                        };
+
+                        if (selectedSale) {
+                          await updateSale(selectedSale.id, saleData);
+                          toast({
+                            title: "Venda atualizada",
+                            description: "A venda foi atualizada com sucesso.",
+                          });
+                        } else {
+                          await createSale(saleData);
+                          toast({
+                            title: "Venda criada",
+                            description: "A nova venda foi criada com sucesso.",
+                          });
+                        }
+                        setIsFormOpen(false);
+                        setSelectedSale(null);
+                      } catch (error) {
+                        toast({
+                          title: "Erro",
+                          description: "Não foi possível salvar a venda.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                    sale={selectedSale}
+                    title={selectedSale ? "Editar Venda" : "Nova Venda"}
+                  />
+                </DialogContent>
+              </Dialog>
+              
+              <ExcelImport onImportComplete={() => refreshSales()} />
+            </div>
           </div>
-        </div>
 
         {/* Enhanced Search and Filters */}
-        <SearchWithFilters
-          searchPlaceholder="Buscar por cliente, endereço ou corretor..."
-          searchValue={searchTerm}
-          onSearchChange={setSearchTerm}
-          filters={filterConfigs}
-          activeFilters={activeFilters}
-          onFilterChange={handleFilterChange}
-          onClearFilter={handleClearFilter}
-          onClearAllFilters={handleClearAllFilters}
-          showResultCount={true}
-          resultCount={resultCount}
-          className="mb-6"
-        />
+        <div className="mb-4 sm:mb-6 overflow-x-auto">
+          <SearchWithFilters
+            searchPlaceholder="Buscar por cliente, endereço ou corretor..."
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            filters={filterConfigs}
+            activeFilters={activeFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilter={handleClearFilter}
+            onClearAllFilters={handleClearAllFilters}
+            showResultCount={true}
+            resultCount={resultCount}
+            className="min-w-0"
+          />
+        </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total de Vendas</p>
-                <p className="text-2xl font-bold">{filteredSales.length}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Total de Vendas</p>
+                <p className="text-lg sm:text-2xl font-bold">{filteredSales.length}</p>
               </div>
-              <User className="w-8 h-8 text-primary opacity-80" />
+              <User className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-80 flex-shrink-0" />
             </div>
           </Card>
           
-          <Card className="p-6">
+          <Card className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">VGV Total</p>
-                <p className="text-2xl font-bold text-success">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">VGV Total</p>
+                <p className="text-sm sm:text-2xl font-bold text-success truncate">
                   {formatCurrency(filteredSales.reduce((sum, sale) => sum + Number(sale.vgv), 0))}
                 </p>
               </div>
-              <DollarSign className="w-8 h-8 text-success opacity-80" />
+              <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-success opacity-80 flex-shrink-0" />
             </div>
           </Card>
           
-          <Card className="p-6">
+          <Card className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">VGC Total</p>
-                <p className="text-2xl font-bold text-info">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">VGC Total</p>
+                <p className="text-sm sm:text-2xl font-bold text-info truncate">
                   {formatCurrency(filteredSales.reduce((sum, sale) => sum + Number(sale.vgc), 0))}
                 </p>
               </div>
-              <Calendar className="w-8 h-8 text-info opacity-80" />
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-info opacity-80 flex-shrink-0" />
             </div>
           </Card>
           
-          <Card className="p-6">
+          <Card className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Vendas Confirmadas</p>
-                <p className="text-2xl font-bold text-warning">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Vendas Confirmadas</p>
+                <p className="text-lg sm:text-2xl font-bold text-warning">
                   {filteredSales.filter(sale => sale.status === 'confirmada').length}
                 </p>
               </div>
-              <MapPin className="w-8 h-8 text-warning opacity-80" />
+              <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-warning opacity-80 flex-shrink-0" />
             </div>
           </Card>
         </div>
 
         {/* Enhanced Responsive Sales Table */}
-        <Card className="overflow-hidden">
-          <div className="p-6 border-b">
-            <h3 className="text-lg font-semibold">Lista de Vendas</h3>
-          </div>
-          
-          {loading ? (
-            <div className="h-32 flex items-center justify-center">
-              <p className="text-muted-foreground">Carregando vendas...</p>
+        <div className="overflow-hidden">
+          <Card className="overflow-hidden">
+            <div className="p-4 sm:p-6 border-b">
+              <h3 className="text-base sm:text-lg font-semibold">Lista de Vendas</h3>
             </div>
-          ) : filteredSales.length === 0 ? (
-            <div className="h-32 flex items-center justify-center">
-              <p className="text-muted-foreground">
-                {searchTerm || activeFilters.length > 0 
-                  ? 'Nenhuma venda encontrada para os filtros aplicados.' 
-                  : 'Nenhuma venda cadastrada ainda.'}
-              </p>
-            </div>
-          ) : (
-            <ResponsiveTable>
-              <ResponsiveTableHeader columns={tableColumns} />
-              {filteredSales.map((sale) => (
-                <ResponsiveTableRow
-                  key={sale.id}
-                  data={sale}
-                  columns={tableColumns}
-                  actions={tableActions}
-                  isExpandable={true}
-                  expandedContent={
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Informações do Cliente</h4>
-                          <div className="text-sm space-y-1">
-                            <p><strong>Nome:</strong> {sale.client_name}</p>
-                            <p><strong>Telefone:</strong> {sale.client_phone || 'Não informado'}</p>
-                            <p><strong>Email:</strong> {sale.client_email || 'Não informado'}</p>
+            
+            {loading ? (
+              <div className="h-32 flex items-center justify-center">
+                <p className="text-muted-foreground">Carregando vendas...</p>
+              </div>
+            ) : filteredSales.length === 0 ? (
+              <div className="h-32 flex items-center justify-center px-4">
+                <p className="text-muted-foreground text-center text-sm">
+                  {searchTerm || activeFilters.length > 0 
+                    ? 'Nenhuma venda encontrada para os filtros aplicados.' 
+                    : 'Nenhuma venda cadastrada ainda.'}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <ResponsiveTable>
+                  <ResponsiveTableHeader columns={tableColumns} />
+                  {filteredSales.map((sale) => (
+                    <ResponsiveTableRow
+                      key={sale.id}
+                      data={sale}
+                      columns={tableColumns}
+                      actions={tableActions}
+                      isExpandable={true}
+                      expandedContent={
+                        <div className="space-y-3 p-2 sm:p-0">
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <h4 className="font-medium text-sm">Informações do Cliente</h4>
+                              <div className="text-xs sm:text-sm space-y-1">
+                                <p><strong>Nome:</strong> <span className="break-words">{sale.client_name}</span></p>
+                                <p><strong>Telefone:</strong> <span className="break-all">{sale.client_phone || 'Não informado'}</span></p>
+                                <p><strong>Email:</strong> <span className="break-all">{sale.client_email || 'Não informado'}</span></p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <h4 className="font-medium text-sm">Detalhes da Venda</h4>
+                              <div className="text-xs sm:text-sm space-y-1">
+                                <p><strong>VGV:</strong> {formatCurrency(Number(sale.vgv))}</p>
+                                <p><strong>VGC:</strong> {formatCurrency(Number(sale.vgc))}</p>
+                                <p><strong>Tipo de Venda:</strong> {sale.sale_type || 'Não informado'}</p>
+                                <p><strong>Origem:</strong> <span className="break-words">{sale.origem || 'Não informado'}</span></p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <h4 className="font-medium text-sm">Informações Adicionais</h4>
+                              <div className="text-xs sm:text-sm space-y-1">
+                                <p><strong>Captador:</strong> <span className="break-words">{sale.captador || 'Não informado'}</span></p>
+                                <p><strong>Gerente:</strong> <span className="break-words">{sale.gerente || 'Não informado'}</span></p>
+                                <p><strong>Produto:</strong> <span className="break-words">{sale.produto || 'Não informado'}</span></p>
+                                <p><strong>Estilo:</strong> <span className="break-words">{sale.estilo || 'Não informado'}</span></p>
+                              </div>
+                            </div>
                           </div>
+                          
+                          {sale.notes && (
+                            <div className="pt-2 border-t">
+                              <h4 className="font-medium text-sm mb-1">Observações</h4>
+                              <p className="text-xs sm:text-sm text-muted-foreground break-words">{sale.notes}</p>
+                            </div>
+                          )}
                         </div>
-                        
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Detalhes da Venda</h4>
-                          <div className="text-sm space-y-1">
-                            <p><strong>VGV:</strong> {formatCurrency(Number(sale.vgv))}</p>
-                            <p><strong>VGC:</strong> {formatCurrency(Number(sale.vgc))}</p>
-                            <p><strong>Tipo de Venda:</strong> {sale.sale_type || 'Não informado'}</p>
-                            <p><strong>Origem:</strong> {sale.origem || 'Não informado'}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Informações Adicionais</h4>
-                          <div className="text-sm space-y-1">
-                            <p><strong>Captador:</strong> {sale.captador || 'Não informado'}</p>
-                            <p><strong>Gerente:</strong> {sale.gerente || 'Não informado'}</p>
-                            <p><strong>Produto:</strong> {sale.produto || 'Não informado'}</p>
-                            <p><strong>Estilo:</strong> {sale.estilo || 'Não informado'}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {sale.notes && (
-                        <div className="pt-2 border-t">
-                          <h4 className="font-medium text-sm mb-1">Observações</h4>
-                          <p className="text-sm text-muted-foreground">{sale.notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  }
-                />
-              ))}
-            </ResponsiveTable>
-          )}
-        </Card>
-
-        {/* Dialogs */}
-        <SaleDetailsDialog
-          sale={selectedSale}
-          isOpen={isDetailsOpen}
-          onClose={() => {
-            setIsDetailsOpen(false);
-            setSelectedSale(null);
-          }}
-        />
+                      }
+                    />
+                  ))}
+                </ResponsiveTable>
+              </div>
+            )}
+          </Card>
+        </div>
+        </div>
       </div>
+
+      {/* Dialogs */}
+      <SaleDetailsDialog
+        sale={selectedSale}
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedSale(null);
+        }}
+      />
     </div>
   );
 };
