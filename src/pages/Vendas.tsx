@@ -391,11 +391,11 @@ const Vendas = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm text-muted-foreground truncate">VGC Total</p>
-                <p className="text-sm sm:text-2xl font-bold text-info truncate">
+                <p className="text-sm sm:text-2xl font-bold text-success truncate">
                   {formatCurrency(filteredSales.reduce((sum, sale) => sum + Number(sale.vgc), 0))}
                 </p>
               </div>
-              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-info opacity-80 flex-shrink-0" />
+              <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-success opacity-80 flex-shrink-0" />
             </div>
           </Card>
           
@@ -403,11 +403,11 @@ const Vendas = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm text-muted-foreground truncate">Vendas Confirmadas</p>
-                <p className="text-lg sm:text-2xl font-bold text-warning">
+                <p className="text-lg sm:text-2xl font-bold text-primary">
                   {filteredSales.filter(sale => sale.status === 'confirmada').length}
                 </p>
               </div>
-              <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-warning opacity-80 flex-shrink-0" />
+              <MapPin className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-80 flex-shrink-0" />
             </div>
           </Card>
         </div>
