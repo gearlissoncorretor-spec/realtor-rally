@@ -45,41 +45,81 @@ const Vendas = () => {
   const { brokers } = useBrokers();
 
   // Enhanced search and filter configuration
-  const filterConfigs = useMemo(() => [
-    {
-      id: 'status',
-      label: 'Status',
-      type: 'select' as const,
-      icon: <Filter className="w-4 h-4" />,
-      options: [
-        { value: 'pendente', label: 'Pendente' },
-        { value: 'confirmada', label: 'Confirmada' },
-        { value: 'cancelada', label: 'Cancelada' },
-      ],
-    },
-    {
-      id: 'broker_id',
-      label: 'Corretor',
-      type: 'select' as const,
-      icon: <User className="w-4 h-4" />,
-      options: brokers.map(broker => ({
-        value: broker.id,
-        label: broker.name,
-      })),
-    },
-    {
-      id: 'property_type',
-      label: 'Tipo de Imóvel',
-      type: 'select' as const,
-      icon: <MapPin className="w-4 h-4" />,
-      options: [
-        { value: 'apartamento', label: 'Apartamento' },
-        { value: 'casa', label: 'Casa' },
-        { value: 'terreno', label: 'Terreno' },
-        { value: 'comercial', label: 'Comercial' },
-      ],
-    },
-  ], [brokers]);
+  const filterConfigs = useMemo(() => {
+    // Get unique years from sales data
+    const uniqueYears = [...new Set(sales.map(sale => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      return saleDate.getFullYear();
+    }))].sort((a, b) => b - a); // Sort descending (newest first)
+
+    const monthOptions = [
+      { value: 1, label: 'Janeiro' },
+      { value: 2, label: 'Fevereiro' },
+      { value: 3, label: 'Março' },
+      { value: 4, label: 'Abril' },
+      { value: 5, label: 'Maio' },
+      { value: 6, label: 'Junho' },
+      { value: 7, label: 'Julho' },
+      { value: 8, label: 'Agosto' },
+      { value: 9, label: 'Setembro' },
+      { value: 10, label: 'Outubro' },
+      { value: 11, label: 'Novembro' },
+      { value: 12, label: 'Dezembro' },
+    ];
+
+    return [
+      {
+        id: 'status',
+        label: 'Status',
+        type: 'select' as const,
+        icon: <Filter className="w-4 h-4" />,
+        options: [
+          { value: 'pendente', label: 'Pendente' },
+          { value: 'confirmada', label: 'Confirmada' },
+          { value: 'cancelada', label: 'Cancelada' },
+        ],
+      },
+      {
+        id: 'broker_id',
+        label: 'Corretor',
+        type: 'select' as const,
+        icon: <User className="w-4 h-4" />,
+        options: brokers.map(broker => ({
+          value: broker.id,
+          label: broker.name,
+        })),
+      },
+      {
+        id: 'property_type',
+        label: 'Tipo de Imóvel',
+        type: 'select' as const,
+        icon: <MapPin className="w-4 h-4" />,
+        options: [
+          { value: 'apartamento', label: 'Apartamento' },
+          { value: 'casa', label: 'Casa' },
+          { value: 'terreno', label: 'Terreno' },
+          { value: 'comercial', label: 'Comercial' },
+        ],
+      },
+      {
+        id: 'month',
+        label: 'Mês',
+        type: 'select' as const,
+        icon: <Calendar className="w-4 h-4" />,
+        options: monthOptions,
+      },
+      {
+        id: 'year',
+        label: 'Ano',
+        type: 'select' as const,
+        icon: <Calendar className="w-4 h-4" />,
+        options: uniqueYears.map(year => ({
+          value: year,
+          label: year.toString(),
+        })),
+      },
+    ];
+  }, [brokers, sales]);
 
   const {
     searchTerm,
