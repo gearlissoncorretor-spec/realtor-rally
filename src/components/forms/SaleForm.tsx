@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
@@ -321,13 +322,11 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 name="property_value"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor do Imóvel / VGV (R$)</FormLabel>
+                    <FormLabel>Valor do Imóvel / VGV</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="500000" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      <CurrencyInput 
+                        value={field.value || 0}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
@@ -340,13 +339,11 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 name="vgc"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>VGC - Valor da Comissão Geral (R$)</FormLabel>
+                    <FormLabel>VGC - Valor da Comissão Geral</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="450000" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      <CurrencyInput 
+                        value={field.value || 0}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
