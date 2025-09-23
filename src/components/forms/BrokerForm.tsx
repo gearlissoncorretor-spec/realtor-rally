@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import ImageUpload from '@/components/ImageUpload';
@@ -15,10 +16,10 @@ const brokerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   phone: z.string().optional(),
-  cpf: z.string().optional(), // Removido campo obrigatório
+  cpf: z.string().optional(),
   creci: z.string().optional(),
   status: z.enum(['ativo', 'inativo', 'ferias']),
-  commission_rate: z.number().min(0).max(100).optional(),
+  observations: z.string().max(200, 'Observação deve ter no máximo 200 caracteres').optional(),
   meta_monthly: z.number().min(0).optional(),
   avatar_url: z.string().optional(),
 });
@@ -58,7 +59,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       cpf: broker?.cpf || '',
       creci: broker?.creci || '',
       status: broker?.status || 'ativo',
-      commission_rate: broker?.commission_rate || 5,
+      observations: broker?.observations || '',
       meta_monthly: broker?.meta_monthly || 0,
       avatar_url: broker?.avatar_url || '',
     },
@@ -205,25 +206,6 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="commission_rate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Taxa de Comissão (%)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="5.0" 
-                        {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
                 name="meta_monthly"
                 render={({ field }) => (
                   <FormItem>
@@ -241,6 +223,28 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="observations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observações</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Digite observações sobre o corretor (máximo 200 caracteres)"
+                      className="resize-none"
+                      maxLength={200}
+                      {...field}
+                    />
+                  </FormControl>
+                  <div className="text-xs text-muted-foreground text-right">
+                    {(field.value?.length || 0)}/200 caracteres
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
