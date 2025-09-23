@@ -204,9 +204,9 @@ const Vendas = () => {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Valor Total</p>
+                <p className="text-sm text-muted-foreground">VGV Total</p>
                 <p className="text-2xl font-bold text-success">
-                  {formatCurrency(filteredSales.reduce((sum, sale) => sum + Number(sale.property_value), 0))}
+                  {formatCurrency(filteredSales.reduce((sum, sale) => sum + Number(sale.vgv), 0))}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-success opacity-80" />
