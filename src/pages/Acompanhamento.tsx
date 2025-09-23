@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,11 @@ const Acompanhamento = () => {
   const [newStageTitle, setNewStageTitle] = useState("");
   const [newStageColor, setNewStageColor] = useState("#3b82f6");
   const [isAddingStage, setIsAddingStage] = useState(false);
+  
+  // Refs para sincronização do scroll
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const mainScrollRef = useRef<HTMLDivElement>(null);
+  const [showTopScroll, setShowTopScroll] = useState(false);
 
   // Convert sales data to process cards
   useEffect(() => {
@@ -63,6 +68,45 @@ const Acompanhamento = () => {
       setProcessCards(cards);
     }
   }, [sales, brokers, stages]);
+
+  // Verificar se precisa mostrar scroll superior e sincronizar scrolls
+  useEffect(() => {
+    const mainScroll = mainScrollRef.current;
+    const topScroll = topScrollRef.current;
+    
+    if (!mainScroll || !topScroll) return;
+
+    const checkScrollNeeded = () => {
+      const needsScroll = mainScroll.scrollWidth > mainScroll.clientWidth;
+      setShowTopScroll(needsScroll);
+      
+      // Sincronizar largura do scroll superior
+      if (needsScroll) {
+        (topScroll.firstElementChild as HTMLElement)!.style.width = `${mainScroll.scrollWidth}px`;
+      }
+    };
+
+    const syncScroll = (source: HTMLElement, target: HTMLElement) => {
+      target.scrollLeft = source.scrollLeft;
+    };
+
+    const handleMainScroll = () => syncScroll(mainScroll, topScroll);
+    const handleTopScroll = () => syncScroll(topScroll, mainScroll);
+
+    // Configurar eventos
+    mainScroll.addEventListener('scroll', handleMainScroll);
+    topScroll.addEventListener('scroll', handleTopScroll);
+    
+    // Verificar inicialmente e em redimensionamento
+    checkScrollNeeded();
+    window.addEventListener('resize', checkScrollNeeded);
+
+    return () => {
+      mainScroll.removeEventListener('scroll', handleMainScroll);
+      topScroll.removeEventListener('scroll', handleTopScroll);
+      window.removeEventListener('resize', checkScrollNeeded);
+    };
+  }, [stages]);
 
   const getBrokerName = (brokerId: string | null) => {
     if (!brokerId) return "Não atribuído";
@@ -217,7 +261,21 @@ const Acompanhamento = () => {
 
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="relative">
-            <div className="flex flex-row gap-4 md:gap-6 overflow-x-auto scrollbar-styled pb-4 -mx-2 px-2 md:mx-0 md:px-0">
+            {/* Barra de rolagem superior */}
+            {showTopScroll && (
+              <div 
+                ref={topScrollRef}
+                className="overflow-x-auto scrollbar-styled mb-4 -mx-2 px-2 md:mx-0 md:px-0"
+                style={{ height: '12px' }}
+              >
+                <div style={{ height: '1px' }}></div>
+              </div>
+            )}
+            
+            <div 
+              ref={mainScrollRef}
+              className="flex flex-row gap-4 md:gap-6 overflow-x-auto scrollbar-styled pb-4 -mx-2 px-2 md:mx-0 md:px-0"
+            >
               {stages.map((stage) => (
                 <div key={stage.id} className="flex flex-col min-w-[260px] md:min-w-[280px] max-w-[320px] flex-shrink-0">
                 <Card className="mb-4">
