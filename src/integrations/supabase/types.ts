@@ -26,6 +26,7 @@ export type Database = {
           id: string
           meta_monthly: number | null
           name: string
+          observations: string | null
           phone: string | null
           status: Database["public"]["Enums"]["broker_status"] | null
           updated_at: string | null
@@ -42,6 +43,7 @@ export type Database = {
           id?: string
           meta_monthly?: number | null
           name: string
+          observations?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["broker_status"] | null
           updated_at?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           id?: string
           meta_monthly?: number | null
           name?: string
+          observations?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["broker_status"] | null
           updated_at?: string | null
