@@ -23,10 +23,19 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
     const parseCurrency = (str: string): number => {
       if (!str) return 0;
       // Remove tudo exceto números, vírgulas e pontos
-      const cleanStr = str.replace(/[^\d,.]/g, '');
-      // Substitui vírgulas por pontos para parsing
-      const normalizedStr = cleanStr.replace(/\./g, '').replace(',', '.');
-      const parsed = parseFloat(normalizedStr);
+      let cleanStr = str.replace(/[^\d,.]/g, '');
+      
+      // Se tem vírgula e ponto, assume que ponto é separador de milhares
+      if (cleanStr.includes(',') && cleanStr.includes('.')) {
+        // Remove pontos (separadores de milhares) e mantém vírgula (decimal)
+        cleanStr = cleanStr.replace(/\./g, '').replace(',', '.');
+      } else if (cleanStr.includes(',')) {
+        // Apenas vírgula - substitui por ponto
+        cleanStr = cleanStr.replace(',', '.');
+      }
+      // Se apenas ponto, mantém como está
+      
+      const parsed = parseFloat(cleanStr);
       return isNaN(parsed) ? 0 : parsed;
     };
 
