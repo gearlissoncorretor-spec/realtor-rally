@@ -52,9 +52,11 @@ ResponsiveTable.displayName = "ResponsiveTable";
 
 const ResponsiveTableHeader: React.FC<{ columns: ColumnConfig[] }> = ({ columns }) => {
   const getColumnSpan = (index: number, total: number) => {
-    // Distribute columns more evenly based on content
+    // Give more space to first column (names) and adjust others accordingly
     if (total <= 6) {
-      return index === 0 ? "col-span-2" : "col-span-2"; // Even distribution
+      if (index === 0) return "col-span-3"; // More space for names
+      if (index === 1) return "col-span-2"; // Property type
+      return "col-span-1"; // Other columns
     }
     return "col-span-1";
   };
@@ -243,8 +245,11 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
         
         {columns.map((column, index) => {
           const getColumnSpan = (index: number, total: number) => {
+            // Give more space to first column (names) and adjust others accordingly
             if (total <= 6) {
-              return index === 0 ? "col-span-2" : "col-span-2";
+              if (index === 0) return "col-span-3"; // More space for names
+              if (index === 1) return "col-span-2"; // Property type
+              return "col-span-1"; // Other columns
             }
             return "col-span-1";
           };
@@ -254,13 +259,16 @@ const ResponsiveTableRow: React.FC<ResponsiveRowProps> = ({
               key={column.key}
               className={cn(
                 getColumnSpan(index, columns.length),
-                "flex items-center text-sm min-w-0",
+                "flex items-center text-sm min-w-0 truncate",
                 column.hideOnMobile && "hidden md:block",
                 column.priority === 'low' && "hidden lg:block"
               )}
               role="gridcell"
+              title={typeof data[column.key] === 'string' ? data[column.key] : ''}
             >
-              {column.render ? column.render(data[column.key], data) : data[column.key]}
+              <div className="truncate w-full">
+                {column.render ? column.render(data[column.key], data) : data[column.key]}
+              </div>
             </div>
           );
         })}
