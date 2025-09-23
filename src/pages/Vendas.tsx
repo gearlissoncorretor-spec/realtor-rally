@@ -2,6 +2,8 @@ import Navigation from "@/components/Navigation";
 import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
+import { ColumnSelector } from "@/components/ColumnSelector";
+import { ExpandableCell } from "@/components/ExpandableCell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +42,9 @@ const Vendas = () => {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    'client_name', 'property_address', 'broker_name', 'property_value', 'vgc', 'status', 'sale_date'
+  ]);
   
   const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
@@ -152,16 +157,19 @@ const Vendas = () => {
     }
   };
 
-  // Define table columns for responsive table
-  const tableColumns: ColumnConfig[] = [
+  // Define all available table columns
+  const allTableColumns: ColumnConfig[] = [
     {
       key: 'client_name',
       label: 'Cliente',
       priority: 'high',
       render: (value) => (
-        <div className="font-medium text-foreground">
-          {value}
-        </div>
+        <ExpandableCell 
+          content={value}
+          maxLength={20}
+          title="Nome do Cliente"
+          className="font-medium text-foreground"
+        />
       ),
     },
     {
@@ -170,7 +178,12 @@ const Vendas = () => {
       priority: 'high',
       render: (value, row) => (
         <div className="min-w-0">
-          <div className="font-medium text-foreground truncate">{value}</div>
+          <ExpandableCell 
+            content={value}
+            maxLength={25}
+            title="Endereço do Imóvel"
+            className="font-medium text-foreground"
+          />
           <div className="text-sm text-muted-foreground capitalize">{row.property_type}</div>
         </div>
       ),
@@ -187,6 +200,36 @@ const Vendas = () => {
           </div>
         );
       },
+    },
+    {
+      key: 'captador',
+      label: 'Captador',
+      priority: 'medium',
+      render: (value) => (
+        <div className="font-medium text-foreground">
+          {value || 'Não informado'}
+        </div>
+      ),
+    },
+    {
+      key: 'vendedor',
+      label: 'Vendedor',
+      priority: 'low',
+      render: (value) => (
+        <div className="font-medium text-foreground">
+          {value || 'Não informado'}
+        </div>
+      ),
+    },
+    {
+      key: 'gerente',
+      label: 'Gerente',
+      priority: 'low',
+      render: (value) => (
+        <div className="font-medium text-foreground">
+          {value || 'Não informado'}
+        </div>
+      ),
     },
     {
       key: 'property_value',
@@ -209,6 +252,26 @@ const Vendas = () => {
       ),
     },
     {
+      key: 'vgv',
+      label: 'VGV',
+      priority: 'low',
+      render: (value) => (
+        <div className="font-semibold text-primary">
+          {formatCurrency(Number(value))}
+        </div>
+      ),
+    },
+    {
+      key: 'commission_value',
+      label: 'Comissão',
+      priority: 'low',
+      render: (value) => (
+        <div className="font-semibold text-accent">
+          {formatCurrency(Number(value || 0))}
+        </div>
+      ),
+    },
+    {
       key: 'status',
       label: 'Status',
       priority: 'high',
@@ -227,7 +290,7 @@ const Vendas = () => {
     },
     {
       key: 'sale_date',
-      label: 'Data',
+      label: 'Data da Venda',
       priority: 'medium',
       render: (value) => (
         <div className="text-sm text-foreground">
@@ -235,7 +298,93 @@ const Vendas = () => {
         </div>
       ),
     },
+    {
+      key: 'contract_date',
+      label: 'Data do Contrato',
+      priority: 'low',
+      render: (value) => (
+        <div className="text-sm text-foreground">
+          {value ? new Date(value).toLocaleDateString('pt-BR') : 'Sem data'}
+        </div>
+      ),
+    },
+    {
+      key: 'client_email',
+      label: 'Email Cliente',
+      priority: 'low',
+      render: (value) => (
+        <ExpandableCell 
+          content={value || 'Não informado'}
+          maxLength={20}
+          title="Email do Cliente"
+          className="text-sm text-foreground"
+        />
+      ),
+    },
+    {
+      key: 'client_phone',
+      label: 'Telefone Cliente',
+      priority: 'low',
+      render: (value) => (
+        <div className="text-sm text-foreground">
+          {value || 'Não informado'}
+        </div>
+      ),
+    },
+    {
+      key: 'origem',
+      label: 'Origem',
+      priority: 'low',
+      render: (value) => (
+        <div className="text-sm text-foreground">
+          {value || 'Não informado'}
+        </div>
+      ),
+    },
+    {
+      key: 'produto',
+      label: 'Produto',
+      priority: 'low',
+      render: (value) => (
+        <div className="text-sm text-foreground">
+          {value || 'Não informado'}
+        </div>
+      ),
+    },
+    {
+      key: 'notes',
+      label: 'Observações',
+      priority: 'low',
+      render: (value) => (
+        <ExpandableCell 
+          content={value || 'Nenhuma observação'}
+          maxLength={30}
+          title="Observações"
+          className="text-sm text-foreground"
+        />
+      ),
+    },
   ];
+
+  // Filter columns based on visibility settings
+  const tableColumns = allTableColumns.filter(col => visibleColumns.includes(col.key));
+
+  // Column selector handlers
+  const handleColumnToggle = (columnKey: string) => {
+    setVisibleColumns(prev => 
+      prev.includes(columnKey)
+        ? prev.filter(key => key !== columnKey)
+        : [...prev, columnKey]
+    );
+  };
+
+  const handleSelectAllColumns = () => {
+    setVisibleColumns(allTableColumns.map(col => col.key));
+  };
+
+  const handleSelectNoColumns = () => {
+    setVisibleColumns([]);
+  };
 
   // Define table actions
   const tableActions: ActionConfig[] = [
@@ -276,6 +425,14 @@ const Vendas = () => {
             </div>
             
             <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+              <ColumnSelector
+                columns={allTableColumns}
+                visibleColumns={visibleColumns}
+                onColumnToggle={handleColumnToggle}
+                onSelectAll={handleSelectAllColumns}
+                onSelectNone={handleSelectNoColumns}
+              />
+              
               <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
                   <Button className="gap-2 w-full xs:w-auto">
@@ -441,6 +598,12 @@ const Vendas = () => {
                 {searchTerm || activeFilters.length > 0 
                   ? 'Nenhuma venda encontrada para os filtros aplicados.' 
                   : 'Nenhuma venda cadastrada ainda.'}
+              </p>
+            </div>
+          ) : visibleColumns.length === 0 ? (
+            <div className="h-32 flex items-center justify-center px-4">
+              <p className="text-muted-foreground text-center text-sm">
+                Selecione pelo menos uma coluna para visualizar os dados.
               </p>
             </div>
           ) : (
