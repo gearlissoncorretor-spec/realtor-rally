@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserPlus, Clock } from 'lucide-react';
+import { Users, UserPlus, Clock, KeyRound } from 'lucide-react';
 import { CreateUserForm } from './user-management/CreateUserForm';
 import { UsersList } from './user-management/UsersList';
 import { PendingApprovals } from './user-management/PendingApprovals';
+import { PasswordManager } from './user-management/PasswordManager';
 
 export const UserManagementHub = () => {
   const { isAdmin } = useAuth();
@@ -33,7 +34,7 @@ export const UserManagementHub = () => {
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Usuários
@@ -45,6 +46,10 @@ export const UserManagementHub = () => {
             <TabsTrigger value="pending" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
               Pendências
+            </TabsTrigger>
+            <TabsTrigger value="passwords" className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4" />
+              Senhas
             </TabsTrigger>
           </TabsList>
           
@@ -61,6 +66,10 @@ export const UserManagementHub = () => {
           
           <TabsContent value="pending" className="mt-6">
             <PendingApprovals onApprovalChange={triggerRefresh} />
+          </TabsContent>
+          
+          <TabsContent value="passwords" className="mt-6">
+            <PasswordManager />
           </TabsContent>
         </Tabs>
       </CardContent>

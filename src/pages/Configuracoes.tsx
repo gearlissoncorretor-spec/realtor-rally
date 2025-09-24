@@ -19,9 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { AdminPasswordManager } from "@/components/AdminPasswordManager";
 import { UserManagementHub } from "@/components/UserManagementHub";
-import { UsersDebugPanel } from "@/components/UsersDebugPanel";
 import TeamManager from "@/components/TeamManager";
 import TeamMemberManager from "@/components/TeamMemberManager";
 
@@ -165,16 +163,10 @@ const Configuracoes = () => {
 
           {/* User Management Hub - Only visible to Admins */}
           {isAdmin() && (
-            <>
+            <div className="mb-8">
               <UserManagementHub />
-              <AdminPasswordManager />
-            </>
+            </div>
           )}
-
-          {/* Debug Panel - Usuários do Banco (DESENVOLVIMENTO) */}
-          <div className="mb-8">
-            <UsersDebugPanel />
-          </div>
 
           {/* Preferências do Usuário */}
           <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.7s' }}>
