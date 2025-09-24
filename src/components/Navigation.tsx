@@ -42,6 +42,11 @@ const Navigation = () => {
     icon: Users,
     screen: "corretores"
   }, {
+    href: "/equipes",
+    label: "Equipes",
+    icon: Users,
+    screen: "equipes"
+  }, {
     href: "/configuracoes",
     label: "Configurações",
     icon: Settings,
@@ -56,7 +61,7 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'corretores', 'ranking', 'acompanhamento'].includes(item.screen);
+      return ['dashboard', 'vendas', 'corretores', 'equipes', 'ranking', 'acompanhamento'].includes(item.screen);
     } else if (userRole === 'corretor') {
       return ['dashboard', 'vendas'].includes(item.screen);
     }

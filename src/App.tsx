@@ -9,6 +9,7 @@ import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Vendas from "@/pages/Vendas";
 import Corretores from "@/pages/Corretores";
+import Equipes from "@/pages/Equipes";
 import Ranking from "@/pages/Ranking";
 import Acompanhamento from "@/pages/Acompanhamento";
 import Relatorios from "@/pages/Relatorios";
@@ -43,6 +44,11 @@ const App = () => (
               <Route path="/corretores" element={
                 <ProtectedRoute>
                   <Corretores />
+                </ProtectedRoute>
+              } />
+              <Route path="/equipes" element={
+                <ProtectedRoute>
+                  <Equipes />
                 </ProtectedRoute>
               } />
               <Route path="/ranking" element={

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import ImageUpload from '@/components/ImageUpload';
 import { Broker } from '@/contexts/DataContext';
+import { useTeams } from '@/hooks/useTeams';
 
 const brokerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -19,6 +20,7 @@ const brokerSchema = z.object({
   cpf: z.string().optional(),
   creci: z.string().optional(),
   status: z.enum(['ativo', 'inativo', 'ferias']),
+  team_id: z.string().min(1, 'Equipe é obrigatória'),
   observations: z.string().max(200, 'Observação deve ter no máximo 200 caracteres').optional(),
   meta_monthly: z.number().min(0).optional(),
   avatar_url: z.string().optional(),
@@ -42,6 +44,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
   title,
 }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(broker?.avatar_url || null);
+  const { teams } = useTeams();
   
   // Sincronizar avatar com dados do broker
   React.useEffect(() => {
@@ -59,6 +62,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       cpf: broker?.cpf || '',
       creci: broker?.creci || '',
       status: broker?.status || 'ativo',
+      team_id: broker?.team_id || '',
       observations: broker?.observations || '',
       meta_monthly: broker?.meta_monthly || 0,
       avatar_url: broker?.avatar_url || '',
@@ -202,6 +206,31 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="team_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Equipe *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma equipe" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {teams.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

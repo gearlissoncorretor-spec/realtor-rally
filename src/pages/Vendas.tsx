@@ -34,11 +34,14 @@ import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
+import { useTeams } from "@/hooks/useTeams";
+import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
 import type { Sale } from "@/contexts/DataContext";
 
 const Vendas = () => {
   const { toast } = useToast();
+  const { isDiretor } = useAuth();
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -48,6 +51,7 @@ const Vendas = () => {
   
   const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
+  const { teams, teamMembers } = useTeams();
 
   // Enhanced search and filter configuration
   const filterConfigs = useMemo(() => {
@@ -94,6 +98,17 @@ const Vendas = () => {
           label: broker.name,
         })),
       },
+      // Only show team filter for directors
+      ...(isDiretor() ? [{
+        id: 'team_id',
+        label: 'Equipe',
+        type: 'select' as const,
+        icon: <User className="w-4 h-4" />,
+        options: teams.map(team => ({
+          value: team.id,
+          label: team.name,
+        })),
+      }] : []),
       {
         id: 'property_type',
         label: 'Tipo de Imóvel',
@@ -124,7 +139,22 @@ const Vendas = () => {
         })),
       },
     ];
-  }, [brokers, sales]);
+  }, [brokers, sales, teams, isDiretor]);
+
+  // Custom filter functions for complex filtering
+  const customFilters = useMemo(() => ({
+    team_id: (sales: Sale[], teamId: string) => {
+      // Get all brokers from the selected team
+      const teamBrokerIds = teamMembers
+        .filter(member => member.team_id === teamId)
+        .map(member => member.id);
+      
+      // Filter sales by brokers in the team
+      return sales.filter(sale => 
+        sale.broker_id && teamBrokerIds.includes(sale.broker_id)
+      );
+    },
+  }), [teamMembers]);
 
   const {
     searchTerm,
@@ -138,7 +168,8 @@ const Vendas = () => {
   } = useSearchAndFilters(
     sales,
     ['client_name', 'property_address'],
-    filterConfigs
+    filterConfigs,
+    customFilters
   );
 
   const handleDelete = async (saleId: string) => {

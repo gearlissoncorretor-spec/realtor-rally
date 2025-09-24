@@ -227,7 +227,8 @@ export default SearchWithFilters;
 export const useSearchAndFilters = function<T>(
   data: T[],
   searchFields: (keyof T)[],
-  filterConfigs: FilterOption[]
+  filterConfigs: FilterOption[],
+  customFilters?: Record<string, (data: T[], value: any) => T[]>
 ) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
@@ -250,28 +251,33 @@ export const useSearchAndFilters = function<T>(
     activeFilters.forEach(filter => {
       const config = filterConfigs.find(f => f.id === filter.id);
       if (config) {
-        result = result.filter(item => {
-          // Handle date-based filters (month/year)
-          if (filter.id === 'month' || filter.id === 'year') {
-            // Assume the item has sale_date or created_at field
-            const saleDate = new Date((item as any).sale_date || (item as any).created_at || '');
-            
-            if (filter.id === 'month') {
-              return saleDate.getMonth() + 1 === filter.value; // getMonth() returns 0-11
-            } else if (filter.id === 'year') {
-              return saleDate.getFullYear() === filter.value;
+        // Check if there's a custom filter function
+        if (customFilters && customFilters[filter.id]) {
+          result = customFilters[filter.id](result, filter.value);
+        } else {
+          result = result.filter(item => {
+            // Handle date-based filters (month/year)
+            if (filter.id === 'month' || filter.id === 'year') {
+              // Assume the item has sale_date or created_at field
+              const saleDate = new Date((item as any).sale_date || (item as any).created_at || '');
+              
+              if (filter.id === 'month') {
+                return saleDate.getMonth() + 1 === filter.value; // getMonth() returns 0-11
+              } else if (filter.id === 'year') {
+                return saleDate.getFullYear() === filter.value;
+              }
             }
-          }
-          
-          // Handle other filters
-          const itemValue = item[filter.id as keyof T];
-          return itemValue === filter.value;
-        });
+            
+            // Handle other filters
+            const itemValue = item[filter.id as keyof T];
+            return itemValue === filter.value;
+          });
+        }
       }
     });
 
     return result;
-  }, [data, searchTerm, activeFilters, searchFields, filterConfigs]);
+  }, [data, searchTerm, activeFilters, searchFields, filterConfigs, customFilters]);
 
   const handleFilterChange = (filterId: string, value: any) => {
     if (!value) {
