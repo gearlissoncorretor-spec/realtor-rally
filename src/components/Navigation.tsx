@@ -66,6 +66,11 @@ const Navigation = () => {
       return ['dashboard', 'vendas'].includes(item.screen);
     }
     
+    // Admins also have access to everything
+    if (isAdmin()) {
+      return true;
+    }
+    
     return hasAccess(item.screen);
   });
   return <>
