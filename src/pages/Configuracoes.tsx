@@ -19,11 +19,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import UserPermissionsManager from "@/components/UserPermissionsManager";
-import { UserApprovalManager } from "@/components/UserApprovalManager";
 import { AdminPasswordManager } from "@/components/AdminPasswordManager";
+import { UserManagementHub } from "@/components/UserManagementHub";
 import { UsersDebugPanel } from "@/components/UsersDebugPanel";
-import { AdminRoleManager } from "@/components/AdminRoleManager";
 import TeamManager from "@/components/TeamManager";
 import TeamMemberManager from "@/components/TeamMemberManager";
 
@@ -165,26 +163,18 @@ const Configuracoes = () => {
             </div>
           )}
 
+          {/* User Management Hub - Only visible to Admins */}
+          {isAdmin() && (
+            <>
+              <UserManagementHub />
+              <AdminPasswordManager />
+            </>
+          )}
+
           {/* Debug Panel - Usuários do Banco (DESENVOLVIMENTO) */}
           <div className="mb-8">
             <UsersDebugPanel />
           </div>
-
-          {/* User Approval Management - Only for Admins */}
-          {isAdmin() && (
-            <div className="mb-8">
-              <UserApprovalManager />
-            </div>
-          )}
-
-          {/* Gerenciamento de Usuários - Apenas para Admin */}
-          {isAdmin() && (
-            <>
-              <AdminRoleManager />
-              <UserPermissionsManager />
-              <AdminPasswordManager />
-            </>
-          )}
 
           {/* Preferências do Usuário */}
           <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.7s' }}>
