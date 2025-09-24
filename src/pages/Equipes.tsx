@@ -33,8 +33,11 @@ const Equipes = () => {
   const { teams, teamMembers, loading, createTeam, updateTeam, deleteTeam } = useTeams();
   const { sales } = useSales();
 
+  console.log('Equipes Debug:', { teams, teamMembers, loading, totalTeams: teams?.length });
+
   // Only directors can access this page
   if (!isDiretor()) {
+    console.log('User is not director, redirecting...');
     return null;
   }
 
