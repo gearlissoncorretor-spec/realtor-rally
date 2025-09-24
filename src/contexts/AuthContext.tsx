@@ -13,12 +13,22 @@ interface Profile {
   approved_by?: string;
   approved_at?: string;
   avatar_url?: string;
+  team_id?: string;
+  manager_id?: string;
+}
+
+interface TeamHierarchy {
+  team_id: string | null;
+  team_name: string | null;
+  is_manager: boolean;
+  team_members: string[];
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  teamHierarchy: TeamHierarchy | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
@@ -26,8 +36,12 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   hasAccess: (screen: string) => boolean;
   isAdmin: () => boolean;
+  isDiretor: () => boolean;
+  isGerente: () => boolean;
+  isCorretor: () => boolean;
   getUserRole: () => string;
   getDefaultRoute: () => string;
+  canAccessUserData: (userId: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,6 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -57,9 +72,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
       setProfile(data);
+      
+      // Fetch team hierarchy after profile
+      if (data) {
+        fetchTeamHierarchy(userId);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+    }
+  };
+
+  const fetchTeamHierarchy = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_team_hierarchy', { user_id: userId });
+
+      if (error) throw error;
+      setTeamHierarchy(data?.[0] || null);
+    } catch (error) {
+      console.error('Error fetching team hierarchy:', error);
+      setTeamHierarchy(null);
     }
   };
 
@@ -153,29 +186,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return profile?.is_admin ?? false;
   };
 
+  const isDiretor = (): boolean => {
+    return profile?.role === 'diretor';
+  };
+
+  const isGerente = (): boolean => {
+    return profile?.role === 'gerente';
+  };
+
+  const isCorretor = (): boolean => {
+    return profile?.role === 'corretor';
+  };
+
   const getUserRole = (): string => {
-    return profile?.role ?? 'cliente';
+    return profile?.role ?? 'corretor';
   };
 
   const getDefaultRoute = (): string => {
     if (!profile) return '/';
     
     switch (profile.role) {
-      case 'admin':
-        return '/';
+      case 'diretor':
+        return '/'; // Dashboard geral do diretor
+      case 'gerente':
+        return '/'; // Dashboard da equipe do gerente
       case 'corretor':
-        return '/vendas';
-      case 'cliente':
-        return '/';
+        return '/'; // Dashboard individual do corretor
       default:
         return '/';
     }
+  };
+
+  const canAccessUserData = (userId: string): boolean => {
+    if (!profile || !user) return false;
+    
+    // Diretor pode acessar dados de todos
+    if (profile.role === 'diretor') return true;
+    
+    // Gerente pode acessar dados da sua equipe
+    if (profile.role === 'gerente' && teamHierarchy) {
+      return teamHierarchy.team_members.includes(userId);
+    }
+    
+    // Corretor só pode acessar seus próprios dados
+    return user.id === userId;
   };
 
   const value = {
     user,
     session,
     profile,
+    teamHierarchy,
     loading,
     signIn,
     signUp,
@@ -183,8 +244,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     hasAccess,
     isAdmin,
+    isDiretor,
+    isGerente,
+    isCorretor,
     getUserRole,
     getDefaultRoute,
+    canAccessUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

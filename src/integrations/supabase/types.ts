@@ -29,6 +29,7 @@ export type Database = {
           observations: string | null
           phone: string | null
           status: Database["public"]["Enums"]["broker_status"] | null
+          team_id: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -46,6 +47,7 @@ export type Database = {
           observations?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["broker_status"] | null
+          team_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -63,10 +65,18 @@ export type Database = {
           observations?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["broker_status"] | null
+          team_id?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "brokers_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "brokers_user_id_fkey"
             columns: ["user_id"]
@@ -118,7 +128,9 @@ export type Database = {
           full_name: string
           id: string
           is_admin: boolean | null
+          manager_id: string | null
           role: string | null
+          team_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -132,7 +144,9 @@ export type Database = {
           full_name: string
           id: string
           is_admin?: boolean | null
+          manager_id?: string | null
           role?: string | null
+          team_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -146,10 +160,27 @@ export type Database = {
           full_name?: string
           id?: string
           is_admin?: boolean | null
+          manager_id?: string | null
           role?: string | null
+          team_id?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales: {
         Row: {
@@ -336,6 +367,30 @@ export type Database = {
           },
         ]
       }
+      teams: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -344,6 +399,15 @@ export type Database = {
       get_current_user_admin_status: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      get_team_hierarchy: {
+        Args: { user_id: string }
+        Returns: {
+          is_manager: boolean
+          team_id: string
+          team_members: string[]
+          team_name: string
+        }[]
       }
       get_user_allowed_screens: {
         Args: { user_id: string }

@@ -9,7 +9,7 @@ import AuthButton from "@/components/AuthButton";
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin } = useAuth();
+  const { hasAccess, isAdmin, getUserRole } = useAuth();
   
   const allNavItems = [{
     href: "/",
@@ -49,7 +49,20 @@ const Navigation = () => {
   }];
 
   // Filter nav items based on user permissions
-  const navItems = allNavItems.filter(item => hasAccess(item.screen));
+  const navItems = allNavItems.filter(item => {
+    // Role-based access control
+    const userRole = getUserRole();
+    
+    if (userRole === 'diretor') {
+      return true; // Diretor has access to everything
+    } else if (userRole === 'gerente') {
+      return ['dashboard', 'vendas', 'corretores', 'ranking', 'acompanhamento'].includes(item.screen);
+    } else if (userRole === 'corretor') {
+      return ['dashboard', 'vendas'].includes(item.screen);
+    }
+    
+    return hasAccess(item.screen);
+  });
   return <>
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-card border-b border-border z-50 flex items-center justify-between px-4">
