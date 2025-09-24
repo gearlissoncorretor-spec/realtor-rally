@@ -24,13 +24,15 @@ import { UserApprovalManager } from "@/components/UserApprovalManager";
 import { AdminPasswordManager } from "@/components/AdminPasswordManager";
 import { UsersDebugPanel } from "@/components/UsersDebugPanel";
 import { AdminRoleManager } from "@/components/AdminRoleManager";
+import TeamManager from "@/components/TeamManager";
+import TeamMemberManager from "@/components/TeamMemberManager";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 
 const Configuracoes = () => {
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDiretor, isGerente } = useAuth();
   const { theme } = useTheme();
   
   const [settings, setSettings] = useState({
@@ -148,6 +150,20 @@ const Configuracoes = () => {
             ))}
           </div>
 
+
+          {/* Team Management - Only for Directors */}
+          {isDiretor() && (
+            <div className="mb-8">
+              <TeamManager />
+            </div>
+          )}
+
+          {/* Team Member Management - For Directors and Managers */}
+          {(isDiretor() || isGerente()) && (
+            <div className="mb-8">
+              <TeamMemberManager />
+            </div>
+          )}
 
           {/* Debug Panel - Usuários do Banco (DESENVOLVIMENTO) */}
           <div className="mb-8">
