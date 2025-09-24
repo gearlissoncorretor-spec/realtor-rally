@@ -187,7 +187,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const isDiretor = (): boolean => {
-    return profile?.role === 'diretor';
+    return profile?.role === 'diretor' || profile?.role === 'admin';
   };
 
   const isGerente = (): boolean => {
@@ -220,8 +220,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const canAccessUserData = (userId: string): boolean => {
     if (!profile || !user) return false;
     
-    // Diretor pode acessar dados de todos
-    if (profile.role === 'diretor') return true;
+    // Diretor e Admin podem acessar dados de todos
+    if (profile.role === 'diretor' || profile.role === 'admin') return true;
     
     // Gerente pode acessar dados da sua equipe
     if (profile.role === 'gerente' && teamHierarchy) {

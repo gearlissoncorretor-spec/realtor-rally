@@ -33,13 +33,11 @@ export const useTeams = () => {
 
   const fetchTeams = async () => {
     try {
-      console.log('Fetching teams...');
       const { data, error } = await supabase
         .from('teams')
         .select('*')
         .order('name');
 
-      console.log('Teams fetch result:', { data, error });
       if (error) throw error;
       setTeams(data || []);
     } catch (error: any) {
