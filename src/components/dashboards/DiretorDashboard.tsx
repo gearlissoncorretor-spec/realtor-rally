@@ -5,38 +5,72 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
 import { useBrokers } from '@/hooks/useBrokers';
 import { useTeams } from '@/hooks/useTeams';
-import TeamFilter from '@/components/TeamFilter';
+import DashboardFilters, { DashboardFiltersState } from '@/components/DashboardFilters';
 
 const DiretorDashboard = () => {
   const { profile } = useAuth();
   const { sales } = useSales();
   const { brokers } = useBrokers();
   const { teams, teamMembers } = useTeams();
-  const [selectedTeamId, setSelectedTeamId] = useState<string>('all');
+  
+  const [filters, setFilters] = useState<DashboardFiltersState>({
+    teamId: 'all',
+    brokerId: 'all',
+    month: 'all',
+    year: 'all'
+  });
 
-  // Filter data based on selected team
+  // Filter data based on all selected filters
   const filteredData = useMemo(() => {
-    if (selectedTeamId === 'all') {
-      return { sales: sales || [], brokers: brokers || [] };
+    let filteredSales = sales || [];
+    let filteredBrokers = brokers || [];
+
+    // Apply team filter
+    if (filters.teamId !== 'all') {
+      const teamMemberIds = teamMembers
+        .filter(member => member.team_id === filters.teamId)
+        .map(member => member.id);
+
+      filteredBrokers = filteredBrokers.filter(broker => 
+        teamMemberIds.includes(broker.user_id || '')
+      );
+
+      filteredSales = filteredSales.filter(sale => 
+        filteredBrokers.some(broker => broker.id === sale.broker_id)
+      );
     }
 
-    // Get team member IDs for selected team
-    const teamMemberIds = teamMembers
-      .filter(member => member.team_id === selectedTeamId)
-      .map(member => member.id);
+    // Apply broker filter
+    if (filters.brokerId !== 'all') {
+      filteredSales = filteredSales.filter(sale => 
+        sale.broker_id === filters.brokerId
+      );
+      
+      filteredBrokers = filteredBrokers.filter(broker => 
+        broker.id === filters.brokerId
+      );
+    }
 
-    // Filter brokers by team
-    const filteredBrokers = (brokers || []).filter(broker => 
-      teamMemberIds.includes(broker.user_id || '')
-    );
+    // Apply month filter
+    if (filters.month !== 'all') {
+      filteredSales = filteredSales.filter(sale => {
+        if (!sale.sale_date) return false;
+        const saleMonth = new Date(sale.sale_date).getMonth() + 1;
+        return saleMonth.toString() === filters.month;
+      });
+    }
 
-    // Filter sales by team brokers
-    const filteredSales = (sales || []).filter(sale => 
-      filteredBrokers.some(broker => broker.id === sale.broker_id)
-    );
+    // Apply year filter
+    if (filters.year !== 'all') {
+      filteredSales = filteredSales.filter(sale => {
+        if (!sale.sale_date) return false;
+        const saleYear = new Date(sale.sale_date).getFullYear();
+        return saleYear.toString() === filters.year;
+      });
+    }
 
     return { sales: filteredSales, brokers: filteredBrokers };
-  }, [sales, brokers, teamMembers, selectedTeamId]);
+  }, [sales, brokers, teamMembers, filters]);
 
   // Calculate metrics for director view (filtered)
   const totalSales = filteredData.sales.length;
@@ -44,9 +78,16 @@ const DiretorDashboard = () => {
   const totalBrokers = filteredData.brokers.length;
   const activeBrokers = filteredData.brokers.filter(broker => broker.status === 'ativo').length;
 
-  // Calculate real team stats based on data
+  // Calculate real team stats based on filtered data
   const teamStats = useMemo(() => {
-    return teams.map(team => {
+    let teamsToShow = teams;
+    
+    // If a specific team is selected, only show that team
+    if (filters.teamId !== 'all') {
+      teamsToShow = teams.filter(team => team.id === filters.teamId);
+    }
+
+    return teamsToShow.map(team => {
       // Get team member IDs
       const teamMemberIds = teamMembers
         .filter(member => member.team_id === team.id)
@@ -57,10 +98,31 @@ const DiretorDashboard = () => {
         teamMemberIds.includes(broker.user_id || '')
       );
 
-      // Get team sales
-      const teamSales = (sales || []).filter(sale => 
+      // Get team sales with all filters applied
+      let teamSales = (sales || []).filter(sale => 
         teamBrokers.some(broker => broker.id === sale.broker_id)
       );
+
+      // Apply additional filters
+      if (filters.brokerId !== 'all') {
+        teamSales = teamSales.filter(sale => sale.broker_id === filters.brokerId);
+      }
+
+      if (filters.month !== 'all') {
+        teamSales = teamSales.filter(sale => {
+          if (!sale.sale_date) return false;
+          const saleMonth = new Date(sale.sale_date).getMonth() + 1;
+          return saleMonth.toString() === filters.month;
+        });
+      }
+
+      if (filters.year !== 'all') {
+        teamSales = teamSales.filter(sale => {
+          if (!sale.sale_date) return false;
+          const saleYear = new Date(sale.sale_date).getFullYear();
+          return saleYear.toString() === filters.year;
+        });
+      }
 
       const confirmedSales = teamSales.filter(sale => sale.status === 'confirmada');
       const teamVGV = confirmedSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
@@ -73,7 +135,7 @@ const DiretorDashboard = () => {
         brokers: teamBrokers.length
       };
     }).sort((a, b) => b.vgv - a.vgv);
-  }, [teams, teamMembers, brokers, sales]);
+  }, [teams, teamMembers, brokers, sales, filters]);
 
   return (
     <div className="space-y-6">
@@ -90,15 +152,11 @@ const DiretorDashboard = () => {
         </div>
       </div>
 
-      {/* Team Filter */}
-      <div className="mb-6">
-        <div className="max-w-xs">
-          <TeamFilter 
-            selectedTeamId={selectedTeamId}
-            onTeamChange={(teamId) => setSelectedTeamId(teamId)}
-          />
-        </div>
-      </div>
+      {/* Dashboard Filters */}
+      <DashboardFilters 
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

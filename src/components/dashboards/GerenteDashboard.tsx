@@ -1,31 +1,75 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, Users, Target, TrendingUp, Calendar, Award } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
 import { useBrokers } from '@/hooks/useBrokers';
+import DashboardFilters, { DashboardFiltersState } from '@/components/DashboardFilters';
 
 const GerenteDashboard = () => {
   const { profile, teamHierarchy } = useAuth();
   const { sales } = useSales();
   const { brokers } = useBrokers();
+  
+  const [filters, setFilters] = useState<DashboardFiltersState>({
+    teamId: teamHierarchy?.team_id || 'all',
+    brokerId: 'all',
+    month: 'all',
+    year: 'all'
+  });
 
   // Filter data for manager's team only
   const teamBrokers = brokers?.filter(broker => 
     teamHierarchy?.team_members.includes(broker.user_id || '')
   ) || [];
 
-  const teamSales = sales?.filter(sale => 
-    teamBrokers.some(broker => broker.id === sale.broker_id)
-  ) || [];
+  // Apply filters to team data
+  const filteredData = useMemo(() => {
+    let filteredTeamSales = sales?.filter(sale => 
+      teamBrokers.some(broker => broker.id === sale.broker_id)
+    ) || [];
 
-  const totalTeamSales = teamSales.length;
-  const totalTeamVGV = teamSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
-  const activeTeamBrokers = teamBrokers.filter(broker => broker.status === 'ativo').length;
+    let filteredTeamBrokers = teamBrokers;
 
-  // Broker performance in team
-  const brokerPerformance = teamBrokers.map(broker => {
-    const brokerSales = teamSales.filter(sale => sale.broker_id === broker.id);
+    // Apply broker filter
+    if (filters.brokerId !== 'all') {
+      filteredTeamSales = filteredTeamSales.filter(sale => 
+        sale.broker_id === filters.brokerId
+      );
+      
+      filteredTeamBrokers = filteredTeamBrokers.filter(broker => 
+        broker.id === filters.brokerId
+      );
+    }
+
+    // Apply month filter
+    if (filters.month !== 'all') {
+      filteredTeamSales = filteredTeamSales.filter(sale => {
+        if (!sale.sale_date) return false;
+        const saleMonth = new Date(sale.sale_date).getMonth() + 1;
+        return saleMonth.toString() === filters.month;
+      });
+    }
+
+    // Apply year filter
+    if (filters.year !== 'all') {
+      filteredTeamSales = filteredTeamSales.filter(sale => {
+        if (!sale.sale_date) return false;
+        const saleYear = new Date(sale.sale_date).getFullYear();
+        return saleYear.toString() === filters.year;
+      });
+    }
+
+    return { sales: filteredTeamSales, brokers: filteredTeamBrokers };
+  }, [sales, teamBrokers, filters]);
+
+  const totalTeamSales = filteredData.sales.length;
+  const totalTeamVGV = filteredData.sales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
+  const activeTeamBrokers = filteredData.brokers.filter(broker => broker.status === 'ativo').length;
+
+  // Broker performance in team with filters applied
+  const brokerPerformance = filteredData.brokers.map(broker => {
+    const brokerSales = filteredData.sales.filter(sale => sale.broker_id === broker.id);
     const brokerVGV = brokerSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
     return {
       name: broker.name,
@@ -49,6 +93,13 @@ const GerenteDashboard = () => {
           <span>{new Date().toLocaleDateString('pt-BR')}</span>
         </div>
       </div>
+
+      {/* Dashboard Filters - Hide team filter for managers since they can only see their own team */}
+      <DashboardFilters 
+        filters={filters}
+        onFiltersChange={setFilters}
+        hideTeamFilter={true}
+      />
 
       {/* Team KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
