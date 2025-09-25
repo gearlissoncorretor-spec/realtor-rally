@@ -29,6 +29,7 @@ const Home = () => {
   // Render dashboard based on user role
   switch (role) {
     case 'diretor':
+    case 'admin':
       return <DiretorDashboard />;
     case 'gerente':
       return <GerenteDashboard />;
