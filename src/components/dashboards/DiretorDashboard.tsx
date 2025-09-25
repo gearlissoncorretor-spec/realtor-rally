@@ -1,31 +1,83 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, Users, Target, TrendingUp, Building, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
 import { useBrokers } from '@/hooks/useBrokers';
+import { useTeams } from '@/hooks/useTeams';
+import TeamFilter from '@/components/TeamFilter';
 
 const DiretorDashboard = () => {
   const { profile } = useAuth();
   const { sales } = useSales();
   const { brokers } = useBrokers();
+  const { teams, teamMembers } = useTeams();
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('all');
 
-  // Calculate metrics for director view
-  const totalSales = sales?.length || 0;
-  const totalVGV = sales?.reduce((sum, sale) => sum + (sale.vgv || 0), 0) || 0;
-  const totalBrokers = brokers?.length || 0;
-  const activeBrokers = brokers?.filter(broker => broker.status === 'ativo').length || 0;
+  // Filter data based on selected team
+  const filteredData = useMemo(() => {
+    if (selectedTeamId === 'all') {
+      return { sales: sales || [], brokers: brokers || [] };
+    }
 
-  // Group sales by team (placeholder for now)
-  const teamStats = [
-    { name: 'Equipe Gênesis', sales: 15, vgv: 2500000 },
-    { name: 'Equipe Jorgito', sales: 12, vgv: 1800000 },
-    { name: 'Equipe Alpha', sales: 8, vgv: 1200000 },
-  ];
+    // Get team member IDs for selected team
+    const teamMemberIds = teamMembers
+      .filter(member => member.team_id === selectedTeamId)
+      .map(member => member.id);
+
+    // Filter brokers by team
+    const filteredBrokers = (brokers || []).filter(broker => 
+      teamMemberIds.includes(broker.user_id || '')
+    );
+
+    // Filter sales by team brokers
+    const filteredSales = (sales || []).filter(sale => 
+      filteredBrokers.some(broker => broker.id === sale.broker_id)
+    );
+
+    return { sales: filteredSales, brokers: filteredBrokers };
+  }, [sales, brokers, teamMembers, selectedTeamId]);
+
+  // Calculate metrics for director view (filtered)
+  const totalSales = filteredData.sales.length;
+  const totalVGV = filteredData.sales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
+  const totalBrokers = filteredData.brokers.length;
+  const activeBrokers = filteredData.brokers.filter(broker => broker.status === 'ativo').length;
+
+  // Calculate real team stats based on data
+  const teamStats = useMemo(() => {
+    return teams.map(team => {
+      // Get team member IDs
+      const teamMemberIds = teamMembers
+        .filter(member => member.team_id === team.id)
+        .map(member => member.id);
+
+      // Get team brokers
+      const teamBrokers = (brokers || []).filter(broker => 
+        teamMemberIds.includes(broker.user_id || '')
+      );
+
+      // Get team sales
+      const teamSales = (sales || []).filter(sale => 
+        teamBrokers.some(broker => broker.id === sale.broker_id)
+      );
+
+      const confirmedSales = teamSales.filter(sale => sale.status === 'confirmada');
+      const teamVGV = confirmedSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
+
+      return {
+        id: team.id,
+        name: team.name,
+        sales: confirmedSales.length,
+        vgv: teamVGV,
+        brokers: teamBrokers.length
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [teams, teamMembers, brokers, sales]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard Diretor</h1>
           <p className="text-muted-foreground mt-2">
@@ -35,6 +87,16 @@ const DiretorDashboard = () => {
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
           <span>{new Date().toLocaleDateString('pt-BR')}</span>
+        </div>
+      </div>
+
+      {/* Team Filter */}
+      <div className="mb-6">
+        <div className="max-w-xs">
+          <TeamFilter 
+            selectedTeamId={selectedTeamId}
+            onTeamChange={(teamId) => setSelectedTeamId(teamId)}
+          />
         </div>
       </div>
 
