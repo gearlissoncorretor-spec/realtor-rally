@@ -76,7 +76,10 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${hideTeamFilter ? '3' : '4'} xl:grid-cols-${hideTeamFilter ? '4' : '5'} gap-4`}>
+        <div className={hideTeamFilter 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+        }>
           {/* Team Filter - Only show for directors */}
           {!hideTeamFilter && (
             <div className="space-y-2">
