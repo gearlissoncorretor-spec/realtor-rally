@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { LayoutDashboard, Trophy, Home, Settings, BarChart3, Users, Menu, X } from "lucide-react";
+import { LayoutDashboard, Trophy, Home, Settings, BarChart3, Users, Menu, X, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -26,6 +26,11 @@ const Navigation = () => {
     label: "Vendas",
     icon: Home,
     screen: "vendas"
+  }, {
+    href: "/metas",
+    label: "Metas",
+    icon: Target,
+    screen: "metas"
   }, {
     href: "/acompanhamento",
     label: "Acompanhamento",
@@ -61,9 +66,9 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'corretores', 'equipes', 'ranking', 'acompanhamento'].includes(item.screen);
+      return ['dashboard', 'vendas', 'metas', 'corretores', 'equipes', 'ranking', 'acompanhamento'].includes(item.screen);
     } else if (userRole === 'corretor') {
-      return ['dashboard', 'vendas'].includes(item.screen);
+      return ['dashboard', 'vendas', 'metas'].includes(item.screen);
     }
     
     // Admins also have access to everything

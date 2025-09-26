@@ -14,6 +14,7 @@ import Ranking from "@/pages/Ranking";
 import Acompanhamento from "@/pages/Acompanhamento";
 import Relatorios from "@/pages/Relatorios";
 import Configuracoes from "@/pages/Configuracoes";
+import Metas from "@/pages/Metas";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -54,6 +55,11 @@ const App = () => (
               <Route path="/ranking" element={
                 <ProtectedRoute>
                   <Ranking />
+                </ProtectedRoute>
+              } />
+              <Route path="/metas" element={
+                <ProtectedRoute>
+                  <Metas />
                 </ProtectedRoute>
               } />
               <Route path="/acompanhamento" element={

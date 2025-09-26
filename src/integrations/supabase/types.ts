@@ -86,6 +86,207 @@ export type Database = {
           },
         ]
       }
+      goal_progress: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          goal_id: string
+          id: string
+          notes: string | null
+          progress_date: string
+          progress_value: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          goal_id: string
+          id?: string
+          notes?: string | null
+          progress_date?: string
+          progress_value?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          goal_id?: string
+          id?: string
+          notes?: string | null
+          progress_date?: string
+          progress_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_progress_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_progress_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goal_tasks: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          goal_id: string
+          id: string
+          priority: string
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          goal_id: string
+          id?: string
+          priority?: string
+          status?: string
+          task_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          goal_id?: string
+          id?: string
+          priority?: string
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_tasks_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          assigned_to: string | null
+          broker_id: string | null
+          created_at: string
+          created_by: string | null
+          current_value: number
+          description: string | null
+          end_date: string
+          id: string
+          period_type: string
+          start_date: string
+          status: string
+          target_type: string
+          target_value: number
+          team_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          broker_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_value?: number
+          description?: string | null
+          end_date: string
+          id?: string
+          period_type?: string
+          start_date: string
+          status?: string
+          target_type: string
+          target_value?: number
+          team_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          broker_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_value?: number
+          description?: string | null
+          end_date?: string
+          id?: string
+          period_type?: string
+          start_date?: string
+          status?: string
+          target_type?: string
+          target_value?: number
+          team_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goals_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       process_stages: {
         Row: {
           color: string
