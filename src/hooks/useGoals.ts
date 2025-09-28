@@ -168,10 +168,8 @@ export const useGoals = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchGoals();
-    }
-  }, [user]);
+    fetchGoals();
+  }, []);
 
   return {
     goals,
