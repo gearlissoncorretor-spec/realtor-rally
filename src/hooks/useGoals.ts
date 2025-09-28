@@ -9,11 +9,11 @@ export interface Goal {
   description?: string;
   target_value: number;
   current_value: number;
-  target_type: 'sales_count' | 'revenue' | 'vgv' | 'commission';
-  period_type: 'monthly' | 'quarterly' | 'yearly';
+  target_type: string;
+  period_type: string;
   start_date: string;
   end_date: string;
-  status: 'active' | 'completed' | 'paused' | 'cancelled';
+  status: string;
   assigned_to?: string;
   team_id?: string;
   broker_id?: string;
@@ -27,9 +27,9 @@ export interface GoalTask {
   goal_id: string;
   title: string;
   description?: string;
-  task_type: 'action' | 'milestone' | 'training' | 'meeting';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  task_type: string;
+  status: string;
+  priority: string;
   due_date?: string;
   completed_at?: string;
   assigned_to?: string;
@@ -68,12 +68,25 @@ export const useGoals = () => {
 
   const createGoal = async (goalData: Partial<Goal>) => {
     try {
+      const insertData = {
+        title: goalData.title || '',
+        description: goalData.description,
+        target_value: goalData.target_value || 0,
+        current_value: goalData.current_value || 0,
+        target_type: goalData.target_type || 'sales_count',
+        period_type: goalData.period_type || 'monthly',
+        start_date: goalData.start_date || new Date().toISOString().split('T')[0],
+        end_date: goalData.end_date || new Date().toISOString().split('T')[0],
+        status: goalData.status || 'active',
+        assigned_to: goalData.assigned_to,
+        team_id: goalData.team_id,
+        broker_id: goalData.broker_id,
+        created_by: user?.id,
+      };
+
       const { data, error } = await supabase
         .from('goals')
-        .insert([{
-          ...goalData,
-          created_by: user?.id,
-        }])
+        .insert([insertData])
         .select()
         .single();
 

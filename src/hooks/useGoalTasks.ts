@@ -36,13 +36,21 @@ export const useGoalTasks = (goalId?: string) => {
 
   const createTask = async (taskData: Partial<GoalTask>) => {
     try {
+      const insertData = {
+        title: taskData.title || '',
+        task_type: taskData.task_type || 'action',
+        description: taskData.description,
+        status: taskData.status || 'pending',
+        priority: taskData.priority || 'medium',
+        due_date: taskData.due_date,
+        assigned_to: taskData.assigned_to,
+        goal_id: goalId!,
+        created_by: user?.id,
+      };
+
       const { data, error } = await supabase
         .from('goal_tasks')
-        .insert([{
-          ...taskData,
-          goal_id: goalId,
-          created_by: user?.id,
-        }])
+        .insert([insertData])
         .select()
         .single();
 
