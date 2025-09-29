@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGoals } from '@/hooks/useGoals';
 import { useGoalTasks } from '@/hooks/useGoalTasks';
@@ -113,24 +114,29 @@ const Metas = () => {
 
   if (goalsLoading || brokersLoading || teamsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 lg:ml-64">
-        <div className="max-w-7xl mx-auto p-6 space-y-8 pt-20 lg:pt-6">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-64"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {[1,2,3].map(i => (
-                <div key={i} className="h-96 bg-muted rounded"></div>
-              ))}
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 lg:ml-64">
+          <div className="max-w-7xl mx-auto p-6 space-y-8 pt-20 lg:pt-6">
+            <div className="animate-pulse space-y-6">
+              <div className="h-8 bg-muted rounded w-64"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {[1,2,3].map(i => (
+                  <div key={i} className="h-96 bg-muted rounded"></div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 lg:ml-64">
-      <div className="max-w-7xl mx-auto p-6 space-y-8 pt-20 lg:pt-6">
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 lg:ml-64">
+        <div className="max-w-7xl mx-auto p-6 space-y-8 pt-20 lg:pt-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -258,8 +264,9 @@ const Metas = () => {
             </Card>
           </>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
