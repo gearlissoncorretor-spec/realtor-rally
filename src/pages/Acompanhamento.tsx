@@ -198,7 +198,7 @@ const Acompanhamento = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <Navigation />
-        <div className="container mx-auto p-6">
+        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
           <div className="flex items-center justify-center h-64">
             <div className="text-lg text-muted-foreground">Carregando...</div>
           </div>
@@ -210,7 +210,7 @@ const Acompanhamento = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <Navigation />
-      <div className="flex-1 container mx-auto p-4 md:p-6 max-w-full overflow-hidden flex flex-col">
+      <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 flex-1 max-w-full overflow-hidden flex flex-col">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Acompanhamento de Vendas</h1>
           <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
