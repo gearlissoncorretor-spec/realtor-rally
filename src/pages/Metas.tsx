@@ -53,7 +53,8 @@ const Metas = () => {
   const [editingTeamGoal, setEditingTeamGoal] = useState<string | null>(null);
   const [editingBrokerGoal, setEditingBrokerGoal] = useState<string | null>(null);
   
-  const userRole = getUserRole();
+  const rawRole = getUserRole();
+  const userRole = rawRole === 'admin' ? 'diretor' : rawRole;
 
   // Get available teams based on user role
   const availableTeams = userRole === 'diretor' 
@@ -164,7 +165,7 @@ const Metas = () => {
         </div>
 
         {/* Minhas Metas (Corretor) */}
-        {userRole === 'corretor' && (
+        {(userRole === 'corretor' || rawRole === 'admin') && (
           <Card className="bg-gradient-card border-border/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
