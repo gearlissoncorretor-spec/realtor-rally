@@ -208,9 +208,9 @@ const Acompanhamento = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <Navigation />
-      <div className="container mx-auto p-4 md:p-6 max-w-full overflow-hidden">
+      <div className="flex-1 container mx-auto p-4 md:p-6 max-w-full overflow-hidden flex flex-col">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">Acompanhamento de Vendas</h1>
           <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
@@ -260,12 +260,12 @@ const Acompanhamento = () => {
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="relative">
+          <div className="relative flex-1 flex flex-col overflow-hidden">
             {/* Barra de rolagem superior */}
             {showTopScroll && (
               <div 
                 ref={topScrollRef}
-                className="overflow-x-auto scrollbar-styled mb-4 -mx-2 px-2 md:mx-0 md:px-0"
+                className="overflow-x-auto scrollbar-styled mb-2 -mx-2 px-2 md:mx-0 md:px-0"
                 style={{ height: '12px' }}
               >
                 <div style={{ height: '1px' }}></div>
@@ -274,10 +274,10 @@ const Acompanhamento = () => {
             
             <div 
               ref={mainScrollRef}
-              className="flex flex-row gap-4 md:gap-6 overflow-x-auto scrollbar-styled pb-4 -mx-2 px-2 md:mx-0 md:px-0"
+              className="flex flex-row gap-4 md:gap-6 overflow-x-auto overflow-y-hidden scrollbar-styled pb-4 -mx-2 px-2 md:mx-0 md:px-0 flex-1"
             >
               {stages.map((stage) => (
-                <div key={stage.id} className="flex flex-col min-w-[260px] md:min-w-[280px] max-w-[320px] flex-shrink-0">
+                <div key={stage.id} className="flex flex-col min-w-[260px] md:min-w-[280px] max-w-[320px] flex-shrink-0 h-full">
                 <Card className="mb-4">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
@@ -348,7 +348,7 @@ const Acompanhamento = () => {
                     <div
                       {...provided.droppableProps}
                       ref={provided.innerRef}
-                      className={`flex-1 space-y-3 min-h-[200px] p-2 rounded-lg border-2 border-dashed transition-colors ${
+                      className={`flex-1 space-y-3 p-2 rounded-lg border-2 border-dashed transition-colors overflow-y-auto scrollbar-styled ${
                         snapshot.isDraggingOver
                           ? "border-primary bg-primary/5"
                           : "border-transparent"
