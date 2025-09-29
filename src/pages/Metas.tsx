@@ -45,7 +45,7 @@ interface BrokerGoal {
 }
 
 const Metas = () => {
-  const { getUserRole, profile } = useAuth();
+  const { getUserRole, profile, user } = useAuth();
   const { goals, loading: goalsLoading, createGoal, updateGoal } = useGoals();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { teams, teamMembers, loading: teamsLoading } = useTeams();
@@ -73,6 +73,12 @@ const Metas = () => {
   const teamBrokers = selectedTeam 
     ? brokers.filter(broker => broker.team_id === selectedTeam)
     : [];
+
+  // Identify current user's broker record (if any) and personal goals
+  const myBroker = brokers.find(b => b.user_id === profile?.id);
+  const myGoals = goals.filter(goal =>
+    goal.assigned_to === user?.id || (myBroker?.id && goal.broker_id === myBroker.id)
+  );
 
   // Get goals for selected team and brokers
   const teamGoals = goals.filter(goal => goal.team_id === selectedTeam);
@@ -156,6 +162,62 @@ const Metas = () => {
             </p>
           </div>
         </div>
+
+        {/* Minhas Metas (Corretor) */}
+        {userRole === 'corretor' && (
+          <Card className="bg-gradient-card border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                Minhas Metas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {myGoals.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhuma meta atribuída no momento</p>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {myGoals.map(goal => (
+                    <div key={goal.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-lg">{goal.title}</h3>
+                          <Badge variant="secondary" className="mt-1">
+                            {goal.target_type === 'sales_count' ? 'Vendas' : 
+                             goal.target_type === 'revenue' ? 'Faturamento' :
+                             goal.target_type === 'vgv' ? 'VGV' : 'Comissão'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Progresso</span>
+                          <span>{(((goal.current_value || 0) / (goal.target_value || 1)) * 100).toFixed(1)}%</span>
+                        </div>
+                        <Progress value={Math.min(((goal.current_value || 0) / (goal.target_value || 1)) * 100, 100)} className="h-2" />
+                        <div className="flex justify-between text-sm text-muted-foreground">
+                          <span>
+                            {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
+                              ? formatCurrency(goal.current_value)
+                              : goal.current_value}
+                          </span>
+                          <span>
+                            {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
+                              ? formatCurrency(goal.target_value)
+                              : goal.target_value}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Team Selector for Directors */}
         {userRole === 'diretor' && (
