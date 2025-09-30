@@ -137,17 +137,19 @@ export const useProcessStages = () => {
 
   const updateSaleStage = async (saleId: string, stageId: string) => {
     try {
+      console.log('Updating sale stage:', { saleId, stageId });
+      
       const { error } = await supabase
         .from('sales')
         .update({ process_stage_id: stageId })
         .eq('id', saleId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
-      toast({
-        title: "Sucesso",
-        description: "Venda movida para nova etapa",
-      });
+      console.log('Sale stage updated successfully');
     } catch (error) {
       console.error('Error updating sale stage:', error);
       toast({

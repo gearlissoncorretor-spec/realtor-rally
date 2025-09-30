@@ -141,7 +141,9 @@ const Acompanhamento = () => {
     // Update in database
     try {
       await updateSaleStage(draggableId, destination.droppableId);
+      // The real-time subscription in DataContext will automatically refresh sales
     } catch (error) {
+      console.error('Error updating sale stage:', error);
       // Revert local state on error
       setProcessCards(prev => prev.map(card => 
         card.id === draggableId 
