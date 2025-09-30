@@ -28,15 +28,14 @@ interface ProcessCard {
 
 const Acompanhamento = () => {
   const { toast } = useToast();
-  const { sales, loading: salesLoading } = useSales();
+  const { sales, loading: salesLoading, updateSale, refreshSales } = useSales();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { 
     stages, 
     loading: stagesLoading, 
     createStage, 
     updateStage, 
-    deleteStage, 
-    updateSaleStage 
+    deleteStage 
   } = useProcessStages();
   
   const [processCards, setProcessCards] = useState<ProcessCard[]>([]);
@@ -140,8 +139,10 @@ const Acompanhamento = () => {
 
     // Update in database
     try {
-      await updateSaleStage(draggableId, destination.droppableId);
-      // The real-time subscription in DataContext will automatically refresh sales
+      // Persist via DataContext to update local cache immediately
+      await updateSale(draggableId, { process_stage_id: destination.droppableId });
+      // Ensure freshest data (also covered by realtime)
+      await refreshSales();
     } catch (error) {
       console.error('Error updating sale stage:', error);
       // Revert local state on error
