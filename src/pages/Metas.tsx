@@ -8,6 +8,7 @@ import { useTeams } from '@/hooks/useTeams';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
@@ -379,12 +380,21 @@ const TeamGoalCard: React.FC<{
           </div>
           <div>
             <Label htmlFor="target_value">Valor Meta</Label>
-            <Input
-              id="target_value"
-              type="number"
-              value={editData.target_value}
-              onChange={(e) => setEditData({...editData, target_value: parseFloat(e.target.value) || 0})}
-            />
+            {editData.target_type === 'sales_count' ? (
+              <Input
+                id="target_value"
+                type="number"
+                value={editData.target_value}
+                onChange={(e) => setEditData({...editData, target_value: parseFloat(e.target.value) || 0})}
+                placeholder="Número de vendas"
+              />
+            ) : (
+              <CurrencyInput
+                id="target_value"
+                value={editData.target_value}
+                onChange={(value) => setEditData({...editData, target_value: value})}
+              />
+            )}
           </div>
           <div>
             <Label htmlFor="target_type">Tipo de Meta</Label>
@@ -495,14 +505,23 @@ const TeamGoalForm: React.FC<{
         </div>
         <div>
           <Label htmlFor="new-target">Valor Meta *</Label>
-          <Input
-            id="new-target"
-            type="number"
-            value={formData.target_value}
-            onChange={(e) => setFormData({...formData, target_value: parseFloat(e.target.value) || 0})}
-            placeholder="0"
-            required
-          />
+          {formData.target_type === 'sales_count' ? (
+            <Input
+              id="new-target"
+              type="number"
+              value={formData.target_value}
+              onChange={(e) => setFormData({...formData, target_value: parseFloat(e.target.value) || 0})}
+              placeholder="Número de vendas"
+              required
+            />
+          ) : (
+            <CurrencyInput
+              id="new-target"
+              value={formData.target_value}
+              onChange={(value) => setFormData({...formData, target_value: value})}
+              required
+            />
+          )}
         </div>
         <div>
           <Label htmlFor="new-type">Tipo de Meta</Label>
@@ -713,14 +732,23 @@ const BrokerGoalForm: React.FC<{
         />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Input
-          type="number"
-          value={formData.target_value}
-          onChange={(e) => setFormData({...formData, target_value: parseFloat(e.target.value) || 0})}
-          placeholder="Valor"
-          className="h-8 text-sm"
-          required
-        />
+        {formData.target_type === 'sales_count' ? (
+          <Input
+            type="number"
+            value={formData.target_value}
+            onChange={(e) => setFormData({...formData, target_value: parseFloat(e.target.value) || 0})}
+            placeholder="Número de vendas"
+            className="h-8 text-sm"
+            required
+          />
+        ) : (
+          <CurrencyInput
+            value={formData.target_value}
+            onChange={(value) => setFormData({...formData, target_value: value})}
+            className="h-8 text-sm"
+            required
+          />
+        )}
         <Select value={formData.target_type} onValueChange={(value) => setFormData({...formData, target_type: value})}>
           <SelectTrigger className="h-8 text-sm">
             <SelectValue />
