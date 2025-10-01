@@ -4,144 +4,167 @@ import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
 import VGCPercentageCard from "@/components/VGCPercentageCard";
 import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
-import React from "react";
+import React, { useState, useMemo } from "react";
 
-// Lazy load heavy chart components for better performance
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
 const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"));
 
 import { useData } from "@/contexts/DataContext";
-import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
-import { 
-  Home, 
-  TrendingUp, 
-  DollarSign, 
-  Users, 
-  Target,
-  BarChart3 
-} from "lucide-react";
-import { useState, useMemo } from "react";
+import { formatCurrency } from "@/utils/formatting";
+import { Home, TrendingUp, DollarSign, Users, Target, BarChart3 } from "lucide-react";
 import heroImage from "@/assets/dashboard-hero.jpg";
 
-const Index = () => {
-  const { brokers, sales, brokersLoading, salesLoading } = useData();
-  
-  // Estado para filtros de período
-  const [selectedMonth, setSelectedMonth] = useState(0); // 0 = todos os meses
-  const [selectedYear, setSelectedYear] = useState(0); // 0 = todos os anos
-
-  // Filtrar vendas baseado no período selecionado
+/**
+ * Hook para centralizar cálculos de métricas do dashboard
+ */
+function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number) {
+  // Filtro de vendas baseado no período
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
-      const saleDate = new Date(sale.sale_date || sale.created_at || '');
-      
-      // Filtro de ano
-      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) {
-        return false;
-      }
-      
-      // Filtro de mês (1-12, onde 0 = todos os meses)
-      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) {
-        return false;
-      }
-      
+      const rawDate = sale.sale_date || sale.created_at;
+      if (!rawDate) return false;
+
+      const saleDate = new Date(rawDate);
+      if (isNaN(saleDate.getTime())) return false;
+
+      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
+      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
+
       return true;
     });
   }, [sales, selectedMonth, selectedYear]);
 
-  // Calculate KPIs from filtered data
-  const totalVGV = filteredSales.reduce((sum, sale) => sum + Number(sale.vgv), 0);
-  const totalVGC = filteredSales.reduce((sum, sale) => sum + Number(sale.vgc), 0);
+  // Métricas principais
+  const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+  const totalVGC = filteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
   const totalSales = filteredSales.length;
-  const activeBrokers = brokers.filter(b => b.status === 'ativo').length;
-  
-  // Calculate filtered VGC (respects period filter)
-  const filteredVGC = filteredSales.reduce((sum, sale) => sum + Number(sale.vgc), 0);
-  const conversionRate = totalSales > 0 ? ((filteredSales.filter(s => s.status === 'confirmada').length / totalSales) * 100) : 0;
+  const activeBrokers = brokers.filter(b => b.status === "ativo").length;
 
+  // Taxa de conversão
+  const conversionRate = totalSales > 0
+    ? ((filteredSales.filter(s => s.status === "confirmada").length / totalSales) * 100)
+    : 0;
+
+  // Gerar dados de gráfico (últimos 12 meses)
+  const chartData = useMemo(() => {
+    const monthlyData: Record<string, { vgv: number, vgc: number, sales: number }> = {};
+    const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+    // Inicializa últimos 12 meses
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = months[date.getMonth()];
+      monthlyData[monthKey] = { vgv: 0, vgc: 0, sales: 0 };
+    }
+
+    filteredSales.forEach(sale => {
+      const rawDate = sale.sale_date || sale.created_at;
+      const saleDate = new Date(rawDate);
+      if (isNaN(saleDate.getTime())) return;
+
+      const monthKey = months[saleDate.getMonth()];
+      if (monthlyData[monthKey]) {
+        monthlyData[monthKey].vgv += Number(sale.vgv || 0);
+        monthlyData[monthKey].vgc += Number(sale.vgc || 0);
+        monthlyData[monthKey].sales += 1;
+      }
+    });
+
+    return Object.entries(monthlyData).map(([month, data]) => ({
+      month,
+      ...data
+    }));
+  }, [filteredSales]);
+
+  // Ranking de corretores
+  const brokerRankings = useMemo(() => {
+    return brokers.map(broker => {
+      const brokerSales = filteredSales.filter(s => s.broker_id === broker.id);
+      const revenue = brokerSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      return {
+        id: broker.id,
+        name: broker.name,
+        avatar: broker.avatar_url || "",
+        sales: brokerSales.length,
+        revenue,
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue)
+    .map((broker, idx) => ({ ...broker, position: idx + 1 }))
+    .slice(0, 7);
+  }, [filteredSales, brokers]);
+
+  // KPIs principais
   const kpiData = [
     {
       title: "VGV Total",
       value: formatCurrency(totalVGV),
-      change: 12.5, // This would need to be calculated vs previous period
+      change: 0, // aqui poderia vir comparação com período anterior
       trend: "up" as const,
       icon: <DollarSign className="w-6 h-6 text-primary" />
     },
     {
       title: "VGC Total",
-      value: formatCurrency(filteredVGC),
-      change: 8.2,
+      value: formatCurrency(totalVGC),
+      change: 0,
       trend: "up" as const,
       icon: <TrendingUp className="w-6 h-6 text-success" />
     },
     {
       title: "Vendas Realizadas",
       value: totalSales.toString(),
-      change: -3.1,
-      trend: (totalSales > 20 ? "up" : "down"),
+      change: 0,
+      trend: totalSales > 20 ? "up" : "down",
       icon: <Home className="w-6 h-6 text-warning" />
     },
     {
-      title: "Percentual VGC", 
-      value: `${totalVGV > 0 ? ((totalVGC / totalVGV) * 100).toFixed(2).replace('.', ',') : '0,00'}%`,
-      change: 2.8,
+      title: "Percentual VGC",
+      value: `${totalVGV > 0 ? ((totalVGC / totalVGV) * 100).toFixed(2).replace('.', ',') : "0,00"}%`,
+      change: 0,
       trend: "up" as const,
       icon: <Target className="w-6 h-6 text-info" />
     }
   ] as const;
 
-  // Generate chart data from filtered sales
-  const generateChartData = () => {
-    const monthlyData: { [key: string]: { vgv: number, vgc: number, sales: number } } = {};
-    
-    // Initialize last 12 months
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthKey = date.toLocaleDateString('pt-BR', { month: 'short' });
-      monthlyData[monthKey] = { vgv: 0, vgc: 0, sales: 0 };
-    }
-    
-    // Aggregate filtered sales data
-    filteredSales.forEach(sale => {
-      const saleDate = new Date(sale.sale_date || sale.created_at || '');
-      const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short' });
-      
-      if (monthlyData[monthKey]) {
-        monthlyData[monthKey].vgv += Number(sale.vgv);
-        monthlyData[monthKey].vgc += Number(sale.vgc);
-        monthlyData[monthKey].sales += 1;
-      }
-    });
-    
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month,
-      ...data
-    }));
+  // Estatísticas rápidas
+  const quickStats = {
+    activeBrokers,
+    pending: filteredSales.filter(s => s.status === "pendente").length,
+    total: sales.length
   };
 
-  const chartData = generateChartData();
+  // Meta do mês (mock, mas pode vir do banco)
+  const monthlyGoal = {
+    percent: "78%",
+    trend: "up" as const,
+    change: 5.2
+  };
 
-  // Generate broker ranking data
-  const brokerRankings = brokers.map(broker => {
-    const brokerSales = sales.filter(sale => sale.broker_id === broker.id);
-    const totalRevenue = brokerSales.reduce((sum, sale) => sum + Number(sale.property_value), 0);
-    const salesCount = brokerSales.length;
-    
-    return {
-      id: broker.id,
-      name: broker.name,
-      avatar: broker.avatar_url || '',
-      sales: salesCount,
-      revenue: totalRevenue,
-      position: 0, // Will be set after sorting
-      growth: Math.random() * 20 - 10 // Mock growth - would need historical data
-    };
-  })
-  .sort((a, b) => b.revenue - a.revenue)
-  .map((broker, index) => ({ ...broker, position: index + 1 }))
-  .slice(0, 7); // Top 7 for ranking
+  return {
+    filteredSales,
+    kpiData,
+    chartData,
+    brokerRankings,
+    quickStats,
+    monthlyGoal
+  };
+}
+
+const Index = () => {
+  const { brokers, sales, brokersLoading, salesLoading } = useData();
+  const [selectedMonth, setSelectedMonth] = useState(0);
+  const [selectedYear, setSelectedYear] = useState(0);
+
+  const {
+    filteredSales,
+    kpiData,
+    chartData,
+    brokerRankings,
+    quickStats,
+    monthlyGoal
+  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear);
 
   if (brokersLoading || salesLoading) {
     return (
@@ -168,15 +191,15 @@ const Index = () => {
           className="relative h-32 sm:h-40 md:h-48 rounded-xl mb-6 md:mb-8 overflow-hidden bg-gradient-hero flex items-center justify-center"
           style={{
             backgroundImage: `linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9)), url(${heroImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
+            backgroundSize: "cover",
+            backgroundPosition: "center"
           }}
         >
           <div className="text-center text-primary-foreground px-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2 animate-fade-in">
               Dashboard Imobiliário
             </h1>
-            <p className="text-sm sm:text-lg md:text-xl opacity-90 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <p className="text-sm sm:text-lg md:text-xl opacity-90 animate-fade-in" style={{ animationDelay: "0.2s" }}>
               Gestão completa de vendas e performance
             </p>
           </div>
@@ -192,12 +215,8 @@ const Index = () => {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-          {kpiData.map((kpi, index) => (
-            <KPICard
-              key={kpi.title}
-              {...kpi}
-              className={`animate-fade-in`}
-            />
+          {kpiData.map((kpi) => (
+            <KPICard key={kpi.title} {...kpi} className="animate-fade-in" />
           ))}
         </div>
 
@@ -223,14 +242,12 @@ const Index = () => {
           
           <div className="space-y-4 md:space-y-6">
             <RankingPodium brokers={brokerRankings} />
-            
             <VGCPercentageCard sales={filteredSales} />
-            
             <KPICard
               title="Meta do Mês"
-              value="78%"
-              change={5.2}
-              trend="up"
+              value={monthlyGoal.percent}
+              change={monthlyGoal.change}
+              trend={monthlyGoal.trend}
               icon={<BarChart3 className="w-6 h-6 text-primary" />}
             />
           </div>
@@ -254,15 +271,15 @@ const Index = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Corretores Ativos</span>
-                <span className="text-2xl font-bold text-foreground">{activeBrokers}</span>
+                <span className="text-2xl font-bold text-foreground">{quickStats.activeBrokers}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Imóveis Pendentes</span>
-                <span className="text-2xl font-bold text-foreground">{sales.filter(s => s.status === 'pendente').length}</span>
+                <span className="text-2xl font-bold text-foreground">{quickStats.pending}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Total de Vendas</span>
-                <span className="text-2xl font-bold text-foreground">{sales.length}</span>
+                <span className="text-2xl font-bold text-foreground">{quickStats.total}</span>
               </div>
             </div>
           </div>
