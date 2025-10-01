@@ -40,11 +40,65 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
   const totalVGC = filteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
   const totalSales = filteredSales.length;
   const activeBrokers = brokers.filter(b => b.status === "ativo").length;
+  const vgcPercentage = totalVGV > 0 ? (totalVGC / totalVGV) * 100 : 0;
 
   // Taxa de conversão
   const conversionRate = totalSales > 0
     ? ((filteredSales.filter(s => s.status === "confirmada").length / totalSales) * 100)
     : 0;
+
+  // Cálculo do mês anterior para comparação
+  const previousPeriodMetrics = useMemo(() => {
+    let prevMonth = selectedMonth > 0 ? selectedMonth - 1 : 0;
+    let prevYear = selectedYear > 0 ? selectedYear : new Date().getFullYear();
+    
+    // Se o mês anterior for 0 (estava em janeiro), volta para dezembro do ano anterior
+    if (selectedMonth === 1) {
+      prevMonth = 12;
+      prevYear = prevYear - 1;
+    } else if (selectedMonth === 0) {
+      // Se não há filtro de mês, usa o mês anterior ao atual
+      const now = new Date();
+      prevMonth = now.getMonth(); // getMonth retorna 0-11
+      if (prevMonth === 0) {
+        prevMonth = 12;
+        prevYear = prevYear - 1;
+      }
+    }
+
+    const previousSales = sales.filter(sale => {
+      const rawDate = sale.sale_date || sale.created_at;
+      if (!rawDate) return false;
+
+      const saleDate = new Date(rawDate);
+      if (isNaN(saleDate.getTime())) return false;
+
+      if (prevYear > 0 && saleDate.getFullYear() !== prevYear) return false;
+      if (prevMonth > 0 && saleDate.getMonth() + 1 !== prevMonth) return false;
+
+      return true;
+    });
+
+    const prevVGV = previousSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+    const prevVGC = previousSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
+    const prevSalesCount = previousSales.length;
+    const prevVGCPercentage = prevVGV > 0 ? (prevVGC / prevVGV) * 100 : 0;
+
+    return { prevVGV, prevVGC, prevSalesCount, prevVGCPercentage };
+  }, [sales, selectedMonth, selectedYear]);
+
+  // Função auxiliar para calcular mudança percentual
+  const calculateChange = (current: number, previous: number): number => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  // Função auxiliar para determinar trend
+  const getTrend = (change: number): "up" | "down" | "neutral" => {
+    if (change > 0) return "up";
+    if (change < 0) return "down";
+    return "neutral";
+  };
 
   // Gerar dados de gráfico (últimos 12 meses)
   const chartData = useMemo(() => {
@@ -96,34 +150,39 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     .slice(0, 7);
   }, [filteredSales, brokers]);
 
-  // KPIs principais
+  // KPIs principais com comparação do mês anterior
+  const vgvChange = calculateChange(totalVGV, previousPeriodMetrics.prevVGV);
+  const vgcChange = calculateChange(totalVGC, previousPeriodMetrics.prevVGC);
+  const salesChange = calculateChange(totalSales, previousPeriodMetrics.prevSalesCount);
+  const vgcPercentageChange = calculateChange(vgcPercentage, previousPeriodMetrics.prevVGCPercentage);
+
   const kpiData = [
     {
       title: "VGV Total",
       value: formatCurrency(totalVGV),
-      change: 0, // aqui poderia vir comparação com período anterior
-      trend: "up" as const,
+      change: Math.round(vgvChange),
+      trend: getTrend(vgvChange),
       icon: <DollarSign className="w-6 h-6 text-primary" />
     },
     {
       title: "VGC Total",
       value: formatCurrency(totalVGC),
-      change: 0,
-      trend: "up" as const,
+      change: Math.round(vgcChange),
+      trend: getTrend(vgcChange),
       icon: <TrendingUp className="w-6 h-6 text-success" />
     },
     {
       title: "Vendas Realizadas",
       value: totalSales.toString(),
-      change: 0,
-      trend: totalSales > 20 ? "up" : "down",
+      change: Math.round(salesChange),
+      trend: getTrend(salesChange),
       icon: <Home className="w-6 h-6 text-warning" />
     },
     {
       title: "Percentual VGC",
-      value: `${totalVGV > 0 ? ((totalVGC / totalVGV) * 100).toFixed(2).replace('.', ',') : "0,00"}%`,
-      change: 0,
-      trend: "up" as const,
+      value: `${vgcPercentage.toFixed(2).replace('.', ',')}%`,
+      change: Math.round(vgcPercentageChange),
+      trend: getTrend(vgcPercentageChange),
       icon: <Target className="w-6 h-6 text-info" />
     }
   ] as const;
