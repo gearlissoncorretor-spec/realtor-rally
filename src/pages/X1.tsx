@@ -104,29 +104,29 @@ export default function X1() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background lg:pl-64">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">X1 - Gestão de Corretores</h1>
-          <p className="text-muted-foreground mt-2">
+      <div className="lg:pt-0 pt-16 px-4 py-6 max-w-full">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">X1 - Gestão de Corretores</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             Organize e acompanhe seus corretores através do Kanban
           </p>
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {columns.map(column => {
               const columnBrokers = getBrokersForColumn(column.id);
               
               return (
                 <div key={column.id} className="flex flex-col">
-                  <Card className="mb-4">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                        <span className="text-lg">{column.title}</span>
+                  <Card className="mb-3">
+                    <CardHeader className="pb-2 pt-3 px-4">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <div className={`w-2.5 h-2.5 rounded-full ${column.color}`} />
+                        <span>{column.title}</span>
                         <span className="text-sm text-muted-foreground ml-auto">
                           ({columnBrokers.length})
                         </span>
@@ -139,12 +139,12 @@ export default function X1() {
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className={`flex-1 rounded-lg p-4 transition-colors ${
+                        className={`flex-1 rounded-lg p-3 transition-colors ${
                           snapshot.isDraggingOver
                             ? 'bg-accent/50'
                             : 'bg-muted/20'
                         }`}
-                        style={{ minHeight: '500px' }}
+                        style={{ minHeight: '400px' }}
                       >
                         {columnBrokers.map((broker, index) => (
                           <Draggable
@@ -169,7 +169,7 @@ export default function X1() {
                         {provided.placeholder}
 
                         {columnBrokers.length === 0 && (
-                          <div className="text-center text-muted-foreground text-sm py-8">
+                          <div className="text-center text-muted-foreground text-xs py-6">
                             Arraste corretores para cá
                           </div>
                         )}

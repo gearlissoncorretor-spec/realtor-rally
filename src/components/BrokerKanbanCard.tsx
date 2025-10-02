@@ -69,29 +69,29 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
 
   return (
     <>
-      <Card className="mb-3 hover:shadow-md transition-shadow">
-        <CardHeader className="p-4 pb-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
+      <Card className="mb-2 hover:shadow-md transition-shadow">
+        <CardHeader className="p-3 pb-2">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={broker.avatar_url} alt={broker.name} />
               <AvatarFallback>{getInitials(broker.name)}</AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm">{broker.name}</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm truncate">{broker.name}</h3>
             </div>
           </div>
         </CardHeader>
         
-        <CardContent className="p-4 pt-0">
-          <div className="space-y-3">
+        <CardContent className="p-3 pt-0">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Anotações ({notes.length})</span>
+              <span className="text-xs font-medium">Anotações ({notes.length})</span>
               {!isAddingNote && (
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setIsAddingNote(true)}
-                  className="h-7 text-xs"
+                  className="h-6 text-xs px-2"
                 >
                   <Plus className="h-3 w-3 mr-1" />
                   Nova
@@ -105,10 +105,10 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Digite sua anotação..."
-                  className="min-h-[80px] text-sm"
+                  className="min-h-[60px] text-xs"
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAddNote} className="flex-1">
+                  <Button size="sm" onClick={handleAddNote} className="flex-1 h-7 text-xs">
                     Salvar
                   </Button>
                   <Button
@@ -118,6 +118,7 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
                       setIsAddingNote(false);
                       setNewNote('');
                     }}
+                    className="h-7 text-xs"
                   >
                     Cancelar
                   </Button>
@@ -126,25 +127,25 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
             )}
 
             {notes.length > 0 && (
-              <ScrollArea className="h-[200px] pr-3">
-                <div className="space-y-2">
+              <ScrollArea className="h-[150px] pr-2">
+                <div className="space-y-1.5">
                   {notes.map((note) => (
                     <div
                       key={note.id}
-                      className="p-3 bg-muted rounded-md text-sm space-y-2"
+                      className="p-2 bg-muted rounded-md text-xs space-y-1.5"
                     >
                       {editingNoteId === note.id ? (
                         <>
                           <Textarea
                             value={editingNoteText}
                             onChange={(e) => setEditingNoteText(e.target.value)}
-                            className="min-h-[60px] text-sm"
+                            className="min-h-[50px] text-xs"
                           />
-                          <div className="flex gap-2">
+                          <div className="flex gap-1.5">
                             <Button
                               size="sm"
                               onClick={() => handleUpdateNote(note.id)}
-                              className="flex-1"
+                              className="flex-1 h-6 text-xs"
                             >
                               Salvar
                             </Button>
@@ -155,6 +156,7 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
                                 setEditingNoteId(null);
                                 setEditingNoteText('');
                               }}
+                              className="h-6 text-xs"
                             >
                               Cancelar
                             </Button>
@@ -162,14 +164,14 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
                         </>
                       ) : (
                         <>
-                          <p className="whitespace-pre-wrap">{note.note}</p>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <p className="whitespace-pre-wrap leading-relaxed">{note.note}</p>
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                             <span>
-                              {format(new Date(note.created_at), "dd/MM/yyyy 'às' HH:mm", {
+                              {format(new Date(note.created_at), "dd/MM/yy HH:mm", {
                                 locale: ptBR,
                               })}
                             </span>
-                            <div className="flex gap-1">
+                            <div className="flex gap-0.5">
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -177,17 +179,17 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
                                   setEditingNoteId(note.id);
                                   setEditingNoteText(note.note);
                                 }}
-                                className="h-6 w-6 p-0"
+                                className="h-5 w-5 p-0"
                               >
-                                <Pencil className="h-3 w-3" />
+                                <Pencil className="h-2.5 w-2.5" />
                               </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => setDeleteNoteId(note.id)}
-                                className="h-6 w-6 p-0 text-destructive"
+                                className="h-5 w-5 p-0 text-destructive"
                               >
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-2.5 w-2.5" />
                               </Button>
                             </div>
                           </div>
@@ -200,7 +202,7 @@ export const BrokerKanbanCard = ({ broker }: BrokerKanbanCardProps) => {
             )}
 
             {!loading && notes.length === 0 && !isAddingNote && (
-              <p className="text-xs text-muted-foreground text-center py-4">
+              <p className="text-[10px] text-muted-foreground text-center py-3">
                 Nenhuma anotação ainda
               </p>
             )}
