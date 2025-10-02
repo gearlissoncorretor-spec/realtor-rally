@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      broker_notes: {
+        Row: {
+          broker_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          note: string
+          updated_at: string | null
+        }
+        Insert: {
+          broker_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          note: string
+          updated_at?: string | null
+        }
+        Update: {
+          broker_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          note?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broker_notes_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brokers: {
         Row: {
           avatar_url: string | null
@@ -24,6 +59,7 @@ export type Database = {
           email: string
           hire_date: string | null
           id: string
+          kanban_status: string | null
           meta_monthly: number | null
           name: string
           observations: string | null
@@ -42,6 +78,7 @@ export type Database = {
           email: string
           hire_date?: string | null
           id?: string
+          kanban_status?: string | null
           meta_monthly?: number | null
           name: string
           observations?: string | null
@@ -60,6 +97,7 @@ export type Database = {
           email?: string
           hire_date?: string | null
           id?: string
+          kanban_status?: string | null
           meta_monthly?: number | null
           name?: string
           observations?: string | null

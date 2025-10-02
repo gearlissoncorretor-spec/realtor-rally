@@ -15,6 +15,7 @@ import Acompanhamento from "@/pages/Acompanhamento";
 import Relatorios from "@/pages/Relatorios";
 import Configuracoes from "@/pages/Configuracoes";
 import Metas from "@/pages/Metas";
+import X1 from "@/pages/X1";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -70,6 +71,11 @@ const App = () => (
               <Route path="/relatorios" element={
                 <ProtectedRoute>
                   <Relatorios />
+                </ProtectedRoute>
+              } />
+              <Route path="/x1" element={
+                <ProtectedRoute>
+                  <X1 />
                 </ProtectedRoute>
               } />
               <Route path="/configuracoes" element={
