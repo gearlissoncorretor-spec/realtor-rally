@@ -83,14 +83,12 @@ const Equipes = () => {
     );
     
     const confirmedSales = teamSales.filter(sale => sale.status === 'confirmada');
-    const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
     const totalVGV = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgv || 0), 0);
     
     return {
       salesCount: confirmedSales.length,
-      totalRevenue,
       totalVGV,
-      averageTicket: confirmedSales.length > 0 ? totalRevenue / confirmedSales.length : 0
+      averageTicket: confirmedSales.length > 0 ? totalVGV / confirmedSales.length : 0
     };
   };
 
