@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useAllGoalTasks } from '@/hooks/useAllGoalTasks';
+import { useBrokers } from '@/hooks/useBrokers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   CheckCircle2, 
   Clock, 
@@ -12,18 +15,24 @@ import {
   Search,
   Filter,
   Calendar,
-  ListTodo
+  ListTodo,
+  CalendarIcon
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import KPICard from '@/components/KPICard';
 import { GoalTask } from '@/hooks/useGoals';
+import BrokerDailyTasks from './BrokerDailyTasks';
 
 const TasksOverviewTab = () => {
   const { tasks, loading, updateTask } = useAllGoalTasks();
+  const { brokers } = useBrokers();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'all' | 'broker'>('broker');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -128,6 +137,62 @@ const TasksOverviewTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* View Mode Toggle */}
+      <Card className="bg-gradient-card border-border/50">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'broker' ? 'default' : 'outline'}
+                onClick={() => setViewMode('broker')}
+              >
+                Por Corretor
+              </Button>
+              <Button
+                variant={viewMode === 'all' ? 'default' : 'outline'}
+                onClick={() => setViewMode('all')}
+              >
+                Todas as Tarefas
+              </Button>
+            </div>
+            {viewMode === 'broker' && (
+              <div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[240px] justify-start text-left font-normal"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(selectedDate, "dd/MM/yyyy")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {viewMode === 'broker' ? (
+        <BrokerDailyTasks
+          tasks={tasks}
+          brokers={brokers}
+          selectedDate={selectedDate}
+          onUpdateTask={updateTask}
+        />
+      ) : (
+        <>
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
@@ -285,6 +350,8 @@ const TasksOverviewTab = () => {
           )}
         </CardContent>
       </Card>
+        </>
+      )}
     </div>
   );
 };

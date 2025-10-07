@@ -28,11 +28,14 @@ export interface GoalTask {
   title: string;
   description?: string;
   task_type: string;
+  task_category?: string;
   status: string;
   priority: string;
   due_date?: string;
   completed_at?: string;
   assigned_to?: string;
+  target_quantity?: number;
+  completed_quantity?: number;
   created_at: string;
   updated_at: string;
 }

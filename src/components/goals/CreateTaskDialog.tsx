@@ -18,6 +18,7 @@ interface CreateTaskDialogProps {
   onOpenChange: (open: boolean) => void;
   onCreate: (task: Partial<GoalTask>) => Promise<GoalTask>;
   goalTitle: string;
+  brokerId?: string;
 }
 
 export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
@@ -25,14 +26,18 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
   onOpenChange,
   onCreate,
   goalTitle,
+  brokerId
 }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     task_type: 'action' as GoalTask['task_type'],
+    task_category: 'geral',
     priority: 'medium' as GoalTask['priority'],
     due_date: null as Date | null,
+    target_quantity: 0,
+    completed_quantity: 0,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,8 +50,11 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
         title: formData.title,
         description: formData.description || undefined,
         task_type: formData.task_type,
+        task_category: formData.task_category,
         priority: formData.priority,
         due_date: formData.due_date?.toISOString().split('T')[0],
+        target_quantity: formData.target_quantity,
+        completed_quantity: formData.completed_quantity,
       });
 
       // Reset form
@@ -54,8 +62,11 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
         title: '',
         description: '',
         task_type: 'action',
+        task_category: 'geral',
         priority: 'medium',
         due_date: null,
+        target_quantity: 0,
+        completed_quantity: 0,
       });
       
       onOpenChange(false);
@@ -68,7 +79,7 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Criar Nova Tarefa</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -97,6 +108,44 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
               placeholder="Descreva os detalhes da tarefa..."
               rows={3}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="task_category">Categoria da Tarefa</Label>
+              <Select 
+                value={formData.task_category} 
+                onValueChange={(value) => 
+                  setFormData(prev => ({ ...prev, task_category: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="geral">Geral</SelectItem>
+                  <SelectItem value="ligacoes">Ligações</SelectItem>
+                  <SelectItem value="atendimentos">Atendimentos</SelectItem>
+                  <SelectItem value="visitas">Visitas</SelectItem>
+                  <SelectItem value="propostas">Propostas</SelectItem>
+                  <SelectItem value="fechamentos">Fechamentos</SelectItem>
+                  <SelectItem value="prospeccao">Prospecção</SelectItem>
+                  <SelectItem value="follow_up">Follow-up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="target_quantity">Meta de Quantidade</Label>
+              <Input
+                id="target_quantity"
+                type="number"
+                min="0"
+                value={formData.target_quantity}
+                onChange={(e) => setFormData(prev => ({ ...prev, target_quantity: parseInt(e.target.value) || 0 }))}
+                placeholder="Ex: 10"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -163,8 +212,8 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={formData.due_date}
-                  onSelect={(date) => setFormData(prev => ({ ...prev, due_date: date }))}
+                  selected={formData.due_date || undefined}
+                  onSelect={(date) => setFormData(prev => ({ ...prev, due_date: date || null }))}
                   initialFocus
                   className="pointer-events-auto"
                 />

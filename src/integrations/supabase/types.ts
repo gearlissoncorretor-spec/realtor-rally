@@ -173,6 +173,7 @@ export type Database = {
         Row: {
           assigned_to: string | null
           completed_at: string | null
+          completed_quantity: number | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -181,6 +182,8 @@ export type Database = {
           id: string
           priority: string
           status: string
+          target_quantity: number | null
+          task_category: string | null
           task_type: string
           title: string
           updated_at: string
@@ -188,6 +191,7 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           completed_at?: string | null
+          completed_quantity?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -196,6 +200,8 @@ export type Database = {
           id?: string
           priority?: string
           status?: string
+          target_quantity?: number | null
+          task_category?: string | null
           task_type: string
           title: string
           updated_at?: string
@@ -203,6 +209,7 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           completed_at?: string | null
+          completed_quantity?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -211,6 +218,8 @@ export type Database = {
           id?: string
           priority?: string
           status?: string
+          target_quantity?: number | null
+          task_category?: string | null
           task_type?: string
           title?: string
           updated_at?: string
