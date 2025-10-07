@@ -3,6 +3,7 @@ import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGoals } from '@/hooks/useGoals';
 import { useGoalTasks } from '@/hooks/useGoalTasks';
+import { useAllGoalTasks } from '@/hooks/useAllGoalTasks';
 import { useBrokers } from '@/hooks/useBrokers';
 import { useTeams } from '@/hooks/useTeams';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Target, 
   Users, 
@@ -22,10 +24,12 @@ import {
   X, 
   Calendar,
   TrendingUp,
-  User
+  User,
+  ListTodo
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/utils/formatting';
+import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
 
 interface TeamGoal {
   id?: string;
@@ -50,12 +54,25 @@ const Metas = () => {
   const { goals, loading: goalsLoading, createGoal, updateGoal } = useGoals();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { teams, teamMembers, loading: teamsLoading } = useTeams();
+  const { tasks: allTasks } = useAllGoalTasks();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [editingTeamGoal, setEditingTeamGoal] = useState<string | null>(null);
   const [editingBrokerGoal, setEditingBrokerGoal] = useState<string | null>(null);
   
   const rawRole = getUserRole();
   const userRole = rawRole === 'admin' ? 'diretor' : rawRole;
+
+  // Calculate urgent/today tasks count for badge
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const urgentTasksCount = allTasks.filter(task => {
+    if (task.status === 'completed') return false;
+    if (task.priority === 'urgent') return true;
+    if (!task.due_date) return false;
+    const dueDate = new Date(task.due_date);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate.getTime() === today.getTime();
+  }).length;
 
   // Get available teams based on user role
   const availableTeams = userRole === 'diretor' 
@@ -164,6 +181,26 @@ const Metas = () => {
             </p>
           </div>
         </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="metas" className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="metas" className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              Metas
+            </TabsTrigger>
+            <TabsTrigger value="tarefas" className="flex items-center gap-2">
+              <ListTodo className="w-4 h-4" />
+              Tarefas
+              {urgentTasksCount > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">
+                  {urgentTasksCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="metas" className="space-y-8 mt-6">
 
         {/* Minhas Metas (Corretor) */}
         {(userRole === 'corretor' || rawRole === 'admin') && (
@@ -326,8 +363,14 @@ const Metas = () => {
                 )}
               </CardContent>
             </Card>
-          </>
-        )}
+            </>
+          )}
+          </TabsContent>
+
+          <TabsContent value="tarefas" className="mt-6">
+            <TasksOverviewTab />
+          </TabsContent>
+        </Tabs>
         </div>
       </div>
     </>
