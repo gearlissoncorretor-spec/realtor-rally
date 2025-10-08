@@ -39,7 +39,6 @@ const TasksOverviewTab = () => {
   const [viewMode, setViewMode] = useState<'all' | 'broker'>('broker');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
-  const [selectedGoalForTask, setSelectedGoalForTask] = useState<string | null>(null);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -92,16 +91,16 @@ const TasksOverviewTab = () => {
   };
 
   const handleCreateTask = async (taskData: Partial<GoalTask>) => {
-    if (!selectedGoalForTask) return;
+    if (!taskData.goal_id) return;
     
-    const selectedGoal = goals.find(g => g.id === selectedGoalForTask);
+    const selectedGoal = goals.find(g => g.id === taskData.goal_id);
     if (!selectedGoal) return;
 
     const { supabase } = await import('@/integrations/supabase/client');
     const { data, error } = await supabase
       .from('goal_tasks')
       .insert([{
-        goal_id: selectedGoalForTask,
+        goal_id: taskData.goal_id,
         title: taskData.title,
         description: taskData.description,
         task_type: taskData.task_type,
@@ -220,13 +219,10 @@ const TasksOverviewTab = () => {
                 </Popover>
               )}
               
-              <SelectGoalAndCreateTask
-                goals={goals}
-                onSelectGoal={(goalId) => {
-                  setSelectedGoalForTask(goalId);
-                  setCreateTaskOpen(true);
-                }}
-              />
+              <Button onClick={() => setCreateTaskOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Tarefa
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -402,79 +398,13 @@ const TasksOverviewTab = () => {
       )}
 
       {/* Create Task Dialog */}
-      {selectedGoalForTask && (
-        <CreateTaskDialog
-          open={createTaskOpen}
-          onOpenChange={setCreateTaskOpen}
-          onCreate={handleCreateTask}
-          goalTitle={goals.find(g => g.id === selectedGoalForTask)?.title || ''}
-          brokerId={goals.find(g => g.id === selectedGoalForTask)?.broker_id}
-        />
-      )}
+      <CreateTaskDialog
+        open={createTaskOpen}
+        onOpenChange={setCreateTaskOpen}
+        onCreate={handleCreateTask}
+        goals={goals}
+      />
     </div>
-  );
-};
-
-// Component to select goal before creating task
-const SelectGoalAndCreateTask = ({ 
-  goals, 
-  onSelectGoal 
-}: { 
-  goals: any[], 
-  onSelectGoal: (goalId: string) => void 
-}) => {
-  const [open, setOpen] = useState(false);
-  const [selectedGoalId, setSelectedGoalId] = useState<string>('');
-
-  const activeGoals = goals.filter(g => g.status === 'active');
-
-  const handleCreate = () => {
-    if (selectedGoalId) {
-      onSelectGoal(selectedGoalId);
-      setOpen(false);
-      setSelectedGoalId('');
-    }
-  };
-
-  return (
-    <>
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="w-4 h-4 mr-2" />
-        Nova Tarefa
-      </Button>
-
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverContent className="w-80">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Selecione a Meta</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Escolha a meta para adicionar a tarefa
-              </p>
-              <Select value={selectedGoalId} onValueChange={setSelectedGoalId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma meta ativa" />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeGoals.map(goal => (
-                    <SelectItem key={goal.id} value={goal.id}>
-                      {goal.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button 
-              onClick={handleCreate} 
-              disabled={!selectedGoalId}
-              className="w-full"
-            >
-              Continuar
-            </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
-    </>
   );
 };
 

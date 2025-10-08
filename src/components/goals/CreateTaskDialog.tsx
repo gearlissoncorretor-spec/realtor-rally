@@ -17,19 +17,18 @@ interface CreateTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (task: Partial<GoalTask>) => Promise<GoalTask>;
-  goalTitle: string;
-  brokerId?: string;
+  goals: any[];
 }
 
 export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
   open,
   onOpenChange,
   onCreate,
-  goalTitle,
-  brokerId
+  goals
 }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    goal_id: '',
     title: '',
     description: '',
     task_type: 'action' as GoalTask['task_type'],
@@ -40,13 +39,16 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
     completed_quantity: 0,
   });
 
+  const activeGoals = goals.filter(g => g.status === 'active');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title) return;
+    if (!formData.title || !formData.goal_id) return;
 
     setLoading(true);
     try {
       await onCreate({
+        goal_id: formData.goal_id,
         title: formData.title,
         description: formData.description || undefined,
         task_type: formData.task_type,
@@ -59,6 +61,7 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
 
       // Reset form
       setFormData({
+        goal_id: '',
         title: '',
         description: '',
         task_type: 'action',
@@ -83,11 +86,30 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Criar Nova Tarefa</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Para a meta: <span className="font-medium">{goalTitle}</span>
+            Adicione uma nova tarefa a uma meta ativa
           </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="goal_id">Meta *</Label>
+            <Select
+              value={formData.goal_id}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, goal_id: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma meta ativa" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeGoals.map(goal => (
+                  <SelectItem key={goal.id} value={goal.id}>
+                    {goal.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label htmlFor="title">Título da Tarefa *</Label>
             <Input

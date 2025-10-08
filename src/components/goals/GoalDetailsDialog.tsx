@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target, Calendar, TrendingUp, Plus, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
-import { Goal } from '@/hooks/useGoals';
+import { Goal, useGoals } from '@/hooks/useGoals';
 import { useGoalTasks } from '@/hooks/useGoalTasks';
 import { GoalTaskCard } from './GoalTaskCard';
 import { CreateTaskDialog } from './CreateTaskDialog';
@@ -30,6 +30,7 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
   canEdit,
 }) => {
   const { tasks, createTask, updateTask, deleteTask } = useGoalTasks(goal.id);
+  const { goals } = useGoals();
   const [showCreateTask, setShowCreateTask] = useState(false);
   
   const progress = (goal.current_value / goal.target_value) * 100;
@@ -333,7 +334,7 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
           open={showCreateTask}
           onOpenChange={setShowCreateTask}
           onCreate={createTask}
-          goalTitle={goal.title}
+          goals={goals}
         />
       )}
     </>
