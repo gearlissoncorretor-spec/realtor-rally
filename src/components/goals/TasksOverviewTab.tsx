@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useAllGoalTasks } from '@/hooks/useAllGoalTasks';
+import { useGoals } from '@/hooks/useGoals';
 import { useBrokers } from '@/hooks/useBrokers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   CheckCircle2, 
   Clock, 
@@ -16,7 +18,8 @@ import {
   Filter,
   Calendar,
   ListTodo,
-  CalendarIcon
+  CalendarIcon,
+  Plus
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,15 +27,19 @@ import { cn } from '@/lib/utils';
 import KPICard from '@/components/KPICard';
 import { GoalTask } from '@/hooks/useGoals';
 import BrokerDailyTasks from './BrokerDailyTasks';
+import { CreateTaskDialog } from './CreateTaskDialog';
 
 const TasksOverviewTab = () => {
   const { tasks, loading, updateTask } = useAllGoalTasks();
+  const { goals, createGoal } = useGoals();
   const { brokers } = useBrokers();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'all' | 'broker'>('broker');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [selectedGoalForTask, setSelectedGoalForTask] = useState<string | null>(null);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -82,6 +89,38 @@ const TasksOverviewTab = () => {
     };
     
     await updateTask(task.id, updates);
+  };
+
+  const handleCreateTask = async (taskData: Partial<GoalTask>) => {
+    if (!selectedGoalForTask) return;
+    
+    const selectedGoal = goals.find(g => g.id === selectedGoalForTask);
+    if (!selectedGoal) return;
+
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data, error } = await supabase
+      .from('goal_tasks')
+      .insert([{
+        goal_id: selectedGoalForTask,
+        title: taskData.title,
+        description: taskData.description,
+        task_type: taskData.task_type,
+        task_category: taskData.task_category,
+        priority: taskData.priority,
+        due_date: taskData.due_date,
+        target_quantity: taskData.target_quantity || 0,
+        completed_quantity: taskData.completed_quantity || 0,
+        status: 'pending',
+        assigned_to: selectedGoal.assigned_to || selectedGoal.broker_id,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    window.location.reload();
+    
+    return data;
   };
 
   const getPriorityColor = (priority: string) => {
@@ -137,7 +176,7 @@ const TasksOverviewTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* View Mode Toggle */}
+      {/* Header with View Mode Toggle and Create Button */}
       <Card className="bg-gradient-card border-border/50">
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -155,8 +194,9 @@ const TasksOverviewTab = () => {
                 Todas as Tarefas
               </Button>
             </div>
-            {viewMode === 'broker' && (
-              <div>
+
+            <div className="flex gap-2 items-center">
+              {viewMode === 'broker' && (
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -178,8 +218,16 @@ const TasksOverviewTab = () => {
                     />
                   </PopoverContent>
                 </Popover>
-              </div>
-            )}
+              )}
+              
+              <SelectGoalAndCreateTask
+                goals={goals}
+                onSelectGoal={(goalId) => {
+                  setSelectedGoalForTask(goalId);
+                  setCreateTaskOpen(true);
+                }}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -352,7 +400,81 @@ const TasksOverviewTab = () => {
       </Card>
         </>
       )}
+
+      {/* Create Task Dialog */}
+      {selectedGoalForTask && (
+        <CreateTaskDialog
+          open={createTaskOpen}
+          onOpenChange={setCreateTaskOpen}
+          onCreate={handleCreateTask}
+          goalTitle={goals.find(g => g.id === selectedGoalForTask)?.title || ''}
+          brokerId={goals.find(g => g.id === selectedGoalForTask)?.broker_id}
+        />
+      )}
     </div>
+  );
+};
+
+// Component to select goal before creating task
+const SelectGoalAndCreateTask = ({ 
+  goals, 
+  onSelectGoal 
+}: { 
+  goals: any[], 
+  onSelectGoal: (goalId: string) => void 
+}) => {
+  const [open, setOpen] = useState(false);
+  const [selectedGoalId, setSelectedGoalId] = useState<string>('');
+
+  const activeGoals = goals.filter(g => g.status === 'active');
+
+  const handleCreate = () => {
+    if (selectedGoalId) {
+      onSelectGoal(selectedGoalId);
+      setOpen(false);
+      setSelectedGoalId('');
+    }
+  };
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>
+        <Plus className="w-4 h-4 mr-2" />
+        Nova Tarefa
+      </Button>
+
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverContent className="w-80">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Selecione a Meta</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Escolha a meta para adicionar a tarefa
+              </p>
+              <Select value={selectedGoalId} onValueChange={setSelectedGoalId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma meta ativa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeGoals.map(goal => (
+                    <SelectItem key={goal.id} value={goal.id}>
+                      {goal.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={handleCreate} 
+              disabled={!selectedGoalId}
+              className="w-full"
+            >
+              Continuar
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </>
   );
 };
 
