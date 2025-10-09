@@ -6,10 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Shield, Eye, TrendingUp, Users, BarChart, Settings } from 'lucide-react';
+import { UserPlus, Shield, Eye, TrendingUp, Users, BarChart, Settings, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTeams } from '@/hooks/useTeams';
 import { z } from 'zod';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ROLES = [
   { value: 'diretor', label: 'Diretor', icon: Shield },
@@ -47,20 +49,23 @@ interface CreateUserFormProps {
 
 export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
   const { toast } = useToast();
+  const { teams, loading: teamsLoading } = useTeams();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
     password: '',
     role: '' as 'diretor' | 'gerente' | 'corretor' | '',
-    allowed_screens: [] as string[]
+    allowed_screens: [] as string[],
+    team_id: '' as string
   });
 
   const handleRoleChange = (role: 'diretor' | 'gerente' | 'corretor') => {
     setFormData(prev => ({
       ...prev,
       role,
-      allowed_screens: DEFAULT_PERMISSIONS[role]
+      allowed_screens: DEFAULT_PERMISSIONS[role],
+      team_id: '' // Reset team selection when role changes
     }));
   };
 
@@ -81,6 +86,16 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       
       // Validar dados
       createUserSchema.parse(formData);
+
+      // Validar que gerente tem equipe selecionada
+      if (formData.role === 'gerente' && !formData.team_id) {
+        toast({
+          title: "Equipe obrigatória",
+          description: "Gerentes devem ser associados a uma equipe",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Criar usuário no Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -103,7 +118,8 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
           role: formData.role,
           allowed_screens: formData.allowed_screens,
           is_admin: formData.role === 'diretor',
-          approved: true
+          approved: true,
+          team_id: formData.team_id || null
         });
 
       if (profileError) throw profileError;
@@ -119,7 +135,8 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         email: '',
         password: '',
         role: '',
-        allowed_screens: []
+        allowed_screens: [],
+        team_id: ''
       });
 
       onUserCreated();
@@ -205,6 +222,45 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
               </Select>
             </div>
           </div>
+
+          {formData.role === 'gerente' && (
+            <div className="space-y-2">
+              <Label htmlFor="team">Equipe *</Label>
+              {teamsLoading ? (
+                <div className="text-sm text-muted-foreground">Carregando equipes...</div>
+              ) : teams.length === 0 ? (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Nenhuma equipe encontrada. Crie uma equipe primeiro na página de Equipes.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <Select 
+                  value={formData.team_id} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a equipe do gerente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          {team.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <p className="text-xs text-muted-foreground">
+                O gerente terá acesso apenas aos corretores desta equipe
+              </p>
+            </div>
+          )}
 
           {formData.role && (
             <div className="space-y-4">
