@@ -202,7 +202,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
             
             <div className="space-y-2">
               <Label htmlFor="role">Cargo</Label>
-              <Select value={formData.role} onValueChange={handleRoleChange} required>
+              <Select value={formData.role || undefined} onValueChange={handleRoleChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>
@@ -237,9 +237,8 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
                 </Alert>
               ) : (
                 <Select 
-                  value={formData.team_id} 
+                  value={formData.team_id || undefined} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
-                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a equipe do gerente" />
