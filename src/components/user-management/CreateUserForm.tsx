@@ -286,7 +286,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
                     >
                       <Checkbox
                         checked={isChecked}
-                        onChange={() => {}} // Handled by parent div click
+                        onCheckedChange={() => {}} // Handled by parent div click
                       />
                       <Icon className="h-4 w-4" />
                       <Label className="cursor-pointer flex-1 text-sm">
