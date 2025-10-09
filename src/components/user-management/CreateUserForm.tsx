@@ -97,32 +97,26 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         return;
       }
 
-      // Criar usuário no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: formData.password,
-        user_metadata: { full_name: formData.full_name }
-      });
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No active session');
+      }
 
-      if (authError) throw authError;
-
-      if (!authData.user) throw new Error('Usuário não foi criado');
-
-      // Criar perfil do usuário
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
+      // Call edge function to create user
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
           full_name: formData.full_name,
           email: formData.email,
+          password: formData.password,
           role: formData.role,
           allowed_screens: formData.allowed_screens,
-          is_admin: formData.role === 'diretor',
-          approved: true,
           team_id: formData.team_id || null
-        });
+        }
+      });
 
-      if (profileError) throw profileError;
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Usuário criado com sucesso",
