@@ -279,16 +279,18 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
                   return (
                     <div 
                       key={screen.id} 
-                      className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                      className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
                         isChecked ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
                       }`}
-                      onClick={() => toggleScreen(screen.id)}
                     >
                       <Checkbox
                         checked={isChecked}
                       />
                       <Icon className="h-4 w-4" />
-                      <Label className="cursor-pointer flex-1 text-sm">
+                      <Label 
+                        className="cursor-pointer flex-1 text-sm"
+                        onClick={() => toggleScreen(screen.id)}
+                      >
                         {screen.label}
                       </Label>
                     </div>
