@@ -81,8 +81,8 @@ const Navigation = () => {
       return ['dashboard', 'vendas', 'metas'].includes(item.screen);
     }
     
-    // Dashboard Equipes é apenas para diretores
-    if (item.screen === 'dashboard-equipes' && userRole !== 'diretor') {
+    // Dashboard Equipes é para diretores e admins
+    if (item.screen === 'dashboard-equipes' && userRole !== 'diretor' && !isAdmin()) {
       return false;
     }
     
