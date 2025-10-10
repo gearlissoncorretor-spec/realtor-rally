@@ -146,8 +146,9 @@ const DashboardEquipes = () => {
   return (
     <>
       <Navigation />
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="lg:ml-64 pt-16 lg:pt-0">
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard de Equipes</h1>
             <p className="text-muted-foreground mt-2">
@@ -327,6 +328,7 @@ const DashboardEquipes = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </>
   );
