@@ -16,6 +16,7 @@ import Relatorios from "@/pages/Relatorios";
 import Configuracoes from "@/pages/Configuracoes";
 import Metas from "@/pages/Metas";
 import X1 from "@/pages/X1";
+import DashboardEquipes from "@/pages/DashboardEquipes";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -76,6 +77,11 @@ const App = () => (
               <Route path="/x1" element={
                 <ProtectedRoute>
                   <X1 />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard-equipes" element={
+                <ProtectedRoute>
+                  <DashboardEquipes />
                 </ProtectedRoute>
               } />
               <Route path="/configuracoes" element={

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { LayoutDashboard, Trophy, Home, Settings, BarChart3, Users, Menu, X, Target, Columns3 } from "lucide-react";
+import { LayoutDashboard, Trophy, Home, Settings, BarChart3, Users, Menu, X, Target, Columns3, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -16,6 +16,11 @@ const Navigation = () => {
     label: "Dashboard",
     icon: LayoutDashboard,
     screen: "dashboard"
+  }, {
+    href: "/dashboard-equipes",
+    label: "Dashboard Equipes",
+    icon: Building2,
+    screen: "dashboard-equipes"
   }, {
     href: "/ranking",
     label: "Ranking",
@@ -74,6 +79,11 @@ const Navigation = () => {
       return ['dashboard', 'vendas', 'metas', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'x1'].includes(item.screen);
     } else if (userRole === 'corretor') {
       return ['dashboard', 'vendas', 'metas'].includes(item.screen);
+    }
+    
+    // Dashboard Equipes é apenas para diretores
+    if (item.screen === 'dashboard-equipes' && userRole !== 'diretor') {
+      return false;
     }
     
     // Admins also have access to everything
