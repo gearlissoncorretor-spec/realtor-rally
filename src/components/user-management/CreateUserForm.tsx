@@ -51,13 +51,20 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
   const { toast } = useToast();
   const { teams, loading: teamsLoading } = useTeams();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    full_name: string;
+    email: string;
+    password: string;
+    role: 'diretor' | 'gerente' | 'corretor' | undefined;
+    allowed_screens: string[];
+    team_id: string | undefined;
+  }>({
     full_name: '',
     email: '',
     password: '',
-    role: '' as 'diretor' | 'gerente' | 'corretor' | '',
-    allowed_screens: [] as string[],
-    team_id: '' as string
+    role: undefined,
+    allowed_screens: [],
+    team_id: undefined
   });
 
   const handleRoleChange = (role: 'diretor' | 'gerente' | 'corretor') => {
@@ -65,7 +72,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       ...prev,
       role,
       allowed_screens: DEFAULT_PERMISSIONS[role],
-      team_id: '' // Reset team selection when role changes
+      team_id: undefined // Reset team selection when role changes
     }));
   };
 
@@ -128,9 +135,9 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         full_name: '',
         email: '',
         password: '',
-        role: '',
+        role: undefined,
         allowed_screens: [],
-        team_id: ''
+        team_id: undefined
       });
 
       onUserCreated();
@@ -196,7 +203,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
             
             <div className="space-y-2">
               <Label htmlFor="role">Cargo</Label>
-              <Select value={formData.role || undefined} onValueChange={handleRoleChange}>
+              <Select value={formData.role} onValueChange={handleRoleChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o cargo" />
                 </SelectTrigger>
@@ -231,7 +238,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
                 </Alert>
               ) : (
                 <Select 
-                  value={formData.team_id || undefined} 
+                  value={formData.team_id} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
                 >
                   <SelectTrigger>
