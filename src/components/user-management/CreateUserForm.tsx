@@ -88,19 +88,29 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validar que gerente tem equipe selecionada ANTES de começar loading
+    if (formData.role === 'gerente' && !formData.team_id) {
+      toast({
+        title: "Equipe obrigatória",
+        description: "Gerentes devem ser associados a uma equipe",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       setLoading(true);
       
       // Validar dados
-      createUserSchema.parse(formData);
-
-      // Validar que gerente tem equipe selecionada
-      if (formData.role === 'gerente' && !formData.team_id) {
+      const validationResult = createUserSchema.safeParse(formData);
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors.map(e => e.message).join(', ');
         toast({
-          title: "Equipe obrigatória",
-          description: "Gerentes devem ser associados a uma equipe",
+          title: "Dados inválidos",
+          description: errors,
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
 
@@ -316,7 +326,14 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
           <div className="flex gap-3">
             <Button 
               type="submit" 
-              disabled={loading || !formData.role}
+              disabled={
+                loading || 
+                !formData.role || 
+                !formData.full_name || 
+                !formData.email || 
+                !formData.password ||
+                (formData.role === 'gerente' && !formData.team_id)
+              }
               className="flex-1"
             >
               {loading ? "Criando..." : "Criar Usuário"}
