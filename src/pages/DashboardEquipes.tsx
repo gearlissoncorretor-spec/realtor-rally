@@ -12,9 +12,9 @@ import { calculateMonthlyData } from '@/utils/calculations';
 
 const DashboardEquipes = () => {
   const { profile } = useAuth();
-  const { sales, loading: salesLoading } = useSales();
-  const { brokers, loading: brokersLoading } = useBrokers();
-  const { teams, teamMembers, loading: teamsLoading } = useTeams();
+  const { sales } = useSales();
+  const { brokers } = useBrokers();
+  const { teams, teamMembers } = useTeams();
   
   const [filters, setFilters] = useState<DashboardFiltersState>({
     teamId: 'all',
@@ -23,19 +23,14 @@ const DashboardEquipes = () => {
     year: 'all'
   });
 
-  // Combine loading states
-  const isLoading = salesLoading || brokersLoading || teamsLoading;
-
   // Filter data based on all selected filters
   const filteredData = useMemo(() => {
-    // Ensure we always have valid arrays
-    let filteredSales = Array.isArray(sales) ? [...sales] : [];
-    let filteredBrokers = Array.isArray(brokers) ? [...brokers] : [];
-    const validTeamMembers = Array.isArray(teamMembers) ? teamMembers : [];
+    let filteredSales = sales || [];
+    let filteredBrokers = brokers || [];
 
     // Apply team filter
     if (filters.teamId !== 'all') {
-      const teamMemberIds = validTeamMembers
+      const teamMemberIds = teamMembers
         .filter(member => member.team_id === filters.teamId)
         .map(member => member.id);
 
@@ -80,24 +75,14 @@ const DashboardEquipes = () => {
     return { sales: filteredSales, brokers: filteredBrokers };
   }, [sales, brokers, teamMembers, filters]);
 
-  // Calculate metrics with null safety
-  const totalSales = Array.isArray(filteredData.sales) ? filteredData.sales.length : 0;
-  const totalVGV = Array.isArray(filteredData.sales) 
-    ? filteredData.sales.reduce((sum, sale) => sum + (sale.vgv || 0), 0) 
-    : 0;
-  const totalBrokers = Array.isArray(filteredData.brokers) ? filteredData.brokers.length : 0;
-  const activeBrokers = Array.isArray(filteredData.brokers) 
-    ? filteredData.brokers.filter(broker => broker.status === 'ativo').length 
-    : 0;
+  // Calculate metrics
+  const totalSales = filteredData.sales.length;
+  const totalVGV = filteredData.sales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
+  const totalBrokers = filteredData.brokers.length;
+  const activeBrokers = filteredData.brokers.filter(broker => broker.status === 'ativo').length;
 
-  // Calculate team stats with validation
+  // Calculate team stats
   const teamStats = useMemo(() => {
-    // Validate that all required data exists
-    if (!Array.isArray(teams) || teams.length === 0) return [];
-    if (!Array.isArray(sales)) return [];
-    if (!Array.isArray(brokers)) return [];
-    if (!Array.isArray(teamMembers)) return [];
-    
     let teamsToShow = teams;
     
     if (filters.teamId !== 'all') {
@@ -157,45 +142,6 @@ const DashboardEquipes = () => {
   const chartData = useMemo(() => {
     return calculateMonthlyData(filteredData.sales);
   }, [filteredData.sales]);
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <>
-        <Navigation />
-        <div className="lg:ml-64 pt-16 lg:pt-0">
-          <div className="container mx-auto p-6">
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <p className="text-lg text-muted-foreground">Carregando dados do dashboard...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // Show empty state if no sales data
-  if (!sales || sales.length === 0) {
-    return (
-      <>
-        <Navigation />
-        <div className="lg:ml-64 pt-16 lg:pt-0">
-          <div className="container mx-auto p-6">
-            <Card className="p-12 text-center">
-              <BarChart3 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Nenhuma Venda Encontrada</h2>
-              <p className="text-muted-foreground">
-                Comece adicionando vendas para visualizar o dashboard de equipes.
-              </p>
-            </Card>
-          </div>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
