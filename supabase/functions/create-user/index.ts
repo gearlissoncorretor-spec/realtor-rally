@@ -12,6 +12,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Create user function invoked')
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -20,6 +22,7 @@ serve(async (req) => {
     // Verify the requesting user is an admin
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error('No authorization header')
       throw new Error('No authorization header')
     }
 
@@ -27,8 +30,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
     
     if (userError || !user) {
+      console.error('Invalid user:', userError)
       throw new Error('Invalid user')
     }
+
+    console.log('Request from user:', user.id)
 
     // Check if user is admin
     const { data: profile, error: profileError } = await supabaseClient
@@ -38,23 +44,28 @@ serve(async (req) => {
       .single()
 
     if (profileError || !profile?.is_admin) {
+      console.error('Unauthorized access attempt by:', user.id)
       throw new Error('Unauthorized: Only admins can create users')
     }
 
     // Get request body
     const { full_name, email, password, role, allowed_screens, team_id } = await req.json()
+    console.log('Creating user:', { email, role, team_id, allowed_screens })
 
     // Validate required fields
     if (!full_name || !email || !password || !role || !allowed_screens || allowed_screens.length === 0) {
+      console.error('Missing required fields')
       throw new Error('Missing required fields')
     }
 
     // Validate manager has team
     if (role === 'gerente' && !team_id) {
+      console.error('Manager without team')
       throw new Error('Managers must be assigned to a team')
     }
 
     // Create user in Supabase Auth
+    console.log('Creating user in auth...')
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
       email,
       password,
@@ -62,10 +73,19 @@ serve(async (req) => {
       user_metadata: { full_name }
     })
 
-    if (authError) throw authError
-    if (!authData.user) throw new Error('User creation failed')
+    if (authError) {
+      console.error('Auth error:', authError)
+      throw authError
+    }
+    if (!authData.user) {
+      console.error('User creation failed - no user returned')
+      throw new Error('User creation failed')
+    }
+
+    console.log('User created in auth:', authData.user.id)
 
     // Create profile
+    console.log('Creating profile...')
     const { error: profileInsertError } = await supabaseClient
       .from('profiles')
       .insert({
@@ -82,10 +102,13 @@ serve(async (req) => {
       })
 
     if (profileInsertError) {
+      console.error('Profile creation error:', profileInsertError)
       // If profile creation fails, delete the auth user
       await supabaseClient.auth.admin.deleteUser(authData.user.id)
       throw profileInsertError
     }
+
+    console.log('User created successfully:', authData.user.id)
 
     return new Response(
       JSON.stringify({ 
@@ -103,6 +126,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error in create-user function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
