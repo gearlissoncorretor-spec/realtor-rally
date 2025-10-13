@@ -52,14 +52,40 @@ export const useTeams = () => {
 
   const fetchTeamMembers = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar corretores da tabela brokers
+      const { data: brokersData, error: brokersError } = await supabase
+        .from('brokers')
+        .select('id, name, email, team_id, status')
+        .order('name');
+
+      if (brokersError) throw brokersError;
+
+      // Buscar gerentes da tabela profiles
+      const { data: managersData, error: managersError } = await supabase
         .from('profiles')
         .select('id, full_name, email, role, team_id')
-        .in('role', ['gerente', 'corretor'])
-        .order('full_name');
+        .eq('role', 'gerente');
 
-      if (error) throw error;
-      setTeamMembers(data || []);
+      if (managersError) throw managersError;
+
+      // Combinar corretores e gerentes
+      const brokerMembers = (brokersData || []).map(broker => ({
+        id: broker.id,
+        full_name: broker.name,
+        email: broker.email,
+        role: 'corretor',
+        team_id: broker.team_id || undefined
+      }));
+
+      const managerMembers = (managersData || []).map(manager => ({
+        id: manager.id,
+        full_name: manager.full_name,
+        email: manager.email,
+        role: manager.role,
+        team_id: manager.team_id || undefined
+      }));
+
+      setTeamMembers([...brokerMembers, ...managerMembers]);
     } catch (error: any) {
       console.error('Error fetching team members:', error);
       toast({

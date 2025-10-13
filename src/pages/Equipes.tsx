@@ -193,6 +193,9 @@ const Equipes = () => {
                           <Users className="w-3 h-3" />
                           {memberCount} {memberCount === 1 ? 'membro' : 'membros'}
                         </Badge>
+                        <p className="text-sm text-muted-foreground">
+                          📅 Criada em {new Date(team.created_at).toLocaleDateString('pt-BR')}
+                        </p>
                       </div>
                     </div>
                     
