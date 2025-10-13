@@ -142,23 +142,59 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Broker CRUD
   const createBroker = async (broker: BrokerInsert) => {
     try {
-      const { data, error } = await supabase
-        .from('brokers')
-        .insert([broker])
-        .select()
-        .single();
+      console.log('Creating broker with data:', broker);
+      
+      // Criar usuário via edge function (cria auth user + profile + broker)
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      
+      if (!token) {
+        throw new Error('Usuário não autenticado');
+      }
 
-      if (error) throw error;
-      setBrokers(prev => [data, ...prev]);
+      const response = await fetch(
+        'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/create-user',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            full_name: broker.name,
+            email: broker.email,
+            password: 'TempPass123!', // Senha temporária - usuário deve trocar no primeiro login
+            role: 'corretor',
+            allowed_screens: ['dashboard', 'vendas'],
+            team_id: broker.team_id,
+            phone: broker.phone,
+            cpf: broker.cpf,
+            creci: broker.creci,
+            avatar_url: broker.avatar_url,
+            meta_monthly: broker.meta_monthly,
+            observations: broker.observations,
+            status: broker.status || 'ativo',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Edge function error:', errorData);
+        throw new Error(errorData.error || 'Erro ao criar corretor');
+      }
+
+      await refreshBrokers();
+      
       toast({
         title: "Corretor criado",
-        description: "Corretor adicionado com sucesso.",
+        description: "Corretor adicionado com sucesso. Senha temporária: TempPass123!",
       });
     } catch (error) {
       console.error('Error creating broker:', error);
       toast({
         title: "Erro ao criar corretor",
-        description: "Não foi possível criar o corretor.",
+        description: error instanceof Error ? error.message : "Não foi possível criar o corretor.",
         variant: "destructive",
       });
       throw error;

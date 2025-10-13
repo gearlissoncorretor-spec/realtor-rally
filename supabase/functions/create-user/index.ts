@@ -49,14 +49,31 @@ serve(async (req) => {
     }
 
     // Get request body
-    const { full_name, email, password, role, allowed_screens, team_id } = await req.json()
+    const { 
+      full_name, 
+      email, 
+      password, 
+      role, 
+      allowed_screens, 
+      team_id,
+      phone,
+      cpf,
+      creci,
+      avatar_url,
+      meta_monthly,
+      observations,
+      status
+    } = await req.json()
     console.log('Creating user:', { email, role, team_id, allowed_screens })
 
     // Validate required fields
-    if (!full_name || !email || !password || !role || !allowed_screens || allowed_screens.length === 0) {
+    if (!full_name || !email || !password || !role) {
       console.error('Missing required fields')
-      throw new Error('Missing required fields')
+      throw new Error('Missing required fields: full_name, email, password, role')
     }
+
+    // Set default allowed_screens if not provided
+    const finalAllowedScreens = allowed_screens || (role === 'corretor' ? ['dashboard', 'vendas'] : ['dashboard'])
 
     // Validate manager has team
     if (role === 'gerente' && !team_id) {
@@ -93,7 +110,7 @@ serve(async (req) => {
         full_name,
         email,
         role,
-        allowed_screens,
+        allowed_screens: finalAllowedScreens,
         is_admin: role === 'diretor',
         approved: true,
         approved_by: user.id,
@@ -106,6 +123,38 @@ serve(async (req) => {
       // If profile creation fails, delete the auth user
       await supabaseClient.auth.admin.deleteUser(authData.user.id)
       throw profileInsertError
+    }
+
+    console.log('Profile created successfully')
+
+    // Create broker if role is corretor
+    if (role === 'corretor') {
+      console.log('Creating broker entry...')
+      const { error: brokerInsertError } = await supabaseClient
+        .from('brokers')
+        .insert({
+          user_id: authData.user.id,
+          name: full_name,
+          email,
+          phone: phone || null,
+          cpf: cpf || null,
+          creci: creci || null,
+          avatar_url: avatar_url || null,
+          meta_monthly: meta_monthly || 0,
+          observations: observations || null,
+          status: status || 'ativo',
+          team_id: team_id || null
+        })
+
+      if (brokerInsertError) {
+        console.error('Broker creation error:', brokerInsertError)
+        // If broker creation fails, delete profile and auth user
+        await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
+        await supabaseClient.auth.admin.deleteUser(authData.user.id)
+        throw brokerInsertError
+      }
+
+      console.log('Broker created successfully')
     }
 
     console.log('User created successfully:', authData.user.id)
