@@ -53,6 +53,7 @@ const Ranking = () => {
       email: broker.email
     };
   })
+  .filter(broker => broker.revenue > 0)
   .sort((a, b) => b.revenue - a.revenue)
   .map((broker, index) => ({ ...broker, position: index + 1 }));
 
