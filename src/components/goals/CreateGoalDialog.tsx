@@ -62,8 +62,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
         start_date: formData.start_date.toISOString().split('T')[0],
         end_date: formData.end_date.toISOString().split('T')[0],
         assigned_to: formData.assigned_to || undefined,
-        team_id: formData.team_id || undefined,
-        broker_id: formData.broker_id || undefined,
+        team_id: (formData.team_id && formData.team_id !== 'all') ? formData.team_id : undefined,
+        broker_id: (formData.broker_id && formData.broker_id !== 'all') ? formData.broker_id : undefined,
       });
 
       // Reset form
@@ -243,14 +243,14 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                 <Select 
                   value={formData.team_id} 
                   onValueChange={(value) => 
-                    setFormData(prev => ({ ...prev, team_id: value, broker_id: '' }))
+                    setFormData(prev => ({ ...prev, team_id: value, broker_id: 'all' }))
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecionar equipe" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as equipes</SelectItem>
+                    <SelectItem value="all">Todas as equipes</SelectItem>
                     {teams.map(team => (
                       <SelectItem key={team.id} value={team.id}>
                         {team.name}
@@ -273,7 +273,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   <SelectValue placeholder="Selecionar corretor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os corretores</SelectItem>
+                  <SelectItem value="all">Todos os corretores</SelectItem>
                   {filteredBrokers.map(broker => (
                     <SelectItem key={broker.id} value={broker.id}>
                       {broker.name}

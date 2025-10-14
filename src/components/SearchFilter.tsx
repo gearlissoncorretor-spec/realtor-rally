@@ -36,7 +36,7 @@ export const SearchFilter = ({
 }: SearchFilterProps) => {
   const [showFilters, setShowFilters] = useState(false);
 
-  const hasActiveFilters = Object.values(selectedFilters).some(value => value && value !== '');
+  const hasActiveFilters = Object.values(selectedFilters).some(value => value && value !== '' && value !== 'all');
 
   const handleClearFilters = () => {
     if (onClearFilters) {
@@ -78,7 +78,7 @@ export const SearchFilter = ({
               Filtros
               {hasActiveFilters && (
                 <span className="ml-1 bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
-                  {Object.values(selectedFilters).filter(v => v && v !== '').length}
+                  {Object.values(selectedFilters).filter(v => v && v !== '' && v !== 'all').length}
                 </span>
               )}
             </Button>
@@ -119,7 +119,7 @@ export const SearchFilter = ({
                         <SelectValue placeholder={`Selecionar ${filter.label.toLowerCase()}`} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
                         {filter.options.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
@@ -138,7 +138,7 @@ export const SearchFilter = ({
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2 pt-2">
             {Object.entries(selectedFilters).map(([key, value]) => {
-              if (!value || value === '') return null;
+              if (!value || value === '' || value === 'all') return null;
               
               const filter = filters.find(f => f.key === key);
               const option = filter?.options.find(o => o.value === value);

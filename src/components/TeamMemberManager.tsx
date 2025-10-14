@@ -181,14 +181,14 @@ const TeamMemberManager = () => {
                       <div className="flex items-center gap-2">
                         {isDiretor() && (
                           <Select 
-                            value={member.team_id || ''} 
-                            onValueChange={(teamId) => handleAssignToTeam(member.id, teamId)}
+                            value={member.team_id || 'none'} 
+                            onValueChange={(teamId) => handleAssignToTeam(member.id, teamId === 'none' ? '' : teamId)}
                           >
                             <SelectTrigger className="w-40">
                               <SelectValue placeholder="Selecionar equipe" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Sem equipe</SelectItem>
+                              <SelectItem value="none">Sem equipe</SelectItem>
                               {teams.map((team) => (
                                 <SelectItem key={team.id} value={team.id}>
                                   {team.name}
