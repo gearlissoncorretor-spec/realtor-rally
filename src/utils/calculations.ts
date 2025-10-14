@@ -1,4 +1,5 @@
 import type { Broker, Sale } from '@/contexts/DataContext';
+import { startOfMonth, subMonths, endOfMonth } from 'date-fns';
 
 export const calculateBrokerStats = (broker: Broker, sales: Sale[]) => {
   const brokerSales = sales.filter(sale => sale.broker_id === broker.id);
@@ -97,6 +98,43 @@ export const formatCurrency = (value: number): string => {
   }
 };
 
+// Calculate growth comparing current period with previous period
+export const calculateGrowth = (brokerId: string, sales: Sale[], monthsBack: number = 0): number | null => {
+  const now = new Date();
+  const currentStart = startOfMonth(subMonths(now, monthsBack));
+  const currentEnd = endOfMonth(subMonths(now, monthsBack));
+  const previousStart = startOfMonth(subMonths(now, monthsBack + 1));
+  const previousEnd = endOfMonth(subMonths(now, monthsBack + 1));
+
+  const currentSales = sales.filter(sale => {
+    const saleDate = new Date(sale.sale_date || sale.created_at || '');
+    return sale.broker_id === brokerId && 
+           saleDate >= currentStart && 
+           saleDate <= currentEnd &&
+           sale.status === 'confirmada';
+  });
+
+  const previousSales = sales.filter(sale => {
+    const saleDate = new Date(sale.sale_date || sale.created_at || '');
+    return sale.broker_id === brokerId && 
+           saleDate >= previousStart && 
+           saleDate <= previousEnd &&
+           sale.status === 'confirmada';
+  });
+
+  const currentRevenue = currentSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
+  const previousRevenue = previousSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
+
+  // Return null if there's no previous data to compare
+  if (previousRevenue === 0) {
+    return currentRevenue > 0 ? null : null;
+  }
+
+  // Calculate percentage growth
+  const growth = ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+  return growth;
+};
+
 export const generateBrokerRanking = (brokers: Broker[], sales: Sale[]) => {
   return brokers.map(broker => {
     const stats = calculateBrokerStats(broker, sales);
@@ -107,7 +145,7 @@ export const generateBrokerRanking = (brokers: Broker[], sales: Sale[]) => {
       sales: stats.salesCount,
       revenue: stats.totalRevenue,
       position: 0, // Will be set after sorting
-      growth: Math.random() * 20 - 10, // Mock - would need historical data
+      growth: calculateGrowth(broker.id, sales),
       commission: stats.totalCommission,
       avgTicket: stats.avgSaleValue,
       conversionRate: stats.conversionRate

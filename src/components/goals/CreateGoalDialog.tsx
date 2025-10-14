@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Goal } from '@/hooks/useGoals';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTeams } from '@/hooks/useTeams';
 
 interface CreateGoalDialogProps {
   open: boolean;
@@ -27,7 +28,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
   onCreate,
 }) => {
   const { brokers } = useData();
-  const teams: any[] = [];
+  const { teams } = useTeams();
   const { getUserRole } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({

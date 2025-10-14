@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, TrendingUp, TrendingDown } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
+import { calculateGrowth } from "@/utils/calculations";
 import { useState, useMemo } from "react";
 
 const Ranking = () => {
@@ -49,7 +50,7 @@ const Ranking = () => {
       sales: salesCount,
       revenue: totalRevenue,
       position: 0, // Will be set after sorting
-      growth: Math.random() * 20 - 10, // Mock growth - would need historical data
+      growth: calculateGrowth(broker.id, sales),
       email: broker.email
     };
   })
@@ -120,10 +121,10 @@ const Ranking = () => {
                     className="border-b hover:bg-muted/50 transition-colors animate-fade-in relative"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    {broker.position === 1 && (
-                      <VictoryEffects isFirstPlace={true} brokerName={broker.name} />
-                    )}
-                    <td className="py-4 px-4">
+                    <td className="py-4 px-4 relative">
+                      {broker.position === 1 && (
+                        <VictoryEffects isFirstPlace={true} brokerName={broker.name} />
+                      )}
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-lg">#{broker.position}</span>
                         {broker.position <= 3 && (
@@ -161,18 +162,22 @@ const Ranking = () => {
                       </p>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-1">
-                        {broker.growth > 0 ? (
-                          <TrendingUp className="w-4 h-4 text-success" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-destructive" />
-                        )}
-                        <span className={`text-sm font-medium ${
-                          broker.growth > 0 ? 'text-success' : 'text-destructive'
-                        }`}>
-                          {broker.growth > 0 ? '+' : ''}{broker.growth.toFixed(1)}%
-                        </span>
-                      </div>
+                      {broker.growth !== null ? (
+                        <div className="flex items-center gap-1">
+                          {broker.growth > 0 ? (
+                            <TrendingUp className="w-4 h-4 text-success" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 text-destructive" />
+                          )}
+                          <span className={`text-sm font-medium ${
+                            broker.growth > 0 ? 'text-success' : 'text-destructive'
+                          }`}>
+                            {broker.growth > 0 ? '+' : ''}{broker.growth.toFixed(1)}%
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}
