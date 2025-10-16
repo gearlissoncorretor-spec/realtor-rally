@@ -129,7 +129,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
           role: updatedUser.role,
           is_admin: updatedUser.is_admin,
           approved: updatedUser.approved,
-          allowed_screens: updatedUser.allowed_screens
+          allowed_screens: updatedUser.allowed_screens ?? []
         })
         .eq('id', updatedUser.id);
 
