@@ -48,7 +48,14 @@ const UserPermissionsManager = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Ensure all users have allowed_screens as an array (not null)
+      const usersWithScreens = (data || []).map(user => ({
+        ...user,
+        allowed_screens: user.allowed_screens || []
+      }));
+      
+      setUsers(usersWithScreens);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -66,10 +73,13 @@ const UserPermissionsManager = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ allowed_screens: allowedScreens })
+        .update({ allowed_screens: allowedScreens.length > 0 ? allowedScreens : [] })
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(error.message || 'Erro ao atualizar permissões');
+      }
 
       setUsers(users.map(user => 
         user.id === userId 
@@ -81,11 +91,11 @@ const UserPermissionsManager = () => {
         title: "Sucesso",
         description: "Permissões atualizadas com sucesso",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating permissions:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível atualizar as permissões",
+        title: "Erro ao atualizar permissões",
+        description: error.message || "Verifique se você tem permissões de administrador",
         variant: "destructive",
       });
     } finally {
