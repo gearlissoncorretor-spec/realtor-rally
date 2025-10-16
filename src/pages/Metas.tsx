@@ -163,20 +163,20 @@ const Metas = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 lg:ml-64">
         <div className="max-w-7xl mx-auto p-6 space-y-8 pt-20 lg:pt-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-primary-foreground" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 animate-pulse">
+                <Target className="w-7 h-7 text-white" />
               </div>
               Metas Avançado
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-3 text-lg">
               {userRole === 'diretor' 
-                ? 'Gerencie metas de toda a organização'
+                ? '🎯 Gerencie metas de toda a organização'
                 : userRole === 'gerente'
-                ? 'Defina e acompanhe metas da sua equipe'
-                : 'Visualize suas metas pessoais'
+                ? '📊 Defina e acompanhe metas da sua equipe'
+                : '🚀 Visualize suas metas pessoais'
               }
             </p>
           </div>
@@ -219,39 +219,66 @@ const Metas = () => {
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {myGoals.map(goal => (
-                    <div key={goal.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-lg">{goal.title}</h3>
-                          <Badge variant="secondary" className="mt-1">
-                            {goal.target_type === 'sales_count' ? 'Vendas' : 
-                             goal.target_type === 'revenue' ? 'Faturamento' :
-                             goal.target_type === 'vgv' ? 'VGV' : 'Comissão'}
-                          </Badge>
+                  {myGoals.map(goal => {
+                    const progress = Math.min(((goal.current_value || 0) / (goal.target_value || 1)) * 100, 100);
+                    const isNearlyComplete = progress >= 90;
+                    const isHalfway = progress >= 50 && progress < 90;
+                    
+                    return (
+                      <div key={goal.id} className="border-2 rounded-xl p-5 space-y-4 bg-gradient-to-br from-card via-card to-accent/5 hover:shadow-xl transition-all duration-300">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-bold text-lg text-foreground">{goal.title}</h3>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="secondary" className="font-semibold text-xs">
+                                {goal.target_type === 'sales_count' ? 'Vendas' : 
+                                 goal.target_type === 'revenue' ? 'Faturamento' :
+                                 goal.target_type === 'vgv' ? 'VGV' : 'Comissão'}
+                              </Badge>
+                              <Badge className={
+                                isNearlyComplete ? 'bg-green-500/10 text-green-700 border-green-500/20' :
+                                isHalfway ? 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20' :
+                                'bg-blue-500/10 text-blue-700 border-blue-500/20'
+                              }>
+                                {isNearlyComplete ? '🎯 Quase lá!' : isHalfway ? '🔥 Progredindo' : '📊 Ativo'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-3 p-4 rounded-xl bg-gradient-to-br from-muted/30 to-muted/10 border border-border/30">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-muted-foreground">Progresso</span>
+                            <span className={`text-xl font-bold ${
+                              isNearlyComplete ? 'text-green-600' :
+                              isHalfway ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {progress.toFixed(1)}%
+                            </span>
+                          </div>
+                          <Progress value={progress} className="h-3 shadow-md" />
+                          <div className="grid grid-cols-2 gap-4 mt-2">
+                            <div className="space-y-1">
+                              <p className="text-xs font-medium text-muted-foreground uppercase">Realizado</p>
+                              <p className="text-base font-bold text-foreground">
+                                {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
+                                  ? formatCurrency(goal.current_value)
+                                  : goal.current_value}
+                              </p>
+                            </div>
+                            <div className="space-y-1 text-right">
+                              <p className="text-xs font-medium text-muted-foreground uppercase">Meta</p>
+                              <p className="text-base font-bold text-foreground">
+                                {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
+                                  ? formatCurrency(goal.target_value)
+                                  : goal.target_value}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="mt-3 space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Progresso</span>
-                          <span>{(((goal.current_value || 0) / (goal.target_value || 1)) * 100).toFixed(1)}%</span>
-                        </div>
-                        <Progress value={Math.min(((goal.current_value || 0) / (goal.target_value || 1)) * 100, 100)} className="h-2" />
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>
-                            {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
-                              ? formatCurrency(goal.current_value)
-                              : goal.current_value}
-                          </span>
-                          <span>
-                            {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
-                              ? formatCurrency(goal.target_value)
-                              : goal.target_value}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -384,13 +411,17 @@ const TeamGoalCard: React.FC<{
   canEdit: boolean;
 }> = ({ goal, onEdit, canEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingProgress, setIsEditingProgress] = useState(false);
   const [editData, setEditData] = useState({
     title: goal.title,
     target_value: goal.target_value,
-    target_type: goal.target_type
+    target_type: goal.target_type,
+    current_value: goal.current_value
   });
 
-  const progress = goal.target_value > 0 ? (goal.current_value / goal.target_value) * 100 : 0;
+  const progress = goal.target_value > 0 ? Math.min((goal.current_value / goal.target_value) * 100, 100) : 0;
+  const isNearlyComplete = progress >= 90;
+  const isHalfway = progress >= 50 && progress < 90;
 
   const handleSave = async () => {
     try {
@@ -404,6 +435,23 @@ const TeamGoalCard: React.FC<{
       toast({
         title: "Erro",
         description: "Não foi possível atualizar a meta.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleProgressUpdate = async () => {
+    try {
+      await onEdit(goal.id, { current_value: editData.current_value });
+      setIsEditingProgress(false);
+      toast({
+        title: "Sucesso",
+        description: "Progresso atualizado com sucesso!",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o progresso.",
         variant: "destructive",
       });
     }
@@ -469,40 +517,112 @@ const TeamGoalCard: React.FC<{
   }
 
   return (
-    <div className="border rounded-lg p-4 space-y-4">
+    <div className="border-2 rounded-xl p-5 space-y-5 bg-gradient-to-br from-card via-card to-accent/5 hover:shadow-xl transition-all duration-300">
       <div className="flex justify-between items-start">
-        <div>
-          <h3 className="font-semibold text-lg">{goal.title}</h3>
-          <Badge variant="secondary" className="mt-1">
-            {goal.target_type === 'sales_count' ? 'Vendas' : 
-             goal.target_type === 'revenue' ? 'Faturamento' :
-             goal.target_type === 'vgv' ? 'VGV' : 'Comissão'}
-          </Badge>
+        <div className="flex-1">
+          <h3 className="font-bold text-xl text-foreground">{goal.title}</h3>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="secondary" className="font-semibold">
+              {goal.target_type === 'sales_count' ? 'Vendas' : 
+               goal.target_type === 'revenue' ? 'Faturamento' :
+               goal.target_type === 'vgv' ? 'VGV' : 'Comissão'}
+            </Badge>
+            <Badge className={
+              isNearlyComplete ? 'bg-green-500/10 text-green-700 border-green-500/20' :
+              isHalfway ? 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20' :
+              'bg-blue-500/10 text-blue-700 border-blue-500/20'
+            }>
+              {isNearlyComplete ? '🎯 Quase lá!' : isHalfway ? '🔥 Progredindo' : '📊 Em andamento'}
+            </Badge>
+          </div>
         </div>
         {canEdit && (
-          <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
-            <Edit3 className="w-4 h-4" />
+          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="hover:bg-primary hover:text-primary-foreground">
+            <Edit3 className="w-4 h-4 mr-1" />
+            Editar
           </Button>
         )}
       </div>
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span>Progresso</span>
-          <span>{progress.toFixed(1)}%</span>
-        </div>
-        <Progress value={Math.min(progress, 100)} className="h-2" />
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>
-            {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
-              ? formatCurrency(goal.current_value)
-              : goal.current_value}
-          </span>
-          <span>
-            {goal.target_type.includes('value') || goal.target_type.includes('revenue') || goal.target_type.includes('commission')
-              ? formatCurrency(goal.target_value)
-              : goal.target_value}
+      
+      <div className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-muted/30 to-muted/10 border border-border/30">
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Progresso</span>
+          <span className={`text-2xl font-bold ${
+            isNearlyComplete ? 'text-green-600' :
+            isHalfway ? 'text-yellow-600' :
+            'text-red-600'
+          }`}>
+            {progress.toFixed(1)}%
           </span>
         </div>
+        <Progress value={progress} className="h-3 shadow-md" />
+        
+        {isEditingProgress ? (
+          <div className="space-y-3 pt-2 border-t border-border/30">
+            <Label htmlFor="current_value" className="text-sm font-semibold">Atualizar Valor Realizado</Label>
+            {goal.target_type === 'sales_count' ? (
+              <Input
+                id="current_value"
+                type="number"
+                value={editData.current_value}
+                onChange={(e) => setEditData({...editData, current_value: parseFloat(e.target.value) || 0})}
+                placeholder="Número realizado"
+                className="font-bold"
+              />
+            ) : (
+              <CurrencyInput
+                id="current_value"
+                value={editData.current_value}
+                onChange={(value) => setEditData({...editData, current_value: value})}
+                className="font-bold"
+              />
+            )}
+            <div className="flex gap-2">
+              <Button onClick={handleProgressUpdate} size="sm" className="flex-1">
+                <Check className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+              <Button variant="outline" onClick={() => {
+                setIsEditingProgress(false);
+                setEditData({...editData, current_value: goal.current_value});
+              }} size="sm" className="flex-1">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Realizado</p>
+              <p className="text-lg font-bold text-foreground">
+                {goal.target_type === 'sales_count' 
+                  ? goal.current_value 
+                  : formatCurrency(goal.current_value)}
+              </p>
+            </div>
+            <div className="space-y-1 text-right">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Meta</p>
+              <p className="text-lg font-bold text-foreground">
+                {goal.target_type === 'sales_count' 
+                  ? goal.target_value 
+                  : formatCurrency(goal.target_value)}
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {!isEditingProgress && canEdit && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsEditingProgress(true)}
+            className="w-full mt-2 hover:bg-primary hover:text-primary-foreground"
+          >
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Atualizar Progresso
+          </Button>
+        )}
       </div>
     </div>
   );
