@@ -19,6 +19,7 @@ export interface Team {
 
 export interface TeamMember {
   id: string;
+  broker_id?: string; // ID from brokers table (if it's a broker)
   full_name: string;
   email: string;
   role: string;
@@ -55,7 +56,7 @@ export const useTeams = () => {
       // Buscar corretores da tabela brokers
       const { data: brokersData, error: brokersError } = await supabase
         .from('brokers')
-        .select('id, name, email, team_id, status')
+        .select('id, name, email, team_id, status, user_id')
         .order('name');
 
       if (brokersError) throw brokersError;
@@ -70,7 +71,8 @@ export const useTeams = () => {
 
       // Combinar corretores e gerentes
       const brokerMembers = (brokersData || []).map(broker => ({
-        id: broker.id,
+        id: broker.user_id || broker.id, // Use user_id for profile updates
+        broker_id: broker.id, // Keep broker_id for broker table updates
         full_name: broker.name,
         email: broker.email,
         role: 'corretor',
@@ -79,6 +81,7 @@ export const useTeams = () => {
 
       const managerMembers = (managersData || []).map(manager => ({
         id: manager.id,
+        broker_id: undefined, // Managers don't have broker records
         full_name: manager.full_name,
         email: manager.email,
         role: manager.role,
@@ -202,6 +205,11 @@ export const useTeams = () => {
 
   const assignMemberToTeam = async (memberId: string, teamId: string | null) => {
     try {
+      console.log('Assigning member to team:', { memberId, teamId });
+      
+      const member = teamMembers.find(m => m.id === memberId);
+      
+      // Update profiles table (for all users)
       const { data, error } = await supabase
         .from('profiles')
         .update({ team_id: teamId })
@@ -211,18 +219,22 @@ export const useTeams = () => {
 
       if (error) throw error;
 
-      // Also update the brokers table if the member is a corretor
-      const member = teamMembers.find(m => m.id === memberId);
-      if (member?.role === 'corretor') {
-        await supabase
+      // CRITICAL: Also update brokers table using broker_id (this is what matters for sales tracking)
+      if (member?.broker_id) {
+        const { error: brokerError } = await supabase
           .from('brokers')
           .update({ team_id: teamId })
-          .eq('user_id', memberId);
+          .eq('id', member.broker_id);
+        
+        if (brokerError) {
+          console.error('Error updating broker:', brokerError);
+          throw brokerError;
+        }
+        console.log('Broker table updated successfully for broker_id:', member.broker_id);
       }
 
-      setTeamMembers(prev => prev.map(member => 
-        member.id === memberId ? data : member
-      ));
+      // Refresh team members to get updated data
+      await fetchTeamMembers();
 
       toast({
         title: "Membro atualizado",

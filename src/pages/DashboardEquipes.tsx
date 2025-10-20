@@ -14,7 +14,7 @@ const DashboardEquipes = () => {
   const { profile } = useAuth();
   const { sales } = useSales();
   const { brokers } = useBrokers();
-  const { teams, teamMembers } = useTeams();
+  const { teams } = useTeams();
   
   const [filters, setFilters] = useState<DashboardFiltersState>({
     teamId: 'all',
@@ -28,14 +28,10 @@ const DashboardEquipes = () => {
     let filteredSales = sales || [];
     let filteredBrokers = brokers || [];
 
-    // Apply team filter
+    // Apply team filter - use brokers.team_id directly
     if (filters.teamId !== 'all') {
-      const teamMemberIds = teamMembers
-        .filter(member => member.team_id === filters.teamId)
-        .map(member => member.id);
-
       filteredBrokers = filteredBrokers.filter(broker => 
-        teamMemberIds.includes(broker.user_id || '')
+        broker.team_id === filters.teamId
       );
 
       filteredSales = filteredSales.filter(sale => 
@@ -73,7 +69,7 @@ const DashboardEquipes = () => {
     }
 
     return { sales: filteredSales, brokers: filteredBrokers };
-  }, [sales, brokers, teamMembers, filters]);
+  }, [sales, brokers, filters]);
 
   // Calculate metrics
   const totalSales = filteredData.sales.length;
@@ -90,12 +86,9 @@ const DashboardEquipes = () => {
     }
 
     return teamsToShow.map(team => {
-      const teamMemberIds = teamMembers
-        .filter(member => member.team_id === team.id)
-        .map(member => member.id);
-
+      // Filter brokers directly by team_id
       const teamBrokers = (brokers || []).filter(broker => 
-        teamMemberIds.includes(broker.user_id || '')
+        broker.team_id === team.id
       );
 
       let teamSales = (sales || []).filter(sale => 
@@ -136,7 +129,7 @@ const DashboardEquipes = () => {
         activeBrokers: teamBrokers.filter(b => b.status === 'ativo').length
       };
     }).sort((a, b) => b.vgv - a.vgv);
-  }, [teams, teamMembers, brokers, sales, filters]);
+  }, [teams, brokers, sales, filters]);
 
   // Prepare chart data
   const chartData = useMemo(() => {
