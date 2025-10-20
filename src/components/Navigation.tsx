@@ -9,7 +9,11 @@ import AuthButton from "@/components/AuthButton";
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin, getUserRole } = useAuth();
+  const { hasAccess, isAdmin, getUserRole, signOut } = useAuth();
+  
+  const handleLogoClick = async () => {
+    await signOut();
+  };
   
   const allNavItems = [{
     href: "/",
@@ -97,9 +101,13 @@ const Navigation = () => {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-card border-b border-border z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+          <button 
+            onClick={handleLogoClick}
+            className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+            title="Voltar para login"
+          >
             <Home className="w-5 h-5 text-primary-foreground" />
-          </div>
+          </button>
           <div>
             <h1 className="text-lg font-bold text-foreground">RealEstate</h1>
           </div>
@@ -117,9 +125,13 @@ const Navigation = () => {
       <nav className="hidden lg:block fixed left-0 top-0 h-full w-64 bg-gradient-card border-r border-border z-50">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+            <button 
+              onClick={handleLogoClick}
+              className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+              title="Voltar para login"
+            >
               <Home className="w-6 h-6 text-primary-foreground" />
-            </div>
+            </button>
             <div>
               <h1 className="text-xl font-bold text-foreground">Gestão MB SC</h1>
               <p className="text-sm text-muted-foreground">Dashboard</p>
@@ -150,9 +162,13 @@ const Navigation = () => {
           <nav className="absolute left-0 top-0 h-full w-64 bg-gradient-card border-r border-border">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+                <button 
+                  onClick={handleLogoClick}
+                  className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+                  title="Voltar para login"
+                >
                   <Home className="w-6 h-6 text-primary-foreground" />
-                </div>
+                </button>
                 <div>
                   <h1 className="text-xl font-bold text-foreground">RealEstate</h1>
                   <p className="text-sm text-muted-foreground">Dashboard</p>
