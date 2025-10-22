@@ -1,11 +1,9 @@
-import { lazy, Suspense } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import DiretorDashboard from '@/components/dashboards/DiretorDashboard';
+import GerenteDashboard from '@/components/dashboards/GerenteDashboard';
+import CorretorDashboard from '@/components/dashboards/CorretorDashboard';
 import { Loader2 } from 'lucide-react';
-
-// Lazy load dashboards based on role
-const DiretorDashboard = lazy(() => import('@/components/dashboards/DiretorDashboard'));
-const GerenteDashboard = lazy(() => import('@/components/dashboards/GerenteDashboard'));
-const CorretorDashboard = lazy(() => import('@/components/dashboards/CorretorDashboard'));
 
 const Home = () => {
   const { profile, loading, getUserRole } = useAuth();
@@ -28,44 +26,18 @@ const Home = () => {
 
   const role = getUserRole();
 
-  const LoadingFallback = () => (
-    <div className="min-h-screen flex items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin" />
-    </div>
-  );
-
-  // Render dashboard based on user role with lazy loading
-  const renderDashboard = () => {
-    switch (role) {
-      case 'diretor':
-      case 'admin':
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <DiretorDashboard />
-          </Suspense>
-        );
-      case 'gerente':
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <GerenteDashboard />
-          </Suspense>
-        );
-      case 'corretor':
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <CorretorDashboard />
-          </Suspense>
-        );
-      default:
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <CorretorDashboard />
-          </Suspense>
-        );
-    }
-  };
-
-  return renderDashboard();
+  // Render dashboard based on user role
+  switch (role) {
+    case 'diretor':
+    case 'admin':
+      return <DiretorDashboard />;
+    case 'gerente':
+      return <GerenteDashboard />;
+    case 'corretor':
+      return <CorretorDashboard />;
+    default:
+      return <CorretorDashboard />; // Default to corretor dashboard
+  }
 };
 
 export default Home;
