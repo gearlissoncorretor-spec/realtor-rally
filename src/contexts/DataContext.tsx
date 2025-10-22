@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -54,14 +54,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [sales, setSales] = useState<Sale[]>([]);
   const [targets, setTargets] = useState<Target[]>([]);
   
-  const [brokersLoading, setBrokersLoading] = useState(true);
-  const [salesLoading, setSalesLoading] = useState(true);
-  const [targetsLoading, setTargetsLoading] = useState(true);
+  const [brokersLoading, setBrokersLoading] = useState(false);
+  const [salesLoading, setSalesLoading] = useState(false);
+  const [targetsLoading, setTargetsLoading] = useState(false);
+  
+  const [brokersLoaded, setBrokersLoaded] = useState(false);
+  const [salesLoaded, setSalesLoaded] = useState(false);
+  const [targetsLoaded, setTargetsLoaded] = useState(false);
   
   const { toast } = useToast();
 
-  // Fetch Brokers
-  const fetchBrokers = async () => {
+  // Fetch Brokers only when needed
+  const fetchBrokers = useCallback(async () => {
+    if (brokersLoading) return; // Prevent duplicate calls
+    
     try {
       setBrokersLoading(true);
       const { data, error } = await supabase
@@ -71,6 +77,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       setBrokers(data || []);
+      setBrokersLoaded(true);
     } catch (error) {
       console.error('Error fetching brokers:', error);
       toast({
@@ -81,10 +88,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setBrokersLoading(false);
     }
-  };
+  }, [brokersLoading, toast]);
 
-  // Fetch Sales
-  const fetchSales = async () => {
+  // Fetch Sales only when needed
+  const fetchSales = useCallback(async () => {
+    if (salesLoading) return; // Prevent duplicate calls
+    
     try {
       setSalesLoading(true);
       const { data, error } = await supabase
@@ -103,6 +112,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       setSales(data || []);
+      setSalesLoaded(true);
     } catch (error) {
       console.error('Error fetching sales:', error);
       toast({
@@ -113,10 +123,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setSalesLoading(false);
     }
-  };
+  }, [salesLoading, toast]);
 
-  // Fetch Targets
-  const fetchTargets = async () => {
+  // Fetch Targets only when needed
+  const fetchTargets = useCallback(async () => {
+    if (targetsLoading) return; // Prevent duplicate calls
+    
     try {
       setTargetsLoading(true);
       const { data, error } = await supabase
@@ -127,6 +139,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       setTargets(data || []);
+      setTargetsLoaded(true);
     } catch (error) {
       console.error('Error fetching targets:', error);
       toast({
@@ -137,7 +150,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setTargetsLoading(false);
     }
-  };
+  }, [targetsLoading, toast]);
 
   // Broker CRUD
   const createBroker = async (broker: BrokerInsert) => {
@@ -410,17 +423,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Refresh functions
-  const refreshBrokers = () => fetchBrokers();
-  const refreshSales = () => fetchSales();
-  const refreshTargets = () => fetchTargets();
+  const refreshBrokers = useCallback(() => fetchBrokers(), [fetchBrokers]);
+  const refreshSales = useCallback(() => fetchSales(), [fetchSales]);
+  const refreshTargets = useCallback(() => fetchTargets(), [fetchTargets]);
 
-  // Initial fetch
+  // Load data on first access (lazy loading)
   useEffect(() => {
-    fetchBrokers();
-    fetchSales();
-    fetchTargets();
+    // Only load if not already loaded or loading
+    if (!brokersLoaded && !brokersLoading) {
+      fetchBrokers();
+    }
+    if (!salesLoaded && !salesLoading) {
+      fetchSales();
+    }
+    if (!targetsLoaded && !targetsLoading) {
+      fetchTargets();
+    }
+  }, [brokersLoaded, brokersLoading, salesLoaded, salesLoading, targetsLoaded, targetsLoading, fetchBrokers, fetchSales, fetchTargets]);
 
-    // Set up real-time subscription for sales
+  // Set up real-time subscription for sales (only after initial load)
+  useEffect(() => {
+    if (!salesLoaded) return;
+
     const salesChannel = supabase
       .channel('sales_changes')
       .on(
@@ -439,9 +463,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       supabase.removeChannel(salesChannel);
     };
-  }, []);
+  }, [salesLoaded, fetchSales]);
 
-  const value: DataContextType = {
+  const value: DataContextType = useMemo(() => ({
     brokers,
     sales,
     targets,
@@ -460,7 +484,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshBrokers,
     refreshSales,
     refreshTargets,
-  };
+  }), [
+    brokers,
+    sales,
+    targets,
+    brokersLoading,
+    salesLoading,
+    targetsLoading,
+    refreshBrokers,
+    refreshSales,
+    refreshTargets,
+  ]);
 
   return (
     <DataContext.Provider value={value}>
