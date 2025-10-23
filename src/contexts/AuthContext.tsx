@@ -6,8 +6,6 @@ interface Profile {
   id: string;
   full_name: string;
   email: string;
-  is_admin: boolean;
-  role: string;
   allowed_screens: string[];
   approved: boolean;
   approved_by?: string;
@@ -15,6 +13,10 @@ interface Profile {
   avatar_url?: string;
   team_id?: string;
   manager_id?: string;
+}
+
+interface UserRole {
+  role: string;
 }
 
 interface TeamHierarchy {
@@ -59,27 +61,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
+      if (profileError) throw profileError;
+      setProfile(profileData);
+      
+      // Fetch user role from user_roles table
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (!roleError && roleData) {
+        setUserRole(roleData.role);
+      }
       
       // Fetch team hierarchy after profile
-      if (data) {
+      if (profileData) {
         fetchTeamHierarchy(userId);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+      setUserRole(null);
     }
   };
 
@@ -183,29 +201,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const isAdmin = (): boolean => {
-    return profile?.is_admin ?? false;
+    return userRole === 'admin';
   };
 
   const isDiretor = (): boolean => {
-    return profile?.role === 'diretor' || profile?.role === 'admin';
+    return userRole === 'diretor' || userRole === 'admin';
   };
 
   const isGerente = (): boolean => {
-    return profile?.role === 'gerente';
+    return userRole === 'gerente';
   };
 
   const isCorretor = (): boolean => {
-    return profile?.role === 'corretor';
+    return userRole === 'corretor';
   };
 
   const getUserRole = (): string => {
-    return profile?.role ?? 'corretor';
+    return userRole ?? 'corretor';
   };
 
   const getDefaultRoute = (): string => {
-    if (!profile) return '/';
+    if (!userRole) return '/';
     
-    switch (profile.role) {
+    switch (userRole) {
       case 'diretor':
         return '/'; // Dashboard geral do diretor
       case 'gerente':
@@ -218,13 +236,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const canAccessUserData = (userId: string): boolean => {
-    if (!profile || !user) return false;
+    if (!userRole || !user) return false;
     
     // Diretor e Admin podem acessar dados de todos
-    if (profile.role === 'diretor' || profile.role === 'admin') return true;
+    if (userRole === 'diretor' || userRole === 'admin') return true;
     
     // Gerente pode acessar dados da sua equipe
-    if (profile.role === 'gerente' && teamHierarchy) {
+    if (userRole === 'gerente' && teamHierarchy) {
       return teamHierarchy.team_members.includes(userId);
     }
     

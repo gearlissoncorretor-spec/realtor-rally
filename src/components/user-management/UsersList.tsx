@@ -22,13 +22,13 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
   id: string;
   full_name: string;
   email: string;
-  role: string;
-  is_admin: boolean;
+  user_role: string;
   approved: boolean;
   allowed_screens: string[];
   created_at: string;
@@ -51,6 +51,7 @@ const AVAILABLE_SCREENS = [
 
 export const UsersList = ({ refreshTrigger }: UsersListProps) => {
   const { toast } = useToast();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,13 +73,32 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Fetch roles for each user
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Merge profile data with roles
+      const usersWithRoles = profilesData?.map(profile => {
+        const userRole = rolesData?.find(r => r.user_id === profile.id);
+        return {
+          ...profile,
+          user_role: userRole?.role || 'user'
+        };
+      }) || [];
+
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -102,7 +122,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
     }
 
     if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role === roleFilter);
+      filtered = filtered.filter(user => user.user_role === roleFilter);
     }
 
     if (statusFilter !== 'all') {
@@ -122,18 +142,37 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
     try {
       setSaving(true);
       
-      const { error } = await supabase
+      // Update profile (without role)
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: updatedUser.full_name,
-          role: updatedUser.role,
-          is_admin: updatedUser.is_admin,
           approved: updatedUser.approved,
           allowed_screens: updatedUser.allowed_screens ?? []
         })
         .eq('id', updatedUser.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Update role in user_roles table
+      // First, delete existing role
+      const { error: deleteError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', updatedUser.id);
+
+      if (deleteError) throw deleteError;
+
+      // Then insert new role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert([{
+          user_id: updatedUser.id,
+          role: updatedUser.user_role as any,
+          created_by: currentUser?.id
+        }]);
+
+      if (roleError) throw roleError;
 
       setUsers(prev => prev.map(user => 
         user.id === updatedUser.id ? updatedUser : user
@@ -177,6 +216,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
+      case 'admin': return Shield;
       case 'diretor': return Shield;
       case 'gerente': return Users;
       case 'corretor': return TrendingUp;
@@ -186,6 +226,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case 'admin': return 'bg-purple-100 text-purple-800';
       case 'diretor': return 'bg-red-100 text-red-800';
       case 'gerente': return 'bg-blue-100 text-blue-800';
       case 'corretor': return 'bg-green-100 text-green-800';
@@ -228,6 +269,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os cargos</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="diretor">Diretor</SelectItem>
                 <SelectItem value="gerente">Gerente</SelectItem>
                 <SelectItem value="corretor">Corretor</SelectItem>
@@ -250,7 +292,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
         <CardContent>
           <div className="space-y-3">
             {filteredUsers.map((user) => {
-              const RoleIcon = getRoleIcon(user.role);
+              const RoleIcon = getRoleIcon(user.user_role);
               const isExpanded = expandedUser === user.id;
               
               return (
@@ -274,7 +316,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-medium">{user.full_name}</p>
-                            {user.is_admin && (
+                            {user.user_role === 'admin' && (
                               <Badge variant="secondary" className="bg-primary/10 text-primary">
                                 <Shield className="w-3 h-3 mr-1" />
                                 Admin
@@ -286,9 +328,9 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
                       </div>
                       
                       <div className="flex items-center gap-3">
-                        <Badge className={getRoleBadgeColor(user.role)}>
+                        <Badge className={getRoleBadgeColor(user.user_role)}>
                           <RoleIcon className="w-3 h-3 mr-1" />
-                          {user.role}
+                          {user.user_role}
                         </Badge>
                         
                         <Badge variant={user.approved ? "default" : "secondary"}>
@@ -377,13 +419,14 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
                 <div>
                   <Label htmlFor="edit-role">Cargo</Label>
                   <Select 
-                    value={editingUser.role} 
-                    onValueChange={(role) => setEditingUser({ ...editingUser, role })}
+                    value={editingUser.user_role} 
+                    onValueChange={(user_role) => setEditingUser({ ...editingUser, user_role })}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="diretor">Diretor</SelectItem>
                       <SelectItem value="gerente">Gerente</SelectItem>
                       <SelectItem value="corretor">Corretor</SelectItem>
@@ -392,22 +435,12 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={editingUser.is_admin}
-                    onCheckedChange={(is_admin) => setEditingUser({ ...editingUser, is_admin })}
-                  />
-                  <Label>Administrador</Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={editingUser.approved}
-                    onCheckedChange={(approved) => setEditingUser({ ...editingUser, approved })}
-                  />
-                  <Label>Ativo</Label>
-                </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={editingUser.approved}
+                  onCheckedChange={(approved) => setEditingUser({ ...editingUser, approved })}
+                />
+                <Label>Ativo</Label>
               </div>
 
               <div>

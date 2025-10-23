@@ -36,14 +36,11 @@ serve(async (req) => {
 
     console.log('Request from user:', user.id)
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()
+    // Check if user is admin using new role system
+    const { data: adminCheck, error: adminError } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'admin' })
 
-    if (profileError || !profile?.is_admin) {
+    if (adminError || !adminCheck) {
       console.error('Unauthorized access attempt by:', user.id)
       throw new Error('Unauthorized: Only admins can create users')
     }
@@ -101,7 +98,7 @@ serve(async (req) => {
 
     console.log('User created in auth:', authData.user.id)
 
-    // Create profile
+    // Create profile (without role - now in user_roles table)
     console.log('Creating profile...')
     const { error: profileInsertError } = await supabaseClient
       .from('profiles')
@@ -109,9 +106,7 @@ serve(async (req) => {
         id: authData.user.id,
         full_name,
         email,
-        role,
         allowed_screens: finalAllowedScreens,
-        is_admin: role === 'diretor',
         approved: true,
         approved_by: user.id,
         approved_at: new Date().toISOString(),
@@ -126,6 +121,26 @@ serve(async (req) => {
     }
 
     console.log('Profile created successfully')
+
+    // Create role in user_roles table (SECURE ROLE SYSTEM)
+    console.log('Creating user role...')
+    const { error: roleInsertError } = await supabaseClient
+      .from('user_roles')
+      .insert({
+        user_id: authData.user.id,
+        role: role,
+        created_by: user.id
+      })
+
+    if (roleInsertError) {
+      console.error('Role creation error:', roleInsertError)
+      // If role creation fails, delete profile and auth user
+      await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
+      await supabaseClient.auth.admin.deleteUser(authData.user.id)
+      throw roleInsertError
+    }
+
+    console.log('User role assigned successfully')
 
     // Create broker if role is corretor
     if (role === 'corretor') {
@@ -148,7 +163,8 @@ serve(async (req) => {
 
       if (brokerInsertError) {
         console.error('Broker creation error:', brokerInsertError)
-        // If broker creation fails, delete profile and auth user
+        // If broker creation fails, delete role, profile and auth user
+        await supabaseClient.from('user_roles').delete().eq('user_id', authData.user.id)
         await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
         await supabaseClient.auth.admin.deleteUser(authData.user.id)
         throw brokerInsertError

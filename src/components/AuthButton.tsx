@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, LogOut, Settings } from 'lucide-react';
 
 const AuthButton = () => {
-  const { user, profile, signOut, loading } = useAuth();
+  const { user, profile, signOut, loading, isAdmin } = useAuth();
 
   if (loading) {
     return null;
@@ -43,7 +43,7 @@ const AuthButton = () => {
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
           <span className="hidden sm:inline">{profile.full_name.split(' ')[0]}</span>
-          {profile.is_admin && (
+          {isAdmin() && (
             <span className="ml-1 text-xs text-primary font-medium">Admin</span>
           )}
         </Button>
@@ -54,7 +54,7 @@ const AuthButton = () => {
           <p className="text-xs text-muted-foreground">{profile.email}</p>
         </div>
         <DropdownMenuSeparator />
-        {profile.is_admin && (
+        {isAdmin() && (
           <DropdownMenuItem asChild>
             <Link to="/configuracoes" className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />

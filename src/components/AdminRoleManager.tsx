@@ -14,11 +14,10 @@ interface UserProfile {
   id: string;
   full_name: string;
   email: string;
-  is_admin: boolean;
-  role: string;
   avatar_url?: string;
   approved: boolean;
   created_at: string;
+  user_role?: string;
 }
 
 export const AdminRoleManager = () => {
@@ -26,7 +25,7 @@ export const AdminRoleManager = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const { toast } = useToast();
-  const { isAdmin, profile } = useAuth();
+  const { isAdmin, profile, user } = useAuth();
 
   useEffect(() => {
     if (isAdmin()) {
@@ -37,13 +36,32 @@ export const AdminRoleManager = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch profiles with their roles from user_roles table
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Fetch roles for each user
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Merge profile data with roles
+      const usersWithRoles = profilesData?.map(profile => {
+        const userRole = rolesData?.find(r => r.user_id === profile.id);
+        return {
+          ...profile,
+          user_role: userRole?.role || 'user'
+        };
+      }) || [];
+
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -56,8 +74,8 @@ export const AdminRoleManager = () => {
     }
   };
 
-  const updateAdminStatus = async (userId: string, isAdmin: boolean) => {
-    if (userId === profile?.id) {
+  const updateAdminStatus = async (userId: string, isAdminRole: boolean) => {
+    if (userId === user?.id) {
       toast({
         title: "Ação não permitida",
         description: "Você não pode alterar seu próprio status de administrador.",
@@ -69,28 +87,37 @@ export const AdminRoleManager = () => {
     try {
       setSaving(userId);
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          is_admin: isAdmin,
-          role: isAdmin ? 'admin' : 'corretor'
-        })
-        .eq('id', userId);
+      // Delete existing role
+      const { error: deleteError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      // Insert new role
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: isAdminRole ? 'admin' : 'corretor',
+          created_by: user?.id
+        });
+
+      if (insertError) throw insertError;
 
       // Update local state
       setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId 
-            ? { ...user, is_admin: isAdmin, role: isAdmin ? 'admin' : 'corretor' }
-            : user
+        prevUsers.map(u => 
+          u.id === userId 
+            ? { ...u, user_role: isAdminRole ? 'admin' : 'corretor' }
+            : u
         )
       );
 
       toast({
         title: "Status atualizado",
-        description: `Usuário ${isAdmin ? 'promovido a' : 'removido de'} administrador com sucesso.`,
+        description: `Usuário ${isAdminRole ? 'promovido a' : 'removido de'} administrador com sucesso.`,
       });
     } catch (error) {
       console.error('Error updating admin status:', error);
@@ -142,37 +169,37 @@ export const AdminRoleManager = () => {
               Gerencie quais usuários têm permissões de administrador no sistema.
             </div>
             
-            {users.map((user) => (
+            {users.map((userItem) => (
               <div
-                key={user.id}
+                key={userItem.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={user.avatar_url} />
+                    <AvatarImage src={userItem.avatar_url} />
                     <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {getInitials(user.full_name)}
+                      {getInitials(userItem.full_name)}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{user.full_name}</h3>
-                      {user.is_admin && (
+                      <h3 className="font-medium">{userItem.full_name}</h3>
+                      {userItem.user_role === 'admin' && (
                         <Badge variant="secondary" className="bg-primary/10 text-primary">
                           <ShieldCheck className="w-3 h-3 mr-1" />
                           Admin
                         </Badge>
                       )}
-                      {!user.approved && (
+                      {!userItem.approved && (
                         <Badge variant="outline">
                           Pendente
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                    <p className="text-sm text-muted-foreground">{userItem.email}</p>
                     <p className="text-xs text-muted-foreground">
-                      Cargo: {user.role} • Criado em: {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                      Cargo: {userItem.user_role} • Criado em: {new Date(userItem.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                 </div>
@@ -180,18 +207,18 @@ export const AdminRoleManager = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center space-x-2">
                     <Switch
-                      id={`admin-${user.id}`}
-                      checked={user.is_admin}
-                      onCheckedChange={(checked) => updateAdminStatus(user.id, checked)}
-                      disabled={saving === user.id || user.id === profile?.id}
+                      id={`admin-${userItem.id}`}
+                      checked={userItem.user_role === 'admin'}
+                      onCheckedChange={(checked) => updateAdminStatus(userItem.id, checked)}
+                      disabled={saving === userItem.id || userItem.id === user?.id}
                     />
                     <Label 
-                      htmlFor={`admin-${user.id}`} 
+                      htmlFor={`admin-${userItem.id}`} 
                       className="text-sm font-medium cursor-pointer"
                     >
                       Administrador
                     </Label>
-                    {saving === user.id && (
+                    {saving === userItem.id && (
                       <Loader2 className="h-4 w-4 animate-spin ml-2" />
                     )}
                   </div>
