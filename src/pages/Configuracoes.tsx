@@ -22,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { UserManagementHub } from "@/components/UserManagementHub";
 import TeamManager from "@/components/TeamManager";
 import TeamMemberManager from "@/components/TeamMemberManager";
+import BrandingSettings from "@/components/BrandingSettings";
 
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
@@ -94,6 +95,13 @@ const Configuracoes = () => {
         </div>
 
         <div className="grid gap-8">
+          {/* Branding Settings - Only visible to Admins */}
+          {isAdmin() && (
+            <div className="mb-8">
+              <BrandingSettings />
+            </div>
+          )}
+
           {/* Configurações Gerais */}
           <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center gap-3 mb-6">

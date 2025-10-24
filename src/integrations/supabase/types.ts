@@ -373,6 +373,42 @@ export type Database = {
           },
         ]
       }
+      organization_settings: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          logo_icon_url: string | null
+          logo_url: string | null
+          organization_name: string
+          organization_tagline: string | null
+          primary_color: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          logo_icon_url?: string | null
+          logo_url?: string | null
+          organization_name?: string
+          organization_tagline?: string | null
+          primary_color?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          logo_icon_url?: string | null
+          logo_url?: string | null
+          organization_name?: string
+          organization_tagline?: string | null
+          primary_color?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       process_stages: {
         Row: {
           color: string

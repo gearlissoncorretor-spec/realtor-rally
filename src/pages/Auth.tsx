@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, LogIn, UserPlus, Building2, Sparkles } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +24,7 @@ const Auth = () => {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { settings } = useOrganizationSettings();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,15 +106,25 @@ const Auth = () => {
       <div className="relative z-10 w-full max-w-md animate-float-up">
         {/* Logo and Title */}
         <div className="text-center mb-8 space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift">
-            <Building2 className="w-10 h-10 text-blue-400" />
-          </div>
+          {settings?.logo_icon_url ? (
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift overflow-hidden">
+              <img 
+                src={settings.logo_icon_url} 
+                alt={settings.organization_name}
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+          ) : (
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift">
+              <Building2 className="w-10 h-10 text-blue-400" />
+            </div>
+          )}
           <h1 className="text-4xl font-bold text-white tracking-tight flex items-center justify-center gap-3">
-            Gestão Senador Canedo
+            {settings?.organization_name || 'Gestão Senador Canedo'}
             <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
           </h1>
           <p className="text-blue-200/80 text-sm font-medium">
-            Sistema Premium de Gestão Imobiliária
+            {settings?.organization_tagline || 'Sistema Premium de Gestão Imobiliária'}
           </p>
         </div>
 
@@ -292,7 +304,7 @@ const Auth = () => {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-white/40 text-xs font-medium">
-            © 2024 Gestão Senador Canedo. Todos os direitos reservados.
+            © 2024 {settings?.organization_name || 'Gestão Senador Canedo'}. Todos os direitos reservados.
           </p>
         </div>
       </div>

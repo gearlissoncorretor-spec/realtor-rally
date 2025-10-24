@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthButton from "@/components/AuthButton";
+import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { hasAccess, isAdmin, getUserRole, signOut } = useAuth();
+  const { settings } = useOrganizationSettings();
   
   const handleLogoClick = async () => {
     await signOut();
@@ -101,15 +103,25 @@ const Navigation = () => {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-gradient-card border-b border-border z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={handleLogoClick}
-            className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
-            title="Voltar para login"
-          >
-            <Home className="w-5 h-5 text-primary-foreground" />
-          </button>
+          {settings?.logo_icon_url ? (
+            <button 
+              onClick={handleLogoClick}
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer overflow-hidden"
+              title="Voltar para login"
+            >
+              <img src={settings.logo_icon_url} alt="Logo" className="w-full h-full object-contain" />
+            </button>
+          ) : (
+            <button 
+              onClick={handleLogoClick}
+              className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+              title="Voltar para login"
+            >
+              <Home className="w-5 h-5 text-primary-foreground" />
+            </button>
+          )}
           <div>
-            <h1 className="text-lg font-bold text-foreground">RealEstate</h1>
+            <h1 className="text-lg font-bold text-foreground">{settings?.organization_name || 'Gestão Senador Canedo'}</h1>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -125,15 +137,25 @@ const Navigation = () => {
       <nav className="hidden lg:block fixed left-0 top-0 h-full w-64 bg-gradient-card border-r border-border z-50">
         <div className="p-6">
           <div className="flex items-center gap-3 mb-8">
-            <button 
-              onClick={handleLogoClick}
-              className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
-              title="Voltar para login"
-            >
-              <Home className="w-6 h-6 text-primary-foreground" />
-            </button>
+            {settings?.logo_icon_url ? (
+              <button 
+                onClick={handleLogoClick}
+                className="w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer overflow-hidden"
+                title="Voltar para login"
+              >
+                <img src={settings.logo_icon_url} alt="Logo" className="w-full h-full object-contain" />
+              </button>
+            ) : (
+              <button 
+                onClick={handleLogoClick}
+                className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+                title="Voltar para login"
+              >
+                <Home className="w-6 h-6 text-primary-foreground" />
+              </button>
+            )}
             <div>
-              <h1 className="text-xl font-bold text-foreground">Gestão MB SC</h1>
+              <h1 className="text-xl font-bold text-foreground">{settings?.organization_name || 'Gestão MB SC'}</h1>
               <p className="text-sm text-muted-foreground">Dashboard</p>
             </div>
           </div>
@@ -162,15 +184,25 @@ const Navigation = () => {
           <nav className="absolute left-0 top-0 h-full w-64 bg-gradient-card border-r border-border">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-8">
-                <button 
-                  onClick={handleLogoClick}
-                  className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
-                  title="Voltar para login"
-                >
-                  <Home className="w-6 h-6 text-primary-foreground" />
-                </button>
+                {settings?.logo_icon_url ? (
+                  <button 
+                    onClick={handleLogoClick}
+                    className="w-10 h-10 rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer overflow-hidden"
+                    title="Voltar para login"
+                  >
+                    <img src={settings.logo_icon_url} alt="Logo" className="w-full h-full object-contain" />
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleLogoClick}
+                    className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer"
+                    title="Voltar para login"
+                  >
+                    <Home className="w-6 h-6 text-primary-foreground" />
+                  </button>
+                )}
                 <div>
-                  <h1 className="text-xl font-bold text-foreground">RealEstate</h1>
+                  <h1 className="text-xl font-bold text-foreground">{settings?.organization_name || 'Gestão MB SC'}</h1>
                   <p className="text-sm text-muted-foreground">Dashboard</p>
                 </div>
               </div>
