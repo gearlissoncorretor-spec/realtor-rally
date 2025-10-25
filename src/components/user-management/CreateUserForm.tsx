@@ -135,14 +135,21 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         }
       });
 
+      // O Supabase retorna a resposta de erro no "data" quando há erro HTTP
       if (error) {
-        // Extrai a mensagem de erro do contexto da resposta da edge function
-        const errorBody = error.context?.body;
-        const errorMessage = errorBody?.error || error.message || "Não foi possível criar o usuário";
-        throw new Error(errorMessage);
+        console.error('Edge function error:', error);
+        throw new Error("Não foi possível criar o usuário");
       }
       
-      if (data?.error) throw new Error(data.error);
+      // Verifica se a edge function retornou um erro no corpo da resposta
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
+      // Verifica se há sucesso explícito
+      if (!data?.success) {
+        throw new Error("Erro ao criar usuário: resposta inválida");
+      }
 
       toast({
         title: "✅ Usuário criado com sucesso!",
