@@ -66,7 +66,21 @@ serve(async (req) => {
     // Validate required fields
     if (!full_name || !email || !password || !role) {
       console.error('Missing required fields')
-      throw new Error('Missing required fields: full_name, email, password, role')
+      throw new Error('Campos obrigatórios faltando: nome, email, senha e cargo')
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      throw new Error('Formato de email inválido')
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      throw new Error('A senha deve ter pelo menos 8 caracteres')
+    }
+    if (!/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
+      throw new Error('A senha deve conter letras e números')
     }
 
     // Set default allowed_screens if not provided
@@ -89,7 +103,14 @@ serve(async (req) => {
 
     if (authError) {
       console.error('Auth error:', authError)
-      throw authError
+      // Provide more specific error messages
+      if (authError.message?.includes('User already registered')) {
+        throw new Error('Este email já está cadastrado no sistema')
+      }
+      if (authError.message?.includes('Database error')) {
+        throw new Error('Erro no banco de dados. Verifique se o email já existe ou contate o suporte.')
+      }
+      throw new Error(authError.message || 'Erro ao criar usuário na autenticação')
     }
     if (!authData.user) {
       console.error('User creation failed - no user returned')

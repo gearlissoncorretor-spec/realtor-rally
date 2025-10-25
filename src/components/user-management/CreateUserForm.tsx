@@ -38,7 +38,10 @@ const DEFAULT_PERMISSIONS = {
 const createUserSchema = z.object({
   full_name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+  password: z.string()
+    .min(8, 'Senha deve ter pelo menos 8 caracteres')
+    .regex(/[a-zA-Z]/, 'Senha deve conter letras')
+    .regex(/\d/, 'Senha deve conter números'),
   role: z.enum(['diretor', 'gerente', 'corretor']),
   allowed_screens: z.array(z.string()).min(1, 'Pelo menos uma tela deve ser selecionada')
 });
@@ -104,10 +107,10 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       // Validar dados
       const validationResult = createUserSchema.safeParse(formData);
       if (!validationResult.success) {
-        const errors = validationResult.error.errors.map(e => e.message).join(', ');
+        const firstError = validationResult.error.errors[0];
         toast({
-          title: "Dados inválidos",
-          description: errors,
+          title: "⚠️ Dados inválidos",
+          description: firstError.message,
           variant: "destructive",
         });
         setLoading(false);
@@ -136,7 +139,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: "Usuário criado com sucesso",
+        title: "✅ Usuário criado com sucesso!",
         description: `${formData.full_name} foi adicionado como ${formData.role}`,
       });
 
@@ -153,9 +156,10 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       onUserCreated();
     } catch (error: any) {
       console.error('Error creating user:', error);
+      const errorMessage = error.message || "Não foi possível criar o usuário";
       toast({
-        title: "Erro ao criar usuário",
-        description: error.message || "Não foi possível criar o usuário",
+        title: "❌ Erro ao criar usuário",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -206,9 +210,12 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres (letras e números)"
                 required
               />
+              <p className="text-xs text-muted-foreground">
+                A senha deve conter pelo menos 8 caracteres, incluindo letras e números
+              </p>
             </div>
             
             <div className="space-y-2">
