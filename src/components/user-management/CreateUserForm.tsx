@@ -135,7 +135,13 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Extrai a mensagem de erro do contexto da resposta da edge function
+        const errorBody = error.context?.body;
+        const errorMessage = errorBody?.error || error.message || "Não foi possível criar o usuário";
+        throw new Error(errorMessage);
+      }
+      
       if (data?.error) throw new Error(data.error);
 
       toast({
