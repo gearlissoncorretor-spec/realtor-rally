@@ -135,79 +135,124 @@ serve(async (req) => {
 
     console.log('User created in auth:', authData.user.id)
 
-    // Create profile (without role - now in user_roles table)
-    console.log('Creating profile...')
-    const { error: profileInsertError } = await supabaseClient
+    // Ensure profile (handle possible auth trigger that already inserted)
+    console.log('Ensuring profile...')
+    const { data: profileExists } = await supabaseClient
       .from('profiles')
-      .insert({
-        id: authData.user.id,
-        full_name: resolvedName,
-        email,
-        allowed_screens: finalAllowedScreens,
-        approved: true,
-        approved_by: user.id,
-        approved_at: new Date().toISOString(),
-        team_id: team_id || null
-      })
+      .select('id')
+      .eq('id', authData.user.id)
+      .maybeSingle()
 
-    if (profileInsertError) {
-      console.error('Profile creation error:', profileInsertError)
-      // If profile creation fails, delete the auth user
-      await supabaseClient.auth.admin.deleteUser(authData.user.id)
-      throw profileInsertError
-    }
-
-    console.log('Profile created successfully')
-
-    // Create role in user_roles table (SECURE ROLE SYSTEM)
-    console.log('Creating user role...')
-    const { error: roleInsertError } = await supabaseClient
-      .from('user_roles')
-      .insert({
-        user_id: authData.user.id,
-        role: role,
-        created_by: user.id
-      })
-
-    if (roleInsertError) {
-      console.error('Role creation error:', roleInsertError)
-      // If role creation fails, delete profile and auth user
-      await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
-      await supabaseClient.auth.admin.deleteUser(authData.user.id)
-      throw roleInsertError
-    }
-
-    console.log('User role assigned successfully')
-
-    // Create broker if role is corretor
-    if (role === 'corretor') {
-      console.log('Creating broker entry...')
-      const { error: brokerInsertError } = await supabaseClient
-        .from('brokers')
-        .insert({
-          user_id: authData.user.id,
-          name: resolvedName,
+    if (profileExists) {
+      const { error: profileUpdateError } = await supabaseClient
+        .from('profiles')
+        .update({
+          full_name: resolvedName,
           email,
-          phone: phone || null,
-          cpf: cpf || null,
-          creci: creci || null,
-          avatar_url: avatar_url || null,
-          meta_monthly: meta_monthly || 0,
-          observations: observations || null,
-          status: status || 'ativo',
+          allowed_screens: finalAllowedScreens,
+          approved: true,
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+          team_id: team_id || null
+        })
+        .eq('id', authData.user.id)
+
+      if (profileUpdateError) {
+        console.error('Profile update error:', profileUpdateError)
+        await supabaseClient.auth.admin.deleteUser(authData.user.id)
+        throw profileUpdateError
+      }
+    } else {
+      const { error: profileInsertError } = await supabaseClient
+        .from('profiles')
+        .insert({
+          id: authData.user.id,
+          full_name: resolvedName,
+          email,
+          allowed_screens: finalAllowedScreens,
+          approved: true,
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
           team_id: team_id || null
         })
 
-      if (brokerInsertError) {
-        console.error('Broker creation error:', brokerInsertError)
-        // If broker creation fails, delete role, profile and auth user
-        await supabaseClient.from('user_roles').delete().eq('user_id', authData.user.id)
+      if (profileInsertError) {
+        console.error('Profile creation error:', profileInsertError)
+        await supabaseClient.auth.admin.deleteUser(authData.user.id)
+        throw profileInsertError
+      }
+    }
+
+    console.log('Profile ensured successfully')
+
+    // Create role in user_roles table (SECURE ROLE SYSTEM)
+    console.log('Creating user role...')
+    const { data: existingRole } = await supabaseClient
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', authData.user.id)
+      .eq('role', role)
+      .maybeSingle()
+
+    if (!existingRole) {
+      const { error: roleInsertError } = await supabaseClient
+        .from('user_roles')
+        .insert({
+          user_id: authData.user.id,
+          role: role,
+          created_by: user.id
+        })
+
+      if (roleInsertError) {
+        console.error('Role creation error:', roleInsertError)
+        // If role creation fails, delete profile and auth user
         await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
         await supabaseClient.auth.admin.deleteUser(authData.user.id)
-        throw brokerInsertError
+        throw roleInsertError
       }
+      console.log('User role assigned successfully')
+    } else {
+      console.log('Role already exists, skipping insert')
+    }
 
-      console.log('Broker created successfully')
+    // Create broker if role is corretor
+    if (role === 'corretor') {
+      console.log('Ensuring broker entry...')
+      const { data: existingBroker } = await supabaseClient
+        .from('brokers')
+        .select('id')
+        .eq('user_id', authData.user.id)
+        .maybeSingle()
+
+      if (!existingBroker) {
+        const { error: brokerInsertError } = await supabaseClient
+          .from('brokers')
+          .insert({
+            user_id: authData.user.id,
+            name: resolvedName,
+            email,
+            phone: phone || null,
+            cpf: cpf || null,
+            creci: creci || null,
+            avatar_url: avatar_url || null,
+            meta_monthly: meta_monthly || 0,
+            observations: observations || null,
+            status: status || 'ativo',
+            team_id: team_id || null
+          })
+
+        if (brokerInsertError) {
+          console.error('Broker creation error:', brokerInsertError)
+          // If broker creation fails, delete role, profile and auth user
+          await supabaseClient.from('user_roles').delete().eq('user_id', authData.user.id)
+          await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
+          await supabaseClient.auth.admin.deleteUser(authData.user.id)
+          throw brokerInsertError
+        }
+        console.log('Broker created successfully')
+      } else {
+        console.log('Broker already exists, skipping insert')
+      }
     }
 
     console.log('User created successfully:', authData.user.id)
