@@ -83,8 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .select('role')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .maybeSingle();
       
       if (!roleError && roleData) {
         setUserRole(roleData.role);

@@ -21,8 +21,7 @@ export const useOrganizationSettings = () => {
       const { data, error } = await supabase
         .from('organization_settings')
         .select('*')
-        .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as OrganizationSettings;
