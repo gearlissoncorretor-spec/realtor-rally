@@ -95,6 +95,19 @@ serve(async (req) => {
       throw new Error('Managers must be assigned to a team')
     }
 
+    // Check if user already exists by email
+    console.log('Checking if user already exists...')
+    const { data: existingUser } = await supabaseClient
+      .from('profiles')
+      .select('id, email, full_name')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (existingUser) {
+      console.error('User already exists:', existingUser.email)
+      throw new Error(`Este email já está cadastrado no sistema (${existingUser.full_name})`)
+    }
+
     // Create user in Supabase Auth
     console.log('Creating user in auth...')
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
