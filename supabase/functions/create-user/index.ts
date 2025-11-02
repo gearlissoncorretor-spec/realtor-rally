@@ -46,12 +46,14 @@ serve(async (req) => {
     }
 
     // Get request body
-    const { 
-      full_name, 
-      email, 
-      password, 
-      role, 
-      allowed_screens, 
+    const body = await req.json()
+    const {
+      full_name,
+      name,
+      email,
+      password,
+      role,
+      allowed_screens,
       team_id,
       phone,
       cpf,
@@ -60,11 +62,12 @@ serve(async (req) => {
       meta_monthly,
       observations,
       status
-    } = await req.json()
+    } = body
+    const resolvedName = (full_name || name || '').toString().trim()
     console.log('Creating user:', { email, role, team_id, allowed_screens })
 
     // Validate required fields
-    if (!full_name || !email || !password || !role) {
+    if (!resolvedName || !email || !password || !role) {
       console.error('Missing required fields')
       throw new Error('Campos obrigatórios faltando: nome, email, senha e cargo')
     }
@@ -98,7 +101,7 @@ serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name }
+      user_metadata: { full_name: resolvedName }
     })
 
     if (authError) {
@@ -125,7 +128,7 @@ serve(async (req) => {
       .from('profiles')
       .insert({
         id: authData.user.id,
-        full_name,
+        full_name: resolvedName,
         email,
         allowed_screens: finalAllowedScreens,
         approved: true,
@@ -170,7 +173,7 @@ serve(async (req) => {
         .from('brokers')
         .insert({
           user_id: authData.user.id,
-          name: full_name,
+          name: resolvedName,
           email,
           phone: phone || null,
           cpf: cpf || null,
@@ -202,13 +205,13 @@ serve(async (req) => {
         user: { 
           id: authData.user.id, 
           email, 
-          full_name, 
+          full_name: resolvedName, 
           role 
         } 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        status: 201 
       }
     )
   } catch (error) {

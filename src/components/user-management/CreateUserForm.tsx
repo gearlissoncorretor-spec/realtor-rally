@@ -123,32 +123,37 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         throw new Error('No active session');
       }
 
-      // Call edge function to create user
-      const { data, error } = await supabase.functions.invoke('create-user', {
-        body: {
-          full_name: formData.full_name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-          allowed_screens: formData.allowed_screens,
-          team_id: formData.team_id || null
-        }
+      // Chamada via fetch para a Edge Function com headers corretos
+      const FUNCTIONS_URL = 'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/create-user';
+
+      const payload = {
+        name: formData.full_name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        // mantém compatibilidade com a função (opcionais)
+        allowed_screens: formData.allowed_screens,
+        team_id: formData.team_id || null,
+      };
+
+      const response = await fetch(FUNCTIONS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(payload),
       });
 
-      // O Supabase retorna a resposta de erro no "data" quando há erro HTTP
-      if (error) {
-        console.error('Edge function error:', error);
-        throw new Error("Não foi possível criar o usuário");
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        const apiMsg = (result && (result.error || result.message)) || response.statusText || 'Falha ao criar usuário';
+        throw new Error(apiMsg);
       }
-      
-      // Verifica se a edge function retornou um erro no corpo da resposta
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-      
-      // Verifica se há sucesso explícito
-      if (!data?.success) {
-        throw new Error("Erro ao criar usuário: resposta inválida");
+
+      // Espera status 201 (Created) na função
+      if (response.status !== 201) {
+        throw new Error('Resposta inesperada da API');
       }
 
       toast({
