@@ -146,19 +146,27 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       });
 
       const result = await response.json().catch(() => null);
+      
       if (!response.ok) {
-        const apiMsg = (result && (result.error || result.message)) || response.statusText || 'Falha ao criar usuário';
+        const apiMsg = (result && (result.error || result.message)) || response.statusText || '❌ Falha ao criar usuário';
         throw new Error(apiMsg);
       }
 
-      // Espera status 201 (Created) na função
+      // Verifica status 201 (Created)
       if (response.status !== 201) {
-        throw new Error('Resposta inesperada da API');
+        throw new Error('❌ Resposta inesperada do servidor');
       }
 
+      // Mensagem de sucesso com detalhes
+      const roleLabels: Record<string, string> = {
+        'diretor': 'Diretor',
+        'gerente': 'Gerente',
+        'corretor': 'Corretor'
+      };
+      
       toast({
-        title: "✅ Usuário criado com sucesso!",
-        description: `${formData.full_name} foi adicionado como ${formData.role}`,
+        title: "✅ Usuário cadastrado com sucesso!",
+        description: `${formData.full_name} foi adicionado como ${roleLabels[formData.role || 'corretor']} com acesso a ${formData.allowed_screens.length} tela(s)`,
       });
 
       // Limpar formulário
@@ -174,9 +182,15 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       onUserCreated();
     } catch (error: any) {
       console.error('Error creating user:', error);
-      const errorMessage = error.message || "Não foi possível criar o usuário";
+      
+      // Extrai a mensagem de erro limpa
+      let errorMessage = error.message || "❌ Não foi possível criar o usuário";
+      
+      // Remove prefixos duplicados de emoji se existirem
+      errorMessage = errorMessage.replace(/^(❌|⚠️)\s*(❌|⚠️)\s*/, '$1 ');
+      
       toast({
-        title: "❌ Erro ao criar usuário",
+        title: "Erro ao criar usuário",
         description: errorMessage,
         variant: "destructive",
       });

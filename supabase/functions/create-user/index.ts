@@ -68,22 +68,32 @@ serve(async (req) => {
 
     // Validate required fields
     if (!resolvedName || !email || !password || !role) {
-      console.error('Missing required fields')
-      throw new Error('Campos obrigatórios faltando: nome, email, senha e cargo')
+      console.error('Missing required fields:', { resolvedName: !!resolvedName, email: !!email, password: !!password, role: !!role })
+      throw new Error('❌ Campos obrigatórios: nome, email, senha e cargo')
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      throw new Error('Formato de email inválido')
+      console.error('Invalid email format:', email)
+      throw new Error('❌ Formato de email inválido')
     }
 
     // Validate password strength
     if (password.length < 8) {
-      throw new Error('A senha deve ter pelo menos 8 caracteres')
+      console.error('Password too short')
+      throw new Error('❌ A senha deve ter pelo menos 8 caracteres')
     }
     if (!/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
-      throw new Error('A senha deve conter letras e números')
+      console.error('Password lacks numbers or letters')
+      throw new Error('❌ A senha deve conter letras e números')
+    }
+
+    // Validate role is valid
+    const validRoles = ['admin', 'diretor', 'gerente', 'corretor']
+    if (!validRoles.includes(role)) {
+      console.error('Invalid role:', role)
+      throw new Error('❌ Cargo inválido')
     }
 
     // Set default allowed_screens if not provided
@@ -92,7 +102,7 @@ serve(async (req) => {
     // Validate manager has team
     if (role === 'gerente' && !team_id) {
       console.error('Manager without team')
-      throw new Error('Managers must be assigned to a team')
+      throw new Error('❌ Gerentes devem ser associados a uma equipe')
     }
 
     // Check if user already exists by email
@@ -105,7 +115,7 @@ serve(async (req) => {
 
     if (existingUser) {
       console.error('User already exists:', existingUser.email)
-      throw new Error(`Este email já está cadastrado no sistema (${existingUser.full_name})`)
+      throw new Error(`⚠️ Este email já está cadastrado no sistema (${existingUser.full_name})`)
     }
 
     // Create user in Supabase Auth
@@ -121,16 +131,16 @@ serve(async (req) => {
       console.error('Auth error:', authError)
       // Provide more specific error messages
       if (authError.message?.includes('User already registered')) {
-        throw new Error('Este email já está cadastrado no sistema')
+        throw new Error('⚠️ Este email já está cadastrado no sistema')
       }
       if (authError.message?.includes('Database error')) {
-        throw new Error('Erro no banco de dados. Verifique se o email já existe ou contate o suporte.')
+        throw new Error('❌ Erro no banco de dados. Tente novamente ou contate o suporte.')
       }
-      throw new Error(authError.message || 'Erro ao criar usuário na autenticação')
+      throw new Error(`❌ Erro na autenticação: ${authError.message}`)
     }
     if (!authData.user) {
       console.error('User creation failed - no user returned')
-      throw new Error('User creation failed')
+      throw new Error('❌ Falha ao criar usuário')
     }
 
     console.log('User created in auth:', authData.user.id)
@@ -160,7 +170,7 @@ serve(async (req) => {
       if (profileUpdateError) {
         console.error('Profile update error:', profileUpdateError)
         await supabaseClient.auth.admin.deleteUser(authData.user.id)
-        throw profileUpdateError
+        throw new Error(`❌ Erro ao atualizar perfil: ${profileUpdateError.message}`)
       }
     } else {
       const { error: profileInsertError } = await supabaseClient
@@ -179,7 +189,7 @@ serve(async (req) => {
       if (profileInsertError) {
         console.error('Profile creation error:', profileInsertError)
         await supabaseClient.auth.admin.deleteUser(authData.user.id)
-        throw profileInsertError
+        throw new Error(`❌ Erro ao criar perfil: ${profileInsertError.message}`)
       }
     }
 
@@ -208,7 +218,7 @@ serve(async (req) => {
         // If role creation fails, delete profile and auth user
         await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
         await supabaseClient.auth.admin.deleteUser(authData.user.id)
-        throw roleInsertError
+        throw new Error(`❌ Erro ao atribuir cargo: ${roleInsertError.message}`)
       }
       console.log('User role assigned successfully')
     } else {
@@ -247,7 +257,7 @@ serve(async (req) => {
           await supabaseClient.from('user_roles').delete().eq('user_id', authData.user.id)
           await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
           await supabaseClient.auth.admin.deleteUser(authData.user.id)
-          throw brokerInsertError
+          throw new Error(`❌ Erro ao criar corretor: ${brokerInsertError.message}`)
         }
         console.log('Broker created successfully')
       } else {
@@ -259,12 +269,14 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        success: true, 
+        success: true,
+        message: '✅ Usuário criado com sucesso!',
         user: { 
           id: authData.user.id, 
           email, 
           full_name: resolvedName, 
-          role 
+          role,
+          allowed_screens: finalAllowedScreens
         } 
       }),
       { 
