@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
@@ -219,7 +220,7 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
           Importar Excel
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5" />
@@ -227,7 +228,8 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-6">
           {/* File Upload */}
           <div className="space-y-2">
             <Label htmlFor="excel-file">Selecionar arquivo Excel</Label>
@@ -344,7 +346,8 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               )}
             </Button>
           </div>
-        </div>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

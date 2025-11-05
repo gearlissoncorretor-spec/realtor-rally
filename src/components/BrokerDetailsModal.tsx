@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   DollarSign, 
   Target, 
@@ -97,7 +98,7 @@ const BrokerDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
@@ -111,7 +112,8 @@ const BrokerDetailsModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 mt-6">
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-6 mt-6">
           {/* Performance Overview */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <Card className="p-4 text-center">
@@ -251,7 +253,8 @@ const BrokerDetailsModal = ({
               )}
             </div>
           </Card>
-        </div>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
