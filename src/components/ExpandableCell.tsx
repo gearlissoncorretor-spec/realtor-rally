@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Expand, ChevronRight } from "lucide-react";
 
 interface ExpandableCellProps {
@@ -46,19 +45,17 @@ export const ExpandableCell: React.FC<ExpandableCellProps> = ({
             <Expand className="w-3 h-3" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 pr-4">
-            <div className="mt-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-foreground whitespace-pre-wrap break-words">
-                  {content}
-                </p>
-              </div>
+          <div className="mt-4">
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+                {content}
+              </p>
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Search, 
   Filter, 
@@ -400,14 +399,13 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
 
       {/* Edit User Dialog */}
       <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
           </DialogHeader>
           
           {editingUser && (
-            <ScrollArea className="flex-1 pr-4">
-              <div className="space-y-6">
+            <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="edit-name">Nome Completo</Label>
@@ -469,8 +467,7 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
                   Salvar
                 </Button>
               </div>
-              </div>
-            </ScrollArea>
+            </div>
           )}
         </DialogContent>
       </Dialog>

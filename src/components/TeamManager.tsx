@@ -104,7 +104,7 @@ const TeamManager = () => {
                   Nova Equipe
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-[425px]">
                 <form onSubmit={handleSubmit}>
                   <DialogHeader>
                     <DialogTitle>
