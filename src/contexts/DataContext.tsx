@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -50,43 +51,27 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [brokers, setBrokers] = useState<Broker[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [targets, setTargets] = useState<Target[]>([]);
-  
-  const [brokersLoading, setBrokersLoading] = useState(true);
-  const [salesLoading, setSalesLoading] = useState(true);
-  const [targetsLoading, setTargetsLoading] = useState(true);
-  
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Fetch Brokers
-  const fetchBrokers = async () => {
-    try {
-      setBrokersLoading(true);
+  // Queries com React Query
+  const { data: brokers = [], isLoading: brokersLoading } = useQuery({
+    queryKey: ['brokers'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('brokers')
         .select('*')
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
-      setBrokers(data || []);
-    } catch (error) {
-      console.error('Error fetching brokers:', error);
-      toast({
-        title: "Erro ao carregar corretores",
-        description: "Não foi possível carregar a lista de corretores.",
-        variant: "destructive",
-      });
-    } finally {
-      setBrokersLoading(false);
-    }
-  };
+      return data as Broker[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-  // Fetch Sales
-  const fetchSales = async () => {
-    try {
-      setSalesLoading(true);
+  const { data: sales = [], isLoading: salesLoading } = useQuery({
+    queryKey: ['sales'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('sales')
         .select(`
@@ -100,57 +85,35 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           )
         `)
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
-      setSales(data || []);
-    } catch (error) {
-      console.error('Error fetching sales:', error);
-      toast({
-        title: "Erro ao carregar vendas",
-        description: "Não foi possível carregar a lista de vendas.",
-        variant: "destructive",
-      });
-    } finally {
-      setSalesLoading(false);
-    }
-  };
+      return data as Sale[];
+    },
+    staleTime: 3 * 60 * 1000,
+  });
 
-  // Fetch Targets
-  const fetchTargets = async () => {
-    try {
-      setTargetsLoading(true);
+  const { data: targets = [], isLoading: targetsLoading } = useQuery({
+    queryKey: ['targets'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('targets')
         .select('*')
         .order('year', { ascending: false })
         .order('month', { ascending: false });
-
-      if (error) throw error;
-      setTargets(data || []);
-    } catch (error) {
-      console.error('Error fetching targets:', error);
-      toast({
-        title: "Erro ao carregar metas",
-        description: "Não foi possível carregar as metas.",
-        variant: "destructive",
-      });
-    } finally {
-      setTargetsLoading(false);
-    }
-  };
-
-  // Broker CRUD
-  const createBroker = async (broker: BrokerInsert) => {
-    try {
-      console.log('Creating broker with data:', broker);
       
-      // Criar usuário via edge function (cria auth user + profile + broker)
+      if (error) throw error;
+      return data as Target[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Broker Mutations
+  const createBrokerMutation = useMutation({
+    mutationFn: async (broker: BrokerInsert) => {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
       
-      if (!token) {
-        throw new Error('Usuário não autenticado');
-      }
+      if (!token) throw new Error('Usuário não autenticado');
 
       const response = await fetch(
         'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/create-user',
@@ -163,7 +126,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           body: JSON.stringify({
             full_name: broker.name,
             email: broker.email,
-            password: 'TempPass123!', // Senha temporária - usuário deve trocar no primeiro login
+            password: 'TempPass123!',
             role: 'corretor',
             allowed_screens: ['dashboard', 'vendas'],
             team_id: broker.team_id,
@@ -180,80 +143,82 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Edge function error:', errorData);
         throw new Error(errorData.error || 'Erro ao criar corretor');
       }
-
-      await refreshBrokers();
-      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brokers'] });
       toast({
         title: "Corretor criado",
         description: "Corretor adicionado com sucesso. Senha temporária: TempPass123!",
       });
-    } catch (error) {
-      console.error('Error creating broker:', error);
+    },
+    onError: (error: Error) => {
       toast({
         title: "Erro ao criar corretor",
-        description: error instanceof Error ? error.message : "Não foi possível criar o corretor.",
+        description: error.message,
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  const updateBroker = async (id: string, broker: Partial<Broker>) => {
-    try {
+  const updateBrokerMutation = useMutation({
+    mutationFn: async ({ id, broker }: { id: string; broker: Partial<Broker> }) => {
       const { data, error } = await supabase
         .from('brokers')
         .update(broker)
         .eq('id', id)
         .select()
         .single();
-
+      
       if (error) throw error;
-      setBrokers(prev => prev.map(b => b.id === id ? data : b));
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brokers'] });
       toast({
         title: "Corretor atualizado",
         description: "Dados do corretor atualizados com sucesso.",
       });
-    } catch (error) {
-      console.error('Error updating broker:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao atualizar corretor",
         description: "Não foi possível atualizar o corretor.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  const deleteBroker = async (id: string) => {
-    try {
+  const deleteBrokerMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('brokers')
         .delete()
         .eq('id', id);
-
+      
       if (error) throw error;
-      setBrokers(prev => prev.filter(b => b.id !== id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brokers'] });
       toast({
         title: "Corretor removido",
         description: "Corretor removido com sucesso.",
       });
-    } catch (error) {
-      console.error('Error deleting broker:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao remover corretor",
         description: "Não foi possível remover o corretor.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  // Sale CRUD
-  const createSale = async (sale: SaleInsert) => {
-    try {
+  // Sale Mutations
+  const createSaleMutation = useMutation({
+    mutationFn: async (sale: SaleInsert) => {
       const { data, error } = await supabase
         .from('sales')
         .insert([sale])
@@ -262,26 +227,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           broker:brokers(name, email)
         `)
         .single();
-
+      
       if (error) throw error;
-      setSales(prev => [data, ...prev]);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: "Venda criada",
         description: "Venda adicionada com sucesso.",
       });
-    } catch (error) {
-      console.error('Error creating sale:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao criar venda",
         description: "Não foi possível criar a venda.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  const updateSale = async (id: string, sale: Partial<Sale>) => {
-    try {
+  const updateSaleMutation = useMutation({
+    mutationFn: async ({ id, sale }: { id: string; sale: Partial<Sale> }) => {
       const { data, error } = await supabase
         .from('sales')
         .update(sale)
@@ -291,136 +258,134 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           broker:brokers(name, email)
         `)
         .single();
-
+      
       if (error) throw error;
-      setSales(prev => prev.map(s => s.id === id ? data : s));
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: "Venda atualizada",
         description: "Dados da venda atualizados com sucesso.",
       });
-    } catch (error) {
-      console.error('Error updating sale:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao atualizar venda",
         description: "Não foi possível atualizar a venda.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  const deleteSale = async (id: string) => {
-    try {
+  const deleteSaleMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('sales')
         .delete()
         .eq('id', id);
-
+      
       if (error) throw error;
-      setSales(prev => prev.filter(s => s.id !== id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: "Venda removida",
         description: "Venda removida com sucesso.",
       });
-    } catch (error) {
-      console.error('Error deleting sale:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao remover venda",
         description: "Não foi possível remover a venda.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  // Target CRUD
-  const createTarget = async (target: TargetInsert) => {
-    try {
+  // Target Mutations
+  const createTargetMutation = useMutation({
+    mutationFn: async (target: TargetInsert) => {
       const { data, error } = await supabase
         .from('targets')
         .insert([target])
         .select()
         .single();
-
+      
       if (error) throw error;
-      setTargets(prev => [data, ...prev]);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['targets'] });
       toast({
         title: "Meta criada",
         description: "Meta adicionada com sucesso.",
       });
-    } catch (error) {
-      console.error('Error creating target:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao criar meta",
         description: "Não foi possível criar a meta.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  const updateTarget = async (id: string, target: Partial<Target>) => {
-    try {
+  const updateTargetMutation = useMutation({
+    mutationFn: async ({ id, target }: { id: string; target: Partial<Target> }) => {
       const { data, error } = await supabase
         .from('targets')
         .update(target)
         .eq('id', id)
         .select()
         .single();
-
+      
       if (error) throw error;
-      setTargets(prev => prev.map(t => t.id === id ? data : t));
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['targets'] });
       toast({
         title: "Meta atualizada",
         description: "Meta atualizada com sucesso.",
       });
-    } catch (error) {
-      console.error('Error updating target:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao atualizar meta",
         description: "Não foi possível atualizar a meta.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  const deleteTarget = async (id: string) => {
-    try {
+  const deleteTargetMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('targets')
         .delete()
         .eq('id', id);
-
+      
       if (error) throw error;
-      setTargets(prev => prev.filter(t => t.id !== id));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['targets'] });
       toast({
         title: "Meta removida",
         description: "Meta removida com sucesso.",
       });
-    } catch (error) {
-      console.error('Error deleting target:', error);
+    },
+    onError: () => {
       toast({
         title: "Erro ao remover meta",
         description: "Não foi possível remover a meta.",
         variant: "destructive",
       });
-      throw error;
-    }
-  };
+    },
+  });
 
-  // Refresh functions
-  const refreshBrokers = () => fetchBrokers();
-  const refreshSales = () => fetchSales();
-  const refreshTargets = () => fetchTargets();
-
-  // Initial fetch
+  // Set up real-time subscription for sales
   useEffect(() => {
-    fetchBrokers();
-    fetchSales();
-    fetchTargets();
-
-    // Set up real-time subscription for sales
     const salesChannel = supabase
       .channel('sales_changes')
       .on(
@@ -431,7 +396,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           table: 'sales'
         },
         () => {
-          fetchSales();
+          queryClient.invalidateQueries({ queryKey: ['sales'] });
         }
       )
       .subscribe();
@@ -439,7 +404,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       supabase.removeChannel(salesChannel);
     };
-  }, []);
+  }, [queryClient]);
 
   const value: DataContextType = {
     brokers,
@@ -448,18 +413,36 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     brokersLoading,
     salesLoading,
     targetsLoading,
-    createBroker,
-    updateBroker,
-    deleteBroker,
-    createSale,
-    updateSale,
-    deleteSale,
-    createTarget,
-    updateTarget,
-    deleteTarget,
-    refreshBrokers,
-    refreshSales,
-    refreshTargets,
+    createBroker: async (broker: BrokerInsert) => {
+      await createBrokerMutation.mutateAsync(broker);
+    },
+    updateBroker: async (id: string, broker: Partial<Broker>) => {
+      await updateBrokerMutation.mutateAsync({ id, broker });
+    },
+    deleteBroker: async (id: string) => {
+      await deleteBrokerMutation.mutateAsync(id);
+    },
+    createSale: async (sale: SaleInsert) => {
+      await createSaleMutation.mutateAsync(sale);
+    },
+    updateSale: async (id: string, sale: Partial<Sale>) => {
+      await updateSaleMutation.mutateAsync({ id, sale });
+    },
+    deleteSale: async (id: string) => {
+      await deleteSaleMutation.mutateAsync(id);
+    },
+    createTarget: async (target: TargetInsert) => {
+      await createTargetMutation.mutateAsync(target);
+    },
+    updateTarget: async (id: string, target: Partial<Target>) => {
+      await updateTargetMutation.mutateAsync({ id, target });
+    },
+    deleteTarget: async (id: string) => {
+      await deleteTargetMutation.mutateAsync(id);
+    },
+    refreshBrokers: () => queryClient.invalidateQueries({ queryKey: ['brokers'] }),
+    refreshSales: () => queryClient.invalidateQueries({ queryKey: ['sales'] }),
+    refreshTargets: () => queryClient.invalidateQueries({ queryKey: ['targets'] }),
   };
 
   return (
