@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from './AuthContext';
 import type { Database } from '@/integrations/supabase/types';
 
 // Use Supabase types directly
@@ -53,26 +54,46 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, teamHierarchy, getUserRole } = useAuth();
 
-  // Queries com React Query
+  // Queries com React Query - com filtros por hierarquia
   const { data: brokers = [], isLoading: brokersLoading } = useQuery({
-    queryKey: ['brokers'],
+    queryKey: ['brokers', user?.id, teamHierarchy],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) return [];
+      
+      let query = supabase
         .from('brokers')
         .select('*')
         .order('created_at', { ascending: false });
+      
+      const role = getUserRole();
+      
+      // Gerente vê apenas corretores da sua equipe
+      if (role === 'gerente' && teamHierarchy?.team_id) {
+        query = query.eq('team_id', teamHierarchy.team_id);
+      }
+      // Corretor vê apenas seus próprios dados
+      else if (role === 'corretor') {
+        query = query.eq('user_id', user.id);
+      }
+      // Diretor e Admin veem tudo
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data as Broker[];
     },
     staleTime: 5 * 60 * 1000,
+    enabled: !!user,
   });
 
   const { data: sales = [], isLoading: salesLoading } = useQuery({
-    queryKey: ['sales'],
+    queryKey: ['sales', user?.id, teamHierarchy],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) return [];
+      
+      let query = supabase
         .from('sales')
         .select(`
           *,
@@ -86,25 +107,67 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         `)
         .order('created_at', { ascending: false });
       
+      const role = getUserRole();
+      
+      // Filtros aplicados no frontend para complementar RLS
+      // RLS já controla acesso no banco, mas aplicamos filtros aqui para performance
+      const { data, error } = await query;
+      
       if (error) throw error;
+      
+      // Gerente filtra vendas da sua equipe
+      if (role === 'gerente' && teamHierarchy?.team_members) {
+        const teamBrokerIds = brokers
+          .filter(b => b.team_id === teamHierarchy.team_id)
+          .map(b => b.id);
+        return (data as Sale[]).filter(sale => 
+          sale.broker_id && teamBrokerIds.includes(sale.broker_id)
+        );
+      }
+      
       return data as Sale[];
     },
     staleTime: 3 * 60 * 1000,
+    enabled: !!user,
   });
 
   const { data: targets = [], isLoading: targetsLoading } = useQuery({
-    queryKey: ['targets'],
+    queryKey: ['targets', user?.id, teamHierarchy],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) return [];
+      
+      let query = supabase
         .from('targets')
         .select('*')
         .order('year', { ascending: false })
         .order('month', { ascending: false });
       
+      const role = getUserRole();
+      
+      // Gerente vê apenas metas dos corretores da sua equipe
+      if (role === 'gerente' && teamHierarchy?.team_id) {
+        const teamBrokerIds = brokers
+          .filter(b => b.team_id === teamHierarchy.team_id)
+          .map(b => b.id);
+        
+        query = query.in('broker_id', teamBrokerIds);
+      }
+      // Corretor vê apenas suas próprias metas
+      else if (role === 'corretor') {
+        const myBroker = brokers.find(b => b.user_id === user.id);
+        if (myBroker) {
+          query = query.eq('broker_id', myBroker.id);
+        }
+      }
+      // Diretor e Admin veem tudo
+      
+      const { data, error } = await query;
+      
       if (error) throw error;
       return data as Target[];
     },
     staleTime: 10 * 60 * 1000,
+    enabled: !!user,
   });
 
   // Broker Mutations
@@ -384,8 +447,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
   });
 
-  // Set up real-time subscription for sales
+  // Set up real-time subscriptions para todas as tabelas
   useEffect(() => {
+    if (!user) return;
+
     const salesChannel = supabase
       .channel('sales_changes')
       .on(
@@ -401,10 +466,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       )
       .subscribe();
 
+    const brokersChannel = supabase
+      .channel('brokers_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'brokers'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['brokers'] });
+        }
+      )
+      .subscribe();
+
+    const targetsChannel = supabase
+      .channel('targets_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'targets'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['targets'] });
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(salesChannel);
+      supabase.removeChannel(brokersChannel);
+      supabase.removeChannel(targetsChannel);
     };
-  }, [queryClient]);
+  }, [queryClient, user]);
 
   const value: DataContextType = {
     brokers,

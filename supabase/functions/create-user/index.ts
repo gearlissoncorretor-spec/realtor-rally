@@ -36,13 +36,21 @@ serve(async (req) => {
 
     console.log('Request from user:', user.id)
 
-    // Check if user is admin using new role system
-    const { data: adminCheck, error: adminError } = await supabaseClient
+    // Check if user is admin, diretor or gerente using role system
+    const { data: isAdmin, error: adminError } = await supabaseClient
       .rpc('has_role', { _user_id: user.id, _role: 'admin' })
+    
+    const { data: isDiretor, error: diretorError } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'diretor' })
+    
+    const { data: isGerente, error: gerenteError } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'gerente' })
 
-    if (adminError || !adminCheck) {
+    const canCreateUsers = isAdmin || isDiretor || isGerente
+
+    if (adminError || diretorError || gerenteError || !canCreateUsers) {
       console.error('Unauthorized access attempt by:', user.id)
-      throw new Error('Unauthorized: Only admins can create users')
+      throw new Error('Unauthorized: Apenas administradores, diretores e gerentes podem criar usuários')
     }
 
     // Get request body
@@ -94,6 +102,29 @@ serve(async (req) => {
     if (!validRoles.includes(role)) {
       console.error('Invalid role:', role)
       throw new Error('❌ Cargo inválido')
+    }
+
+    // Gerentes só podem criar corretores da sua própria equipe
+    if (isGerente && !isAdmin && !isDiretor) {
+      if (role !== 'corretor') {
+        throw new Error('❌ Gerentes só podem criar corretores')
+      }
+      
+      // Get manager's team
+      const { data: managerProfile } = await supabaseClient
+        .from('profiles')
+        .select('team_id')
+        .eq('id', user.id)
+        .single()
+      
+      if (!managerProfile?.team_id) {
+        throw new Error('❌ Gerente não está associado a uma equipe')
+      }
+      
+      // Force team_id to be the manager's team
+      if (team_id && team_id !== managerProfile.team_id) {
+        throw new Error('❌ Gerentes só podem criar corretores na sua própria equipe')
+      }
     }
 
     // Set default allowed_screens if not provided
