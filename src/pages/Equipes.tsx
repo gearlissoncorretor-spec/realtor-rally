@@ -35,7 +35,27 @@ const Equipes = () => {
 
   // Only directors can access this page
   if (!isDiretor()) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen flex items-center justify-center">
+          <Card className="p-8 max-w-md">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+                <Users className="w-8 h-8 text-destructive" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">Acesso Restrito</h2>
+              <p className="text-muted-foreground">
+                Apenas diretores podem acessar a gestão de equipes.
+              </p>
+              <Button onClick={() => window.history.back()} variant="outline">
+                Voltar
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +88,20 @@ const Equipes = () => {
       console.error('Error deleting team:', error);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-muted-foreground">Carregando equipes...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getTeamMemberCount = (teamId: string) => {
     return teamMembers.filter(member => member.team_id === teamId).length;
@@ -151,9 +185,10 @@ const Equipes = () => {
         </div>
 
         {loading ? (
-          <Card className="p-6">
-            <p className="text-center text-muted-foreground">Carregando equipes...</p>
-          </Card>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Carregando equipes...</p>
+          </div>
         ) : teams.length === 0 ? (
           <Card className="p-6">
             <div className="text-center">
