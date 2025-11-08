@@ -6,12 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Shield, Eye, TrendingUp, Users, BarChart, Settings, AlertCircle } from 'lucide-react';
+import { UserPlus, Shield, Eye, TrendingUp, Users, BarChart, Settings, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTeams } from '@/hooks/useTeams';
 import { z } from 'zod';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const ROLES = [
   { value: 'diretor', label: 'Diretor', icon: Shield },
@@ -54,6 +54,8 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
   const { toast } = useToast();
   const { teams, loading: teamsLoading } = useTeams();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
     full_name: string;
     email: string;
@@ -90,12 +92,16 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setSuccess(null);
     
     // Validar que gerente tem equipe selecionada ANTES de começar loading
     if (formData.role === 'gerente' && !formData.team_id) {
+      const errorMsg = "Gerentes devem ser associados a uma equipe";
+      setError(errorMsg);
       toast({
         title: "Equipe obrigatória",
-        description: "Gerentes devem ser associados a uma equipe",
+        description: errorMsg,
         variant: "destructive",
       });
       return;
@@ -108,6 +114,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       const validationResult = createUserSchema.safeParse(formData);
       if (!validationResult.success) {
         const firstError = validationResult.error.errors[0];
+        setError(firstError.message);
         toast({
           title: "⚠️ Dados inválidos",
           description: firstError.message,
@@ -164,9 +171,12 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         'corretor': 'Corretor'
       };
       
+      const successMsg = `${formData.full_name} foi adicionado como ${roleLabels[formData.role || 'corretor']} com acesso a ${formData.allowed_screens.length} tela(s)`;
+      setSuccess(successMsg);
+      
       toast({
         title: "✅ Usuário cadastrado com sucesso!",
-        description: `${formData.full_name} foi adicionado como ${roleLabels[formData.role || 'corretor']} com acesso a ${formData.allowed_screens.length} tela(s)`,
+        description: successMsg,
       });
 
       // Limpar formulário
@@ -184,10 +194,21 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       console.error('Error creating user:', error);
       
       // Extrai a mensagem de erro limpa
-      let errorMessage = error.message || "❌ Não foi possível criar o usuário";
+      let errorMessage = error.message || "Não foi possível criar o usuário";
       
       // Remove prefixos duplicados de emoji se existirem
       errorMessage = errorMessage.replace(/^(❌|⚠️)\s*(❌|⚠️)\s*/, '$1 ');
+      
+      // Tratamento de erros específicos
+      if (errorMessage.includes('duplicate key') || errorMessage.includes('already exists')) {
+        errorMessage = "Este email já está cadastrado no sistema";
+      } else if (errorMessage.includes('invalid email')) {
+        errorMessage = "Email inválido. Verifique o formato do endereço de email";
+      } else if (errorMessage.includes('weak password')) {
+        errorMessage = "Senha muito fraca. Use pelo menos 8 caracteres com letras e números";
+      }
+      
+      setError(errorMessage);
       
       toast({
         title: "Erro ao criar usuário",
@@ -208,6 +229,27 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Alertas de Sucesso e Erro */}
+        {success && (
+          <Alert className="mb-4 border-green-500 bg-green-50 dark:bg-green-950">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-800 dark:text-green-200">Sucesso!</AlertTitle>
+            <AlertDescription className="text-green-700 dark:text-green-300">
+              {success}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {error && (
+          <Alert className="mb-4 border-red-500 bg-red-50 dark:bg-red-950" variant="destructive">
+            <XCircle className="h-4 w-4" />
+            <AlertTitle>Erro na criação do usuário</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,9 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { Broker } from '@/contexts/DataContext';
 import { useTeams } from '@/hooks/useTeams';
+import { useAuth } from '@/contexts/AuthContext';
 
 const brokerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -46,6 +49,17 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
 }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(broker?.avatar_url || null);
   const { teams } = useTeams();
+  const { profile, isGerente, isDiretor } = useAuth();
+  
+  // Filtrar equipes disponíveis baseado na role do usuário
+  const availableTeams = useMemo(() => {
+    // Se for gerente, só pode atribuir à sua própria equipe
+    if (isGerente() && profile?.team_id) {
+      return teams.filter(team => team.id === profile.team_id);
+    }
+    // Diretores e admins veem todas as equipes
+    return teams;
+  }, [teams, isGerente, isDiretor, profile]);
   
   // Sincronizar avatar com dados do broker
   React.useEffect(() => {
@@ -215,20 +229,36 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Equipe *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma equipe" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {teams.map((team) => (
-                        <SelectItem key={team.id} value={team.id}>
-                          {team.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {availableTeams.length === 0 ? (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Nenhuma equipe disponível. {isGerente() ? 'Você precisa estar associado a uma equipe primeiro.' : 'Crie uma equipe na página de Equipes.'}
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma equipe" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableTeams.map((team) => (
+                            <SelectItem key={team.id} value={team.id}>
+                              {team.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {isGerente() && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Como gerente, você só pode atribuir corretores à sua equipe
+                        </p>
+                      )}
+                    </>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
