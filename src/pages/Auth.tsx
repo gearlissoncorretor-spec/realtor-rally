@@ -284,21 +284,6 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
-
-          {/* Quick Access */}
-          <div className="mt-8 pt-6 border-t border-white/10">
-            <p className="text-sm text-white/60 mb-3 text-center font-medium">Acesso Rápido</p>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                setLoginForm({ email: "admin@canedo.com", password: "Canedo" });
-              }}
-              className="w-full h-11 bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/30 rounded-xl font-medium transition-all duration-300 hover:scale-[1.02] hover-lift"
-            >
-              Admin / Canedo
-            </Button>
-          </div>
         </div>
 
         {/* Footer */}
