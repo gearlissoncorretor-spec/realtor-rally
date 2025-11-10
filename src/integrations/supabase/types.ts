@@ -450,9 +450,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
-          is_admin: boolean | null
           manager_id: string | null
-          role: string | null
           team_id: string | null
           updated_at: string | null
         }
@@ -466,9 +464,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
-          is_admin?: boolean | null
           manager_id?: string | null
-          role?: string | null
           team_id?: string | null
           updated_at?: string | null
         }
@@ -482,9 +478,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
-          is_admin?: boolean | null
           manager_id?: string | null
-          role?: string | null
           team_id?: string | null
           updated_at?: string | null
         }
@@ -763,7 +757,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_user_admin: { Args: { user_id: string }; Returns: boolean }
       log_audit_event: {
         Args: {
           _action: string
