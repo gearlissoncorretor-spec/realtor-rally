@@ -13,8 +13,8 @@ interface Profile {
   id: string;
   full_name: string;
   email: string;
-  is_admin: boolean;
   allowed_screens: string[];
+  role?: string;
 }
 
 const AVAILABLE_SCREENS = [
@@ -42,17 +42,28 @@ const UserPermissionsManager = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, email, allowed_screens')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
       
-      // Ensure all users have allowed_screens as an array (not null)
-      const usersWithScreens = (data || []).map(user => ({
+      // Fetch roles
+      const userIds = (profilesData || []).map(p => p.id);
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+
+      // Ensure all users have allowed_screens as an array
+      const usersWithScreens = (profilesData || []).map(user => ({
         ...user,
-        allowed_screens: user.allowed_screens || []
+        allowed_screens: user.allowed_screens || [],
+        role: rolesMap.get(user.id) || 'corretor'
       }));
       
       setUsers(usersWithScreens);
@@ -158,6 +169,8 @@ const UserPermissionsManager = () => {
             user.allowed_screens?.includes(screen.id)
           );
 
+          const isAdminUser = user.role === 'admin';
+
           return (
             <div key={user.id} className="border rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between">
@@ -168,7 +181,7 @@ const UserPermissionsManager = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{user.full_name}</span>
-                      {user.is_admin && (
+                      {isAdminUser && (
                         <Badge variant="secondary" className="flex items-center gap-1">
                           <Shield className="h-3 w-3" />
                           Admin

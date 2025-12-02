@@ -12,10 +12,10 @@ interface PendingUser {
   id: string;
   full_name: string;
   email: string;
-  role: string;
   approved: boolean;
   created_at: string;
   avatar_url?: string;
+  role?: string;
 }
 
 export const UserApprovalManager = () => {
@@ -31,14 +31,30 @@ export const UserApprovalManager = () => {
 
   const fetchPendingUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // First fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, email, approved, created_at, avatar_url')
         .eq('approved', false)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setPendingUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Then fetch roles for these users
+      const userIds = (profilesData || []).map(p => p.id);
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+
+      const usersWithRoles = (profilesData || []).map(user => ({
+        ...user,
+        role: rolesMap.get(user.id) || 'corretor'
+      }));
+
+      setPendingUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching pending users:', error);
       toast({
@@ -136,7 +152,7 @@ export const UserApprovalManager = () => {
                     <p className="text-sm font-medium">{user.full_name}</p>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary">{user.role}</Badge>
+                      <Badge variant="secondary">{user.role || 'corretor'}</Badge>
                       <span className="text-xs text-muted-foreground">
                         Solicitado em {new Date(user.created_at).toLocaleDateString('pt-BR')}
                       </span>

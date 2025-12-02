@@ -19,7 +19,7 @@ export interface Team {
 
 export interface TeamMember {
   id: string;
-  broker_id?: string; // ID from brokers table (if it's a broker)
+  broker_id?: string;
   full_name: string;
   email: string;
   role: string;
@@ -53,7 +53,7 @@ export const useTeams = () => {
 
   const fetchTeamMembers = async () => {
     try {
-      // Buscar corretores da tabela brokers
+      // Fetch brokers from brokers table
       const { data: brokersData, error: brokersError } = await supabase
         .from('brokers')
         .select('id, name, email, team_id, status, user_id')
@@ -61,30 +61,41 @@ export const useTeams = () => {
 
       if (brokersError) throw brokersError;
 
-      // Buscar gerentes da tabela profiles
-      const { data: managersData, error: managersError } = await supabase
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, team_id')
-        .eq('role', 'gerente');
+        .select('id, full_name, email, team_id');
 
-      if (managersError) throw managersError;
+      if (profilesError) throw profilesError;
 
-      // Combinar corretores e gerentes
-      const brokerMembers = (brokersData || []).map(broker => ({
-        id: broker.user_id || broker.id, // Use user_id for profile updates
-        broker_id: broker.id, // Keep broker_id for broker table updates
+      // Fetch roles from user_roles
+      const profileIds = (profilesData || []).map(p => p.id);
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', profileIds);
+
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+
+      // Get managers (users with gerente role)
+      const managersData = (profilesData || []).filter(p => rolesMap.get(p.id) === 'gerente');
+
+      // Combine brokers and managers
+      const brokerMembers: TeamMember[] = (brokersData || []).map(broker => ({
+        id: broker.user_id || broker.id,
+        broker_id: broker.id,
         full_name: broker.name,
         email: broker.email,
         role: 'corretor',
         team_id: broker.team_id || undefined
       }));
 
-      const managerMembers = (managersData || []).map(manager => ({
+      const managerMembers: TeamMember[] = managersData.map(manager => ({
         id: manager.id,
-        broker_id: undefined, // Managers don't have broker records
+        broker_id: undefined,
         full_name: manager.full_name,
         email: manager.email,
-        role: manager.role,
+        role: 'gerente',
         team_id: manager.team_id || undefined
       }));
 
@@ -101,7 +112,6 @@ export const useTeams = () => {
 
   const createTeam = async (teamData: { name: string; description?: string }) => {
     try {
-      // Validate input
       const validatedData = teamSchema.parse(teamData);
 
       const { data, error } = await supabase
@@ -139,7 +149,6 @@ export const useTeams = () => {
 
   const updateTeam = async (id: string, teamData: { name: string; description?: string }) => {
     try {
-      // Validate input
       const validatedData = teamSchema.parse(teamData);
 
       const { data, error } = await supabase
@@ -209,17 +218,17 @@ export const useTeams = () => {
       
       const member = teamMembers.find(m => m.id === memberId);
       
-      // Update profiles table (for all users)
+      // Update profiles table
       const { data, error } = await supabase
         .from('profiles')
         .update({ team_id: teamId })
         .eq('id', memberId)
-        .select('id, full_name, email, role, team_id')
+        .select('id, full_name, email, team_id')
         .single();
 
       if (error) throw error;
 
-      // CRITICAL: Also update brokers table using broker_id (this is what matters for sales tracking)
+      // Also update brokers table if member has broker_id
       if (member?.broker_id) {
         const { error: brokerError } = await supabase
           .from('brokers')
@@ -233,7 +242,7 @@ export const useTeams = () => {
         console.log('Broker table updated successfully for broker_id:', member.broker_id);
       }
 
-      // Refresh team members to get updated data
+      // Refresh team members
       await fetchTeamMembers();
 
       toast({

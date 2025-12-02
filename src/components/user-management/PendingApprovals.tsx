@@ -11,9 +11,9 @@ interface PendingUser {
   id: string;
   full_name: string;
   email: string;
-  role: string;
   created_at: string;
   allowed_screens: string[];
+  role?: string;
 }
 
 interface PendingApprovalsProps {
@@ -33,14 +33,30 @@ export const PendingApprovals = ({ onApprovalChange }: PendingApprovalsProps) =>
   const fetchPendingUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, email, created_at, allowed_screens')
         .eq('approved', false)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setPendingUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Fetch roles for these users
+      const userIds = (profilesData || []).map(p => p.id);
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+
+      const usersWithRoles = (profilesData || []).map(user => ({
+        ...user,
+        role: rolesMap.get(user.id) || 'corretor'
+      }));
+
+      setPendingUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching pending users:', error);
       toast({
@@ -139,7 +155,7 @@ export const PendingApprovals = ({ onApprovalChange }: PendingApprovalsProps) =>
                   </div>
                   <p className="text-sm text-muted-foreground mb-1">{user.email}</p>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{user.role}</Badge>
+                    <Badge variant="secondary">{user.role || 'corretor'}</Badge>
                     <span className="text-xs text-muted-foreground">
                       Solicitado em {new Date(user.created_at).toLocaleDateString('pt-BR', {
                         day: '2-digit',
