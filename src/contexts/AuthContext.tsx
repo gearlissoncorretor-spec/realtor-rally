@@ -15,10 +15,6 @@ interface Profile {
   manager_id?: string;
 }
 
-interface UserRole {
-  role: string;
-}
-
 interface TeamHierarchy {
   team_id: string | null;
   team_name: string | null;
@@ -57,15 +53,15 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  // Authentication state - restored to use actual Supabase auth
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
       // Fetch profile
       const { data: profileData, error: profileError } = await supabase
@@ -74,7 +70,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('id', userId)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        setProfile(null);
+        setUserRole(null);
+        return false;
+      }
+      
       setProfile(profileData);
       
       // Fetch user role from user_roles table
@@ -87,74 +89,104 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (!roleError && roleData) {
         setUserRole(roleData.role);
+      } else {
+        setUserRole('corretor'); // Default role
       }
       
-      // Fetch team hierarchy after profile
-      if (profileData) {
-        fetchTeamHierarchy(userId);
+      // Fetch team hierarchy
+      try {
+        const { data: hierarchyData, error: hierarchyError } = await supabase
+          .rpc('get_team_hierarchy', { user_id: userId });
+
+        if (!hierarchyError && hierarchyData?.[0]) {
+          setTeamHierarchy(hierarchyData[0]);
+        } else {
+          setTeamHierarchy(null);
+        }
+      } catch (err) {
+        console.error('Error fetching team hierarchy:', err);
+        setTeamHierarchy(null);
       }
+      
+      return true;
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
       setUserRole(null);
-    }
-  };
-
-  const fetchTeamHierarchy = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .rpc('get_team_hierarchy', { user_id: userId });
-
-      if (error) throw error;
-      setTeamHierarchy(data?.[0] || null);
-    } catch (error) {
-      console.error('Error fetching team hierarchy:', error);
-      setTeamHierarchy(null);
+      return false;
     }
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        // Get existing session first
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
         
-        // Defer profile fetching to avoid callback issues
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
+        if (!isMounted) return;
+        
+        if (existingSession?.user) {
+          setSession(existingSession);
+          setUser(existingSession.user);
+          await fetchProfile(existingSession.user.id);
         }
         
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          setInitialLoadDone(true);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (isMounted) {
+          setLoading(false);
+          setInitialLoadDone(true);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Set up auth state listener for subsequent changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        if (!isMounted || !initialLoadDone) return;
+        
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        
+        if (newSession?.user) {
+          setLoading(true);
+          await fetchProfile(newSession.user.id);
+          if (isMounted) setLoading(false);
+        } else {
+          setProfile(null);
+          setUserRole(null);
+          setTeamHierarchy(null);
+        }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [initialLoadDone]);
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      if (error) {
+        setLoading(false);
+      }
       return { error };
     } catch (error) {
+      setLoading(false);
       return { error: error as Error };
     }
   };
@@ -191,11 +223,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    setLoading(true);
     await supabase.auth.signOut();
+    setProfile(null);
+    setUserRole(null);
+    setTeamHierarchy(null);
+    setLoading(false);
   };
 
   const hasAccess = (screen: string): boolean => {
-    // Check if user profile has access to the screen
     return profile?.allowed_screens?.includes(screen) ?? false;
   };
 
@@ -220,32 +256,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const getDefaultRoute = (): string => {
-    if (!userRole) return '/';
-    
-    switch (userRole) {
-      case 'diretor':
-        return '/'; // Dashboard geral do diretor
-      case 'gerente':
-        return '/'; // Dashboard da equipe do gerente
-      case 'corretor':
-        return '/'; // Dashboard individual do corretor
-      default:
-        return '/';
-    }
+    return '/';
   };
 
   const canAccessUserData = (userId: string): boolean => {
     if (!userRole || !user) return false;
     
-    // Diretor e Admin podem acessar dados de todos
     if (userRole === 'diretor' || userRole === 'admin') return true;
     
-    // Gerente pode acessar dados da sua equipe
     if (userRole === 'gerente' && teamHierarchy) {
       return teamHierarchy.team_members.includes(userId);
     }
     
-    // Corretor só pode acessar seus próprios dados
     return user.id === userId;
   };
 

@@ -14,7 +14,7 @@ interface Profile {
   id: string;
   full_name: string;
   email: string;
-  is_admin: boolean;
+  role?: string;
 }
 
 export const PasswordManager = () => {
@@ -30,13 +30,29 @@ export const PasswordManager = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, is_admin')
+        .select('id, full_name, email')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setUsers(data || []);
+      if (profilesError) throw profilesError;
+
+      // Fetch roles
+      const userIds = (profilesData || []).map(p => p.id);
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      const rolesMap = new Map(rolesData?.map(r => [r.user_id, r.role]) || []);
+
+      const usersWithRoles = (profilesData || []).map(user => ({
+        ...user,
+        role: rolesMap.get(user.id) || 'corretor'
+      }));
+
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
@@ -157,6 +173,8 @@ export const PasswordManager = () => {
           .toUpperCase()
           .slice(0, 2);
 
+        const isAdminUser = user.role === 'admin';
+
         return (
           <div key={user.id} className="border rounded-lg p-4 space-y-4">
             <div className="flex items-center gap-3">
@@ -166,7 +184,7 @@ export const PasswordManager = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{user.full_name}</span>
-                  {user.is_admin && (
+                  {isAdminUser && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <UserCog className="h-3 w-3" />
                       Admin
