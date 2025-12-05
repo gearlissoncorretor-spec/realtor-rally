@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const initRef = useRef(false);
 
   const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
@@ -118,11 +118,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    // Prevent re-initialization
+    if (initRef.current) return;
+    initRef.current = true;
+
     let isMounted = true;
 
     const initializeAuth = async () => {
       try {
-        // Get existing session first
         const { data: { session: existingSession } } = await supabase.auth.getSession();
         
         if (!isMounted) return;
@@ -135,13 +138,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (isMounted) {
           setLoading(false);
-          setInitialLoadDone(true);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
         if (isMounted) {
           setLoading(false);
-          setInitialLoadDone(true);
         }
       }
     };
@@ -151,16 +152,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener for subsequent changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        if (!isMounted || !initialLoadDone) return;
+        if (!isMounted) return;
         
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        
-        if (newSession?.user) {
-          setLoading(true);
-          await fetchProfile(newSession.user.id);
-          if (isMounted) setLoading(false);
-        } else {
+        // Only process actual changes
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          
+          if (newSession?.user) {
+            setLoading(true);
+            await fetchProfile(newSession.user.id);
+            if (isMounted) setLoading(false);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
           setProfile(null);
           setUserRole(null);
           setTeamHierarchy(null);
@@ -172,7 +178,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [initialLoadDone]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
