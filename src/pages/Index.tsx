@@ -245,23 +245,34 @@ const Index = () => {
       {/* Main Content */}
       <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
         
-        {/* Hero Section */}
-        <div 
-          className="relative h-32 sm:h-40 md:h-48 rounded-xl mb-6 md:mb-8 overflow-hidden bg-gradient-hero flex items-center justify-center"
-          style={{
-            backgroundImage: `linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(37, 99, 235, 0.9)), url(${heroImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center"
-          }}
-        >
-          <div className="text-center text-primary-foreground px-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2 animate-fade-in">
+        {/* Hero Section - Premium Header */}
+        <div className="relative h-[200px] sm:h-[220px] md:h-[240px] rounded-b-[40px] mb-6 md:mb-8 overflow-hidden bg-gradient-to-br from-[#0A84FF] via-[#0066FF] to-[#0048D9] flex items-center justify-center">
+          
+          {/* Skyline Background */}
+          <div 
+            className="absolute inset-x-0 bottom-0 h-24 opacity-10 blur-[1px] pointer-events-none"
+            style={{
+              backgroundImage: `url(${heroImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "bottom center"
+            }}
+          />
+          
+          {/* Glow Effect */}
+          <div className="absolute w-[200px] h-[200px] bg-white/10 rounded-full blur-[80px] pointer-events-none" />
+          
+          {/* Glassmorphism Card */}
+          <div className="relative z-10 backdrop-blur-sm bg-white/5 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 text-center border border-white/10">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-1 sm:mb-2 animate-fade-in">
               Dashboard Imobiliário
             </h1>
-            <p className="text-sm sm:text-lg md:text-xl opacity-90 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <p className="text-base sm:text-lg text-white/80 animate-fade-in" style={{ animationDelay: "0.2s" }}>
               Gestão completa de vendas e performance
             </p>
           </div>
+          
+          {/* Bottom gradient fade */}
+          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
         </div>
 
         {/* Filtros de Período */}
