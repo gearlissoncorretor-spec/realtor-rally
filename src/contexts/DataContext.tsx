@@ -56,9 +56,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const queryClient = useQueryClient();
   const { user, teamHierarchy, getUserRole } = useAuth();
 
+  // Stable query key - use primitive values only
+  const teamId = teamHierarchy?.team_id ?? null;
+  
   // Queries com React Query - com filtros por hierarquia
   const { data: brokers = [], isLoading: brokersLoading } = useQuery({
-    queryKey: ['brokers', user?.id, teamHierarchy],
+    queryKey: ['brokers', user?.id, teamId],
     queryFn: async () => {
       if (!user) return [];
       
@@ -89,7 +92,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const { data: sales = [], isLoading: salesLoading } = useQuery({
-    queryKey: ['sales', user?.id, teamHierarchy],
+    queryKey: ['sales', user?.id, teamId],
     queryFn: async () => {
       if (!user) return [];
       
@@ -132,7 +135,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const { data: targets = [], isLoading: targetsLoading } = useQuery({
-    queryKey: ['targets', user?.id, teamHierarchy],
+    queryKey: ['targets', user?.id, teamId],
     queryFn: async () => {
       if (!user) return [];
       
