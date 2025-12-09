@@ -225,11 +225,13 @@ const Index = () => {
     monthlyGoal
   } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear);
 
-  if (brokersLoading || salesLoading) {
+  const isInitialLoading = (brokersLoading || salesLoading) && brokers.length === 0 && sales.length === 0;
+
+  if (isInitialLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 py-8">
+        <main className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
           <div className="flex justify-center items-center h-64">
             <p className="text-muted-foreground">Carregando dashboard...</p>
           </div>
