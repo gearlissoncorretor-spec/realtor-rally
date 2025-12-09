@@ -135,12 +135,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(existingSession.user);
           await fetchProfile(existingSession.user.id);
         }
-        
-        if (isMounted) {
-          setLoading(false);
-        }
       } catch (error) {
         console.error('Error initializing auth:', error);
+      } finally {
+        // Always set loading to false after initialization attempt
         if (isMounted) {
           setLoading(false);
         }
@@ -161,8 +159,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (newSession?.user) {
             setLoading(true);
-            await fetchProfile(newSession.user.id);
-            if (isMounted) setLoading(false);
+            try {
+              await fetchProfile(newSession.user.id);
+            } finally {
+              if (isMounted) setLoading(false);
+            }
           }
         } else if (event === 'SIGNED_OUT') {
           setSession(null);
