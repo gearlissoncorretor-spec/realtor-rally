@@ -9,7 +9,8 @@ import ColumnSettingsDialog from "@/components/kanban/ColumnSettingsDialog";
 import { Loader2 } from "lucide-react";
 
 const TarefasKanban = () => {
-  const { userRole } = useAuth();
+  const { getUserRole } = useAuth();
+  const userRole = getUserRole();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { stages, loading: stagesLoading, createStage, updateStage, deleteStage } = useProcessStages();
   const { 

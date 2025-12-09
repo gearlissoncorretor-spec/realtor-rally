@@ -34,7 +34,7 @@ interface BrokerKanbanBoardProps {
   brokers: Broker[];
   onMoveTask: (taskId: string, newColumnId: string) => Promise<void>;
   onCreateTask: (data: CreateTaskData) => Promise<any>;
-  onUpdateTask: (taskId: string, updates: Partial<BrokerTask>) => Promise<void>;
+  onUpdateTask: (taskId: string, updates: Partial<BrokerTask>, logAction?: string) => Promise<any>;
   onDeleteTask: (taskId: string) => Promise<void>;
   onAddComment: (taskId: string, content: string) => Promise<any>;
   fetchComments: (taskId: string) => Promise<any[]>;

@@ -43,6 +43,11 @@ const Navigation = () => {
     icon: Target,
     screen: "metas"
   }, {
+    href: "/tarefas-kanban",
+    label: "Tarefas",
+    icon: Columns3,
+    screen: "tarefas-kanban"
+  }, {
     href: "/acompanhamento",
     label: "Acompanhamento",
     icon: BarChart3,
@@ -82,9 +87,9 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'metas', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'x1'].includes(item.screen);
+      return ['dashboard', 'vendas', 'metas', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1'].includes(item.screen);
     } else if (userRole === 'corretor') {
-      return ['dashboard', 'vendas', 'metas'].includes(item.screen);
+      return ['dashboard', 'vendas', 'metas', 'tarefas-kanban'].includes(item.screen);
     }
     
     // Dashboard Equipes é para diretores e admins
