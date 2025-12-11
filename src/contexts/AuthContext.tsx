@@ -118,17 +118,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Prevent re-initialization
-    if (initRef.current) return;
-    initRef.current = true;
-
     let isMounted = true;
+    let subscriptionRef: { unsubscribe: () => void } | null = null;
 
     const initializeAuth = async () => {
+      // Skip if already initialized
+      if (initRef.current) {
+        return;
+      }
+      initRef.current = true;
+
       try {
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        // Use a timeout to prevent hanging on getSession
+        const timeoutPromise = new Promise<null>((_, reject) => {
+          setTimeout(() => reject(new Error('Session timeout')), 10000);
+        });
+
+        const sessionPromise = supabase.auth.getSession();
+        
+        const result = await Promise.race([sessionPromise, timeoutPromise]) as { data: { session: Session | null } };
         
         if (!isMounted) return;
+        
+        const existingSession = result?.data?.session;
         
         if (existingSession?.user) {
           setSession(existingSession);
@@ -145,14 +157,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    initializeAuth();
-
-    // Set up auth state listener for subsequent changes
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         if (!isMounted) return;
         
-        // Only process actual changes
+        console.log('Auth state change:', event);
+        
+        // Handle INITIAL_SESSION event to ensure loading completes
+        if (event === 'INITIAL_SESSION') {
+          if (newSession?.user) {
+            setSession(newSession);
+            setUser(newSession.user);
+            try {
+              await fetchProfile(newSession.user.id);
+            } catch (e) {
+              console.error('Error fetching profile on initial session:', e);
+            }
+          }
+          if (isMounted) {
+            setLoading(false);
+          }
+          return;
+        }
+        
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setSession(newSession);
           setUser(newSession?.user ?? null);
@@ -171,13 +199,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setProfile(null);
           setUserRole(null);
           setTeamHierarchy(null);
+          if (isMounted) setLoading(false);
         }
       }
     );
+    
+    subscriptionRef = subscription;
+
+    // Initialize auth after setting up listener
+    initializeAuth();
+
+    // Fallback timeout to ensure loading never stays stuck forever
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Auth loading timeout - forcing loading to false');
+        setLoading(false);
+      }
+    }, 15000);
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
+      subscriptionRef?.unsubscribe();
+      clearTimeout(fallbackTimeout);
     };
   }, []);
 
