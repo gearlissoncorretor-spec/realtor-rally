@@ -97,17 +97,17 @@ const Corretores = () => {
           </Button>
         </div>
 
-        <div className="grid gap-6">
-          {brokersLoading && brokers.length === 0 ? (
-            <CorretoresSkeleton />
-          ) : brokers.length === 0 ? (
-            <Card className="p-6">
-              <p className="text-center text-muted-foreground">
-                Nenhum corretor encontrado. Clique em "Adicionar Corretor" para começar.
-              </p>
-            </Card>
-          ) : (
-            brokers.map((broker, index) => {
+        {brokersLoading && brokers.length === 0 ? (
+          <CorretoresSkeleton />
+        ) : brokers.length === 0 ? (
+          <Card className="p-6">
+            <p className="text-center text-muted-foreground">
+              Nenhum corretor encontrado. Clique em "Adicionar Corretor" para começar.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-6">
+            {brokers.map((broker, index) => {
               const stats = getBrokerStats(broker.id);
               return (
                 <Card key={broker.id} className="p-6 hover:shadow-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
@@ -170,9 +170,9 @@ const Corretores = () => {
                   </div>
                 </Card>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
 
       <BrokerForm 
