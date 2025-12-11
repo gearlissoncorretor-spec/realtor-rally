@@ -15,6 +15,7 @@ import { GoalCard } from '@/components/goals/GoalCard';
 import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
 import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
+import { MetasSkeleton } from '@/components/skeletons/MetasSkeleton';
 
 const Metas = () => {
   const { getUserRole, profile, user } = useAuth();
@@ -82,14 +83,7 @@ const Metas = () => {
         <Navigation />
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 lg:ml-64">
           <div className="max-w-7xl mx-auto p-6 space-y-6 pt-20 lg:pt-6">
-            <div className="animate-pulse space-y-6">
-              <div className="h-10 bg-muted rounded w-96"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1,2,3].map(i => (
-                  <div key={i} className="h-80 bg-muted rounded-xl"></div>
-                ))}
-              </div>
-            </div>
+            <MetasSkeleton />
           </div>
         </div>
       </>

@@ -19,6 +19,7 @@ import BrokerDetailsModal from "@/components/BrokerDetailsModal";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
 import type { Broker } from "@/contexts/DataContext";
+import { CorretoresSkeleton } from "@/components/skeletons/CorretoresSkeleton";
 
 const Corretores = () => {
   const { toast } = useToast();
@@ -97,10 +98,8 @@ const Corretores = () => {
         </div>
 
         <div className="grid gap-6">
-          {brokersLoading ? (
-            <Card className="p-6">
-              <p className="text-center text-muted-foreground">Carregando corretores...</p>
-            </Card>
+          {brokersLoading && brokers.length === 0 ? (
+            <CorretoresSkeleton />
           ) : brokers.length === 0 ? (
             <Card className="p-6">
               <p className="text-center text-muted-foreground">
