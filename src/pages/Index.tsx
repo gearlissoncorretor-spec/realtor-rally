@@ -4,6 +4,7 @@ import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
 import VGCPercentageCard from "@/components/VGCPercentageCard";
 import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import React, { useState, useMemo } from "react";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
@@ -232,9 +233,7 @@ const Index = () => {
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
-          <div className="flex justify-center items-center h-64">
-            <p className="text-muted-foreground">Carregando dashboard...</p>
-          </div>
+          <DashboardSkeleton />
         </main>
       </div>
     );
