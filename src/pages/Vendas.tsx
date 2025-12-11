@@ -38,6 +38,7 @@ import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
 import type { Sale } from "@/contexts/DataContext";
+import { VendasSkeleton } from "@/components/skeletons/VendasSkeleton";
 
 const Vendas = () => {
   const { toast } = useToast();
@@ -442,6 +443,19 @@ const Vendas = () => {
       onClick: (sale) => handleDelete(sale.id),
     },
   ];
+
+  const isInitialLoading = loading && sales.length === 0;
+
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="lg:ml-64 pt-16 lg:pt-0 p-2 sm:p-4 lg:p-6 min-h-screen overflow-x-hidden">
+          <VendasSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
