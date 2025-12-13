@@ -6,7 +6,7 @@ import { useProcessStages } from "@/hooks/useProcessStages";
 import { useBrokerTasks } from "@/hooks/useBrokerTasks";
 import BrokerKanbanBoard from "@/components/kanban/BrokerKanbanBoard";
 import ColumnSettingsDialog from "@/components/kanban/ColumnSettingsDialog";
-import { Loader2 } from "lucide-react";
+import { TarefasKanbanSkeleton } from "@/components/skeletons/TarefasKanbanSkeleton";
 
 const TarefasKanban = () => {
   const { getUserRole } = useAuth();
@@ -32,12 +32,10 @@ const TarefasKanban = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <Navigation />
-        <div className="lg:ml-64 pt-16 lg:pt-0 p-6">
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 flex-1 overflow-hidden">
+          <TarefasKanbanSkeleton />
         </div>
       </div>
     );
