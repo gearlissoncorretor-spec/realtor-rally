@@ -60,6 +60,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
   const initRef = useRef(false);
+  const loadingRef = useRef(true);
+  
+  // Keep ref in sync with state
+  const updateLoading = (value: boolean) => {
+    loadingRef.current = value;
+    setLoading(value);
+  };
 
   const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
@@ -129,18 +136,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       initRef.current = true;
 
       try {
-        // Use a timeout to prevent hanging on getSession
-        const timeoutPromise = new Promise<null>((_, reject) => {
-          setTimeout(() => reject(new Error('Session timeout')), 10000);
-        });
-
-        const sessionPromise = supabase.auth.getSession();
-        
-        const result = await Promise.race([sessionPromise, timeoutPromise]) as { data: { session: Session | null } };
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
         
         if (!isMounted) return;
-        
-        const existingSession = result?.data?.session;
         
         if (existingSession?.user) {
           setSession(existingSession);
@@ -150,9 +148,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
-        // Always set loading to false after initialization attempt
         if (isMounted) {
-          setLoading(false);
+          updateLoading(false);
         }
       }
     };
@@ -162,22 +159,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       async (event, newSession) => {
         if (!isMounted) return;
         
-        console.log('Auth state change:', event);
-        
-        // Handle INITIAL_SESSION event to ensure loading completes
+        // INITIAL_SESSION is handled by initializeAuth, skip to avoid double processing
         if (event === 'INITIAL_SESSION') {
-          if (newSession?.user) {
-            setSession(newSession);
-            setUser(newSession.user);
-            try {
-              await fetchProfile(newSession.user.id);
-            } catch (e) {
-              console.error('Error fetching profile on initial session:', e);
-            }
-          }
-          if (isMounted) {
-            setLoading(false);
-          }
           return;
         }
         
@@ -186,11 +169,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(newSession?.user ?? null);
           
           if (newSession?.user) {
-            setLoading(true);
+            updateLoading(true);
             try {
               await fetchProfile(newSession.user.id);
             } finally {
-              if (isMounted) setLoading(false);
+              if (isMounted) updateLoading(false);
             }
           }
         } else if (event === 'SIGNED_OUT') {
@@ -199,7 +182,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setProfile(null);
           setUserRole(null);
           setTeamHierarchy(null);
-          if (isMounted) setLoading(false);
+          if (isMounted) updateLoading(false);
         }
       }
     );
@@ -211,11 +194,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Fallback timeout to ensure loading never stays stuck forever
     const fallbackTimeout = setTimeout(() => {
-      if (isMounted && loading) {
+      if (isMounted && loadingRef.current) {
         console.warn('Auth loading timeout - forcing loading to false');
-        setLoading(false);
+        updateLoading(false);
       }
-    }, 15000);
+    }, 8000);
 
     return () => {
       isMounted = false;
@@ -226,17 +209,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
+      updateLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) {
-        setLoading(false);
+        updateLoading(false);
       }
       return { error };
     } catch (error) {
-      setLoading(false);
+      updateLoading(false);
       return { error: error as Error };
     }
   };
@@ -273,12 +256,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    setLoading(true);
+    updateLoading(true);
     await supabase.auth.signOut();
     setProfile(null);
     setUserRole(null);
     setTeamHierarchy(null);
-    setLoading(false);
+    updateLoading(false);
   };
 
   const hasAccess = (screen: string): boolean => {
