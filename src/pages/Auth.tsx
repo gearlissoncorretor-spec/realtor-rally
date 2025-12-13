@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, UserPlus, Building2, Sparkles } from "lucide-react";
+import { Eye, EyeOff, LogIn, UserPlus, Building2, Sparkles, Loader2 } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [signupForm, setSignupForm] = useState({ 
     email: "", 
@@ -21,14 +21,30 @@ const Auth = () => {
     fullName: "" 
   });
   
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, loading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-blue-900">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+      </div>
+    );
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const { error } = await signIn(loginForm.email, loginForm.password);
@@ -39,12 +55,13 @@ const Auth = () => {
           description: error.message || "Credenciais inválidas",
           variant: "destructive"
         });
+        setIsSubmitting(false);
       } else {
         toast({
           title: "Login realizado",
           description: "Bem-vindo ao sistema!"
         });
-        navigate("/");
+        // Navigation will happen automatically via useEffect
       }
     } catch (error) {
       toast({
@@ -52,8 +69,7 @@ const Auth = () => {
         description: "Ocorreu um erro inesperado",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -69,7 +85,7 @@ const Auth = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
@@ -93,7 +109,7 @@ const Auth = () => {
         variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -196,14 +212,14 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2 mt-6" 
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  {isLoading ? (
+                  {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <LogIn className="w-5 h-5" />
                   )}
-                  {isLoading ? "Entrando..." : "Entrar"}
+                  {isSubmitting ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
             </TabsContent>
@@ -272,14 +288,14 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2 mt-6" 
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                 >
-                  {isLoading ? (
+                  {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <UserPlus className="w-5 h-5" />
                   )}
-                  {isLoading ? "Criando conta..." : "Criar Conta"}
+                  {isSubmitting ? "Criando conta..." : "Criar Conta"}
                 </Button>
               </form>
             </TabsContent>
