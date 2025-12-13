@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EquipesSkeleton } from "@/components/skeletons/EquipesSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,11 +94,8 @@ const Equipes = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground">Carregando equipes...</p>
-          </div>
+        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+          <EquipesSkeleton />
         </div>
       </div>
     );

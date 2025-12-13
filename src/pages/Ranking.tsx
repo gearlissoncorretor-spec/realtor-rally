@@ -1,5 +1,6 @@
 import Navigation from "@/components/Navigation";
 import RankingPodium from "@/components/RankingPodium";
+import { RankingSkeleton } from "@/components/skeletons/RankingSkeleton";
 import VictoryEffects from "@/components/VictoryEffects";
 import PeriodFilter from "@/components/PeriodFilter";
 import { Card } from "@/components/ui/card";
@@ -62,11 +63,9 @@ const Ranking = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center h-64">
-            <p className="text-muted-foreground">Carregando ranking...</p>
-          </div>
-        </main>
+        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+          <RankingSkeleton />
+        </div>
       </div>
     );
   }
