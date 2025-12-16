@@ -30,6 +30,11 @@ interface DataContextType {
   salesLoading: boolean;
   targetsLoading: boolean;
   
+  // Error states
+  brokersError: Error | null;
+  salesError: Error | null;
+  targetsError: Error | null;
+  
   // CRUD functions
   createBroker: (broker: BrokerInsert) => Promise<void>;
   updateBroker: (id: string, broker: Partial<Broker>) => Promise<void>;
@@ -60,114 +65,150 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const teamId = teamHierarchy?.team_id ?? null;
   
   // Queries com React Query - com filtros por hierarquia
-  const { data: brokers = [], isLoading: brokersLoading } = useQuery({
+  const { 
+    data: brokers = [], 
+    isLoading: brokersLoading,
+    error: brokersError 
+  } = useQuery({
     queryKey: ['brokers', user?.id, teamId],
     queryFn: async () => {
       if (!user) return [];
       
-      let query = supabase
-        .from('brokers')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      const role = getUserRole();
-      
-      // Gerente vê apenas corretores da sua equipe
-      if (role === 'gerente' && teamHierarchy?.team_id) {
-        query = query.eq('team_id', teamHierarchy.team_id);
+      try {
+        let query = supabase
+          .from('brokers')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        const role = getUserRole();
+        
+        // Gerente vê apenas corretores da sua equipe
+        if (role === 'gerente' && teamHierarchy?.team_id) {
+          query = query.eq('team_id', teamHierarchy.team_id);
+        }
+        // Corretor vê apenas seus próprios dados
+        else if (role === 'corretor') {
+          query = query.eq('user_id', user.id);
+        }
+        // Diretor e Admin veem tudo
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Error fetching brokers:', error);
+          throw new Error(`Erro ao carregar corretores: ${error.message}`);
+        }
+        return data as Broker[];
+      } catch (err) {
+        console.error('Brokers query failed:', err);
+        throw err;
       }
-      // Corretor vê apenas seus próprios dados
-      else if (role === 'corretor') {
-        query = query.eq('user_id', user.id);
-      }
-      // Diretor e Admin veem tudo
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return data as Broker[];
     },
     staleTime: 5 * 60 * 1000,
     enabled: !!user,
   });
 
-  const { data: sales = [], isLoading: salesLoading } = useQuery({
+  const { 
+    data: sales = [], 
+    isLoading: salesLoading,
+    error: salesError 
+  } = useQuery({
     queryKey: ['sales', user?.id, teamId],
     queryFn: async () => {
       if (!user) return [];
       
-      let query = supabase
-        .from('sales')
-        .select(`
-          *,
-          broker:brokers(name, email),
-          process_stages (
-            id,
-            title,
-            color,
-            order_index
-          )
-        `)
-        .order('created_at', { ascending: false });
-      
-      const role = getUserRole();
-      
-      // Filtros aplicados no frontend para complementar RLS
-      // RLS já controla acesso no banco, mas aplicamos filtros aqui para performance
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      // Gerente filtra vendas da sua equipe
-      if (role === 'gerente' && teamHierarchy?.team_members) {
-        const teamBrokerIds = brokers
-          .filter(b => b.team_id === teamHierarchy.team_id)
-          .map(b => b.id);
-        return (data as Sale[]).filter(sale => 
-          sale.broker_id && teamBrokerIds.includes(sale.broker_id)
-        );
+      try {
+        let query = supabase
+          .from('sales')
+          .select(`
+            *,
+            broker:brokers(name, email),
+            process_stages (
+              id,
+              title,
+              color,
+              order_index
+            )
+          `)
+          .order('created_at', { ascending: false });
+        
+        const role = getUserRole();
+        
+        // Filtros aplicados no frontend para complementar RLS
+        // RLS já controla acesso no banco, mas aplicamos filtros aqui para performance
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Error fetching sales:', error);
+          throw new Error(`Erro ao carregar vendas: ${error.message}`);
+        }
+        
+        // Gerente filtra vendas da sua equipe
+        if (role === 'gerente' && teamHierarchy?.team_members) {
+          const teamBrokerIds = brokers
+            .filter(b => b.team_id === teamHierarchy.team_id)
+            .map(b => b.id);
+          return (data as Sale[]).filter(sale => 
+            sale.broker_id && teamBrokerIds.includes(sale.broker_id)
+          );
+        }
+        
+        return data as Sale[];
+      } catch (err) {
+        console.error('Sales query failed:', err);
+        throw err;
       }
-      
-      return data as Sale[];
     },
     staleTime: 3 * 60 * 1000,
     enabled: !!user,
   });
 
-  const { data: targets = [], isLoading: targetsLoading } = useQuery({
+  const { 
+    data: targets = [], 
+    isLoading: targetsLoading,
+    error: targetsError 
+  } = useQuery({
     queryKey: ['targets', user?.id, teamId],
     queryFn: async () => {
       if (!user) return [];
       
-      let query = supabase
-        .from('targets')
-        .select('*')
-        .order('year', { ascending: false })
-        .order('month', { ascending: false });
-      
-      const role = getUserRole();
-      
-      // Gerente vê apenas metas dos corretores da sua equipe
-      if (role === 'gerente' && teamHierarchy?.team_id) {
-        const teamBrokerIds = brokers
-          .filter(b => b.team_id === teamHierarchy.team_id)
-          .map(b => b.id);
+      try {
+        let query = supabase
+          .from('targets')
+          .select('*')
+          .order('year', { ascending: false })
+          .order('month', { ascending: false });
         
-        query = query.in('broker_id', teamBrokerIds);
-      }
-      // Corretor vê apenas suas próprias metas
-      else if (role === 'corretor') {
-        const myBroker = brokers.find(b => b.user_id === user.id);
-        if (myBroker) {
-          query = query.eq('broker_id', myBroker.id);
+        const role = getUserRole();
+        
+        // Gerente vê apenas metas dos corretores da sua equipe
+        if (role === 'gerente' && teamHierarchy?.team_id) {
+          const teamBrokerIds = brokers
+            .filter(b => b.team_id === teamHierarchy.team_id)
+            .map(b => b.id);
+          
+          query = query.in('broker_id', teamBrokerIds);
         }
+        // Corretor vê apenas suas próprias metas
+        else if (role === 'corretor') {
+          const myBroker = brokers.find(b => b.user_id === user.id);
+          if (myBroker) {
+            query = query.eq('broker_id', myBroker.id);
+          }
+        }
+        // Diretor e Admin veem tudo
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Error fetching targets:', error);
+          throw new Error(`Erro ao carregar metas: ${error.message}`);
+        }
+        return data as Target[];
+      } catch (err) {
+        console.error('Targets query failed:', err);
+        throw err;
       }
-      // Diretor e Admin veem tudo
-      
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      return data as Target[];
     },
     staleTime: 10 * 60 * 1000,
     enabled: !!user,
@@ -513,6 +554,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     brokersLoading,
     salesLoading,
     targetsLoading,
+    brokersError: brokersError as Error | null,
+    salesError: salesError as Error | null,
+    targetsError: targetsError as Error | null,
     createBroker: async (broker: BrokerInsert) => {
       await createBrokerMutation.mutateAsync(broker);
     },

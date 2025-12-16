@@ -28,6 +28,7 @@ interface AuthContextType {
   profile: Profile | null;
   teamHierarchy: TeamHierarchy | null;
   loading: boolean;
+  error: string | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
@@ -40,6 +41,7 @@ interface AuthContextType {
   getUserRole: () => string;
   getDefaultRoute: () => string;
   canAccessUserData: (userId: string) => boolean;
+  clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,6 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const initRef = useRef(false);
   const loadingRef = useRef(true);
   
@@ -67,6 +70,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadingRef.current = value;
     setLoading(value);
   };
+
+  const clearError = () => setError(null);
 
   const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
@@ -321,6 +326,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     profile,
     teamHierarchy,
     loading,
+    error,
     signIn,
     signUp,
     resetPassword,
@@ -333,6 +339,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     getUserRole,
     getDefaultRoute,
     canAccessUserData,
+    clearError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
