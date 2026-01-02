@@ -11,27 +11,30 @@ interface ProtectedRouteProps {
   adminOnly?: boolean;
 }
 
-const LOADING_TIMEOUT = 8000; // 8 segundos máximo de loading
+const LOADING_TIMEOUT = 3000; // 3 segundos conforme requisito
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requiredScreen, 
   adminOnly 
 }) => {
-  const { user, loading, hasAccess, profile, isAdmin } = useAuth();
+  const { user, loading, hasAccess, profile, isAdmin, error } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Timeout de segurança para evitar loading infinito
+  // Reset timeout state when loading changes
   useEffect(() => {
     if (!loading) {
       setTimedOut(false);
-      return;
     }
+  }, [loading]);
+
+  // Timeout de segurança para evitar loading infinito
+  useEffect(() => {
+    if (!loading) return;
 
     const timeout = setTimeout(() => {
       if (loading) {
-        console.warn('ProtectedRoute: Loading timeout reached');
+        console.warn('ProtectedRoute: Loading timeout reached (3s)');
         setTimedOut(true);
       }
     }, LOADING_TIMEOUT);
@@ -39,41 +42,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return () => clearTimeout(timeout);
   }, [loading]);
 
-  // Verificar erros de autenticação
-  useEffect(() => {
-    // Se não está carregando, não tem usuário e não teve timeout,
-    // provavelmente houve um erro silencioso
-    if (!loading && !user && !timedOut) {
-      // Aguardar um frame para garantir que estados foram atualizados
-      const checkAuth = setTimeout(() => {
-        if (!user) {
-          // Não é erro, apenas não está autenticado
-          setError(null);
-        }
-      }, 100);
-      return () => clearTimeout(checkAuth);
-    }
-  }, [loading, user, timedOut]);
-
-  // Função para retry
   const handleRetry = () => {
     setTimedOut(false);
-    setError(null);
     window.location.reload();
   };
 
-  // Estado de timeout - mostrar opções ao usuário
-  if (timedOut) {
-    return (
-      <LoadingFallback
-        forceTimeout
-        message="Verificando autenticação..."
-        onRetry={handleRetry}
-      />
-    );
-  }
-
-  // Estado de erro
+  // Estado de erro de autenticação
   if (error) {
     return (
       <LoadingFallback
@@ -83,7 +57,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Estado de carregamento
+  // Estado de timeout - mostrar opções ao usuário
+  if (timedOut && loading) {
+    return (
+      <LoadingFallback
+        forceTimeout
+        message="Verificando autenticação..."
+        onRetry={handleRetry}
+      />
+    );
+  }
+
+  // Estado de carregamento normal (antes do timeout)
   if (loading) {
     return (
       <LoadingFallback

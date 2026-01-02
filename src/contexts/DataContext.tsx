@@ -118,7 +118,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user) return [];
       
       try {
-        let query = supabase
+        // Confia no RLS para filtrar dados por perfil
+        // Isso evita problemas de estado inconsistente
+        const query = supabase
           .from('sales')
           .select(`
             *,
@@ -132,10 +134,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           `)
           .order('created_at', { ascending: false });
         
-        const role = getUserRole();
-        
-        // Filtros aplicados no frontend para complementar RLS
-        // RLS já controla acesso no banco, mas aplicamos filtros aqui para performance
         const { data, error } = await query;
         
         if (error) {
@@ -143,16 +141,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error(`Erro ao carregar vendas: ${error.message}`);
         }
         
-        // Gerente filtra vendas da sua equipe
-        if (role === 'gerente' && teamHierarchy?.team_members) {
-          const teamBrokerIds = brokers
-            .filter(b => b.team_id === teamHierarchy.team_id)
-            .map(b => b.id);
-          return (data as Sale[]).filter(sale => 
-            sale.broker_id && teamBrokerIds.includes(sale.broker_id)
-          );
-        }
-        
+        // RLS já faz o filtro correto no banco
+        // Não fazemos filtros adicionais no frontend para evitar inconsistência
         return data as Sale[];
       } catch (err) {
         console.error('Sales query failed:', err);
@@ -173,30 +163,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user) return [];
       
       try {
-        let query = supabase
+        // Confia no RLS para filtrar dados por perfil
+        const query = supabase
           .from('targets')
           .select('*')
           .order('year', { ascending: false })
           .order('month', { ascending: false });
-        
-        const role = getUserRole();
-        
-        // Gerente vê apenas metas dos corretores da sua equipe
-        if (role === 'gerente' && teamHierarchy?.team_id) {
-          const teamBrokerIds = brokers
-            .filter(b => b.team_id === teamHierarchy.team_id)
-            .map(b => b.id);
-          
-          query = query.in('broker_id', teamBrokerIds);
-        }
-        // Corretor vê apenas suas próprias metas
-        else if (role === 'corretor') {
-          const myBroker = brokers.find(b => b.user_id === user.id);
-          if (myBroker) {
-            query = query.eq('broker_id', myBroker.id);
-          }
-        }
-        // Diretor e Admin veem tudo
         
         const { data, error } = await query;
         
@@ -204,6 +176,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Error fetching targets:', error);
           throw new Error(`Erro ao carregar metas: ${error.message}`);
         }
+        
+        // RLS já faz o filtro correto no banco
         return data as Target[];
       } catch (err) {
         console.error('Targets query failed:', err);

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -62,14 +62,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const initRef = useRef(false);
-  const loadingRef = useRef(true);
-  
-  // Keep ref in sync with state
-  const updateLoading = (value: boolean) => {
-    loadingRef.current = value;
-    setLoading(value);
-  };
 
   const clearError = () => setError(null);
 
@@ -131,111 +123,86 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
-    let subscriptionRef: { unsubscribe: () => void } | null = null;
 
-    const initializeAuth = async () => {
-      // Skip if already initialized
-      if (initRef.current) {
-        return;
-      }
-      initRef.current = true;
-
-      try {
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        
-        if (!isMounted) return;
-        
-        if (existingSession?.user) {
-          setSession(existingSession);
-          setUser(existingSession.user);
-          await fetchProfile(existingSession.user.id);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        if (isMounted) {
-          updateLoading(false);
-        }
-      }
-    };
-
-    // Set up auth state listener
+    // Set up auth state listener - SYNCHRONOUS callback (Supabase recommendation)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         if (!isMounted) return;
         
-        // INITIAL_SESSION is handled by initializeAuth, skip to avoid double processing
-        if (event === 'INITIAL_SESSION') {
-          return;
-        }
+        // Update session and user synchronously
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
         
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setSession(newSession);
-          setUser(newSession?.user ?? null);
-          
-          if (newSession?.user) {
-            updateLoading(true);
-            try {
-              await fetchProfile(newSession.user.id);
-            } finally {
-              if (isMounted) updateLoading(false);
-            }
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setUser(null);
+        if (event === 'SIGNED_OUT') {
+          // Clear all auth state on sign out
           setProfile(null);
           setUserRole(null);
           setTeamHierarchy(null);
-          if (isMounted) updateLoading(false);
+          setLoading(false);
+          return;
+        }
+        
+        if (newSession?.user) {
+          // Defer profile fetch to avoid Supabase deadlock
+          // Use setTimeout(0) as recommended by Supabase docs
+          setTimeout(() => {
+            if (!isMounted) return;
+            fetchProfile(newSession.user.id).finally(() => {
+              if (isMounted) {
+                setLoading(false);
+              }
+            });
+          }, 0);
+        } else {
+          // No user, stop loading immediately
+          setLoading(false);
         }
       }
     );
-    
-    subscriptionRef = subscription;
 
-    // Initialize auth after setting up listener
-    initializeAuth();
-
-    // Fallback timeout to ensure loading never stays stuck forever
-    const fallbackTimeout = setTimeout(() => {
-      if (isMounted && loadingRef.current) {
-        console.warn('Auth loading timeout - forcing loading to false');
-        updateLoading(false);
+    // Get initial session - this will trigger INITIAL_SESSION event
+    supabase.auth.getSession().then(({ data: { session: initialSession }, error: sessionError }) => {
+      if (!isMounted) return;
+      
+      if (sessionError) {
+        console.error('Error getting session:', sessionError);
+        setError('Erro ao verificar sessão');
+        setLoading(false);
+        return;
       }
-    }, 8000);
+      
+      // If no session exists, onAuthStateChange might not fire, so handle it here
+      if (!initialSession) {
+        setLoading(false);
+      }
+      // If session exists, onAuthStateChange will handle it
+    });
 
     return () => {
       isMounted = false;
-      subscriptionRef?.unsubscribe();
-      clearTimeout(fallbackTimeout);
+      subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      updateLoading(true);
+      setLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
-        updateLoading(false);
+        setLoading(false);
         return { error };
       }
       
-      // If login successful, fetch profile immediately
-      if (data.user) {
-        setSession(data.session);
-        setUser(data.user);
-        await fetchProfile(data.user.id);
-      }
-      
-      updateLoading(false);
+      // onAuthStateChange will handle the rest
       return { error: null };
     } catch (error) {
-      updateLoading(false);
+      setLoading(false);
       return { error: error as Error };
     }
   };
@@ -272,12 +239,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    updateLoading(true);
+    setLoading(true);
     await supabase.auth.signOut();
-    setProfile(null);
-    setUserRole(null);
-    setTeamHierarchy(null);
-    updateLoading(false);
+    // onAuthStateChange will handle clearing state
   };
 
   const hasAccess = (screen: string): boolean => {

@@ -3,7 +3,7 @@ import { Loader2, RefreshCw, AlertTriangle, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface LoadingFallbackProps {
-  /** Tempo em ms antes de mostrar opção de recarregar (default: 5000) */
+  /** Tempo em ms antes de mostrar opção de recarregar (default: 3000) */
   timeout?: number;
   /** Mensagem customizada de loading */
   message?: string;
@@ -18,7 +18,7 @@ interface LoadingFallbackProps {
 }
 
 export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
-  timeout = 5000,
+  timeout = 3000,
   message = 'Carregando...',
   error = null,
   onRetry,
@@ -121,7 +121,7 @@ export const LoadingFallback: React.FC<LoadingFallbackProps> = ({
         <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">{message}</p>
-          {elapsed >= 3000 && (
+          {elapsed >= 2000 && (
             <p className="text-xs text-muted-foreground/70 animate-fade-in">
               Aguarde um momento...
             </p>
