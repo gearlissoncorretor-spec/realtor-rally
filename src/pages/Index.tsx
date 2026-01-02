@@ -213,7 +213,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 }
 
 const Index = () => {
-  const { brokers, sales, brokersLoading, salesLoading } = useData();
+  const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
 
@@ -227,6 +227,32 @@ const Index = () => {
   } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear);
 
   const isInitialLoading = (brokersLoading || salesLoading) && brokers.length === 0 && sales.length === 0;
+  const hasError = brokersError || salesError;
+
+  // Mostrar erro se houver problema ao carregar dados
+  if (hasError && !isInitialLoading) {
+    const errorMessage = brokersError?.message || salesError?.message || 'Erro ao carregar dados';
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
+              <Target className="h-8 w-8 text-destructive" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">Erro ao carregar dashboard</h2>
+            <p className="text-sm text-muted-foreground max-w-md">{errorMessage}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (isInitialLoading) {
     return (
