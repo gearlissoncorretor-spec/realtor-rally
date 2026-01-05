@@ -165,12 +165,17 @@ const Navigation = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {navItems.map(item => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
-            return <Link key={item.href} to={item.href} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200", isActive ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-accent")}>
-                  <Icon className="w-5 h-5" />
+            return <Link key={item.href} to={item.href} className={cn(
+              "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+              isActive 
+                ? "bg-primary/15 text-primary border border-primary/20 shadow-[0_0_15px_hsl(226_70%_55%/0.15)]" 
+                : "text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent"
+            )}>
+                  <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
                   {item.label}
                 </Link>;
           })}
@@ -212,12 +217,17 @@ const Navigation = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {navItems.map(item => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
-              return <Link key={item.href} to={item.href} onClick={() => setIsMobileOpen(false)} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200", isActive ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground hover:bg-accent")}>
-                      <Icon className="w-5 h-5" />
+              return <Link key={item.href} to={item.href} onClick={() => setIsMobileOpen(false)} className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                isActive 
+                  ? "bg-primary/15 text-primary border border-primary/20 shadow-[0_0_15px_hsl(226_70%_55%/0.15)]" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent"
+              )}>
+                      <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
                       {item.label}
                     </Link>;
             })}
