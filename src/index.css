@@ -2,130 +2,120 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Real Estate Dashboard Design System - Professional & Modern */
+/* Axis Design System - Deep Tech Premium */
 
 @layer base {
   :root {
-    /* Light Mode (default) */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    /* Light Mode */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 98%;
+    /* Primary - Slate Blue #3b82f6 */
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary-foreground: 222 47% 11%;
 
     --muted: 210 40% 96%;
-    --muted-foreground: 240 3.7% 35%;
+    --muted-foreground: 215 16% 47%;
 
     --accent: 210 40% 96%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
-    /* Success & Status Colors */
+    /* Success & Status */
     --success: 142 71% 45%;
-    --success-foreground: 355.7 100% 97.3%;
-    --warning: 32 95% 44%;
-    --warning-foreground: 355.7 100% 97.3%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
     --info: 199 89% 48%;
-    --info-foreground: 355.7 100% 97.3%;
-
-    /* Real Estate Specific Colors */
-    --property-primary: 221 83% 53%;
-    --property-secondary: 142 71% 45%;
-    --property-accent: 32 95% 44%;
+    --info-foreground: 210 40% 98%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 63%));
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-card: linear-gradient(135deg, hsl(240 10% 3.9%), hsl(240 3.7% 15.9%));
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%), hsl(199 89% 48%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 48%));
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(240 3.7% 15.9% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(240 3.7% 15.9% / 0.1), 0 2px 4px -1px hsl(240 3.7% 15.9% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(240 3.7% 15.9% / 0.1), 0 4px 6px -2px hsl(240 3.7% 15.9% / 0.05);
-    --shadow-glow: 0 0 20px hsl(221 83% 53% / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1);
+    --shadow-glow: 0 0 20px hsl(217 91% 60% / 0.3);
 
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar Light */
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   .dark {
-    /* Premium Dark Mode - Navy Dark / Anthracite */
+    /* Deep Tech Dark - Navy Dark #0f172a */
     --background: 222 47% 5%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 7%;
+    /* Cards - #1e293b with subtle borders */
+    --card: 217 33% 17%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 7%;
+    --popover: 217 33% 17%;
     --popover-foreground: 210 40% 98%;
 
-    /* Primary - Slate Blue / Indigo Profundo */
-    --primary: 226 70% 55%;
+    /* Primary - Slate Blue #3b82f6 */
+    --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 222 47% 11%;
+    --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 222 47% 11%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 222 47% 14%;
+    --accent: 215 28% 23%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 222 30% 14%;
-    --input: 222 30% 14%;
-    --ring: 226 70% 55%;
+    /* Border - #334155 */
+    --border: 215 25% 27%;
+    --input: 215 25% 27%;
+    --ring: 217 91% 60%;
 
-    /* Sidebar Premium */
+    /* Sidebar Deep Tech */
     --sidebar-background: 222 47% 6%;
     --sidebar-foreground: 215 20% 75%;
-    --sidebar-primary: 226 70% 55%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 222 47% 12%;
+    --sidebar-accent: 217 33% 17%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 30% 12%;
-    --sidebar-ring: 226 70% 55%;
+    --sidebar-border: 215 25% 20%;
+    --sidebar-ring: 217 91% 60%;
 
-    /* Gradients Premium */
-    --gradient-card: linear-gradient(145deg, hsl(222 47% 8%), hsl(222 47% 6%));
-    --gradient-hero: linear-gradient(135deg, hsl(226 70% 45%), hsl(226 70% 35%));
-    --shadow-glow: 0 0 25px hsl(226 70% 55% / 0.25);
+    /* Gradients Deep Tech */
+    --gradient-card: linear-gradient(145deg, hsl(217 33% 17%), hsl(222 47% 11%));
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 50%), hsl(217 91% 40%));
+    --shadow-glow: 0 0 25px hsl(217 91% 60% / 0.25);
   }
 }
 
@@ -136,7 +126,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
   /* Accessibility improvements */

@@ -235,7 +235,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+        <main className="lg:ml-72 pt-16 lg:pt-0 p-5 lg:p-8">
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
             <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
               <Target className="h-8 w-8 text-destructive" />
@@ -258,7 +258,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+        <main className="lg:ml-72 pt-16 lg:pt-0 p-5 lg:p-8">
           <DashboardSkeleton />
         </main>
       </div>
@@ -270,31 +270,26 @@ const Index = () => {
       <Navigation />
       
       {/* Main Content */}
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-5 lg:p-8 min-h-screen">
         
-        {/* Hero Section - Premium Header (Reduced Height) */}
-        <div className="relative h-[140px] sm:h-[160px] md:h-[180px] rounded-2xl mb-6 overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/80 flex items-center justify-center">
+        {/* Hero Section - Axis Branding (Compact) */}
+        <div className="relative h-[120px] sm:h-[140px] rounded-xl mb-8 overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center">
           
-          {/* Skyline Background - More subtle */}
-          <div 
-            className="absolute inset-x-0 bottom-0 h-16 opacity-5 blur-[2px] pointer-events-none"
-            style={{
-              backgroundImage: `url(${heroImage})`,
-              backgroundSize: "cover",
-              backgroundPosition: "bottom center"
-            }}
-          />
-          
-          {/* Subtle Glow Effect */}
-          <div className="absolute w-[300px] h-[150px] bg-white/5 rounded-full blur-[60px] pointer-events-none" />
+          {/* Subtle Background Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0" style={{
+              backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px)',
+              backgroundSize: '32px 32px'
+            }} />
+          </div>
           
           {/* Premium Glassmorphism Card */}
-          <div className="relative z-10 backdrop-blur-xl bg-white/[0.07] rounded-2xl px-8 sm:px-10 py-5 sm:py-6 text-center border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mb-1 animate-fade-in font-sans">
-              Dashboard Imobiliário
+          <div className="relative z-10 backdrop-blur-2xl bg-white/[0.08] rounded-xl px-10 py-5 text-center border border-white/[0.15] shadow-[0_8px_32px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mb-1">
+              Axis Dashboard
             </h1>
-            <p className="text-sm sm:text-base text-white/70 animate-fade-in font-sans" style={{ animationDelay: "0.15s" }}>
-              Gestão completa de vendas e performance
+            <p className="text-sm text-white/60 font-medium tracking-wide">
+              A evolução da gestão imobiliária
             </p>
           </div>
         </div>
@@ -308,15 +303,15 @@ const Index = () => {
         />
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-8">
           {kpiData.map((kpi) => (
             <KPICard key={kpi.title} {...kpi} className="animate-fade-in" />
           ))}
         </div>
 
         {/* Charts and Ranking */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
-          <div className="lg:col-span-2 space-y-4 md:space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-8">
+          <div className="lg:col-span-2 space-y-5 md:space-y-6">
             <LazyComponentLoader fallback={<ChartSkeleton height={350} />}>
               <DashboardChart
                 data={chartData}
@@ -334,7 +329,7 @@ const Index = () => {
             </LazyComponentLoader>
           </div>
           
-          <div className="space-y-4 md:space-y-6">
+          <div className="space-y-5 md:space-y-6">
             <RankingPodium brokers={brokerRankings} />
             <VGCPercentageCard sales={filteredSales} />
             <KPICard
@@ -348,7 +343,7 @@ const Index = () => {
         </div>
 
         {/* Charts Adicionais */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 mb-8">
           <LazyComponentLoader fallback={<ChartSkeleton height={300} />}>
             <PropertyTypeChart
               sales={filteredSales}
@@ -357,12 +352,12 @@ const Index = () => {
             />
           </LazyComponentLoader>
           
-          <div className="bg-gradient-card rounded-xl p-6 border border-border animate-fade-in">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="bg-card rounded-xl p-6 border border-border">
+            <div className="flex items-center gap-3 mb-5">
               <Users className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-foreground">Estatísticas Rápidas</h3>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Corretores Ativos</span>
                 <span className="text-2xl font-bold text-foreground">{quickStats.activeBrokers}</span>
