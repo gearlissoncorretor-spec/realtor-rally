@@ -88,9 +88,9 @@ export default {
         'glow': 'var(--shadow-glow)',
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "12px",
+        md: "10px",
+        sm: "8px",
       },
       keyframes: {
         "accordion-down": {

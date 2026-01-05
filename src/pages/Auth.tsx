@@ -114,33 +114,34 @@ const Auth = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4">
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-6">
       {/* Animated Background */}
       <AnimatedBackground />
       
       {/* Content */}
       <div className="relative z-10 w-full max-w-md animate-float-up">
-        {/* Logo and Title */}
-        <div className="text-center mb-8 space-y-4">
+        {/* Logo and Title - Axis Branding */}
+        <div className="text-center mb-10 space-y-5">
           {settings?.logo_icon_url ? (
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift overflow-hidden">
               <img 
                 src={settings.logo_icon_url} 
-                alt={settings.organization_name}
+                alt="Axis"
                 className="w-full h-full object-contain p-2"
               />
             </div>
           ) : (
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift">
-              <Building2 className="w-10 h-10 text-blue-400" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift border border-primary/20">
+              <span className="text-3xl font-extrabold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+                A
+              </span>
             </div>
           )}
-          <h1 className="text-4xl font-bold text-white tracking-tight flex items-center justify-center gap-3">
-            {settings?.organization_name || 'Gestão Senador Canedo'}
-            <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
+          <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
+            Axis
           </h1>
-          <p className="text-blue-200/80 text-sm font-medium">
-            {settings?.organization_tagline || 'Sistema Premium de Gestão Imobiliária'}
+          <p className="text-primary text-base font-medium tracking-wide">
+            A evolução da gestão imobiliária
           </p>
         </div>
 
@@ -303,9 +304,9 @@ const Auth = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-white/40 text-xs font-medium">
-            © 2024 {settings?.organization_name || 'Gestão Senador Canedo'}. Todos os direitos reservados.
+        <div className="text-center mt-8">
+          <p className="text-muted-foreground text-xs font-medium">
+            © 2025 Axis. Todos os direitos reservados.
           </p>
         </div>
       </div>
