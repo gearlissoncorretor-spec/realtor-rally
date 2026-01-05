@@ -272,12 +272,12 @@ const Index = () => {
       {/* Main Content */}
       <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
         
-        {/* Hero Section - Premium Header */}
-        <div className="relative h-[200px] sm:h-[220px] md:h-[240px] rounded-b-[40px] mb-6 md:mb-8 overflow-hidden bg-gradient-to-br from-[#0A84FF] via-[#0066FF] to-[#0048D9] flex items-center justify-center">
+        {/* Hero Section - Premium Header (Reduced Height) */}
+        <div className="relative h-[140px] sm:h-[160px] md:h-[180px] rounded-2xl mb-6 overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/80 flex items-center justify-center">
           
-          {/* Skyline Background */}
+          {/* Skyline Background - More subtle */}
           <div 
-            className="absolute inset-x-0 bottom-0 h-24 opacity-10 blur-[1px] pointer-events-none"
+            className="absolute inset-x-0 bottom-0 h-16 opacity-5 blur-[2px] pointer-events-none"
             style={{
               backgroundImage: `url(${heroImage})`,
               backgroundSize: "cover",
@@ -285,21 +285,18 @@ const Index = () => {
             }}
           />
           
-          {/* Glow Effect */}
-          <div className="absolute w-[200px] h-[200px] bg-white/10 rounded-full blur-[80px] pointer-events-none" />
+          {/* Subtle Glow Effect */}
+          <div className="absolute w-[300px] h-[150px] bg-white/5 rounded-full blur-[60px] pointer-events-none" />
           
-          {/* Glassmorphism Card */}
-          <div className="relative z-10 backdrop-blur-sm bg-white/5 rounded-2xl px-6 sm:px-8 py-4 sm:py-6 text-center border border-white/10">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-1 sm:mb-2 animate-fade-in">
+          {/* Premium Glassmorphism Card */}
+          <div className="relative z-10 backdrop-blur-xl bg-white/[0.07] rounded-2xl px-8 sm:px-10 py-5 sm:py-6 text-center border border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mb-1 animate-fade-in font-sans">
               Dashboard Imobiliário
             </h1>
-            <p className="text-base sm:text-lg text-white/80 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <p className="text-sm sm:text-base text-white/70 animate-fade-in font-sans" style={{ animationDelay: "0.15s" }}>
               Gestão completa de vendas e performance
             </p>
           </div>
-          
-          {/* Bottom gradient fade */}
-          <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
         </div>
 
         {/* Filtros de Período */}
