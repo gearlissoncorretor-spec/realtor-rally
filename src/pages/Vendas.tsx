@@ -465,8 +465,8 @@ const Vendas = () => {
         <div className="max-w-full">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 truncate">Gestão de Vendas</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">Controle completo de vendas e negociações</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2 truncate">Imóveis para Venda</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">Gestão completa de imóveis e vendas</p>
             </div>
             
             <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">

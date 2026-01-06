@@ -215,7 +215,7 @@ const Acompanhamento = () => {
       <Navigation />
       <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 flex-1 max-w-full overflow-hidden flex flex-col">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Acompanhamento de Vendas</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Status Vendas</h1>
           <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
             <DialogTrigger asChild>
               <Button>

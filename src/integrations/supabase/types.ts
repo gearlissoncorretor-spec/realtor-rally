@@ -53,6 +53,56 @@ export type Database = {
         }
         Relationships: []
       }
+      broker_activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          broker_id: string
+          client_name: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          observations: string | null
+          property_reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          broker_id: string
+          client_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observations?: string | null
+          property_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          broker_id?: string
+          client_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          observations?: string | null
+          property_reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broker_activities_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       broker_notes: {
         Row: {
           broker_id: string
@@ -481,6 +531,65 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      negotiations: {
+        Row: {
+          broker_id: string
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          negotiated_value: number
+          observations: string | null
+          property_address: string
+          property_type: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          broker_id: string
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          negotiated_value: number
+          observations?: string | null
+          property_address: string
+          property_type?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          broker_id?: string
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          negotiated_value?: number
+          observations?: string | null
+          property_address?: string
+          property_type?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negotiations_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
             referencedColumns: ["id"]
           },
         ]
