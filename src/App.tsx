@@ -18,6 +18,8 @@ import Metas from "@/pages/Metas";
 import X1 from "@/pages/X1";
 import DashboardEquipes from "@/pages/DashboardEquipes";
 import TarefasKanban from "@/pages/TarefasKanban";
+import Atividades from "@/pages/Atividades";
+import Negociacoes from "@/pages/Negociacoes";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -98,6 +100,16 @@ const App = () => (
               <Route path="/tarefas-kanban" element={
                 <ProtectedRoute>
                   <TarefasKanban />
+                </ProtectedRoute>
+              } />
+              <Route path="/atividades" element={
+                <ProtectedRoute>
+                  <Atividades />
+                </ProtectedRoute>
+              } />
+              <Route path="/negociacoes" element={
+                <ProtectedRoute>
+                  <Negociacoes />
                 </ProtectedRoute>
               } />
               <Route path="/configuracoes" element={

@@ -1,6 +1,21 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { LayoutGrid, Trophy, Home, Settings, TrendingUp, Users, Menu, X, Target, Columns3, Building2 } from "lucide-react";
+import { 
+  LayoutGrid, 
+  Trophy, 
+  Home, 
+  Settings, 
+  TrendingUp, 
+  Users, 
+  Menu, 
+  X, 
+  Target, 
+  Columns3, 
+  Building2,
+  ClipboardList,
+  Handshake,
+  DollarSign
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -35,14 +50,24 @@ const Navigation = () => {
     screen: "ranking"
   }, {
     href: "/vendas",
-    label: "Imóveis",
+    label: "Imóveis para Venda",
     icon: Home,
     screen: "vendas"
+  }, {
+    href: "/negociacoes",
+    label: "Negociações",
+    icon: Handshake,
+    screen: "negociacoes"
   }, {
     href: "/metas",
     label: "Metas",
     icon: Target,
     screen: "metas"
+  }, {
+    href: "/atividades",
+    label: "Atividades",
+    icon: ClipboardList,
+    screen: "atividades"
   }, {
     href: "/tarefas-kanban",
     label: "Tarefas",
@@ -50,8 +75,8 @@ const Navigation = () => {
     screen: "tarefas-kanban"
   }, {
     href: "/acompanhamento",
-    label: "Financeiro",
-    icon: TrendingUp,
+    label: "Status Vendas",
+    icon: DollarSign,
     screen: "acompanhamento"
   }, {
     href: "/relatorios",
@@ -88,9 +113,9 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'metas', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1'].includes(item.screen);
     } else if (userRole === 'corretor') {
-      return ['dashboard', 'vendas', 'metas', 'tarefas-kanban'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'tarefas-kanban'].includes(item.screen);
     }
     
     // Dashboard Equipes é para diretores e admins
