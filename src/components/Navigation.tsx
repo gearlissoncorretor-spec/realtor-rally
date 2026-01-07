@@ -50,7 +50,7 @@ const Navigation = () => {
     screen: "ranking"
   }, {
     href: "/vendas",
-    label: "Imóveis para Venda",
+    label: "Vendas",
     icon: Home,
     screen: "vendas"
   }, {
