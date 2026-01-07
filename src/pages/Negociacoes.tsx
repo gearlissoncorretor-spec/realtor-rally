@@ -8,7 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Progress } from "@/components/ui/progress";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { 
   Plus, 
   Edit, 
@@ -30,12 +37,11 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const NEGOTIATION_STATUS = [
-  { value: 'em_contato', label: 'Em Contato', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', step: 1 },
-  { value: 'proposta_enviada', label: 'Proposta Enviada', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', step: 2 },
-  { value: 'em_analise', label: 'Em Análise', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', step: 3 },
-  { value: 'aprovado', label: 'Aprovado', color: 'bg-green-500/10 text-green-500 border-green-500/20', step: 4 },
-  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-500/10 text-red-500 border-red-500/20', step: 0 },
-  { value: 'venda_concluida', label: 'Venda Concluída', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', step: 5 },
+  { value: 'em_contato', label: 'Em Contato', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+  { value: 'proposta_enviada', label: 'Proposta Enviada', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
+  { value: 'em_analise', label: 'Em Análise', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
+  { value: 'aprovado', label: 'Aprovado', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
 ];
 
 const PROPERTY_TYPES = [
@@ -47,7 +53,7 @@ const PROPERTY_TYPES = [
 ];
 
 const Negociacoes = () => {
-  const { user, isCorretor, isGerente, isDiretor, isAdmin } = useAuth();
+  const { user, isCorretor } = useAuth();
   const { negotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
   
@@ -56,6 +62,7 @@ const Negociacoes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [confirmSaleId, setConfirmSaleId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   
   // Form state
   const [formData, setFormData] = useState<CreateNegotiationInput>({
@@ -165,6 +172,16 @@ const Negociacoes = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteNegotiation(deleteId);
+      setDeleteId(null);
+    } catch (error) {
+      // Error handled by hook
+    }
+  };
+
   const getBrokerName = (brokerId: string) => {
     const broker = brokers.find(b => b.id === brokerId);
     return broker?.name || 'Não encontrado';
@@ -177,11 +194,6 @@ const Negociacoes = () => {
         {statusConfig?.label || status}
       </Badge>
     );
-  };
-
-  const getProgressStep = (status: string) => {
-    const statusConfig = NEGOTIATION_STATUS.find(s => s.value === status);
-    return statusConfig?.step || 0;
   };
 
   if (loading) {
@@ -231,7 +243,7 @@ const Negociacoes = () => {
                   {/* Corretor selector */}
                   {!isCorretor() && (
                     <div>
-                      <label className="text-sm font-medium">Corretor Responsável</label>
+                      <label className="text-sm font-medium">Corretor Responsável *</label>
                       <Select
                         value={formData.broker_id}
                         onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
@@ -340,7 +352,7 @@ const Negociacoes = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {NEGOTIATION_STATUS.filter(s => s.value !== 'venda_concluida').map((status) => (
+                          {NEGOTIATION_STATUS.map((status) => (
                             <SelectItem key={status.value} value={status.value}>
                               {status.label}
                             </SelectItem>
@@ -461,7 +473,7 @@ const Negociacoes = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os Status</SelectItem>
-                    {NEGOTIATION_STATUS.filter(s => s.value !== 'venda_concluida').map((status) => (
+                    {NEGOTIATION_STATUS.map((status) => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.label}
                       </SelectItem>
@@ -472,102 +484,102 @@ const Negociacoes = () => {
             </CardContent>
           </Card>
 
-          {/* Negotiations Grid */}
-          {filteredNegotiations.length === 0 ? (
-            <Card>
-              <CardContent className="py-12">
-                <div className="text-center text-muted-foreground">
-                  <Handshake className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Nenhuma negociação encontrada</p>
-                  <p className="text-sm mt-2">
+          {/* Negotiations Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Handshake className="w-5 h-5 text-primary" />
+                Lista de Negociações
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {filteredNegotiations.length === 0 ? (
+                <div className="text-center py-12">
+                  <Handshake className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                  <p className="text-muted-foreground">Nenhuma negociação encontrada</p>
+                  <p className="text-sm text-muted-foreground mt-2">
                     Clique em "Nova Negociação" para começar
                   </p>
                 </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredNegotiations.map((negotiation) => (
-                <Card key={negotiation.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">{negotiation.client_name}</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {getBrokerName(negotiation.broker_id)}
-                        </p>
-                      </div>
-                      {getStatusBadge(negotiation.status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Home className="w-4 h-4 text-muted-foreground" />
-                        <span className="truncate">{negotiation.property_address}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <DollarSign className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-semibold text-primary">
-                          {formatCurrency(negotiation.negotiated_value)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span>
-                          Início: {format(new Date(negotiation.start_date), "dd/MM/yyyy", { locale: ptBR })}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Progress indicator */}
-                    <div className="pt-2">
-                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                        <span>Progresso</span>
-                        <span>{getProgressStep(negotiation.status)}/4</span>
-                      </div>
-                      <Progress 
-                        value={(getProgressStep(negotiation.status) / 4) * 100} 
-                        className="h-2"
-                      />
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleEdit(negotiation)}
-                        className="flex-1"
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Editar
-                      </Button>
-                      {negotiation.status === 'aprovado' && (
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => setConfirmSaleId(negotiation.id)}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle2 className="w-4 h-4 mr-1" />
-                          Concluir Venda
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => deleteNegotiation(negotiation.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Imóvel</TableHead>
+                        <TableHead>Corretor</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredNegotiations.map((negotiation) => (
+                        <TableRow key={negotiation.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{negotiation.client_name}</p>
+                              {negotiation.client_phone && (
+                                <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-[200px]">
+                              <p className="truncate">{negotiation.property_address}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
+                          <TableCell className="font-semibold text-primary">
+                            {formatCurrency(negotiation.negotiated_value)}
+                          </TableCell>
+                          <TableCell>{getStatusBadge(negotiation.status)}</TableCell>
+                          <TableCell>
+                            {format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(negotiation)}
+                                title="Editar"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              {negotiation.status === 'aprovado' && (
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  onClick={() => setConfirmSaleId(negotiation.id)}
+                                  className="bg-green-600 hover:bg-green-700"
+                                  title="Concluir Venda"
+                                >
+                                  <CheckCircle2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => setDeleteId(negotiation.id)}
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -589,6 +601,28 @@ const Negociacoes = () => {
             >
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Confirmar Venda
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Negociação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta negociação? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
