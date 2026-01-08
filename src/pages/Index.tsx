@@ -3,9 +3,10 @@ import KPICard from "@/components/KPICard";
 import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
 import VGCPercentageCard from "@/components/VGCPercentageCard";
+import NegotiationAlert from "@/components/NegotiationAlert";
 import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
@@ -20,9 +21,12 @@ import heroImage from "@/assets/dashboard-hero.jpg";
  * Hook para centralizar cálculos de métricas do dashboard
  */
 function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number) {
-  // Filtro de vendas baseado no período
+  // Filtro de vendas baseado no período - EXCLUI DISTRATOS dos cálculos
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
+      // Excluir distratos dos cálculos do dashboard
+      if (sale.status === 'distrato') return false;
+      
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
 
@@ -216,6 +220,20 @@ const Index = () => {
   const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
+  const [showNegotiationAlert, setShowNegotiationAlert] = useState(true);
+
+  // Mostrar alerta apenas uma vez por sessão
+  useEffect(() => {
+    const alertDismissed = sessionStorage.getItem('negotiationAlertDismissed');
+    if (alertDismissed) {
+      setShowNegotiationAlert(false);
+    }
+  }, []);
+
+  const handleDismissAlert = () => {
+    setShowNegotiationAlert(false);
+    sessionStorage.setItem('negotiationAlertDismissed', 'true');
+  };
 
   const {
     filteredSales,
@@ -293,6 +311,13 @@ const Index = () => {
             </p>
           </div>
         </div>
+
+        {/* Alerta de Negociações */}
+        {showNegotiationAlert && (
+          <div className="mb-6">
+            <NegotiationAlert onClose={handleDismissAlert} />
+          </div>
+        )}
 
         {/* Filtros de Período */}
         <PeriodFilter

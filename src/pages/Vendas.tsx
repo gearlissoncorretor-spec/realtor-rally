@@ -87,6 +87,7 @@ const Vendas = () => {
           { value: 'pendente', label: 'Pendente' },
           { value: 'confirmada', label: 'Confirmada' },
           { value: 'cancelada', label: 'Cancelada' },
+          { value: 'distrato', label: 'Distrato' },
         ],
       },
       {
@@ -312,11 +313,12 @@ const Vendas = () => {
           variant={
             value === 'confirmada' ? 'default' :
             value === 'pendente' ? 'secondary' :
+            value === 'distrato' ? 'outline' :
             'destructive'
           }
-          className="capitalize"
+          className={`capitalize ${value === 'distrato' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : ''}`}
         >
-          {value}
+          {value === 'distrato' ? '⚠️ Distrato' : value}
         </Badge>
       ),
     },
