@@ -218,6 +218,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             meta_monthly: broker.meta_monthly,
             observations: broker.observations,
             status: broker.status || 'ativo',
+            created_by: user?.id, // Track who created the broker
           }),
         }
       );

@@ -21,7 +21,7 @@ const saleSchema = z.object({
   property_value: z.number().min(1, 'Valor do imóvel deve ser maior que 0'),
   vgv: z.number().optional(), // VGV é o valor total de vendas do empreendimento
   vgc: z.number().min(1, 'VGC deve ser maior que 0'),
-  status: z.enum(['pendente', 'confirmada', 'cancelada']),
+  status: z.enum(['pendente', 'confirmada', 'cancelada', 'distrato']),
   notes: z.string().optional(),
   commission_value: z.number().optional(),
   sale_type: z.enum(['lancamento', 'revenda']),

@@ -211,6 +211,7 @@ export type Database = {
           commission_rate: number | null
           cpf: string | null
           created_at: string | null
+          created_by: string | null
           creci: string | null
           email: string
           hire_date: string | null
@@ -230,6 +231,7 @@ export type Database = {
           commission_rate?: number | null
           cpf?: string | null
           created_at?: string | null
+          created_by?: string | null
           creci?: string | null
           email: string
           hire_date?: string | null
@@ -249,6 +251,7 @@ export type Database = {
           commission_rate?: number | null
           cpf?: string | null
           created_at?: string | null
+          created_by?: string | null
           creci?: string | null
           email?: string
           hire_date?: string | null
@@ -1125,7 +1128,7 @@ export type Database = {
       app_role: "admin" | "diretor" | "gerente" | "corretor" | "user"
       broker_status: "ativo" | "inativo" | "ferias"
       property_type: "apartamento" | "casa" | "terreno" | "comercial" | "rural"
-      sale_status: "pendente" | "confirmada" | "cancelada"
+      sale_status: "pendente" | "confirmada" | "cancelada" | "distrato"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1256,7 +1259,7 @@ export const Constants = {
       app_role: ["admin", "diretor", "gerente", "corretor", "user"],
       broker_status: ["ativo", "inativo", "ferias"],
       property_type: ["apartamento", "casa", "terreno", "comercial", "rural"],
-      sale_status: ["pendente", "confirmada", "cancelada"],
+      sale_status: ["pendente", "confirmada", "cancelada", "distrato"],
     },
   },
 } as const

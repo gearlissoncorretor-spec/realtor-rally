@@ -69,9 +69,11 @@ serve(async (req) => {
       avatar_url,
       meta_monthly,
       observations,
-      status
+      status,
+      created_by: providedCreatedBy
     } = body
     const resolvedName = (full_name || name || '').toString().trim()
+    const createdByUserId = providedCreatedBy || user.id // Use provided or current user
     console.log('Creating user:', { email, role, team_id, allowed_screens })
 
     // Validate required fields
@@ -279,7 +281,8 @@ serve(async (req) => {
             meta_monthly: meta_monthly || 0,
             observations: observations || null,
             status: status || 'ativo',
-            team_id: team_id || null
+            team_id: team_id || null,
+            created_by: createdByUserId // Track who created the broker
           })
 
         if (brokerInsertError) {
