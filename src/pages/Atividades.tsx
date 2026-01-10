@@ -56,7 +56,7 @@ const DEFAULT_TASKS: Omit<WeeklyTask, 'id'>[] = [
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
 const Atividades = () => {
-  const { user, isCorretor, isGerente, isDiretor, isAdmin } = useAuth();
+  const { user, profile, isCorretor, isGerente, isDiretor, isAdmin } = useAuth();
   const { brokers, loading: brokersLoading } = useBrokers();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
@@ -65,24 +65,28 @@ const Atividades = () => {
   const [editValue, setEditValue] = useState<string>("");
   const [savingTasks, setSavingTasks] = useState<Record<string, boolean>>({});
 
-  // Get current user's broker ID
+  // Get current user's broker record (if they are a broker)
   const currentBroker = brokers.find(b => b.user_id === user?.id);
+  
+  // Get the user's team_id - either from profile (for managers) or from broker record
+  const userTeamId = profile?.team_id || currentBroker?.team_id;
   
   // Filter brokers based on role
   const accessibleBrokers = useMemo(() => {
     if (isDiretor() || isAdmin()) {
+      // Directors and admins see all brokers
       return brokers;
     }
-    if (isGerente()) {
-      // Managers see their team brokers
-      return brokers.filter(b => b.team_id === currentBroker?.team_id);
+    if (isGerente() && userTeamId) {
+      // Managers see brokers from their team
+      return brokers.filter(b => b.team_id === userTeamId);
     }
     if (isCorretor() && currentBroker) {
       // Corretores only see themselves
       return [currentBroker];
     }
     return [];
-  }, [brokers, currentBroker, isCorretor, isGerente, isDiretor, isAdmin]);
+  }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin]);
 
   // Initialize selected broker
   React.useEffect(() => {
