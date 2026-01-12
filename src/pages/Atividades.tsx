@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,16 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   Plus, 
   Trash2,
@@ -22,48 +32,37 @@ import {
   ClipboardList,
   Building2,
   Loader2,
-  Save,
   Check,
-  X
+  X,
+  PlusCircle,
+  Pencil,
+  MinusCircle
 } from "lucide-react";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-
-// Weekly activity task structure
-interface WeeklyTask {
-  id: string;
-  name: string;
-  meta: number;
-  realizado: number;
-  category: 'captacao' | 'atendimento' | 'ligacao' | 'visita' | 'outro';
-}
-
-// State for each broker's activities
-interface BrokerWeeklyData {
-  brokerId: string;
-  tasks: WeeklyTask[];
-}
-
-// Default task templates
-const DEFAULT_TASKS: Omit<WeeklyTask, 'id'>[] = [
-  { name: 'Captação de Imóveis', meta: 10, realizado: 0, category: 'captacao' },
-  { name: 'Atendimento ao Cliente', meta: 20, realizado: 0, category: 'atendimento' },
-  { name: 'Ligações Realizadas', meta: 30, realizado: 0, category: 'ligacao' },
-  { name: 'Visitas Agendadas', meta: 15, realizado: 0, category: 'visita' },
-];
-
-const generateId = () => Math.random().toString(36).substring(2, 9);
+import { useWeeklyActivities } from "@/hooks/useWeeklyActivities";
+import { format, startOfWeek, endOfWeek } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const Atividades = () => {
   const { user, profile, isCorretor, isGerente, isDiretor, isAdmin } = useAuth();
   const { brokers, loading: brokersLoading } = useBrokers();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
-  const [brokerData, setBrokerData] = useState<Record<string, WeeklyTask[]>>({});
-  const [editingCell, setEditingCell] = useState<{ taskId: string; field: 'name' | 'meta' | 'realizado' } | null>(null);
+  const [editingCell, setEditingCell] = useState<{ taskId: string; field: 'task_name' | 'meta_semanal' | 'realizado' } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
-  const [savingTasks, setSavingTasks] = useState<Record<string, boolean>>({});
+  const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
+
+  const { 
+    activities, 
+    loading: activitiesLoading,
+    createActivity,
+    createDefaultTasks,
+    updateActivity,
+    incrementRealizado,
+    deleteActivity,
+    currentWeekStart
+  } = useWeeklyActivities(selectedBrokerId);
 
   // Get current user's broker record (if they are a broker)
   const currentBroker = brokers.find(b => b.user_id === user?.id);
@@ -74,41 +73,40 @@ const Atividades = () => {
   // Filter brokers based on role
   const accessibleBrokers = useMemo(() => {
     if (isDiretor() || isAdmin()) {
-      // Directors and admins see all brokers
       return brokers;
     }
     if (isGerente() && userTeamId) {
-      // Managers see brokers from their team
       return brokers.filter(b => b.team_id === userTeamId);
     }
     if (isCorretor() && currentBroker) {
-      // Corretores only see themselves
       return [currentBroker];
     }
     return [];
   }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin]);
 
   // Initialize selected broker
-  React.useEffect(() => {
+  useEffect(() => {
     if (accessibleBrokers.length > 0 && !selectedBrokerId) {
       setSelectedBrokerId(accessibleBrokers[0].id);
     }
   }, [accessibleBrokers, selectedBrokerId]);
 
-  // Initialize broker data with default tasks
-  React.useEffect(() => {
-    accessibleBrokers.forEach(broker => {
-      if (!brokerData[broker.id]) {
-        setBrokerData(prev => ({
-          ...prev,
-          [broker.id]: DEFAULT_TASKS.map(t => ({ ...t, id: generateId() }))
-        }));
-      }
-    });
-  }, [accessibleBrokers, brokerData]);
+  // Initialize default tasks if broker has none for this week
+  useEffect(() => {
+    if (selectedBrokerId && !activitiesLoading && activities.length === 0) {
+      createDefaultTasks(selectedBrokerId).catch(console.error);
+    }
+  }, [selectedBrokerId, activitiesLoading, activities.length, createDefaultTasks]);
+
+  // Format week range
+  const weekRange = useMemo(() => {
+    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const end = endOfWeek(new Date(), { weekStartsOn: 1 });
+    return `${format(start, "dd/MM", { locale: ptBR })} - ${format(end, "dd/MM", { locale: ptBR })}`;
+  }, []);
 
   // Get current broker's tasks
-  const currentTasks = brokerData[selectedBrokerId] || [];
+  const currentTasks = activities;
 
   // Calculate summary for current broker
   const summary = useMemo(() => {
@@ -128,59 +126,70 @@ const Atividades = () => {
     return { captacoes, atendimentos, ligacoes, visitas };
   }, [currentTasks]);
 
-  const handleAddTask = () => {
-    const newTask: WeeklyTask = {
-      id: generateId(),
-      name: 'Nova Tarefa',
-      meta: 10,
-      realizado: 0,
-      category: 'outro'
-    };
-    setBrokerData(prev => ({
-      ...prev,
-      [selectedBrokerId]: [...(prev[selectedBrokerId] || []), newTask]
-    }));
-    toast.success("Nova tarefa adicionada!");
+  const handleAddTask = async () => {
+    if (!selectedBrokerId) return;
+    
+    try {
+      await createActivity({
+        broker_id: selectedBrokerId,
+        task_name: 'Nova Tarefa',
+        category: 'outro',
+        meta_semanal: 10,
+        realizado: 0,
+      });
+    } catch (error) {
+      console.error('Error creating task:', error);
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setBrokerData(prev => ({
-      ...prev,
-      [selectedBrokerId]: prev[selectedBrokerId]?.filter(t => t.id !== taskId) || []
-    }));
-    toast.success("Tarefa removida!");
+  const handleDeleteTask = async () => {
+    if (!deleteTaskId) return;
+    
+    try {
+      await deleteActivity(deleteTaskId);
+      setDeleteTaskId(null);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
-  const startEditing = (taskId: string, field: 'name' | 'meta' | 'realizado', currentValue: string | number) => {
+  const handleIncrement = async (taskId: string, currentValue: number) => {
+    try {
+      await incrementRealizado({ id: taskId, currentValue });
+    } catch (error) {
+      console.error('Error incrementing:', error);
+    }
+  };
+
+  const handleDecrement = async (taskId: string, currentValue: number) => {
+    if (currentValue <= 0) return;
+    try {
+      await updateActivity({ id: taskId, realizado: currentValue - 1 });
+    } catch (error) {
+      console.error('Error decrementing:', error);
+    }
+  };
+
+  const startEditing = (taskId: string, field: 'task_name' | 'meta_semanal' | 'realizado', currentValue: string | number) => {
     setEditingCell({ taskId, field });
     setEditValue(String(currentValue));
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editingCell) return;
     
     const { taskId, field } = editingCell;
-    setSavingTasks(prev => ({ ...prev, [taskId]: true }));
     
-    setBrokerData(prev => ({
-      ...prev,
-      [selectedBrokerId]: prev[selectedBrokerId]?.map(task => {
-        if (task.id === taskId) {
-          if (field === 'name') {
-            return { ...task, name: editValue };
-          } else {
-            const numValue = Math.max(0, parseInt(editValue) || 0);
-            return { ...task, [field]: numValue };
-          }
-        }
-        return task;
-      }) || []
-    }));
-    
-    setTimeout(() => {
-      setSavingTasks(prev => ({ ...prev, [taskId]: false }));
-      toast.success("Alteração salva!");
-    }, 300);
+    try {
+      if (field === 'task_name') {
+        await updateActivity({ id: taskId, task_name: editValue });
+      } else {
+        const numValue = Math.max(0, parseInt(editValue) || 0);
+        await updateActivity({ id: taskId, [field]: numValue });
+      }
+    } catch (error) {
+      console.error('Error saving edit:', error);
+    }
     
     setEditingCell(null);
     setEditValue("");
@@ -211,6 +220,8 @@ const Atividades = () => {
     return "bg-red-400";
   };
 
+  const selectedBroker = accessibleBrokers.find(b => b.id === selectedBrokerId);
+
   if (brokersLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -238,7 +249,7 @@ const Atividades = () => {
                 Gestão de Atividades Semanais
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
-                Acompanhe as metas e realizações semanais de cada corretor
+                Semana: <span className="font-semibold text-emerald-600">{weekRange}</span>
               </p>
             </div>
           </div>
@@ -333,270 +344,325 @@ const Atividades = () => {
                         className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-md w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        Adicionar Nova Tarefa
+                        Nova Tarefa
                       </Button>
                     </CardHeader>
                     <CardContent className="p-0 sm:p-6 sm:pt-0">
-                      {/* Mobile Card View */}
-                      <div className="block sm:hidden space-y-3 p-3">
-                        {currentTasks.map((task) => {
-                          const progress = getProgress(task.meta, task.realizado);
-                          const progressColor = getProgressColor(progress);
-                          
-                          return (
-                            <Card key={task.id} className="border border-emerald-200/50 dark:border-emerald-800/50">
-                              <CardContent className="p-4 space-y-4">
-                                {/* Task Name - Editable */}
-                                <div className="flex items-start justify-between">
-                                  {editingCell?.taskId === task.id && editingCell?.field === 'name' ? (
-                                    <div className="flex items-center gap-2 flex-1">
-                                      <Input
-                                        value={editValue}
-                                        onChange={(e) => setEditValue(e.target.value)}
-                                        onKeyDown={handleKeyDown}
-                                        className="h-9 text-base font-medium border-emerald-300 focus:ring-emerald-500"
-                                        autoFocus
-                                      />
-                                      <Button size="icon" variant="ghost" onClick={saveEdit} className="h-8 w-8 text-emerald-600">
-                                        <Check className="w-4 h-4" />
-                                      </Button>
-                                      <Button size="icon" variant="ghost" onClick={cancelEdit} className="h-8 w-8 text-red-500">
-                                        <X className="w-4 h-4" />
-                                      </Button>
-                                    </div>
-                                  ) : (
-                                    <p 
-                                      className="font-semibold text-foreground text-base cursor-pointer hover:text-emerald-600 transition-colors"
-                                      onClick={() => startEditing(task.id, 'name', task.name)}
-                                    >
-                                      {task.name}
-                                    </p>
-                                  )}
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                                
-                                {/* Meta and Realizado */}
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div>
-                                    <p className="text-xs text-muted-foreground mb-1">Meta Semanal</p>
-                                    {editingCell?.taskId === task.id && editingCell?.field === 'meta' ? (
-                                      <div className="flex items-center gap-1">
-                                        <Input
-                                          type="number"
-                                          value={editValue}
-                                          onChange={(e) => setEditValue(e.target.value)}
-                                          onKeyDown={handleKeyDown}
-                                          className="h-9 w-20 text-center border-emerald-300"
-                                          autoFocus
-                                        />
-                                        <Button size="icon" variant="ghost" onClick={saveEdit} className="h-7 w-7 text-emerald-600">
-                                          <Check className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                    ) : (
-                                      <p 
-                                        className="text-lg font-bold text-emerald-600 cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/30 px-2 py-1 rounded transition-colors inline-block"
-                                        onClick={() => startEditing(task.id, 'meta', task.meta)}
-                                      >
-                                        {task.meta}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-muted-foreground mb-1">Realizado</p>
-                                    {editingCell?.taskId === task.id && editingCell?.field === 'realizado' ? (
-                                      <div className="flex items-center gap-1">
-                                        <Input
-                                          type="number"
-                                          value={editValue}
-                                          onChange={(e) => setEditValue(e.target.value)}
-                                          onKeyDown={handleKeyDown}
-                                          className="h-9 w-20 text-center border-emerald-300"
-                                          autoFocus
-                                        />
-                                        <Button size="icon" variant="ghost" onClick={saveEdit} className="h-7 w-7 text-emerald-600">
-                                          <Check className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                    ) : (
-                                      <p 
-                                        className="text-lg font-bold text-foreground cursor-pointer hover:bg-emerald-100 dark:hover:bg-emerald-900/30 px-2 py-1 rounded transition-colors inline-block"
-                                        onClick={() => startEditing(task.id, 'realizado', task.realizado)}
-                                      >
-                                        {task.realizado}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                {/* Progress Bar */}
-                                <div>
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className="text-xs text-muted-foreground">Progresso</span>
-                                    <span className={`text-sm font-bold ${progress >= 100 ? 'text-emerald-600' : 'text-foreground'}`}>
-                                      {progress}%
-                                    </span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                                    <div
-                                      className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
-                                      style={{ width: `${Math.min(100, progress)}%` }}
-                                    />
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-
-                      {/* Desktop Table View */}
-                      <div className="hidden sm:block overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="border-emerald-200/50 dark:border-emerald-800/50">
-                              <TableHead className="font-semibold text-foreground">Tarefa</TableHead>
-                              <TableHead className="font-semibold text-foreground text-center w-32">Meta Semanal</TableHead>
-                              <TableHead className="font-semibold text-foreground text-center w-32">Realizado</TableHead>
-                              <TableHead className="font-semibold text-foreground w-64">Progresso</TableHead>
-                              <TableHead className="w-16"></TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
+                      {activitiesLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                        </div>
+                      ) : (
+                        <>
+                          {/* Mobile Card View */}
+                          <div className="block sm:hidden space-y-3 p-3">
                             {currentTasks.map((task) => {
-                              const progress = getProgress(task.meta, task.realizado);
+                              const progress = getProgress(task.meta_semanal, task.realizado);
                               const progressColor = getProgressColor(progress);
                               
                               return (
-                                <TableRow key={task.id} className="border-emerald-200/30 dark:border-emerald-800/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10">
-                                  {/* Task Name */}
-                                  <TableCell className="font-medium">
-                                    {editingCell?.taskId === task.id && editingCell?.field === 'name' ? (
-                                      <div className="flex items-center gap-2">
-                                        <Input
-                                          value={editValue}
-                                          onChange={(e) => setEditValue(e.target.value)}
-                                          onKeyDown={handleKeyDown}
-                                          className="h-9 border-emerald-300 focus:ring-emerald-500"
-                                          autoFocus
-                                        />
-                                        <Button size="icon" variant="ghost" onClick={saveEdit} className="h-8 w-8 text-emerald-600">
-                                          <Check className="w-4 h-4" />
-                                        </Button>
-                                        <Button size="icon" variant="ghost" onClick={cancelEdit} className="h-8 w-8 text-red-500">
-                                          <X className="w-4 h-4" />
-                                        </Button>
-                                      </div>
-                                    ) : (
-                                      <span 
-                                        className="cursor-pointer hover:text-emerald-600 transition-colors py-1 px-2 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
-                                        onClick={() => startEditing(task.id, 'name', task.name)}
+                                <Card key={task.id} className="border border-emerald-200/50 dark:border-emerald-800/50">
+                                  <CardContent className="p-4 space-y-4">
+                                    {/* Task Name - Editable */}
+                                    <div className="flex items-start justify-between gap-2">
+                                      {editingCell?.taskId === task.id && editingCell?.field === 'task_name' ? (
+                                        <div className="flex items-center gap-2 flex-1">
+                                          <Input
+                                            value={editValue}
+                                            onChange={(e) => setEditValue(e.target.value)}
+                                            onKeyDown={handleKeyDown}
+                                            className="h-9 text-base font-medium border-emerald-300 focus:ring-emerald-500"
+                                            autoFocus
+                                          />
+                                          <Button size="icon" variant="ghost" onClick={saveEdit} className="h-8 w-8 text-emerald-600 shrink-0">
+                                            <Check className="w-4 h-4" />
+                                          </Button>
+                                          <Button size="icon" variant="ghost" onClick={cancelEdit} className="h-8 w-8 text-red-500 shrink-0">
+                                            <X className="w-4 h-4" />
+                                          </Button>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-2 flex-1">
+                                          <p className="font-semibold text-foreground text-base">
+                                            {task.task_name}
+                                          </p>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => startEditing(task.id, 'task_name', task.task_name)}
+                                            className="h-7 w-7 text-muted-foreground hover:text-emerald-600"
+                                          >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                          </Button>
+                                        </div>
+                                      )}
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={() => setDeleteTaskId(task.id)}
+                                        className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 shrink-0"
                                       >
-                                        {task.name}
-                                      </span>
-                                    )}
-                                  </TableCell>
-                                  
-                                  {/* Meta */}
-                                  <TableCell className="text-center">
-                                    {editingCell?.taskId === task.id && editingCell?.field === 'meta' ? (
-                                      <div className="flex items-center justify-center gap-1">
-                                        <Input
-                                          type="number"
-                                          value={editValue}
-                                          onChange={(e) => setEditValue(e.target.value)}
-                                          onKeyDown={handleKeyDown}
-                                          className="h-9 w-20 text-center border-emerald-300"
-                                          autoFocus
-                                        />
-                                        <Button size="icon" variant="ghost" onClick={saveEdit} className="h-7 w-7 text-emerald-600">
-                                          <Check className="w-3 h-3" />
-                                        </Button>
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                    
+                                    {/* Meta and Realizado */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Meta Semanal</p>
+                                        {editingCell?.taskId === task.id && editingCell?.field === 'meta_semanal' ? (
+                                          <div className="flex items-center gap-1">
+                                            <Input
+                                              type="number"
+                                              value={editValue}
+                                              onChange={(e) => setEditValue(e.target.value)}
+                                              onKeyDown={handleKeyDown}
+                                              className="h-9 w-20 text-center border-emerald-300"
+                                              autoFocus
+                                            />
+                                            <Button size="icon" variant="ghost" onClick={saveEdit} className="h-7 w-7 text-emerald-600">
+                                              <Check className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-1">
+                                            <p className="text-lg font-bold text-emerald-600">
+                                              {task.meta_semanal}
+                                            </p>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={() => startEditing(task.id, 'meta_semanal', task.meta_semanal)}
+                                              className="h-6 w-6 text-muted-foreground hover:text-emerald-600"
+                                            >
+                                              <Pencil className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        )}
                                       </div>
-                                    ) : (
-                                      <span 
-                                        className="cursor-pointer font-semibold text-emerald-600 py-1 px-3 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-                                        onClick={() => startEditing(task.id, 'meta', task.meta)}
-                                      >
-                                        {task.meta}
-                                      </span>
-                                    )}
-                                  </TableCell>
-                                  
-                                  {/* Realizado */}
-                                  <TableCell className="text-center">
-                                    {editingCell?.taskId === task.id && editingCell?.field === 'realizado' ? (
-                                      <div className="flex items-center justify-center gap-1">
-                                        <Input
-                                          type="number"
-                                          value={editValue}
-                                          onChange={(e) => setEditValue(e.target.value)}
-                                          onKeyDown={handleKeyDown}
-                                          className="h-9 w-20 text-center border-emerald-300"
-                                          autoFocus
-                                        />
-                                        <Button size="icon" variant="ghost" onClick={saveEdit} className="h-7 w-7 text-emerald-600">
-                                          <Check className="w-3 h-3" />
-                                        </Button>
+                                      <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Realizado</p>
+                                        <div className="flex items-center gap-1">
+                                          <Button
+                                            size="icon"
+                                            variant="outline"
+                                            onClick={() => handleDecrement(task.id, task.realizado)}
+                                            disabled={task.realizado <= 0}
+                                            className="h-8 w-8 border-emerald-300 text-emerald-600 hover:bg-emerald-50"
+                                          >
+                                            <MinusCircle className="w-4 h-4" />
+                                          </Button>
+                                          <span className="text-lg font-bold text-foreground min-w-[2rem] text-center">
+                                            {task.realizado}
+                                          </span>
+                                          <Button
+                                            size="icon"
+                                            variant="default"
+                                            onClick={() => handleIncrement(task.id, task.realizado)}
+                                            className="h-8 w-8 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                          >
+                                            <PlusCircle className="w-4 h-4" />
+                                          </Button>
+                                        </div>
                                       </div>
-                                    ) : (
-                                      <span 
-                                        className="cursor-pointer font-semibold py-1 px-3 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-                                        onClick={() => startEditing(task.id, 'realizado', task.realizado)}
-                                      >
-                                        {task.realizado}
-                                      </span>
-                                    )}
-                                  </TableCell>
-                                  
-                                  {/* Progress */}
-                                  <TableCell>
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
+                                    </div>
+                                    
+                                    {/* Progress Bar */}
+                                    <div>
+                                      <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs text-muted-foreground">Progresso</span>
+                                        <span className={`text-sm font-bold ${progress >= 100 ? 'text-emerald-600' : 'text-foreground'}`}>
+                                          {progress}%
+                                        </span>
+                                      </div>
+                                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                                         <div
                                           className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
                                           style={{ width: `${Math.min(100, progress)}%` }}
                                         />
                                       </div>
-                                      <span className={`text-sm font-bold min-w-[45px] text-right ${progress >= 100 ? 'text-emerald-600' : 'text-foreground'}`}>
-                                        {progress}%
-                                      </span>
                                     </div>
-                                  </TableCell>
-                                  
-                                  {/* Actions */}
-                                  <TableCell>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      onClick={() => handleDeleteTask(task.id)}
-                                      className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
+                                  </CardContent>
+                                </Card>
                               );
                             })}
-                          </TableBody>
-                        </Table>
-                      </div>
+                          </div>
 
-                      {currentTasks.length === 0 && (
-                        <div className="text-center py-12 text-muted-foreground px-4">
-                          <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-400" />
-                          <p className="text-base">Nenhuma tarefa cadastrada</p>
-                          <p className="text-sm mt-2">
-                            Clique em "Adicionar Nova Tarefa" para começar
-                          </p>
-                        </div>
+                          {/* Desktop Table View */}
+                          <div className="hidden sm:block overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="border-emerald-200/50 dark:border-emerald-800/50">
+                                  <TableHead className="font-semibold text-foreground">Tarefa</TableHead>
+                                  <TableHead className="font-semibold text-foreground text-center w-36">Meta Semanal</TableHead>
+                                  <TableHead className="font-semibold text-foreground text-center w-48">Realizado</TableHead>
+                                  <TableHead className="font-semibold text-foreground w-64">Progresso</TableHead>
+                                  <TableHead className="w-16"></TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {currentTasks.map((task) => {
+                                  const progress = getProgress(task.meta_semanal, task.realizado);
+                                  const progressColor = getProgressColor(progress);
+                                  
+                                  return (
+                                    <TableRow key={task.id} className="border-emerald-200/30 dark:border-emerald-800/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10">
+                                      {/* Task Name */}
+                                      <TableCell className="font-medium">
+                                        {editingCell?.taskId === task.id && editingCell?.field === 'task_name' ? (
+                                          <div className="flex items-center gap-2">
+                                            <Input
+                                              value={editValue}
+                                              onChange={(e) => setEditValue(e.target.value)}
+                                              onKeyDown={handleKeyDown}
+                                              className="h-9 border-emerald-300 focus:ring-emerald-500"
+                                              autoFocus
+                                            />
+                                            <Button size="icon" variant="ghost" onClick={saveEdit} className="h-8 w-8 text-emerald-600">
+                                              <Check className="w-4 h-4" />
+                                            </Button>
+                                            <Button size="icon" variant="ghost" onClick={cancelEdit} className="h-8 w-8 text-red-500">
+                                              <X className="w-4 h-4" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-2">
+                                            <span>{task.task_name}</span>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={() => startEditing(task.id, 'task_name', task.task_name)}
+                                              className="h-7 w-7 text-muted-foreground hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                              <Pencil className="w-3.5 h-3.5" />
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </TableCell>
+                                      
+                                      {/* Meta */}
+                                      <TableCell className="text-center">
+                                        {editingCell?.taskId === task.id && editingCell?.field === 'meta_semanal' ? (
+                                          <div className="flex items-center justify-center gap-1">
+                                            <Input
+                                              type="number"
+                                              value={editValue}
+                                              onChange={(e) => setEditValue(e.target.value)}
+                                              onKeyDown={handleKeyDown}
+                                              className="h-9 w-20 text-center border-emerald-300"
+                                              autoFocus
+                                            />
+                                            <Button size="icon" variant="ghost" onClick={saveEdit} className="h-7 w-7 text-emerald-600">
+                                              <Check className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center justify-center gap-1">
+                                            <span className="font-semibold text-emerald-600">
+                                              {task.meta_semanal}
+                                            </span>
+                                            <Button
+                                              size="icon"
+                                              variant="ghost"
+                                              onClick={() => startEditing(task.id, 'meta_semanal', task.meta_semanal)}
+                                              className="h-6 w-6 text-muted-foreground hover:text-emerald-600"
+                                            >
+                                              <Pencil className="w-3 h-3" />
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </TableCell>
+                                      
+                                      {/* Realizado with +/- buttons */}
+                                      <TableCell>
+                                        <div className="flex items-center justify-center gap-2">
+                                          <Button
+                                            size="icon"
+                                            variant="outline"
+                                            onClick={() => handleDecrement(task.id, task.realizado)}
+                                            disabled={task.realizado <= 0}
+                                            className="h-8 w-8 border-emerald-300 text-emerald-600 hover:bg-emerald-50 disabled:opacity-50"
+                                          >
+                                            <MinusCircle className="w-4 h-4" />
+                                          </Button>
+                                          
+                                          {editingCell?.taskId === task.id && editingCell?.field === 'realizado' ? (
+                                            <div className="flex items-center gap-1">
+                                              <Input
+                                                type="number"
+                                                value={editValue}
+                                                onChange={(e) => setEditValue(e.target.value)}
+                                                onKeyDown={handleKeyDown}
+                                                className="h-9 w-16 text-center border-emerald-300"
+                                                autoFocus
+                                              />
+                                              <Button size="icon" variant="ghost" onClick={saveEdit} className="h-7 w-7 text-emerald-600">
+                                                <Check className="w-3 h-3" />
+                                              </Button>
+                                            </div>
+                                          ) : (
+                                            <span 
+                                              className="font-bold text-lg min-w-[3rem] text-center cursor-pointer hover:text-emerald-600 transition-colors"
+                                              onClick={() => startEditing(task.id, 'realizado', task.realizado)}
+                                            >
+                                              {task.realizado}
+                                            </span>
+                                          )}
+                                          
+                                          <Button
+                                            size="icon"
+                                            variant="default"
+                                            onClick={() => handleIncrement(task.id, task.realizado)}
+                                            className="h-8 w-8 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                          >
+                                            <PlusCircle className="w-4 h-4" />
+                                          </Button>
+                                        </div>
+                                      </TableCell>
+                                      
+                                      {/* Progress */}
+                                      <TableCell>
+                                        <div className="flex items-center gap-3">
+                                          <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
+                                            <div
+                                              className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
+                                              style={{ width: `${Math.min(100, progress)}%` }}
+                                            />
+                                          </div>
+                                          <span className={`text-sm font-bold min-w-[45px] text-right ${progress >= 100 ? 'text-emerald-600' : 'text-foreground'}`}>
+                                            {progress}%
+                                          </span>
+                                        </div>
+                                      </TableCell>
+                                      
+                                      {/* Actions */}
+                                      <TableCell>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          onClick={() => setDeleteTaskId(task.id)}
+                                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </div>
+
+                          {currentTasks.length === 0 && !activitiesLoading && (
+                            <div className="text-center py-12 text-muted-foreground px-4">
+                              <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-400" />
+                              <p className="text-base">Nenhuma tarefa cadastrada</p>
+                              <p className="text-sm mt-2">
+                                Clique em "Nova Tarefa" para começar
+                              </p>
+                            </div>
+                          )}
+                        </>
                       )}
                     </CardContent>
                   </Card>
@@ -613,6 +679,27 @@ const Atividades = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTaskId} onOpenChange={() => setDeleteTaskId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Tarefa</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTask}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

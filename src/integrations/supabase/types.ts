@@ -205,6 +205,53 @@ export type Database = {
           },
         ]
       }
+      broker_weekly_activities: {
+        Row: {
+          broker_id: string
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          meta_semanal: number
+          realizado: number
+          task_name: string
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          broker_id: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meta_semanal?: number
+          realizado?: number
+          task_name: string
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          broker_id?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meta_semanal?: number
+          realizado?: number
+          task_name?: string
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broker_weekly_activities_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brokers: {
         Row: {
           avatar_url: string | null
