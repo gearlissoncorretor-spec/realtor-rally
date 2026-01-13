@@ -35,16 +35,17 @@ const DEFAULT_TASKS = [
   { task_name: 'Visitas Agendadas', category: 'visita', meta_semanal: 15 },
 ];
 
-export const useWeeklyActivities = (brokerId?: string) => {
+export const useWeeklyActivities = (brokerId?: string, weekStart?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Get current week start (Monday)
+  // Get current week start (Monday) or use provided weekStart
   const currentWeekStart = useMemo(() => {
+    if (weekStart) return weekStart;
     const now = new Date();
     return format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-  }, []);
+  }, [weekStart]);
 
   const { data: activities = [], isLoading, error, refetch } = useQuery({
     queryKey: ['weekly_activities', brokerId, currentWeekStart],
