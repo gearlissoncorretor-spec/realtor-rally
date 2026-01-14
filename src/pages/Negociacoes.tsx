@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table,
   TableBody,
@@ -27,21 +28,27 @@ import {
   Home,
   Calendar,
   CheckCircle2,
-  ArrowRight
+  XCircle,
+  TrendingDown,
+  Percent
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
+import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SaleConversionDialog, SaleConversionData } from "@/components/negotiations/SaleConversionDialog";
+import { LossReasonDialog } from "@/components/negotiations/LossReasonDialog";
 
 const NEGOTIATION_STATUS = [
   { value: 'em_contato', label: 'Em Contato', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
   { value: 'proposta_enviada', label: 'Proposta Enviada', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
   { value: 'em_analise', label: 'Em Análise', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
   { value: 'aprovado', label: 'Aprovado', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
-  { value: 'cancelado', label: 'Cancelado', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
+  { value: 'perdida', label: 'Perdida', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-gray-500/10 text-gray-500 border-gray-500/20' },
 ];
 
 const PROPERTY_TYPES = [
@@ -54,15 +61,24 @@ const PROPERTY_TYPES = [
 
 const Negociacoes = () => {
   const { user, isCorretor } = useAuth();
-  const { negotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
+  const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
+  const { createSale } = useData();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingNegotiation, setEditingNegotiation] = useState<Negotiation | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [confirmSaleId, setConfirmSaleId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("active");
+  
+  // Sale conversion dialog state
+  const [saleConversionOpen, setSaleConversionOpen] = useState(false);
+  const [selectedForSale, setSelectedForSale] = useState<Negotiation | null>(null);
+  
+  // Loss reason dialog state
+  const [lossDialogOpen, setLossDialogOpen] = useState(false);
+  const [selectedForLoss, setSelectedForLoss] = useState<Negotiation | null>(null);
   
   // Form state
   const [formData, setFormData] = useState<CreateNegotiationInput>({
@@ -81,8 +97,9 @@ const Negociacoes = () => {
   // Get current user's broker ID
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
-  // Filter negotiations
+  // Filter negotiations (active tab)
   const filteredNegotiations = useMemo(() => {
+    const activeStatuses = ['em_contato', 'proposta_enviada', 'em_analise', 'aprovado'];
     return negotiations.filter(negotiation => {
       const matchesSearch = 
         negotiation.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,22 +107,43 @@ const Negociacoes = () => {
         negotiation.observations?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = filterStatus === 'all' || negotiation.status === filterStatus;
+      const isActive = activeStatuses.includes(negotiation.status);
       
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && isActive;
     });
   }, [negotiations, searchTerm, filterStatus]);
 
+  // Filter lost negotiations
+  const filteredLostNegotiations = useMemo(() => {
+    return lostNegotiations.filter(negotiation => {
+      const matchesSearch = 
+        negotiation.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        negotiation.property_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        negotiation.loss_reason?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return matchesSearch;
+    });
+  }, [lostNegotiations, searchTerm]);
+
   // Calculate stats
   const stats = useMemo(() => {
+    const allNegotiations = [...negotiations, ...lostNegotiations];
     const total = negotiations.length;
     const emContato = negotiations.filter(n => n.status === 'em_contato').length;
     const propostaEnviada = negotiations.filter(n => n.status === 'proposta_enviada').length;
     const emAnalise = negotiations.filter(n => n.status === 'em_analise').length;
     const aprovado = negotiations.filter(n => n.status === 'aprovado').length;
     const valorTotal = negotiations.reduce((sum, n) => sum + Number(n.negotiated_value), 0);
+    
+    // Lost stats
+    const perdidas = lostNegotiations.length;
+    const valorPerdido = lostNegotiations.reduce((sum, n) => sum + Number(n.negotiated_value), 0);
+    const taxaConversao = allNegotiations.length > 0 
+      ? ((allNegotiations.length - lostNegotiations.length) / allNegotiations.length * 100).toFixed(1)
+      : '0';
 
-    return { total, emContato, propostaEnviada, emAnalise, aprovado, valorTotal };
-  }, [negotiations]);
+    return { total, emContato, propostaEnviada, emAnalise, aprovado, valorTotal, perdidas, valorPerdido, taxaConversao };
+  }, [negotiations, lostNegotiations]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,15 +199,58 @@ const Negociacoes = () => {
     });
   };
 
-  const handleConcludeSale = async () => {
-    if (!confirmSaleId) return;
+  // Handle VENDA action
+  const handleOpenSaleConversion = (negotiation: Negotiation) => {
+    setSelectedForSale(negotiation);
+    setSaleConversionOpen(true);
+  };
+
+  const handleConfirmSale = async (data: SaleConversionData) => {
+    if (!selectedForSale) return;
+
+    // Create sale record
+    await createSale({
+      broker_id: selectedForSale.broker_id,
+      client_name: selectedForSale.client_name,
+      client_email: selectedForSale.client_email,
+      client_phone: selectedForSale.client_phone,
+      property_address: selectedForSale.property_address,
+      property_type: selectedForSale.property_type as 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural',
+      property_value: selectedForSale.negotiated_value,
+      vgv: data.vgv,
+      vgc: data.vgc,
+      sale_date: data.sale_date,
+      contract_date: data.contract_date,
+      status: 'confirmada',
+      notes: `Venda originada da negociação. ${data.notes || ''} ${selectedForSale.observations || ''}`.trim(),
+      vendedor: data.vendedor,
+      captador: data.captador,
+      gerente: data.gerente,
+      origem: data.origem,
+    });
+
+    // Update negotiation status to venda_concluida
+    await updateNegotiation({ id: selectedForSale.id, status: 'venda_concluida' });
     
-    try {
-      await updateNegotiation({ id: confirmSaleId, status: 'venda_concluida' });
-      setConfirmSaleId(null);
-    } catch (error) {
-      // Error handled by hook
-    }
+    setSelectedForSale(null);
+  };
+
+  // Handle PERDA action
+  const handleOpenLossDialog = (negotiation: Negotiation) => {
+    setSelectedForLoss(negotiation);
+    setLossDialogOpen(true);
+  };
+
+  const handleConfirmLoss = async (lossReason: string) => {
+    if (!selectedForLoss) return;
+
+    await updateNegotiation({ 
+      id: selectedForLoss.id, 
+      status: 'perdida',
+      loss_reason: lossReason 
+    });
+    
+    setSelectedForLoss(null);
   };
 
   const handleDelete = async () => {
@@ -352,7 +433,7 @@ const Negociacoes = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {NEGOTIATION_STATUS.map((status) => (
+                          {NEGOTIATION_STATUS.filter(s => !['perdida', 'cancelado'].includes(s.value)).map((status) => (
                             <SelectItem key={status.value} value={status.value}>
                               {status.label}
                             </SelectItem>
@@ -386,7 +467,7 @@ const Negociacoes = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -395,7 +476,7 @@ const Negociacoes = () => {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.total}</p>
-                    <p className="text-xs text-muted-foreground">Total</p>
+                    <p className="text-xs text-muted-foreground">Ativas</p>
                   </div>
                 </div>
               </CardContent>
@@ -442,12 +523,38 @@ const Negociacoes = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-red-500/10">
+                    <TrendingDown className="w-5 h-5 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.perdidas}</p>
+                    <p className="text-xs text-muted-foreground">Perdidas</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10">
+                    <Percent className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.taxaConversao}%</p>
+                    <p className="text-xs text-muted-foreground">Conversão</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-emerald-500/10">
                     <DollarSign className="w-5 h-5 text-emerald-500" />
                   </div>
                   <div>
                     <p className="text-lg font-bold">{formatCurrency(stats.valorTotal)}</p>
-                    <p className="text-xs text-muted-foreground">Valor Total</p>
+                    <p className="text-xs text-muted-foreground">Valor Ativo</p>
                   </div>
                 </div>
               </CardContent>
@@ -467,144 +574,250 @@ const Negociacoes = () => {
                     className="pl-10"
                   />
                 </div>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Status</SelectItem>
-                    {NEGOTIATION_STATUS.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        {status.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {activeTab === 'active' && (
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Status</SelectItem>
+                      {NEGOTIATION_STATUS.filter(s => !['perdida', 'cancelado'].includes(s.value)).map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Negotiations Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Handshake className="w-5 h-5 text-primary" />
-                Lista de Negociações
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {filteredNegotiations.length === 0 ? (
-                <div className="text-center py-12">
-                  <Handshake className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-                  <p className="text-muted-foreground">Nenhuma negociação encontrada</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Clique em "Nova Negociação" para começar
-                  </p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Imóvel</TableHead>
-                        <TableHead>Corretor</TableHead>
-                        <TableHead>Valor</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Data</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredNegotiations.map((negotiation) => (
-                        <TableRow key={negotiation.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{negotiation.client_name}</p>
-                              {negotiation.client_phone && (
-                                <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="max-w-[200px]">
-                              <p className="truncate">{negotiation.property_address}</p>
-                              <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
-                          <TableCell className="font-semibold text-primary">
-                            {formatCurrency(negotiation.negotiated_value)}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(negotiation.status)}</TableCell>
-                          <TableCell>
-                            {format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleEdit(negotiation)}
-                                title="Editar"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              {negotiation.status === 'aprovado' && (
-                                <Button
-                                  size="sm"
-                                  variant="default"
-                                  onClick={() => setConfirmSaleId(negotiation.id)}
-                                  className="bg-green-600 hover:bg-green-700"
-                                  title="Concluir Venda"
-                                >
-                                  <CheckCircle2 className="w-4 h-4" />
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() => setDeleteId(negotiation.id)}
-                                title="Excluir"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Tabs for Active/Lost Negotiations */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="active" className="gap-2">
+                <Handshake className="w-4 h-4" />
+                Em Andamento ({stats.total})
+              </TabsTrigger>
+              <TabsTrigger value="lost" className="gap-2">
+                <XCircle className="w-4 h-4" />
+                Perdidas ({stats.perdidas})
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Active Negotiations Tab */}
+            <TabsContent value="active">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Handshake className="w-5 h-5 text-primary" />
+                    Negociações em Andamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {filteredNegotiations.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Handshake className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                      <p className="text-muted-foreground">Nenhuma negociação encontrada</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Clique em "Nova Negociação" para começar
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Cliente</TableHead>
+                            <TableHead>Imóvel</TableHead>
+                            <TableHead>Corretor</TableHead>
+                            <TableHead>Valor</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Data</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredNegotiations.map((negotiation) => (
+                            <TableRow key={negotiation.id}>
+                              <TableCell>
+                                <div>
+                                  <p className="font-medium">{negotiation.client_name}</p>
+                                  {negotiation.client_phone && (
+                                    <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="max-w-[200px]">
+                                  <p className="truncate">{negotiation.property_address}</p>
+                                  <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
+                              <TableCell className="font-semibold text-primary">
+                                {formatCurrency(negotiation.negotiated_value)}
+                              </TableCell>
+                              <TableCell>{getStatusBadge(negotiation.status)}</TableCell>
+                              <TableCell>
+                                {format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex justify-end gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEdit(negotiation)}
+                                    title="Editar"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={() => handleOpenSaleConversion(negotiation)}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    title="Converter em Venda"
+                                  >
+                                    <DollarSign className="w-4 h-4" />
+                                    <span className="hidden sm:inline ml-1">VENDA</span>
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleOpenLossDialog(negotiation)}
+                                    title="Registrar Perda"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                    <span className="hidden sm:inline ml-1">PERDA</span>
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => setDeleteId(negotiation.id)}
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Lost Negotiations Tab */}
+            <TabsContent value="lost">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <XCircle className="w-5 h-5 text-destructive" />
+                    Negociações Perdidas
+                    <Badge variant="secondary" className="ml-2">
+                      {formatCurrency(stats.valorPerdido)} perdidos
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {filteredLostNegotiations.length === 0 ? (
+                    <div className="text-center py-12">
+                      <XCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                      <p className="text-muted-foreground">Nenhuma negociação perdida</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Isso é uma boa notícia! 🎉
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Cliente</TableHead>
+                            <TableHead>Imóvel</TableHead>
+                            <TableHead>Corretor</TableHead>
+                            <TableHead>Valor</TableHead>
+                            <TableHead>Motivo da Perda</TableHead>
+                            <TableHead>Data</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLostNegotiations.map((negotiation) => (
+                            <TableRow key={negotiation.id} className="opacity-75">
+                              <TableCell>
+                                <div>
+                                  <p className="font-medium">{negotiation.client_name}</p>
+                                  {negotiation.client_phone && (
+                                    <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="max-w-[200px]">
+                                  <p className="truncate">{negotiation.property_address}</p>
+                                  <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
+                                </div>
+                              </TableCell>
+                              <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
+                              <TableCell className="font-semibold text-muted-foreground line-through">
+                                {formatCurrency(negotiation.negotiated_value)}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
+                                  {negotiation.loss_reason || 'Não informado'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex justify-end gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => setDeleteId(negotiation.id)}
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
-      {/* Confirm Sale Dialog */}
-      <AlertDialog open={!!confirmSaleId} onOpenChange={() => setConfirmSaleId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Concluir Venda</AlertDialogTitle>
-            <AlertDialogDescription>
-              Ao confirmar, esta negociação será convertida em uma venda e movida automaticamente para a tela de Vendas.
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConcludeSale}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Confirmar Venda
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Sale Conversion Dialog */}
+      <SaleConversionDialog
+        open={saleConversionOpen}
+        onOpenChange={setSaleConversionOpen}
+        negotiation={selectedForSale}
+        onConfirm={handleConfirmSale}
+      />
+
+      {/* Loss Reason Dialog */}
+      <LossReasonDialog
+        open={lossDialogOpen}
+        onOpenChange={setLossDialogOpen}
+        negotiation={selectedForLoss}
+        onConfirm={handleConfirmLoss}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useData } from '@/contexts/DataContext';
 
 export interface Negotiation {
   id: string;
@@ -17,6 +16,7 @@ export interface Negotiation {
   status: string;
   start_date: string;
   observations: string | null;
+  loss_reason: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -35,20 +35,51 @@ export interface CreateNegotiationInput {
   observations?: string;
 }
 
+export interface UpdateNegotiationInput {
+  id: string;
+  broker_id?: string;
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  property_address?: string;
+  property_type?: string;
+  negotiated_value?: number;
+  status?: string;
+  start_date?: string;
+  observations?: string;
+  loss_reason?: string;
+}
+
 export const useNegotiations = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { createSale } = useData();
 
-  const { data: negotiations = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['negotiations'],
+  // Fetch active negotiations (excludes venda_concluida and perdida)
+  const { data: negotiations = [], isLoading: loadingActive, error: errorActive, refetch: refetchActive } = useQuery({
+    queryKey: ['negotiations', 'active'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('negotiations')
         .select('*')
-        .neq('status', 'venda_concluida') // Excluir negociações concluídas
+        .not('status', 'in', '("venda_concluida","perdida")')
         .order('start_date', { ascending: false });
+
+      if (error) throw error;
+      return data as Negotiation[];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch lost negotiations
+  const { data: lostNegotiations = [], isLoading: loadingLost, error: errorLost, refetch: refetchLost } = useQuery({
+    queryKey: ['negotiations', 'lost'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('negotiations')
+        .select('*')
+        .eq('status', 'perdida')
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       return data as Negotiation[];
@@ -87,40 +118,7 @@ export const useNegotiations = () => {
   });
 
   const updateNegotiationMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Negotiation> & { id: string }) => {
-      // Se o status for "venda_concluida", criar uma venda automaticamente
-      if (updates.status === 'venda_concluida') {
-        // Buscar a negociação atual
-        const { data: negotiation, error: fetchError } = await supabase
-          .from('negotiations')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (fetchError) throw fetchError;
-
-        // Criar a venda a partir da negociação
-        await createSale({
-          broker_id: negotiation.broker_id,
-          client_name: negotiation.client_name,
-          client_email: negotiation.client_email,
-          client_phone: negotiation.client_phone,
-          property_address: negotiation.property_address,
-          property_type: negotiation.property_type as 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural',
-          property_value: negotiation.negotiated_value,
-          vgv: negotiation.negotiated_value,
-          vgc: negotiation.negotiated_value * 0.06, // 6% de comissão padrão
-          sale_date: new Date().toISOString().split('T')[0],
-          status: 'confirmada',
-          notes: `Venda originada da negociação. ${negotiation.observations || ''}`,
-        });
-
-        toast({
-          title: 'Venda concluída!',
-          description: 'A negociação foi convertida em venda automaticamente.',
-        });
-      }
-
+    mutationFn: async ({ id, ...updates }: UpdateNegotiationInput) => {
       const { data, error } = await supabase
         .from('negotiations')
         .update(updates)
@@ -133,7 +131,18 @@ export const useNegotiations = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['negotiations'] });
-      if (variables.status !== 'venda_concluida') {
+      
+      if (variables.status === 'perdida') {
+        toast({
+          title: 'Negociação marcada como perdida',
+          description: 'A negociação foi movida para a aba de perdidas.',
+        });
+      } else if (variables.status === 'venda_concluida') {
+        toast({
+          title: 'Venda concluída!',
+          description: 'A negociação foi convertida em venda com sucesso.',
+        });
+      } else {
         toast({
           title: 'Negociação atualizada',
           description: 'A negociação foi atualizada com sucesso.',
@@ -194,13 +203,19 @@ export const useNegotiations = () => {
     };
   }, [user, queryClient]);
 
+  const refreshNegotiations = () => {
+    refetchActive();
+    refetchLost();
+  };
+
   return {
     negotiations,
-    loading: isLoading,
-    error,
+    lostNegotiations,
+    loading: loadingActive || loadingLost,
+    error: errorActive || errorLost,
     createNegotiation: createNegotiationMutation.mutateAsync,
     updateNegotiation: updateNegotiationMutation.mutateAsync,
     deleteNegotiation: deleteNegotiationMutation.mutateAsync,
-    refreshNegotiations: refetch,
+    refreshNegotiations,
   };
 };
