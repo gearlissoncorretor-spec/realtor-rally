@@ -594,6 +594,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          loss_reason: string | null
           negotiated_value: number
           observations: string | null
           property_address: string
@@ -610,6 +611,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          loss_reason?: string | null
           negotiated_value: number
           observations?: string | null
           property_address: string
@@ -626,6 +628,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          loss_reason?: string | null
           negotiated_value?: number
           observations?: string | null
           property_address?: string
