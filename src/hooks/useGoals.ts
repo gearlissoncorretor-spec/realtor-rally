@@ -43,10 +43,14 @@ export interface GoalTask {
 export const useGoals = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, profile, getUserRole } = useAuth();
 
   const fetchGoals = async () => {
     try {
+      setLoading(true);
+      
+      // RLS policies handle the filtering, so we just need to fetch
+      // Directors/admins see all, managers see their team's, brokers see their own
       const { data, error } = await supabase
         .from('goals')
         .select(`
@@ -71,6 +75,14 @@ export const useGoals = () => {
 
   const createGoal = async (goalData: Partial<Goal>) => {
     try {
+      const userRole = getUserRole();
+      
+      // For managers, automatically set team_id to their team if not specified
+      let teamId = goalData.team_id;
+      if (userRole === 'gerente' && !teamId && profile?.team_id) {
+        teamId = profile.team_id;
+      }
+
       const insertData = {
         title: goalData.title || '',
         description: goalData.description,
@@ -82,7 +94,7 @@ export const useGoals = () => {
         end_date: goalData.end_date || new Date().toISOString().split('T')[0],
         status: goalData.status || 'active',
         assigned_to: goalData.assigned_to,
-        team_id: goalData.team_id,
+        team_id: teamId,
         broker_id: goalData.broker_id,
         created_by: user?.id,
       };
@@ -171,8 +183,10 @@ export const useGoals = () => {
   };
 
   useEffect(() => {
-    fetchGoals();
-  }, []);
+    if (user) {
+      fetchGoals();
+    }
+  }, [user]);
 
   return {
     goals,
