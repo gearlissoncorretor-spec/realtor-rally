@@ -213,6 +213,7 @@ export type Database = {
           created_by: string | null
           id: string
           meta_semanal: number
+          period_type: string
           realizado: number
           task_name: string
           updated_at: string
@@ -225,6 +226,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           meta_semanal?: number
+          period_type?: string
           realizado?: number
           task_name: string
           updated_at?: string
@@ -237,6 +239,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           meta_semanal?: number
+          period_type?: string
           realizado?: number
           task_name?: string
           updated_at?: string
