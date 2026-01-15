@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { 
   Table, 
   TableBody, 
@@ -52,6 +53,7 @@ import {
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWeeklyActivities } from "@/hooks/useWeeklyActivities";
+import { CreateActivityDialog } from "@/components/activities/CreateActivityDialog";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -82,6 +84,7 @@ const Atividades = () => {
   const [editingCell, setEditingCell] = useState<{ taskId: string; field: 'task_name' | 'meta_semanal' | 'realizado' } | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const weekOptions = useMemo(() => getWeekOptions(), []);
 
@@ -184,19 +187,32 @@ const Atividades = () => {
     return Array.from(summaryMap.values());
   }, [currentTasks]);
 
-  const handleAddTask = async () => {
+  const handleAddTask = async (taskData: {
+    task_name: string;
+    category: string;
+    meta_semanal: number;
+    period_type: 'daily' | 'weekly' | 'monthly';
+  }) => {
     if (!selectedBrokerId) return;
     
-    try {
-      await createActivity({
-        broker_id: selectedBrokerId,
-        task_name: 'Nova Tarefa',
-        category: 'outro',
-        meta_semanal: 10,
-        realizado: 0,
-      });
-    } catch (error) {
-      console.error('Error creating task:', error);
+    await createActivity({
+      broker_id: selectedBrokerId,
+      task_name: taskData.task_name,
+      category: taskData.category,
+      meta_semanal: taskData.meta_semanal,
+      realizado: 0,
+      period_type: taskData.period_type,
+    });
+  };
+
+  const getPeriodBadge = (periodType: string) => {
+    switch (periodType) {
+      case 'daily':
+        return <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">Diária</Badge>;
+      case 'monthly':
+        return <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">Mensal</Badge>;
+      default:
+        return <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">Semanal</Badge>;
     }
   };
 
@@ -427,7 +443,7 @@ const Atividades = () => {
                         Atividades de {broker.name}
                       </CardTitle>
                       <Button 
-                        onClick={handleAddTask}
+                        onClick={() => setCreateDialogOpen(true)}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-md w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -787,6 +803,13 @@ const Atividades = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Activity Dialog */}
+      <CreateActivityDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreate={handleAddTask}
+      />
     </div>
   );
 };

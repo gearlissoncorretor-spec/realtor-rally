@@ -13,6 +13,7 @@ export interface WeeklyActivity {
   meta_semanal: number;
   realizado: number;
   week_start: string;
+  period_type: 'daily' | 'weekly' | 'monthly';
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -25,14 +26,15 @@ export interface CreateWeeklyActivityInput {
   meta_semanal?: number;
   realizado?: number;
   week_start?: string;
+  period_type?: 'daily' | 'weekly' | 'monthly';
 }
 
 // Default tasks for new brokers
 const DEFAULT_TASKS = [
-  { task_name: 'Captação de Imóveis', category: 'captacao', meta_semanal: 10 },
-  { task_name: 'Atendimento ao Cliente', category: 'atendimento', meta_semanal: 20 },
-  { task_name: 'Ligações Realizadas', category: 'ligacao', meta_semanal: 30 },
-  { task_name: 'Visitas Agendadas', category: 'visita', meta_semanal: 15 },
+  { task_name: 'Captação de Imóveis', category: 'captacao', meta_semanal: 10, period_type: 'weekly' as const },
+  { task_name: 'Atendimento ao Cliente', category: 'atendimento', meta_semanal: 20, period_type: 'weekly' as const },
+  { task_name: 'Ligações Realizadas', category: 'ligacao', meta_semanal: 30, period_type: 'weekly' as const },
+  { task_name: 'Visitas Agendadas', category: 'visita', meta_semanal: 15, period_type: 'weekly' as const },
 ];
 
 export const useWeeklyActivities = (brokerId?: string, weekStart?: string) => {
@@ -78,6 +80,7 @@ export const useWeeklyActivities = (brokerId?: string, weekStart?: string) => {
         meta_semanal: task.meta_semanal,
         realizado: 0,
         week_start: currentWeekStart,
+        period_type: task.period_type,
         created_by: user?.id,
       }));
 
