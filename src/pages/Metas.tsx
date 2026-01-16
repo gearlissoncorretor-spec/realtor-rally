@@ -128,9 +128,12 @@ const Metas = () => {
   const filteredGoals = useMemo(() => {
     if (!selectedBrokerId) return [];
     
+    const selectedBrokerData = accessibleBrokers.find(b => b.id === selectedBrokerId);
+    
     return goals.filter(goal => {
-      // Filter by broker
-      const matchesBroker = goal.broker_id === selectedBrokerId;
+      // Filter by broker (direct assignment or team assignment without specific broker)
+      const matchesBroker = goal.broker_id === selectedBrokerId || 
+        (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id);
       
       // Filter by period (goals that overlap with selected month)
       const monthStart = startOfMonth(selectedMonth);
@@ -142,7 +145,7 @@ const Metas = () => {
       
       return matchesBroker && overlapsMonth;
     });
-  }, [goals, selectedBrokerId, selectedMonth]);
+  }, [goals, selectedBrokerId, selectedMonth, accessibleBrokers]);
 
   // Calculate summary stats
   const stats = useMemo(() => {
@@ -617,6 +620,7 @@ const Metas = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onCreate={createGoal}
+        preSelectedBrokerId={selectedBrokerId}
       />
       
       {/* Goal Details Dialog */}
