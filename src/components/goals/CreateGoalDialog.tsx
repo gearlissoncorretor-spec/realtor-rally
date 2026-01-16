@@ -20,12 +20,14 @@ interface CreateGoalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (goal: Partial<Goal>) => Promise<Goal>;
+  preSelectedBrokerId?: string;
 }
 
 export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
   open,
   onOpenChange,
   onCreate,
+  preSelectedBrokerId = '',
 }) => {
   const { brokers } = useData();
   const { teams } = useTeams();
@@ -41,15 +43,41 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     end_date: new Date(),
     assigned_to: '',
     team_id: '',
-    broker_id: '',
+    broker_id: preSelectedBrokerId,
   });
+
+  // Update broker_id when preSelectedBrokerId changes
+  React.useEffect(() => {
+    if (preSelectedBrokerId && open) {
+      setFormData(prev => ({ ...prev, broker_id: preSelectedBrokerId }));
+    }
+  }, [preSelectedBrokerId, open]);
 
   const userRole = getUserRole();
   const isDirector = userRole === 'diretor';
 
+  const [brokerError, setBrokerError] = useState(false);
+  const [dateError, setDateError] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setBrokerError(false);
+    setDateError(false);
+
+    // Validation
     if (!formData.title || !formData.target_value) return;
+    
+    // Validate broker is selected
+    if (!formData.broker_id || formData.broker_id === 'all') {
+      setBrokerError(true);
+      return;
+    }
+
+    // Validate end_date >= start_date
+    if (formData.end_date < formData.start_date) {
+      setDateError(true);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -64,7 +92,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
         end_date: formData.end_date.toISOString().split('T')[0],
         assigned_to: formData.assigned_to || undefined,
         team_id: (formData.team_id && formData.team_id !== 'all') ? formData.team_id : undefined,
-        broker_id: (formData.broker_id && formData.broker_id !== 'all') ? formData.broker_id : undefined,
+        broker_id: formData.broker_id,
       });
 
       // Reset form
@@ -215,7 +243,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal",
-                      !formData.end_date && "text-muted-foreground"
+                      !formData.end_date && "text-muted-foreground",
+                      dateError && "border-red-500 ring-red-500"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -230,12 +259,20 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   <Calendar
                     mode="single"
                     selected={formData.end_date}
-                    onSelect={(date) => date && setFormData(prev => ({ ...prev, end_date: date }))}
+                    onSelect={(date) => {
+                      if (date) {
+                        setFormData(prev => ({ ...prev, end_date: date }));
+                        setDateError(false);
+                      }
+                    }}
                     initialFocus
                     className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
+              {dateError && (
+                <p className="text-sm text-red-500 mt-1">Data de término deve ser após a data de início</p>
+              )}
             </div>
 
             {isDirector && (
@@ -263,18 +300,18 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
             )}
 
             <div>
-              <Label htmlFor="broker_id">Corretor Específico</Label>
+              <Label htmlFor="broker_id">Corretor *</Label>
               <Select 
                 value={formData.broker_id} 
-                onValueChange={(value) => 
-                  setFormData(prev => ({ ...prev, broker_id: value }))
-                }
+                onValueChange={(value) => {
+                  setFormData(prev => ({ ...prev, broker_id: value }));
+                  setBrokerError(false);
+                }}
               >
-                <SelectTrigger>
+                <SelectTrigger className={brokerError ? 'border-red-500 ring-red-500' : ''}>
                   <SelectValue placeholder="Selecionar corretor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os corretores</SelectItem>
                   {filteredBrokers.map(broker => (
                     <SelectItem key={broker.id} value={broker.id}>
                       {broker.name}
@@ -282,6 +319,9 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              {brokerError && (
+                <p className="text-sm text-red-500 mt-1">Selecione um corretor específico</p>
+              )}
             </div>
           </div>
 
