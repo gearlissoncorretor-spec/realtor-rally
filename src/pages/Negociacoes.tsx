@@ -552,8 +552,8 @@ const Negociacoes = () => {
                   <div className="p-2 rounded-lg bg-emerald-500/10">
                     <DollarSign className="w-5 h-5 text-emerald-500" />
                   </div>
-                  <div>
-                    <p className="text-lg font-bold">{formatCurrency(stats.valorTotal)}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm sm:text-base lg:text-lg font-bold truncate">{formatCurrency(stats.valorTotal)}</p>
                     <p className="text-xs text-muted-foreground">Valor Ativo</p>
                   </div>
                 </div>
