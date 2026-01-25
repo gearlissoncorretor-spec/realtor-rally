@@ -23,7 +23,7 @@ import { UserManagementHub } from "@/components/UserManagementHub";
 import TeamManager from "@/components/TeamManager";
 import TeamMemberManager from "@/components/TeamMemberManager";
 import BrandingSettings from "@/components/BrandingSettings";
-
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -154,7 +154,8 @@ const Configuracoes = () => {
             ))}
           </div>
 
-
+          {/* Notificações Push */}
+          <NotificationSettings />
           {/* Team Management - Only for Directors */}
           {isDiretor() && (
             <div className="mb-8">
