@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,12 +24,15 @@ import {
   Handshake,
   DollarSign,
   User,
-  Home,
   Calendar,
   CheckCircle2,
   XCircle,
   TrendingDown,
-  Percent
+  Percent,
+  Settings,
+  Star,
+  Clock,
+  Ban
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
@@ -41,15 +43,11 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SaleConversionDialog, SaleConversionData } from "@/components/negotiations/SaleConversionDialog";
 import { LossReasonDialog } from "@/components/negotiations/LossReasonDialog";
-
-const NEGOTIATION_STATUS = [
-  { value: 'em_contato', label: 'Em Contato', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  { value: 'proposta_enviada', label: 'Proposta Enviada', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
-  { value: 'em_analise', label: 'Em Análise', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
-  { value: 'aprovado', label: 'Aprovado', color: 'bg-green-500/10 text-green-500 border-green-500/20' },
-  { value: 'perdida', label: 'Perdida', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
-  { value: 'cancelado', label: 'Cancelado', color: 'bg-gray-500/10 text-gray-500 border-gray-500/20' },
-];
+import { ResponsiveStatCard } from "@/components/negotiations/ResponsiveStatCard";
+import { NegotiationStatusBadge } from "@/components/negotiations/NegotiationStatusBadge";
+import { StatusManagerDialog } from "@/components/negotiations/StatusManagerDialog";
+import { useNegotiationStatuses } from "@/hooks/useNegotiationStatuses";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const PROPERTY_TYPES = [
   { value: 'apartamento', label: 'Apartamento' },
@@ -63,7 +61,8 @@ const Negociacoes = () => {
   const { user, isCorretor } = useAuth();
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
-  const { createSale } = useData();
+  const { createSale, sales } = useData();
+  const { flowStatuses, getStatusByValue } = useNegotiationStatuses();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingNegotiation, setEditingNegotiation] = useState<Negotiation | null>(null);
@@ -71,6 +70,9 @@ const Negociacoes = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
+  
+  // Status manager dialog
+  const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   
   // Sale conversion dialog state
   const [saleConversionOpen, setSaleConversionOpen] = useState(false);
@@ -97,9 +99,17 @@ const Negociacoes = () => {
   // Get current user's broker ID
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
+  // Count sales converted from negotiations (based on notes containing "negociação")
+  const salesFromNegotiations = useMemo(() => {
+    return sales.filter(s => 
+      s.notes?.toLowerCase().includes('negociação') || 
+      s.notes?.toLowerCase().includes('negociacao')
+    ).length;
+  }, [sales]);
+
   // Filter negotiations (active tab)
   const filteredNegotiations = useMemo(() => {
-    const activeStatuses = ['em_contato', 'proposta_enviada', 'em_analise', 'aprovado'];
+    const terminalStatuses = ['perdida', 'venda_concluida'];
     return negotiations.filter(negotiation => {
       const matchesSearch = 
         negotiation.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,7 +117,7 @@ const Negociacoes = () => {
         negotiation.observations?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = filterStatus === 'all' || negotiation.status === filterStatus;
-      const isActive = activeStatuses.includes(negotiation.status);
+      const isActive = !terminalStatuses.includes(negotiation.status);
       
       return matchesSearch && matchesStatus && isActive;
     });
@@ -125,25 +135,47 @@ const Negociacoes = () => {
     });
   }, [lostNegotiations, searchTerm]);
 
-  // Calculate stats
+  // Calculate stats with new status structure
   const stats = useMemo(() => {
     const allNegotiations = [...negotiations, ...lostNegotiations];
     const total = negotiations.length;
+    
+    // New status counts
+    const emAprovacao = negotiations.filter(n => 
+      n.status === 'em_aprovacao' || n.status === 'em_analise' || n.status === 'proposta_enviada'
+    ).length;
+    const clienteAprovado = negotiations.filter(n => 
+      n.status === 'cliente_aprovado' || n.status === 'aprovado'
+    ).length;
+    const clienteReprovado = negotiations.filter(n => 
+      n.status === 'cliente_reprovado'
+    ).length;
     const emContato = negotiations.filter(n => n.status === 'em_contato').length;
-    const propostaEnviada = negotiations.filter(n => n.status === 'proposta_enviada').length;
-    const emAnalise = negotiations.filter(n => n.status === 'em_analise').length;
-    const aprovado = negotiations.filter(n => n.status === 'aprovado').length;
+    
     const valorTotal = negotiations.reduce((sum, n) => sum + Number(n.negotiated_value), 0);
     
     // Lost stats
     const perdidas = lostNegotiations.length;
     const valorPerdido = lostNegotiations.reduce((sum, n) => sum + Number(n.negotiated_value), 0);
+    
+    // Conversion rate based on actual sales from negotiations
     const taxaConversao = allNegotiations.length > 0 
-      ? ((allNegotiations.length - lostNegotiations.length) / allNegotiations.length * 100).toFixed(1)
+      ? ((salesFromNegotiations / (total + perdidas + salesFromNegotiations)) * 100).toFixed(1)
       : '0';
 
-    return { total, emContato, propostaEnviada, emAnalise, aprovado, valorTotal, perdidas, valorPerdido, taxaConversao };
-  }, [negotiations, lostNegotiations]);
+    return { 
+      total, 
+      emContato, 
+      emAprovacao, 
+      clienteAprovado, 
+      clienteReprovado,
+      valorTotal, 
+      perdidas, 
+      valorPerdido, 
+      taxaConversao,
+      vendasConvertidas: salesFromNegotiations,
+    };
+  }, [negotiations, lostNegotiations, salesFromNegotiations]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,13 +300,9 @@ const Negociacoes = () => {
     return broker?.name || 'Não encontrado';
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = NEGOTIATION_STATUS.find(s => s.value === status);
-    return (
-      <Badge variant="outline" className={statusConfig?.color}>
-        {statusConfig?.label || status}
-      </Badge>
-    );
+  // Check if negotiation is approved (can be converted to sale)
+  const isApproved = (status: string) => {
+    return status === 'cliente_aprovado' || status === 'aprovado';
   };
 
   if (loading) {
@@ -307,258 +335,250 @@ const Negociacoes = () => {
               </p>
             </div>
             
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Nova Negociação
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingNegotiation ? 'Editar Negociação' : 'Nova Negociação'}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Corretor selector */}
-                  {!isCorretor() && (
-                    <div>
-                      <label className="text-sm font-medium">Corretor Responsável *</label>
-                      <Select
-                        value={formData.broker_id}
-                        onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o corretor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {brokers.map((broker) => (
-                            <SelectItem key={broker.id} value={broker.id}>
-                              {broker.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setStatusManagerOpen(true)}
+                title="Gerenciar Status"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+              
+              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Nova Negociação
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingNegotiation ? 'Editar Negociação' : 'Nova Negociação'}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Corretor selector */}
+                    {!isCorretor() && (
+                      <div>
+                        <label className="text-sm font-medium">Corretor Responsável *</label>
+                        <Select
+                          value={formData.broker_id}
+                          onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o corretor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {brokers.map((broker) => (
+                              <SelectItem key={broker.id} value={broker.id}>
+                                {broker.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
 
-                  <div>
-                    <label className="text-sm font-medium">Cliente *</label>
-                    <Input
-                      value={formData.client_name}
-                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                      placeholder="Nome do cliente"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium">Email</label>
+                      <label className="text-sm font-medium">Cliente *</label>
                       <Input
-                        type="email"
-                        value={formData.client_email}
-                        onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
-                        placeholder="email@exemplo.com"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Telefone</label>
-                      <Input
-                        value={formData.client_phone}
-                        onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
-                        placeholder="(00) 00000-0000"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Endereço do Imóvel *</label>
-                    <Input
-                      value={formData.property_address}
-                      onChange={(e) => setFormData({ ...formData, property_address: e.target.value })}
-                      placeholder="Endereço completo"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Tipo de Imóvel</label>
-                      <Select
-                        value={formData.property_type}
-                        onValueChange={(value) => setFormData({ ...formData, property_type: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PROPERTY_TYPES.map((type) => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Valor Negociado *</label>
-                      <Input
-                        type="number"
-                        value={formData.negotiated_value || ''}
-                        onChange={(e) => setFormData({ ...formData, negotiated_value: Number(e.target.value) })}
-                        placeholder="0,00"
+                        value={formData.client_name}
+                        onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                        placeholder="Nome do cliente"
                         required
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Email</label>
+                        <Input
+                          type="email"
+                          value={formData.client_email}
+                          onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
+                          placeholder="email@exemplo.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Telefone</label>
+                        <Input
+                          value={formData.client_phone}
+                          onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+                          placeholder="(00) 00000-0000"
+                        />
+                      </div>
+                    </div>
+
                     <div>
-                      <label className="text-sm font-medium">Data de Início</label>
+                      <label className="text-sm font-medium">Endereço do Imóvel *</label>
                       <Input
-                        type="date"
-                        value={formData.start_date}
-                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                        value={formData.property_address}
+                        onChange={(e) => setFormData({ ...formData, property_address: e.target.value })}
+                        placeholder="Endereço completo"
+                        required
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium">Status</label>
-                      <Select
-                        value={formData.status}
-                        onValueChange={(value) => setFormData({ ...formData, status: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {NEGOTIATION_STATUS.filter(s => !['perdida', 'cancelado'].includes(s.value)).map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Tipo de Imóvel</label>
+                        <Select
+                          value={formData.property_type}
+                          onValueChange={(value) => setFormData({ ...formData, property_type: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PROPERTY_TYPES.map((type) => (
+                              <SelectItem key={type.value} value={type.value}>
+                                {type.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Valor Negociado *</label>
+                        <Input
+                          type="number"
+                          value={formData.negotiated_value || ''}
+                          onChange={(e) => setFormData({ ...formData, negotiated_value: Number(e.target.value) })}
+                          placeholder="0,00"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="text-sm font-medium">Observações</label>
-                    <Textarea
-                      value={formData.observations}
-                      onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
-                      placeholder="Detalhes da negociação..."
-                      rows={3}
-                    />
-                  </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Data de Início</label>
+                        <Input
+                          type="date"
+                          value={formData.start_date}
+                          onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Status</label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) => setFormData({ ...formData, status: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {flowStatuses.map((status) => (
+                              <SelectItem key={status.value} value={status.value}>
+                                <div className="flex items-center gap-2">
+                                  <span>{status.icon}</span>
+                                  {status.label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1">
-                      {editingNegotiation ? 'Salvar' : 'Criar Negociação'}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={handleCloseForm}>
-                      Cancelar
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+                    <div>
+                      <label className="text-sm font-medium">Observações</label>
+                      <Textarea
+                        value={formData.observations}
+                        onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+                        placeholder="Detalhes da negociação..."
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-4">
+                      <Button type="submit" className="flex-1">
+                        {editingNegotiation ? 'Salvar' : 'Criar Negociação'}
+                      </Button>
+                      <Button type="button" variant="outline" onClick={handleCloseForm}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Handshake className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.total}</p>
-                    <p className="text-xs text-muted-foreground">Ativas</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <User className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.emContato}</p>
-                    <p className="text-xs text-muted-foreground">Em Contato</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-yellow-500/10">
-                    <Calendar className="w-5 h-5 text-yellow-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.emAnalise}</p>
-                    <p className="text-xs text-muted-foreground">Em Análise</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.aprovado}</p>
-                    <p className="text-xs text-muted-foreground">Aprovados</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-red-500/10">
-                    <TrendingDown className="w-5 h-5 text-red-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.perdidas}</p>
-                    <p className="text-xs text-muted-foreground">Perdidas</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-amber-500/10">
-                    <Percent className="w-5 h-5 text-amber-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.taxaConversao}%</p>
-                    <p className="text-xs text-muted-foreground">Conversão</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-emerald-500/10">
-                    <DollarSign className="w-5 h-5 text-emerald-500" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm sm:text-base lg:text-lg font-bold truncate">{formatCurrency(stats.valorTotal)}</p>
-                    <p className="text-xs text-muted-foreground">Valor Ativo</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Important Notice */}
+          <Alert className="border-amber-500/50 bg-amber-500/10">
+            <AlertDescription className="flex items-center gap-2 text-sm">
+              <span className="text-amber-500 font-bold">⚠️ IMPORTANTE:</span>
+              <span>
+                Cliente <strong>Aprovado</strong> ≠ <strong>Venda</strong>. 
+                Uma venda só é registrada ao clicar em "Converter em Venda".
+              </span>
+            </AlertDescription>
+          </Alert>
+
+          {/* Stats Cards - Responsive Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+            <ResponsiveStatCard
+              icon={Handshake}
+              iconColor="text-primary"
+              bgColor="bg-primary/10"
+              value={stats.total}
+              label="Total Ativas"
+            />
+            <ResponsiveStatCard
+              icon={Clock}
+              iconColor="text-yellow-500"
+              bgColor="bg-yellow-500/10"
+              value={stats.emAprovacao}
+              label="🟡 Em Aprovação"
+            />
+            <ResponsiveStatCard
+              icon={CheckCircle2}
+              iconColor="text-green-500"
+              bgColor="bg-green-500/10"
+              value={stats.clienteAprovado}
+              label="🟢 Aprovados"
+              sublabel="(não é venda)"
+            />
+            <ResponsiveStatCard
+              icon={Ban}
+              iconColor="text-red-500"
+              bgColor="bg-red-500/10"
+              value={stats.clienteReprovado}
+              label="🔴 Reprovados"
+            />
+            <ResponsiveStatCard
+              icon={XCircle}
+              iconColor="text-gray-500"
+              bgColor="bg-gray-500/10"
+              value={stats.perdidas}
+              label="Perdidas"
+            />
+            <ResponsiveStatCard
+              icon={Star}
+              iconColor="text-emerald-500"
+              bgColor="bg-emerald-500/10"
+              value={stats.vendasConvertidas}
+              label="⭐ Vendas"
+              sublabel="convertidas"
+            />
+            <ResponsiveStatCard
+              icon={Percent}
+              iconColor="text-amber-500"
+              bgColor="bg-amber-500/10"
+              value={`${stats.taxaConversao}%`}
+              label="Conversão"
+            />
+            <ResponsiveStatCard
+              icon={DollarSign}
+              iconColor="text-emerald-500"
+              bgColor="bg-emerald-500/10"
+              value={formatCurrency(stats.valorTotal)}
+              label="Valor Ativo"
+            />
           </div>
 
           {/* Filters */}
@@ -581,9 +601,12 @@ const Negociacoes = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os Status</SelectItem>
-                      {NEGOTIATION_STATUS.filter(s => !['perdida', 'cancelado'].includes(s.value)).map((status) => (
+                      {flowStatuses.map((status) => (
                         <SelectItem key={status.value} value={status.value}>
-                          {status.label}
+                          <div className="flex items-center gap-2">
+                            <span>{status.icon}</span>
+                            {status.label}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -639,72 +662,97 @@ const Negociacoes = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredNegotiations.map((negotiation) => (
-                            <TableRow key={negotiation.id}>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{negotiation.client_name}</p>
-                                  {negotiation.client_phone && (
-                                    <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="max-w-[200px]">
-                                  <p className="truncate">{negotiation.property_address}</p>
-                                  <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
-                                </div>
-                              </TableCell>
-                              <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
-                              <TableCell className="font-semibold text-primary">
-                                {formatCurrency(negotiation.negotiated_value)}
-                              </TableCell>
-                              <TableCell>{getStatusBadge(negotiation.status)}</TableCell>
-                              <TableCell>
-                                {format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-end gap-1">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleEdit(negotiation)}
-                                    title="Editar"
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="default"
-                                    onClick={() => handleOpenSaleConversion(negotiation)}
-                                    className="bg-green-600 hover:bg-green-700 text-white"
-                                    title="Converter em Venda"
-                                  >
-                                    <DollarSign className="w-4 h-4" />
-                                    <span className="hidden sm:inline ml-1">VENDA</span>
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleOpenLossDialog(negotiation)}
-                                    title="Registrar Perda"
-                                  >
-                                    <XCircle className="w-4 h-4" />
-                                    <span className="hidden sm:inline ml-1">PERDA</span>
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => setDeleteId(negotiation.id)}
-                                    title="Excluir"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {filteredNegotiations.map((negotiation) => {
+                            const statusConfig = getStatusByValue(negotiation.status);
+                            const canConvert = isApproved(negotiation.status);
+                            
+                            return (
+                              <TableRow key={negotiation.id}>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{negotiation.client_name}</p>
+                                    {negotiation.client_phone && (
+                                      <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="max-w-[200px]">
+                                    <p className="truncate">{negotiation.property_address}</p>
+                                    <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
+                                <TableCell className="font-semibold text-primary">
+                                  {formatCurrency(negotiation.negotiated_value)}
+                                </TableCell>
+                                <TableCell>
+                                  <NegotiationStatusBadge 
+                                    status={negotiation.status}
+                                    label={statusConfig?.label}
+                                    color={statusConfig?.color}
+                                    icon={statusConfig?.icon}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex justify-end gap-1 flex-wrap">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleEdit(negotiation)}
+                                      title="Editar"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    
+                                    {/* Converter em Venda - só aparece se aprovado */}
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      onClick={() => handleOpenSaleConversion(negotiation)}
+                                      className={`text-white ${
+                                        canConvert 
+                                          ? 'bg-green-600 hover:bg-green-700 animate-pulse' 
+                                          : 'bg-green-600/50 hover:bg-green-600'
+                                      }`}
+                                      title={canConvert 
+                                        ? "Cliente aprovado - Converter em Venda" 
+                                        : "Converter em Venda (disponível para qualquer status)"
+                                      }
+                                    >
+                                      <DollarSign className="w-4 h-4" />
+                                      <span className="hidden sm:inline ml-1">
+                                        {canConvert ? 'VENDA!' : 'VENDA'}
+                                      </span>
+                                    </Button>
+                                    
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleOpenLossDialog(negotiation)}
+                                      title="Registrar Perda"
+                                    >
+                                      <XCircle className="w-4 h-4" />
+                                      <span className="hidden sm:inline ml-1">PERDA</span>
+                                    </Button>
+                                    
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-destructive hover:text-destructive"
+                                      onClick={() => setDeleteId(negotiation.id)}
+                                      title="Excluir"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>
@@ -720,9 +768,10 @@ const Negociacoes = () => {
                   <CardTitle className="flex items-center gap-2">
                     <XCircle className="w-5 h-5 text-destructive" />
                     Negociações Perdidas
-                    <Badge variant="secondary" className="ml-2">
-                      {formatCurrency(stats.valorPerdido)} perdidos
-                    </Badge>
+                    <NegotiationStatusBadge
+                      status="perdida"
+                      label={`${formatCurrency(stats.valorPerdido)} perdidos`}
+                    />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -770,9 +819,11 @@ const Negociacoes = () => {
                                 {formatCurrency(negotiation.negotiated_value)}
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20">
-                                  {negotiation.loss_reason || 'Não informado'}
-                                </Badge>
+                                <NegotiationStatusBadge
+                                  status="perdida"
+                                  label={negotiation.loss_reason || 'Não informado'}
+                                  showIcon={false}
+                                />
                               </TableCell>
                               <TableCell>
                                 {format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}
@@ -802,6 +853,12 @@ const Negociacoes = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Status Manager Dialog */}
+      <StatusManagerDialog
+        open={statusManagerOpen}
+        onOpenChange={setStatusManagerOpen}
+      />
 
       {/* Sale Conversion Dialog */}
       <SaleConversionDialog
