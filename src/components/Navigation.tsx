@@ -22,12 +22,16 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthButton from "@/components/AuthButton";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { useContextualIdentity } from "@/hooks/useContextualIdentity";
+import { UserAvatar } from "@/components/UserAvatar";
+import { UserProfileDialog } from "@/components/UserProfileDialog";
 
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin, getUserRole, signOut } = useAuth();
+  const { hasAccess, isAdmin, getUserRole, signOut, profile } = useAuth();
   const { settings } = useOrganizationSettings();
+  const { displayName, subtitle } = useContextualIdentity();
   
   const handleLogoClick = async () => {
     await signOut();
@@ -113,9 +117,9 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'].includes(item.screen);
     } else if (userRole === 'corretor') {
-      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'tarefas-kanban'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes'].includes(item.screen);
     }
     
     // Dashboard Equipes é para diretores e admins
@@ -130,140 +134,202 @@ const Navigation = () => {
     
     return hasAccess(item.screen);
   });
-return <>
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-lg border-b border-border z-50 flex items-center justify-between px-5">
-        <div className="flex items-center gap-4">
-          {settings?.logo_icon_url ? (
-            <button 
-              onClick={handleLogoClick}
-              className="w-9 h-9 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
-              title="Voltar para login"
-            >
-              <img src={settings.logo_icon_url} alt="Axis" className="w-full h-full object-contain" />
-            </button>
-          ) : (
-            <button 
-              onClick={handleLogoClick}
-              className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
-              title="Voltar para login"
-            >
-              <span className="text-sm font-bold text-primary-foreground">A</span>
-            </button>
-          )}
-          <div>
-            <h1 className="text-lg font-bold text-foreground tracking-tight">Axis</h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <AuthButton />
-          <ThemeToggle />
-          <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => setIsMobileOpen(!isMobileOpen)}>
-            {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
-        </div>
+
+  // Render logo section
+  const renderLogo = () => (
+    <div className="flex items-center gap-4">
+      {settings?.logo_icon_url ? (
+        <button 
+          onClick={handleLogoClick}
+          className="w-11 h-11 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
+          title="Sair do sistema"
+        >
+          <img src={settings.logo_icon_url} alt={displayName} className="w-full h-full object-contain" />
+        </button>
+      ) : (
+        <button 
+          onClick={handleLogoClick}
+          className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
+          title="Sair do sistema"
+        >
+          <span className="text-lg font-bold text-primary-foreground">
+            {displayName.charAt(0).toUpperCase()}
+          </span>
+        </button>
+      )}
+      <div className="min-w-0 flex-1">
+        <h1 className="text-xl font-bold text-foreground tracking-tight truncate">
+          {displayName}
+        </h1>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground font-medium truncate">
+            {subtitle}
+          </p>
+        )}
       </div>
+    </div>
+  );
 
-      {/* Desktop Sidebar - Axis Design */}
-      <nav className="hidden lg:block fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border z-50">
-        <div className="p-7">
-          {/* Axis Logo Section */}
-          <div className="flex items-center gap-4 mb-10">
-            {settings?.logo_icon_url ? (
-              <button 
-                onClick={handleLogoClick}
-                className="w-11 h-11 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
-                title="Voltar para login"
-              >
-                <img src={settings.logo_icon_url} alt="Axis" className="w-full h-full object-contain" />
-              </button>
-            ) : (
-              <button 
-                onClick={handleLogoClick}
-                className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
-                title="Voltar para login"
-              >
-                <span className="text-lg font-bold text-primary-foreground">A</span>
-              </button>
-            )}
-            <div>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">Axis</h1>
-              <p className="text-xs text-muted-foreground font-medium">Gestão Imobiliária</p>
-            </div>
-          </div>
+  // Render mobile logo section (smaller)
+  const renderMobileLogo = () => (
+    <div className="flex items-center gap-3">
+      {settings?.logo_icon_url ? (
+        <button 
+          onClick={handleLogoClick}
+          className="w-9 h-9 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
+          title="Sair do sistema"
+        >
+          <img src={settings.logo_icon_url} alt={displayName} className="w-full h-full object-contain" />
+        </button>
+      ) : (
+        <button 
+          onClick={handleLogoClick}
+          className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
+          title="Sair do sistema"
+        >
+          <span className="text-sm font-bold text-primary-foreground">
+            {displayName.charAt(0).toUpperCase()}
+          </span>
+        </button>
+      )}
+      <div className="min-w-0">
+        <h1 className="text-lg font-bold text-foreground tracking-tight truncate max-w-[120px]">
+          {displayName}
+        </h1>
+      </div>
+    </div>
+  );
 
-          {/* Navigation Items */}
-          <div className="space-y-2">
-            {navItems.map(item => {
+  // Render user profile section
+  const renderUserProfile = () => (
+    <UserProfileDialog>
+      <button className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent transition-colors w-full">
+        <UserAvatar 
+          name={profile?.full_name} 
+          avatarUrl={profile?.avatar_url} 
+          size="md" 
+        />
+        <div className="text-left min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground truncate">
+            {profile?.full_name || 'Usuário'}
+          </p>
+          <p className="text-xs text-muted-foreground truncate">
+            {profile?.email}
+          </p>
+        </div>
+      </button>
+    </UserProfileDialog>
+  );
+
+  return <>
+    {/* Mobile Header */}
+    <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-lg border-b border-border z-50 flex items-center justify-between px-4">
+      {renderMobileLogo()}
+      <div className="flex items-center gap-2">
+        <UserProfileDialog>
+          <button className="p-1">
+            <UserAvatar 
+              name={profile?.full_name} 
+              avatarUrl={profile?.avatar_url} 
+              size="sm" 
+            />
+          </button>
+        </UserProfileDialog>
+        <ThemeToggle />
+        <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => setIsMobileOpen(!isMobileOpen)}>
+          {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </Button>
+      </div>
+    </div>
+
+    {/* Desktop Sidebar */}
+    <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border z-50">
+      <div className="p-7 flex-1 flex flex-col">
+        {/* Logo Section */}
+        <div className="mb-8">
+          {renderLogo()}
+        </div>
+
+        {/* Navigation Items */}
+        <div className="space-y-1.5 flex-1 overflow-y-auto">
+          {navItems.map(item => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
-            return <Link key={item.href} to={item.href} className={cn(
-              "flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-300",
-              isActive 
-                ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
-                : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
-            )}>
-                  <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
-                  {item.label}
-                </Link>;
+            return (
+              <Link 
+                key={item.href} 
+                to={item.href} 
+                className={cn(
+                  "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                  isActive 
+                    ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
+                )}
+              >
+                <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
+                {item.label}
+              </Link>
+            );
           })}
-          </div>
-          
-          {/* Footer Actions */}
-          <div className="mt-10 flex flex-col items-center gap-4">
+        </div>
+        
+        {/* User Profile & Actions */}
+        <div className="mt-6 pt-6 border-t border-border space-y-4">
+          {renderUserProfile()}
+          <div className="flex items-center justify-between px-3">
             <AuthButton />
             <ThemeToggle />
           </div>
         </div>
-      </nav>
+      </div>
+    </nav>
 
-      {/* Mobile Sidebar Overlay */}
-      {isMobileOpen && <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsMobileOpen(false)} />
-          <nav className="absolute left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border">
-            <div className="p-7">
-              <div className="flex items-center gap-4 mb-10">
-                {settings?.logo_icon_url ? (
-                  <button 
-                    onClick={handleLogoClick}
-                    className="w-11 h-11 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
-                    title="Voltar para login"
-                  >
-                    <img src={settings.logo_icon_url} alt="Axis" className="w-full h-full object-contain" />
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleLogoClick}
-                    className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
-                    title="Voltar para login"
-                  >
-                    <span className="text-lg font-bold text-primary-foreground">A</span>
-                  </button>
-                )}
-                <div>
-                  <h1 className="text-xl font-bold text-foreground tracking-tight">Axis</h1>
-                  <p className="text-xs text-muted-foreground font-medium">Gestão Imobiliária</p>
-                </div>
-              </div>
+    {/* Mobile Sidebar Overlay */}
+    {isMobileOpen && (
+      <div className="lg:hidden fixed inset-0 z-50">
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsMobileOpen(false)} />
+        <nav className="absolute left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border flex flex-col">
+          <div className="p-7 flex-1 flex flex-col">
+            <div className="mb-8">
+              {renderLogo()}
+            </div>
 
-              <div className="space-y-2">
-                {navItems.map(item => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              return <Link key={item.href} to={item.href} onClick={() => setIsMobileOpen(false)} className={cn(
-                "flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-300",
-                isActive 
-                  ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
-              )}>
-                      <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
-                      {item.label}
-                    </Link>;
-            })}
+            <div className="space-y-1.5 flex-1 overflow-y-auto">
+              {navItems.map(item => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link 
+                    key={item.href} 
+                    to={item.href} 
+                    onClick={() => setIsMobileOpen(false)} 
+                    className={cn(
+                      "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                      isActive 
+                        ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
+                    )}
+                  >
+                    <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* User Profile & Actions */}
+            <div className="mt-6 pt-6 border-t border-border space-y-4">
+              {renderUserProfile()}
+              <div className="flex items-center justify-between px-3">
+                <AuthButton />
+                <ThemeToggle />
               </div>
             </div>
-          </nav>
-        </div>}
-    </>;
+          </div>
+        </nav>
+      </div>
+    )}
+  </>;
 };
+
 export default Navigation;
