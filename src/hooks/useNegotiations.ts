@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBrokers } from '@/hooks/useBrokers';
 
 export interface Negotiation {
   id: string;
@@ -51,12 +52,18 @@ export interface UpdateNegotiationInput {
 }
 
 export const useNegotiations = () => {
-  const { user } = useAuth();
+  const { user, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { brokers } = useBrokers();
+
+  // Get current user's broker for corretores
+  const currentBroker = useMemo(() => {
+    return brokers?.find(b => b.user_id === user?.id);
+  }, [brokers, user?.id]);
 
   // Fetch active negotiations (excludes venda_concluida and perdida)
-  const { data: negotiations = [], isLoading: loadingActive, error: errorActive, refetch: refetchActive } = useQuery({
+  const { data: allNegotiations = [], isLoading: loadingActive, error: errorActive, refetch: refetchActive } = useQuery({
     queryKey: ['negotiations', 'active'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -72,7 +79,7 @@ export const useNegotiations = () => {
   });
 
   // Fetch lost negotiations
-  const { data: lostNegotiations = [], isLoading: loadingLost, error: errorLost, refetch: refetchLost } = useQuery({
+  const { data: allLostNegotiations = [], isLoading: loadingLost, error: errorLost, refetch: refetchLost } = useQuery({
     queryKey: ['negotiations', 'lost'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -86,6 +93,56 @@ export const useNegotiations = () => {
     },
     enabled: !!user,
   });
+
+  // Filter negotiations based on user role
+  const negotiations = useMemo(() => {
+    if (!allNegotiations) return [];
+
+    // Directors and admins see all negotiations
+    if (isDiretor() || isAdmin()) {
+      return allNegotiations;
+    }
+
+    // Managers see only their team's negotiations
+    if (isGerente() && teamHierarchy?.team_id) {
+      const teamBrokerIds = brokers
+        ?.filter(b => b.team_id === teamHierarchy.team_id)
+        .map(b => b.id) || [];
+      return allNegotiations.filter(n => teamBrokerIds.includes(n.broker_id));
+    }
+
+    // Brokers see only their own negotiations
+    if (isCorretor() && currentBroker) {
+      return allNegotiations.filter(n => n.broker_id === currentBroker.id);
+    }
+
+    return [];
+  }, [allNegotiations, brokers, currentBroker, teamHierarchy, isCorretor, isGerente, isDiretor, isAdmin]);
+
+  // Filter lost negotiations based on user role
+  const lostNegotiations = useMemo(() => {
+    if (!allLostNegotiations) return [];
+
+    // Directors and admins see all lost negotiations
+    if (isDiretor() || isAdmin()) {
+      return allLostNegotiations;
+    }
+
+    // Managers see only their team's lost negotiations
+    if (isGerente() && teamHierarchy?.team_id) {
+      const teamBrokerIds = brokers
+        ?.filter(b => b.team_id === teamHierarchy.team_id)
+        .map(b => b.id) || [];
+      return allLostNegotiations.filter(n => teamBrokerIds.includes(n.broker_id));
+    }
+
+    // Brokers see only their own lost negotiations
+    if (isCorretor() && currentBroker) {
+      return allLostNegotiations.filter(n => n.broker_id === currentBroker.id);
+    }
+
+    return [];
+  }, [allLostNegotiations, brokers, currentBroker, teamHierarchy, isCorretor, isGerente, isDiretor, isAdmin]);
 
   const createNegotiationMutation = useMutation({
     mutationFn: async (input: CreateNegotiationInput) => {
