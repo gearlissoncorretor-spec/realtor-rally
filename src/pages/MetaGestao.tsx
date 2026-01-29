@@ -46,7 +46,8 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 interface MonthlyGoal {
   month: Date;
   monthIndex: number; // 1-12
-  target: number;
+  target: number; // meta manual definida
+  expectedTarget: number; // expectativa baseada na meta anual
   achieved: number;
   difference: number;
   percentAchieved: number;
@@ -87,7 +88,7 @@ const useManagementGoals = (year: number) => {
     };
   }, [sales, targets, year]);
   
-  // Monthly breakdown
+  // Monthly breakdown - returns base achieved data, expected target is calculated in component based on annual goal
   const monthlyGoals = useMemo((): MonthlyGoal[] => {
     const yearStart = startOfYear(new Date(year, 0, 1));
     const yearEnd = endOfYear(new Date(year, 0, 1));
@@ -98,7 +99,7 @@ const useManagementGoals = (year: number) => {
       const monthEnd = endOfMonth(month);
       const monthIndex = month.getMonth() + 1;
       
-      // Find target for this month
+      // Find target for this month (saved in DB)
       const monthTarget = targets.find(t => 
         t.year === year && t.month === monthIndex
       );
@@ -118,6 +119,7 @@ const useManagementGoals = (year: number) => {
         month,
         monthIndex,
         target,
+        expectedTarget: 0, // Will be calculated based on annual goal in component
         achieved,
         difference,
         percentAchieved
@@ -211,8 +213,8 @@ const MetaGestao = () => {
   const [brokerHiringGoal, setBrokerHiringGoal] = useState(25);
   const [savingTargets, setSavingTargets] = useState(false);
   
-  // Editable monthly targets state - initialize with current values
-  const [monthlyTargets, setMonthlyTargets] = useState<Record<number, number>>({});
+  // Meta anual definida primeiro - é o campo principal
+  const [annualGoal, setAnnualGoal] = useState(0);
   
   const canManage = isAdmin() || isDiretor() || isGerente();
   
@@ -220,40 +222,36 @@ const MetaGestao = () => {
   
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
   
-  // Initialize monthly targets from existing data
+  // Initialize annual goal from sum of saved monthly targets
   useEffect(() => {
-    const initialTargets: Record<number, number> = {};
-    monthlyGoals.forEach(goal => {
-      initialTargets[goal.monthIndex] = goal.target;
-    });
-    setMonthlyTargets(initialTargets);
+    const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => sum + goal.target, 0);
+    if (savedAnnualTotal > 0) {
+      setAnnualGoal(savedAnnualTotal);
+    }
   }, [monthlyGoals, selectedYear]);
   
-  // Update a single monthly target
-  const handleMonthlyTargetChange = (monthIndex: number, value: number) => {
-    setMonthlyTargets(prev => ({
-      ...prev,
-      [monthIndex]: value
-    }));
-  };
+  // Calculate expected monthly target (equal distribution) based on annual goal
+  const expectedMonthlyTarget = annualGoal / 12;
   
-  // Save all targets
+  // Save annual goal distributed to monthly targets
   const handleSaveTargets = async () => {
     setSavingTargets(true);
     try {
-      for (const [monthStr, targetValue] of Object.entries(monthlyTargets)) {
-        const month = parseInt(monthStr);
+      // Distribute annual goal equally across 12 months
+      const monthlyValue = annualGoal / 12;
+      
+      for (let month = 1; month <= 12; month++) {
         const existingTarget = targets.find(t => t.year === selectedYear && t.month === month);
         
         if (existingTarget) {
-          if (existingTarget.target_value !== targetValue) {
-            await updateTarget(existingTarget.id, { target_value: targetValue });
+          if (existingTarget.target_value !== monthlyValue) {
+            await updateTarget(existingTarget.id, { target_value: monthlyValue });
           }
-        } else if (targetValue > 0) {
+        } else if (monthlyValue > 0) {
           await createTarget({
             year: selectedYear,
             month: month,
-            target_value: targetValue,
+            target_value: monthlyValue,
           });
         }
       }
@@ -266,9 +264,6 @@ const MetaGestao = () => {
     }
   };
   
-  // Calculate total from editable fields
-  const editableAnnualTotal = Object.values(monthlyTargets).reduce((sum, val) => sum + (val || 0), 0);
-  
   // Status indicators
   const getStatusIndicator = (percent: number) => {
     if (percent >= 90) return { color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30', icon: CheckCircle2, label: 'Dentro da meta' };
@@ -276,8 +271,8 @@ const MetaGestao = () => {
     return { color: 'text-red-600 bg-red-100 dark:bg-red-900/30', icon: Clock, label: 'Abaixo do esperado' };
   };
   
-  const annualProgress = editableAnnualTotal > 0 
-    ? (yearlyData.totalVGV / editableAnnualTotal) * 100 
+  const annualProgress = annualGoal > 0 
+    ? (yearlyData.totalVGV / annualGoal) * 100 
     : 0;
   const annualStatus = getStatusIndicator(annualProgress);
   
@@ -444,6 +439,23 @@ const MetaGestao = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Annual Goal Input - Main field */}
+              {canManage && (
+                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border border-emerald-200 dark:border-emerald-700">
+                  <Label className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2 block">
+                    Defina a Meta Anual de Faturamento
+                  </Label>
+                  <CurrencyInput 
+                    value={annualGoal}
+                    onChange={(val) => setAnnualGoal(val)}
+                    className="h-14 text-xl font-bold border-emerald-300 dark:border-emerald-600 bg-white dark:bg-slate-800"
+                  />
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                    Meta mensal esperada: <strong>{formatCurrency(expectedMonthlyTarget)}</strong> (distribuição igual)
+                  </p>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Progress Section */}
                 <div className="lg:col-span-2 space-y-4">
@@ -457,21 +469,21 @@ const MetaGestao = () => {
                   <Progress value={Math.min(annualProgress, 100)} className="h-6" />
                   <div className="flex justify-between text-sm">
                     <span>Realizado: <strong>{formatCurrency(yearlyData.totalVGV)}</strong></span>
-                    <span>Meta (soma mensal): <strong>{formatCurrency(editableAnnualTotal)}</strong></span>
+                    <span>Meta Anual: <strong>{formatCurrency(annualGoal)}</strong></span>
                   </div>
                   
                   {/* Auto-calculated stats */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t">
                     <div>
-                      <p className="text-xs text-muted-foreground">Meta Mensal Média</p>
+                      <p className="text-xs text-muted-foreground">Meta Mensal Esperada</p>
                       <p className="text-lg font-semibold text-foreground">
-                        {formatCurrencyCompact(editableAnnualTotal / 12)}
+                        {formatCurrencyCompact(expectedMonthlyTarget)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Faltam</p>
                       <p className="text-lg font-semibold text-foreground">
-                        {formatCurrencyCompact(Math.max(0, editableAnnualTotal - yearlyData.totalVGV))}
+                        {formatCurrencyCompact(Math.max(0, annualGoal - yearlyData.totalVGV))}
                       </p>
                     </div>
                     <div>
@@ -519,10 +531,10 @@ const MetaGestao = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Calendar className="w-5 h-5 text-emerald-600" />
-                📆 Metas Mensais - {selectedYear}
+                📆 Progressão Mensal - {selectedYear}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Defina as metas para cada mês. Metas podem ser ajustadas conforme sazonalidade e campanhas.
+                Expectativa mensal baseada na meta anual e valores realizados por mês.
               </p>
             </CardHeader>
             <CardContent>
@@ -531,7 +543,7 @@ const MetaGestao = () => {
                   <thead>
                     <tr className="border-b border-emerald-200 dark:border-emerald-800">
                       <th className="text-left py-3 px-2 font-medium text-muted-foreground">Mês</th>
-                      <th className="text-center py-3 px-2 font-medium text-muted-foreground w-40">Meta (R$)</th>
+                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">Expectativa</th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Realizado</th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Diferença</th>
                       <th className="text-center py-3 px-2 font-medium text-muted-foreground">%</th>
@@ -540,10 +552,10 @@ const MetaGestao = () => {
                   </thead>
                   <tbody>
                     {monthlyGoals.map((goal, idx) => {
-                      const currentTarget = monthlyTargets[goal.monthIndex] || 0;
+                      const expectedTarget = expectedMonthlyTarget;
                       const achieved = goal.achieved;
-                      const difference = achieved - currentTarget;
-                      const percentAchieved = currentTarget > 0 ? (achieved / currentTarget) * 100 : 0;
+                      const difference = achieved - expectedTarget;
+                      const percentAchieved = expectedTarget > 0 ? (achieved / expectedTarget) * 100 : 0;
                       const status = getStatusIndicator(percentAchieved);
                       const isCurrentMonth = isSameMonth(goal.month, new Date());
                       
@@ -565,16 +577,8 @@ const MetaGestao = () => {
                               )}
                             </div>
                           </td>
-                          <td className="py-2 px-2">
-                            {canManage ? (
-                              <CurrencyInput 
-                                value={currentTarget}
-                                onChange={(val) => handleMonthlyTargetChange(goal.monthIndex, val)}
-                                className="h-9 text-sm"
-                              />
-                            ) : (
-                              <span className="font-mono">{formatCurrencyCompact(currentTarget)}</span>
-                            )}
+                          <td className="text-center py-3 px-2 font-mono text-muted-foreground">
+                            {formatCurrencyCompact(expectedTarget)}
                           </td>
                           <td className="text-right py-3 px-2 font-mono font-medium">
                             {formatCurrencyCompact(achieved)}
@@ -606,7 +610,7 @@ const MetaGestao = () => {
                             <Badge className={cn("text-xs", status.color)}>
                               {percentAchieved >= 100 ? '✅' : 
                                percentAchieved >= 50 ? '⚠️' : 
-                               currentTarget > 0 ? '❌' : '➖'}
+                               expectedTarget > 0 ? '❌' : '➖'}
                             </Badge>
                           </td>
                         </tr>
@@ -615,13 +619,13 @@ const MetaGestao = () => {
                     {/* Totals row */}
                     <tr className="bg-slate-100 dark:bg-slate-700 font-semibold">
                       <td className="py-3 px-2">Total Anual</td>
-                      <td className="text-center py-3 px-2 font-mono">{formatCurrencyCompact(editableAnnualTotal)}</td>
+                      <td className="text-center py-3 px-2 font-mono">{formatCurrencyCompact(annualGoal)}</td>
                       <td className="text-right py-3 px-2 font-mono">{formatCurrencyCompact(yearlyData.totalVGV)}</td>
                       <td className={cn(
                         "text-right py-3 px-2 font-mono",
-                        yearlyData.totalVGV - editableAnnualTotal >= 0 ? "text-emerald-600" : "text-red-600"
+                        yearlyData.totalVGV - annualGoal >= 0 ? "text-emerald-600" : "text-red-600"
                       )}>
-                        {formatCurrencyCompact(Math.abs(yearlyData.totalVGV - editableAnnualTotal))}
+                        {formatCurrencyCompact(Math.abs(yearlyData.totalVGV - annualGoal))}
                       </td>
                       <td className="text-center py-3 px-2">{annualProgress.toFixed(0)}%</td>
                       <td></td>
