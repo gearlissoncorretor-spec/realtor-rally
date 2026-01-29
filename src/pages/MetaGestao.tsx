@@ -230,21 +230,40 @@ const MetaGestao = () => {
     }
   }, [monthlyGoals, selectedYear]);
   
-  // Calculate expected monthly target (equal distribution) based on annual goal
-  const expectedMonthlyTarget = annualGoal / 12;
+  // Calculate expected monthly target with growth progression
+  // Starts from a base value and grows linearly to reach the annual goal
+  // Formula: month_value = base + (month_index) * growth_increment (month_index 0-11)
+  // Sum of 12 months should equal annualGoal
+  // Sum = 12 * base + growth_increment * (0+1+2+...+11) = 12 * base + growth_increment * 66
+  // For 36M: we want Jan ~1M, Dec ~5M (total = 36M)
+  // Solving: 12*base + 66*growth = 36M, and base = 1M gives growth = (36M - 12M)/66 = ~363.6K
+  const calculateMonthlyProgression = (annualTarget: number): number[] => {
+    if (annualTarget <= 0) return Array(12).fill(0);
+    
+    // Linear growth: first month = annualTarget/36 (1M for 36M total)
+    // This creates a smooth progression that sums to the annual target
+    const baseValue = annualTarget / 36; // Start at 1/36 of annual (1M for 36M)
+    const totalGrowthNeeded = annualTarget - (12 * baseValue);
+    const growthIncrement = totalGrowthNeeded / 66; // 66 = sum of 0 to 11
+    
+    return Array.from({ length: 12 }, (_, i) => baseValue + (i * growthIncrement));
+  };
   
-  // Save annual goal distributed to monthly targets
+  const monthlyProgression = calculateMonthlyProgression(annualGoal);
+  const expectedMonthlyTarget = annualGoal / 12; // For simple display
+  
+  // Save annual goal distributed with growth progression
   const handleSaveTargets = async () => {
     setSavingTargets(true);
     try {
-      // Distribute annual goal equally across 12 months
-      const monthlyValue = annualGoal / 12;
+      const progression = calculateMonthlyProgression(annualGoal);
       
       for (let month = 1; month <= 12; month++) {
+        const monthlyValue = progression[month - 1];
         const existingTarget = targets.find(t => t.year === selectedYear && t.month === month);
         
         if (existingTarget) {
-          if (existingTarget.target_value !== monthlyValue) {
+          if (Math.abs(existingTarget.target_value - monthlyValue) > 0.01) {
             await updateTarget(existingTarget.id, { target_value: monthlyValue });
           }
         } else if (monthlyValue > 0) {
@@ -451,7 +470,7 @@ const MetaGestao = () => {
                     className="h-14 text-xl font-bold border-emerald-300 dark:border-emerald-600 bg-white dark:bg-slate-800"
                   />
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
-                    Meta mensal esperada: <strong>{formatCurrency(expectedMonthlyTarget)}</strong> (distribuição igual)
+                    Progressão: <strong>{formatCurrencyCompact(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrencyCompact(monthlyProgression[11])}</strong> (Dez) com crescimento linear
                   </p>
                 </div>
               )}
@@ -475,9 +494,15 @@ const MetaGestao = () => {
                   {/* Auto-calculated stats */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t">
                     <div>
-                      <p className="text-xs text-muted-foreground">Meta Mensal Esperada</p>
+                      <p className="text-xs text-muted-foreground">1º Mês (Jan)</p>
                       <p className="text-lg font-semibold text-foreground">
-                        {formatCurrencyCompact(expectedMonthlyTarget)}
+                        {formatCurrencyCompact(monthlyProgression[0])}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Último Mês (Dez)</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {formatCurrencyCompact(monthlyProgression[11])}
                       </p>
                     </div>
                     <div>
@@ -552,7 +577,7 @@ const MetaGestao = () => {
                   </thead>
                   <tbody>
                     {monthlyGoals.map((goal, idx) => {
-                      const expectedTarget = expectedMonthlyTarget;
+                      const expectedTarget = monthlyProgression[idx] || 0;
                       const achieved = goal.achieved;
                       const difference = achieved - expectedTarget;
                       const percentAchieved = expectedTarget > 0 ? (achieved / expectedTarget) * 100 : 0;
