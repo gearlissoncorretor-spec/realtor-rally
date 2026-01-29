@@ -14,7 +14,8 @@ import {
   Building2,
   ClipboardList,
   Handshake,
-  DollarSign
+  DollarSign,
+  PieChart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,11 @@ const Navigation = () => {
     icon: Target,
     screen: "metas"
   }, {
+    href: "/meta-gestao",
+    label: "Meta Gestão",
+    icon: PieChart,
+    screen: "meta-gestao"
+  }, {
     href: "/atividades",
     label: "Atividades",
     icon: ClipboardList,
@@ -117,7 +123,7 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'].includes(item.screen);
     } else if (userRole === 'corretor') {
       return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes'].includes(item.screen);
     }
