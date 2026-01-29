@@ -226,6 +226,12 @@ const MetaGestao = () => {
   const [editableMonthlyGoals, setEditableMonthlyGoals] = useState<{ [month: number]: number }>({});
   const [editableMonthlyBrokers, setEditableMonthlyBrokers] = useState<{ [month: number]: number }>({});
   
+  // Edit mode states
+  const [editingAnnualGoal, setEditingAnnualGoal] = useState(false);
+  const [editingBrokerHiringGoal, setEditingBrokerHiringGoal] = useState(false);
+  const [editingMonthlyGoal, setEditingMonthlyGoal] = useState<number | null>(null);
+  const [editingMonthlyBroker, setEditingMonthlyBroker] = useState<number | null>(null);
+  
   const canManage = isAdmin() || isDiretor() || isGerente();
   
   const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear);
@@ -523,22 +529,60 @@ const MetaGestao = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Annual Goal Input - Main field */}
-              {canManage && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border border-emerald-200 dark:border-emerald-700">
-                  <Label className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2 block">
-                    Defina a Meta Anual de Faturamento
-                  </Label>
-                  <CurrencyInput 
-                    value={annualGoal}
-                    onChange={(val) => setAnnualGoal(val)}
-                    className="h-14 text-xl font-bold border-emerald-300 dark:border-emerald-600 bg-white dark:bg-slate-800"
-                  />
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
-                    Progressão: <strong>{formatCurrencyCompact(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrencyCompact(monthlyProgression[11])}</strong> (Dez) com crescimento linear
-                  </p>
-                </div>
-              )}
+              {/* Annual Goal Display with Edit Icon */}
+              <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border border-emerald-200 dark:border-emerald-700">
+                <Label className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2 block">
+                  Meta Anual de Faturamento
+                </Label>
+                {editingAnnualGoal && canManage ? (
+                  <div className="flex items-center gap-2">
+                    <CurrencyInput 
+                      value={annualGoal}
+                      onChange={(val) => setAnnualGoal(val)}
+                      className="h-14 text-xl font-bold border-emerald-300 dark:border-emerald-600 bg-white dark:bg-slate-800 flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditingAnnualGoal(false);
+                        handleSaveTargets();
+                      }}
+                      className="h-14 w-14 text-emerald-600 hover:bg-emerald-200 dark:hover:bg-emerald-800"
+                    >
+                      <Save className="w-5 h-5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setEditingAnnualGoal(false)}
+                      className="h-14 w-14 text-muted-foreground hover:bg-slate-200 dark:hover:bg-slate-700"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                      {formatCurrency(annualGoal)}
+                    </span>
+                    {canManage && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setEditingAnnualGoal(true)}
+                        className="h-8 w-8 text-emerald-600 hover:bg-emerald-200 dark:hover:bg-emerald-800"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                  Progressão: <strong>{formatCurrencyCompact(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrencyCompact(monthlyProgression[11])}</strong> (Dez) com crescimento linear
+                </p>
+              </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Progress Section */}
@@ -625,7 +669,7 @@ const MetaGestao = () => {
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {canManage 
-                  ? "Clique nas metas para editar. Pressione Enter ou clique fora para salvar automaticamente."
+                  ? "Clique no ícone de lápis para editar as metas de cada mês."
                   : "Expectativa mensal baseada na meta anual e valores realizados por mês."
                 }
               </p>
@@ -636,14 +680,8 @@ const MetaGestao = () => {
                   <thead>
                     <tr className="border-b border-emerald-200 dark:border-emerald-800">
                       <th className="text-left py-3 px-2 font-medium text-muted-foreground">Mês</th>
-                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">
-                        Meta VGV
-                        {canManage && <span className="text-xs text-emerald-600 ml-1">(editável)</span>}
-                      </th>
-                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">
-                        Meta Corretores
-                        {canManage && <span className="text-xs text-emerald-600 ml-1">(editável)</span>}
-                      </th>
+                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">Meta VGV</th>
+                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">Meta Corretores</th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Realizado</th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Diferença</th>
                       <th className="text-center py-3 px-2 font-medium text-muted-foreground">%</th>
@@ -680,32 +718,65 @@ const MetaGestao = () => {
                             </div>
                           </td>
                           <td className="text-center py-3 px-2">
-                            {canManage ? (
-                              <CurrencyInput
-                                value={editableMonthlyGoals[monthIndex] ?? monthlyProgression[idx] ?? 0}
-                                onChange={(val) => handleMonthlyGoalChange(monthIndex, val)}
-                                onBlur={() => saveMonthlyGoal(monthIndex)}
-                                className="h-9 text-sm text-center max-w-[140px] mx-auto"
-                              />
+                            {editingMonthlyGoal === monthIndex && canManage ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <CurrencyInput
+                                  value={editableMonthlyGoals[monthIndex] ?? monthlyProgression[idx] ?? 0}
+                                  onChange={(val) => handleMonthlyGoalChange(monthIndex, val)}
+                                  onBlur={() => {
+                                    saveMonthlyGoal(monthIndex);
+                                    setEditingMonthlyGoal(null);
+                                  }}
+                                  className="h-8 text-sm text-center max-w-[120px]"
+                                  autoFocus
+                                />
+                              </div>
                             ) : (
-                              <span className="font-mono text-muted-foreground">
-                                {formatCurrencyCompact(currentGoalValue)}
-                              </span>
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="font-mono text-foreground">
+                                  {formatCurrencyCompact(currentGoalValue)}
+                                </span>
+                                {canManage && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => setEditingMonthlyGoal(monthIndex)}
+                                    className="h-6 w-6 text-muted-foreground hover:text-emerald-600"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
                             )}
                           </td>
                           <td className="text-center py-3 px-2">
-                            {canManage ? (
-                              <Input
-                                type="number"
-                                value={editableMonthlyBrokers[monthIndex] ?? ''}
-                                placeholder={String(Math.ceil(brokerHiringGoal / 12 * monthIndex))}
-                                onChange={(e) => handleMonthlyBrokerChange(monthIndex, parseInt(e.target.value) || 0)}
-                                className="h-9 text-sm text-center max-w-[80px] mx-auto"
-                              />
+                            {editingMonthlyBroker === monthIndex && canManage ? (
+                              <div className="flex items-center justify-center gap-1">
+                                <Input
+                                  type="number"
+                                  value={editableMonthlyBrokers[monthIndex] ?? brokerGoalForMonth}
+                                  onChange={(e) => handleMonthlyBrokerChange(monthIndex, parseInt(e.target.value) || 0)}
+                                  onBlur={() => setEditingMonthlyBroker(null)}
+                                  className="h-8 text-sm text-center max-w-[70px]"
+                                  autoFocus
+                                />
+                              </div>
                             ) : (
-                              <span className="font-mono text-muted-foreground">
-                                {brokerGoalForMonth}
-                              </span>
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="font-mono text-foreground">
+                                  {editableMonthlyBrokers[monthIndex] ?? brokerGoalForMonth}
+                                </span>
+                                {canManage && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => setEditingMonthlyBroker(monthIndex)}
+                                    className="h-6 w-6 text-muted-foreground hover:text-emerald-600"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
                             )}
                           </td>
                           <td className="text-right py-3 px-2 font-mono font-medium">
@@ -783,15 +854,31 @@ const MetaGestao = () => {
                       <p className="text-xs text-muted-foreground">Ativos</p>
                     </div>
                     <div className="text-center p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20">
-                      {canManage ? (
-                        <Input 
-                          type="number"
-                          value={brokerHiringGoal}
-                          onChange={(e) => setBrokerHiringGoal(parseInt(e.target.value) || 0)}
-                          className="text-center text-2xl font-bold h-12 border-emerald-300"
-                        />
+                      {editingBrokerHiringGoal && canManage ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <Input 
+                            type="number"
+                            value={brokerHiringGoal}
+                            onChange={(e) => setBrokerHiringGoal(parseInt(e.target.value) || 0)}
+                            onBlur={() => setEditingBrokerHiringGoal(false)}
+                            className="text-center text-2xl font-bold h-12 border-emerald-300 max-w-[80px]"
+                            autoFocus
+                          />
+                        </div>
                       ) : (
-                        <p className="text-3xl font-bold text-emerald-600">{brokerHiringGoal}</p>
+                        <div className="flex items-center justify-center gap-1">
+                          <p className="text-3xl font-bold text-emerald-600">{brokerHiringGoal}</p>
+                          {canManage && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setEditingBrokerHiringGoal(true)}
+                              className="h-7 w-7 text-emerald-600 hover:bg-emerald-200 dark:hover:bg-emerald-800"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       )}
                       <p className="text-xs text-muted-foreground mt-1">Meta</p>
                     </div>
