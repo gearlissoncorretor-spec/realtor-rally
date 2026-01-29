@@ -374,7 +374,7 @@ const MetaGestao = () => {
                   <div>
                     <p className="text-emerald-100 text-xs sm:text-sm">Meta Anual</p>
                     <p className="text-xl sm:text-2xl font-bold">
-                      {formatCurrencyCompact(yearlyData.annualTarget)}
+                      {formatCurrencyCompact(annualGoal)}
                     </p>
                   </div>
                   <Target className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-200" />
