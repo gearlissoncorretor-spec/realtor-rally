@@ -53,6 +53,12 @@ interface MonthlyGoal {
   percentAchieved: number;
 }
 
+// Types for monthly broker goals
+interface MonthlyBrokerGoal {
+  month: number; // 1-12
+  targetBrokers: number;
+}
+
 // Custom hook for annual management goals
 const useManagementGoals = (year: number) => {
   const { sales, targets, brokers } = useData();
@@ -216,41 +222,100 @@ const MetaGestao = () => {
   // Meta anual definida primeiro - é o campo principal
   const [annualGoal, setAnnualGoal] = useState(0);
   
+  // Monthly editable goals - local state for editing
+  const [editableMonthlyGoals, setEditableMonthlyGoals] = useState<{ [month: number]: number }>({});
+  const [editableMonthlyBrokers, setEditableMonthlyBrokers] = useState<{ [month: number]: number }>({});
+  
   const canManage = isAdmin() || isDiretor() || isGerente();
   
   const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear);
   
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
   
-  // Initialize annual goal from sum of saved monthly targets
+  // Initialize monthly goals from saved targets
   useEffect(() => {
-    const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => sum + goal.target, 0);
+    const savedMonthlyGoals: { [month: number]: number } = {};
+    const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => {
+      savedMonthlyGoals[goal.monthIndex] = goal.target;
+      return sum + goal.target;
+    }, 0);
+    
     if (savedAnnualTotal > 0) {
       setAnnualGoal(savedAnnualTotal);
     }
+    setEditableMonthlyGoals(savedMonthlyGoals);
   }, [monthlyGoals, selectedYear]);
   
   // Calculate expected monthly target with growth progression
-  // Starts from a base value and grows linearly to reach the annual goal
-  // Formula: month_value = base + (month_index) * growth_increment (month_index 0-11)
-  // Sum of 12 months should equal annualGoal
-  // Sum = 12 * base + growth_increment * (0+1+2+...+11) = 12 * base + growth_increment * 66
-  // For 36M: we want Jan ~1M, Dec ~5M (total = 36M)
-  // Solving: 12*base + 66*growth = 36M, and base = 1M gives growth = (36M - 12M)/66 = ~363.6K
   const calculateMonthlyProgression = (annualTarget: number): number[] => {
     if (annualTarget <= 0) return Array(12).fill(0);
     
-    // Linear growth: first month = annualTarget/36 (1M for 36M total)
-    // This creates a smooth progression that sums to the annual target
-    const baseValue = annualTarget / 36; // Start at 1/36 of annual (1M for 36M)
+    const baseValue = annualTarget / 36;
     const totalGrowthNeeded = annualTarget - (12 * baseValue);
-    const growthIncrement = totalGrowthNeeded / 66; // 66 = sum of 0 to 11
+    const growthIncrement = totalGrowthNeeded / 66;
     
     return Array.from({ length: 12 }, (_, i) => baseValue + (i * growthIncrement));
   };
   
   const monthlyProgression = calculateMonthlyProgression(annualGoal);
-  const expectedMonthlyTarget = annualGoal / 12; // For simple display
+  
+  // Get actual monthly goal (editable overrides progression)
+  const getMonthlyGoal = (monthIndex: number): number => {
+    if (editableMonthlyGoals[monthIndex] !== undefined) {
+      return editableMonthlyGoals[monthIndex];
+    }
+    return monthlyProgression[monthIndex - 1] || 0;
+  };
+  
+  // Recalculate annual goal from sum of editable monthly goals
+  const recalculatedAnnualGoal = useMemo(() => {
+    let total = 0;
+    for (let i = 1; i <= 12; i++) {
+      total += getMonthlyGoal(i);
+    }
+    return total;
+  }, [editableMonthlyGoals, monthlyProgression]);
+  
+  // Handle monthly goal change
+  const handleMonthlyGoalChange = (monthIndex: number, value: number) => {
+    setEditableMonthlyGoals(prev => ({
+      ...prev,
+      [monthIndex]: value
+    }));
+  };
+  
+  // Handle monthly broker goal change
+  const handleMonthlyBrokerChange = async (monthIndex: number, value: number) => {
+    setEditableMonthlyBrokers(prev => ({
+      ...prev,
+      [monthIndex]: value
+    }));
+    // TODO: Save broker monthly goals to database when schema is extended
+  };
+  
+  // Save individual monthly goal
+  const saveMonthlyGoal = async (monthIndex: number) => {
+    const value = editableMonthlyGoals[monthIndex];
+    if (value === undefined) return;
+    
+    try {
+      const existingTarget = targets.find(t => t.year === selectedYear && t.month === monthIndex);
+      
+      if (existingTarget) {
+        await updateTarget(existingTarget.id, { target_value: value });
+      } else {
+        await createTarget({
+          year: selectedYear,
+          month: monthIndex,
+          target_value: value,
+        });
+      }
+      toast.success(`Meta de ${format(new Date(selectedYear, monthIndex - 1), 'MMMM', { locale: ptBR })} salva!`);
+    } catch (error) {
+      console.error('Error saving monthly goal:', error);
+      toast.error('Erro ao salvar meta mensal');
+    }
+  };
   
   // Save annual goal distributed with growth progression
   const handleSaveTargets = async () => {
@@ -559,16 +624,26 @@ const MetaGestao = () => {
                 📆 Progressão Mensal - {selectedYear}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Expectativa mensal baseada na meta anual e valores realizados por mês.
+                {canManage 
+                  ? "Clique nas metas para editar. Pressione Enter ou clique fora para salvar automaticamente."
+                  : "Expectativa mensal baseada na meta anual e valores realizados por mês."
+                }
               </p>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto -mx-6 px-6">
-                <table className="w-full min-w-[700px]">
+                <table className="w-full min-w-[900px]">
                   <thead>
                     <tr className="border-b border-emerald-200 dark:border-emerald-800">
                       <th className="text-left py-3 px-2 font-medium text-muted-foreground">Mês</th>
-                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">Expectativa</th>
+                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">
+                        Meta VGV
+                        {canManage && <span className="text-xs text-emerald-600 ml-1">(editável)</span>}
+                      </th>
+                      <th className="text-center py-3 px-2 font-medium text-muted-foreground">
+                        Meta Corretores
+                        {canManage && <span className="text-xs text-emerald-600 ml-1">(editável)</span>}
+                      </th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Realizado</th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Diferença</th>
                       <th className="text-center py-3 px-2 font-medium text-muted-foreground">%</th>
@@ -577,12 +652,14 @@ const MetaGestao = () => {
                   </thead>
                   <tbody>
                     {monthlyGoals.map((goal, idx) => {
-                      const expectedTarget = monthlyProgression[idx] || 0;
+                      const monthIndex = goal.monthIndex;
+                      const currentGoalValue = getMonthlyGoal(monthIndex);
                       const achieved = goal.achieved;
-                      const difference = achieved - expectedTarget;
-                      const percentAchieved = expectedTarget > 0 ? (achieved / expectedTarget) * 100 : 0;
+                      const difference = achieved - currentGoalValue;
+                      const percentAchieved = currentGoalValue > 0 ? (achieved / currentGoalValue) * 100 : 0;
                       const status = getStatusIndicator(percentAchieved);
                       const isCurrentMonth = isSameMonth(goal.month, new Date());
+                      const brokerGoalForMonth = editableMonthlyBrokers[monthIndex] ?? Math.ceil(brokerHiringGoal / 12 * monthIndex);
                       
                       return (
                         <tr 
@@ -602,8 +679,34 @@ const MetaGestao = () => {
                               )}
                             </div>
                           </td>
-                          <td className="text-center py-3 px-2 font-mono text-muted-foreground">
-                            {formatCurrencyCompact(expectedTarget)}
+                          <td className="text-center py-3 px-2">
+                            {canManage ? (
+                              <CurrencyInput
+                                value={editableMonthlyGoals[monthIndex] ?? monthlyProgression[idx] ?? 0}
+                                onChange={(val) => handleMonthlyGoalChange(monthIndex, val)}
+                                onBlur={() => saveMonthlyGoal(monthIndex)}
+                                className="h-9 text-sm text-center max-w-[140px] mx-auto"
+                              />
+                            ) : (
+                              <span className="font-mono text-muted-foreground">
+                                {formatCurrencyCompact(currentGoalValue)}
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            {canManage ? (
+                              <Input
+                                type="number"
+                                value={editableMonthlyBrokers[monthIndex] ?? ''}
+                                placeholder={String(Math.ceil(brokerHiringGoal / 12 * monthIndex))}
+                                onChange={(e) => handleMonthlyBrokerChange(monthIndex, parseInt(e.target.value) || 0)}
+                                className="h-9 text-sm text-center max-w-[80px] mx-auto"
+                              />
+                            ) : (
+                              <span className="font-mono text-muted-foreground">
+                                {brokerGoalForMonth}
+                              </span>
+                            )}
                           </td>
                           <td className="text-right py-3 px-2 font-mono font-medium">
                             {formatCurrencyCompact(achieved)}
@@ -635,7 +738,7 @@ const MetaGestao = () => {
                             <Badge className={cn("text-xs", status.color)}>
                               {percentAchieved >= 100 ? '✅' : 
                                percentAchieved >= 50 ? '⚠️' : 
-                               expectedTarget > 0 ? '❌' : '➖'}
+                               currentGoalValue > 0 ? '❌' : '➖'}
                             </Badge>
                           </td>
                         </tr>
@@ -644,13 +747,14 @@ const MetaGestao = () => {
                     {/* Totals row */}
                     <tr className="bg-slate-100 dark:bg-slate-700 font-semibold">
                       <td className="py-3 px-2">Total Anual</td>
-                      <td className="text-center py-3 px-2 font-mono">{formatCurrencyCompact(annualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono">{formatCurrencyCompact(recalculatedAnnualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono">{brokerHiringGoal}</td>
                       <td className="text-right py-3 px-2 font-mono">{formatCurrencyCompact(yearlyData.totalVGV)}</td>
                       <td className={cn(
                         "text-right py-3 px-2 font-mono",
-                        yearlyData.totalVGV - annualGoal >= 0 ? "text-emerald-600" : "text-red-600"
+                        yearlyData.totalVGV - recalculatedAnnualGoal >= 0 ? "text-emerald-600" : "text-red-600"
                       )}>
-                        {formatCurrencyCompact(Math.abs(yearlyData.totalVGV - annualGoal))}
+                        {formatCurrencyCompact(Math.abs(yearlyData.totalVGV - recalculatedAnnualGoal))}
                       </td>
                       <td className="text-center py-3 px-2">{annualProgress.toFixed(0)}%</td>
                       <td></td>
