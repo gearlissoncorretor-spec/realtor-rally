@@ -828,13 +828,13 @@ const MetaGestao = () => {
                   <p className="font-semibold capitalize">
                     {performanceStats?.bestMonth 
                       ? format(performanceStats.bestMonth.month, 'MMMM', { locale: ptBR })
-                      : '-'
+                      : 'Sem dados'
                     }
                   </p>
                   <p className="text-lg font-bold text-green-600">
                     {performanceStats?.bestMonth 
                       ? formatCurrencyCompact(performanceStats.bestMonth.achieved)
-                      : '-'
+                      : 'R$ 0'
                     }
                   </p>
                 </div>
@@ -845,13 +845,13 @@ const MetaGestao = () => {
                   <p className="font-semibold capitalize">
                     {performanceStats?.worstMonth 
                       ? format(performanceStats.worstMonth.month, 'MMMM', { locale: ptBR })
-                      : '-'
+                      : 'Sem dados'
                     }
                   </p>
                   <p className="text-lg font-bold text-red-600">
                     {performanceStats?.worstMonth 
                       ? formatCurrencyCompact(performanceStats.worstMonth.achieved)
-                      : '-'
+                      : 'R$ 0'
                     }
                   </p>
                 </div>
@@ -859,7 +859,7 @@ const MetaGestao = () => {
                 {/* Total sales */}
                 <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 text-center">
                   <p className="text-xs text-muted-foreground mb-1">🏠 Vendas no Ano</p>
-                  <p className="text-3xl font-bold text-blue-600">{yearlyData.totalSales}</p>
+                  <p className="text-3xl font-bold text-blue-600">{yearlyData.totalSales || 0}</p>
                   <p className="text-xs text-muted-foreground">unidades</p>
                 </div>
                 
@@ -867,27 +867,77 @@ const MetaGestao = () => {
                 <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 text-center">
                   <p className="text-xs text-muted-foreground mb-1">👥 VGV por Corretor</p>
                   <p className="text-lg font-bold text-purple-600">
-                    {brokerStats.activeBrokers > 0 
+                    {brokerStats.activeBrokers > 0 && yearlyData.totalVGV > 0
                       ? formatCurrencyCompact(yearlyData.totalVGV / brokerStats.activeBrokers)
-                      : '-'
+                      : 'R$ 0'
                     }
                   </p>
                   <p className="text-xs text-muted-foreground">média/corretor</p>
                 </div>
               </div>
               
-              {/* Comparison with previous year */}
+              {/* Real KPIs */}
+              <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">💰 VGV Total</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {formatCurrencyCompact(yearlyData.totalVGV || 0)}
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">💵 VGC Total</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {formatCurrencyCompact(yearlyData.totalVGC || 0)}
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">📊 Ticket Médio</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {yearlyData.totalSales > 0 
+                      ? formatCurrencyCompact(yearlyData.totalVGV / yearlyData.totalSales)
+                      : 'R$ 0'
+                    }
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">📈 Crescimento Médio</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {performanceStats?.avgGrowth 
+                      ? `${performanceStats.avgGrowth > 0 ? '+' : ''}${performanceStats.avgGrowth.toFixed(1)}%`
+                      : '0%'
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              {/* Gap to goal */}
               <div className="mt-6 p-4 rounded-xl bg-slate-50 dark:bg-slate-700/50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Comparado com {selectedYear - 1}</p>
+                    <p className="text-sm text-muted-foreground">Distância para a Meta</p>
                     <p className="text-2xl font-bold text-foreground">
-                      {/* This would need historical data */}
-                      <span className="text-emerald-600">+12.5%</span>
-                      <span className="text-sm font-normal text-muted-foreground ml-2">de crescimento</span>
+                      {annualGoal > 0 ? (
+                        yearlyData.totalVGV >= annualGoal ? (
+                          <span className="text-emerald-600">✅ Meta Atingida!</span>
+                        ) : (
+                          <>
+                            <span className="text-amber-600">{formatCurrencyCompact(annualGoal - yearlyData.totalVGV)}</span>
+                            <span className="text-sm font-normal text-muted-foreground ml-2">restantes</span>
+                          </>
+                        )
+                      ) : (
+                        <span className="text-muted-foreground">Defina uma meta</span>
+                      )}
                     </p>
                   </div>
-                  <TrendingUp className="w-12 h-12 text-emerald-500/30" />
+                  {annualGoal > 0 && yearlyData.totalVGV < annualGoal ? (
+                    <TrendingUp className="w-12 h-12 text-amber-500/30" />
+                  ) : (
+                    <CheckCircle2 className="w-12 h-12 text-emerald-500/30" />
+                  )}
                 </div>
               </div>
             </CardContent>
