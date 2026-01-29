@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 import { 
   Target, 
   Users, 
@@ -32,7 +33,8 @@ import {
   Clock,
   Percent,
   Building2,
-  UserPlus
+  UserPlus,
+  Loader2
 } from 'lucide-react';
 import { formatCurrency, formatCurrencyCompact, formatPercentage } from '@/utils/formatting';
 import { format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachMonthOfInterval, subYears, isSameMonth } from 'date-fns';
@@ -43,6 +45,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 // Types for monthly goals
 interface MonthlyGoal {
   month: Date;
+  monthIndex: number; // 1-12
   target: number;
   achieved: number;
   difference: number;
@@ -93,10 +96,11 @@ const useManagementGoals = (year: number) => {
     return months.map(month => {
       const monthStart = startOfMonth(month);
       const monthEnd = endOfMonth(month);
+      const monthIndex = month.getMonth() + 1;
       
       // Find target for this month
       const monthTarget = targets.find(t => 
-        t.year === year && t.month === month.getMonth() + 1
+        t.year === year && t.month === monthIndex
       );
       const target = monthTarget?.target_value || 0;
       
@@ -112,6 +116,7 @@ const useManagementGoals = (year: number) => {
       
       return {
         month,
+        monthIndex,
         target,
         achieved,
         difference,
@@ -196,23 +201,73 @@ const useManagementGoals = (year: number) => {
 };
 
 const MetaGestao = () => {
-  const { getUserRole, isAdmin, isDiretor } = useAuth();
+  const { getUserRole, isAdmin, isDiretor, isGerente } = useAuth();
   const { displayName } = useContextualIdentity();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { teams, loading: teamsLoading } = useTeams();
-  const { sales, targets, targetsLoading, salesLoading } = useData();
+  const { sales, targets, targetsLoading, salesLoading, createTarget, updateTarget } = useData();
   
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [editingAnnual, setEditingAnnual] = useState(false);
-  const [annualTargetValue, setAnnualTargetValue] = useState(0);
   const [brokerHiringGoal, setBrokerHiringGoal] = useState(25);
-  const [editingBrokerGoal, setEditingBrokerGoal] = useState(false);
+  const [savingTargets, setSavingTargets] = useState(false);
   
-  const canManage = isAdmin() || isDiretor();
+  // Editable monthly targets state - initialize with current values
+  const [monthlyTargets, setMonthlyTargets] = useState<Record<number, number>>({});
+  
+  const canManage = isAdmin() || isDiretor() || isGerente();
   
   const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear);
   
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
+  
+  // Initialize monthly targets from existing data
+  useEffect(() => {
+    const initialTargets: Record<number, number> = {};
+    monthlyGoals.forEach(goal => {
+      initialTargets[goal.monthIndex] = goal.target;
+    });
+    setMonthlyTargets(initialTargets);
+  }, [monthlyGoals, selectedYear]);
+  
+  // Update a single monthly target
+  const handleMonthlyTargetChange = (monthIndex: number, value: number) => {
+    setMonthlyTargets(prev => ({
+      ...prev,
+      [monthIndex]: value
+    }));
+  };
+  
+  // Save all targets
+  const handleSaveTargets = async () => {
+    setSavingTargets(true);
+    try {
+      for (const [monthStr, targetValue] of Object.entries(monthlyTargets)) {
+        const month = parseInt(monthStr);
+        const existingTarget = targets.find(t => t.year === selectedYear && t.month === month);
+        
+        if (existingTarget) {
+          if (existingTarget.target_value !== targetValue) {
+            await updateTarget(existingTarget.id, { target_value: targetValue });
+          }
+        } else if (targetValue > 0) {
+          await createTarget({
+            year: selectedYear,
+            month: month,
+            target_value: targetValue,
+          });
+        }
+      }
+      toast.success('Metas salvas com sucesso!');
+    } catch (error) {
+      console.error('Error saving targets:', error);
+      toast.error('Erro ao salvar metas');
+    } finally {
+      setSavingTargets(false);
+    }
+  };
+  
+  // Calculate total from editable fields
+  const editableAnnualTotal = Object.values(monthlyTargets).reduce((sum, val) => sum + (val || 0), 0);
   
   // Status indicators
   const getStatusIndicator = (percent: number) => {
@@ -221,8 +276,8 @@ const MetaGestao = () => {
     return { color: 'text-red-600 bg-red-100 dark:bg-red-900/30', icon: Clock, label: 'Abaixo do esperado' };
   };
   
-  const annualProgress = yearlyData.annualTarget > 0 
-    ? (yearlyData.totalVGV / yearlyData.annualTarget) * 100 
+  const annualProgress = editableAnnualTotal > 0 
+    ? (yearlyData.totalVGV / editableAnnualTotal) * 100 
     : 0;
   const annualStatus = getStatusIndicator(annualProgress);
   
@@ -371,104 +426,91 @@ const MetaGestao = () => {
                   <DollarSign className="w-5 h-5 text-emerald-600" />
                   🎯 Meta Financeira Anual - {selectedYear}
                 </CardTitle>
-                {canManage && !editingAnnual && (
-                  <Button variant="ghost" size="sm" onClick={() => setEditingAnnual(true)}>
-                    <Edit2 className="w-4 h-4 mr-1" />
-                    Editar
+                {canManage && (
+                  <Button 
+                    size="sm" 
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                    onClick={handleSaveTargets}
+                    disabled={savingTargets}
+                  >
+                    {savingTargets ? (
+                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-1" />
+                    )}
+                    Salvar Metas
                   </Button>
                 )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {editingAnnual ? (
-                <div className="flex flex-col sm:flex-row gap-4 items-end">
-                  <div className="flex-1">
-                    <Label>Meta Anual de Faturamento</Label>
-                    <CurrencyInput 
-                      value={annualTargetValue} 
-                      onChange={setAnnualTargetValue}
-                      className="mt-1"
-                    />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Progress Section */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Progresso Anual</span>
+                    <Badge className={annualStatus.color}>
+                      <annualStatus.icon className="w-3 h-3 mr-1" />
+                      {annualStatus.label}
+                    </Badge>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                      <Save className="w-4 h-4 mr-1" />
-                      Salvar
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditingAnnual(false)}>
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Progress Section */}
-                  <div className="lg:col-span-2 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Progresso Anual</span>
-                      <Badge className={annualStatus.color}>
-                        <annualStatus.icon className="w-3 h-3 mr-1" />
-                        {annualStatus.label}
-                      </Badge>
-                    </div>
-                    <Progress value={Math.min(annualProgress, 100)} className="h-6" />
-                    <div className="flex justify-between text-sm">
-                      <span>Realizado: <strong>{formatCurrency(yearlyData.totalVGV)}</strong></span>
-                      <span>Meta: <strong>{formatCurrency(yearlyData.annualTarget)}</strong></span>
-                    </div>
-                    
-                    {/* Auto-calculated stats */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Meta Mensal Média</p>
-                        <p className="text-lg font-semibold text-foreground">
-                          {formatCurrencyCompact(yearlyData.annualTarget / 12)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Faltam</p>
-                        <p className="text-lg font-semibold text-foreground">
-                          {formatCurrencyCompact(Math.max(0, yearlyData.annualTarget - yearlyData.totalVGV))}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Ticket Médio</p>
-                        <p className="text-lg font-semibold text-foreground">
-                          {yearlyData.totalSales > 0 
-                            ? formatCurrencyCompact(yearlyData.totalVGV / yearlyData.totalSales)
-                            : 'R$ 0'
-                          }
-                        </p>
-                      </div>
-                    </div>
+                  <Progress value={Math.min(annualProgress, 100)} className="h-6" />
+                  <div className="flex justify-between text-sm">
+                    <span>Realizado: <strong>{formatCurrency(yearlyData.totalVGV)}</strong></span>
+                    <span>Meta (soma mensal): <strong>{formatCurrency(editableAnnualTotal)}</strong></span>
                   </div>
                   
-                  {/* Risk Indicator */}
-                  <div className="flex flex-col items-center justify-center p-6 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800">
-                    <div className={cn(
-                      "w-24 h-24 rounded-full flex items-center justify-center mb-3",
-                      annualProgress >= 90 ? "bg-emerald-100 dark:bg-emerald-900/50" :
-                      annualProgress >= 50 ? "bg-amber-100 dark:bg-amber-900/50" :
-                      "bg-red-100 dark:bg-red-900/50"
-                    )}>
-                      <span className={cn(
-                        "text-3xl font-bold",
-                        annualProgress >= 90 ? "text-emerald-600" :
-                        annualProgress >= 50 ? "text-amber-600" :
-                        "text-red-600"
-                      )}>
-                        {Math.round(annualProgress)}%
-                      </span>
+                  {/* Auto-calculated stats */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Meta Mensal Média</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {formatCurrencyCompact(editableAnnualTotal / 12)}
+                      </p>
                     </div>
-                    <p className="font-medium text-center">
-                      {annualProgress >= 100 ? '🏆 Meta Atingida!' :
-                       annualProgress >= 90 ? '🟢 Excelente!' :
-                       annualProgress >= 50 ? '🟡 Atenção' :
-                       '🔴 Precisa Acelerar'}
-                    </p>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Faltam</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {formatCurrencyCompact(Math.max(0, editableAnnualTotal - yearlyData.totalVGV))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Ticket Médio</p>
+                      <p className="text-lg font-semibold text-foreground">
+                        {yearlyData.totalSales > 0 
+                          ? formatCurrencyCompact(yearlyData.totalVGV / yearlyData.totalSales)
+                          : 'R$ 0'
+                        }
+                      </p>
+                    </div>
                   </div>
                 </div>
-              )}
+                
+                {/* Risk Indicator */}
+                <div className="flex flex-col items-center justify-center p-6 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800">
+                  <div className={cn(
+                    "w-24 h-24 rounded-full flex items-center justify-center mb-3",
+                    annualProgress >= 90 ? "bg-emerald-100 dark:bg-emerald-900/50" :
+                    annualProgress >= 50 ? "bg-amber-100 dark:bg-amber-900/50" :
+                    "bg-red-100 dark:bg-red-900/50"
+                  )}>
+                    <span className={cn(
+                      "text-3xl font-bold",
+                      annualProgress >= 90 ? "text-emerald-600" :
+                      annualProgress >= 50 ? "text-amber-600" :
+                      "text-red-600"
+                    )}>
+                      {Math.round(annualProgress)}%
+                    </span>
+                  </div>
+                  <p className="font-medium text-center">
+                    {annualProgress >= 100 ? '🏆 Meta Atingida!' :
+                     annualProgress >= 90 ? '🟢 Excelente!' :
+                     annualProgress >= 50 ? '🟡 Atenção' :
+                     '🔴 Precisa Acelerar'}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
           
@@ -480,16 +522,16 @@ const MetaGestao = () => {
                 📆 Metas Mensais - {selectedYear}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Acompanhe o desempenho mês a mês. Metas podem ser ajustadas conforme sazonalidade e campanhas.
+                Defina as metas para cada mês. Metas podem ser ajustadas conforme sazonalidade e campanhas.
               </p>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto -mx-6 px-6">
-                <table className="w-full min-w-[600px]">
+                <table className="w-full min-w-[700px]">
                   <thead>
                     <tr className="border-b border-emerald-200 dark:border-emerald-800">
                       <th className="text-left py-3 px-2 font-medium text-muted-foreground">Mês</th>
-                      <th className="text-right py-3 px-2 font-medium text-muted-foreground">Meta</th>
+                      <th className="text-center py-3 px-2 font-medium text-muted-foreground w-40">Meta (R$)</th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Realizado</th>
                       <th className="text-right py-3 px-2 font-medium text-muted-foreground">Diferença</th>
                       <th className="text-center py-3 px-2 font-medium text-muted-foreground">%</th>
@@ -498,7 +540,11 @@ const MetaGestao = () => {
                   </thead>
                   <tbody>
                     {monthlyGoals.map((goal, idx) => {
-                      const status = getStatusIndicator(goal.percentAchieved);
+                      const currentTarget = monthlyTargets[goal.monthIndex] || 0;
+                      const achieved = goal.achieved;
+                      const difference = achieved - currentTarget;
+                      const percentAchieved = currentTarget > 0 ? (achieved / currentTarget) * 100 : 0;
+                      const status = getStatusIndicator(percentAchieved);
                       const isCurrentMonth = isSameMonth(goal.month, new Date());
                       
                       return (
@@ -519,44 +565,67 @@ const MetaGestao = () => {
                               )}
                             </div>
                           </td>
-                          <td className="text-right py-3 px-2 font-mono">
-                            {formatCurrencyCompact(goal.target)}
+                          <td className="py-2 px-2">
+                            {canManage ? (
+                              <CurrencyInput 
+                                value={currentTarget}
+                                onChange={(val) => handleMonthlyTargetChange(goal.monthIndex, val)}
+                                className="h-9 text-sm"
+                              />
+                            ) : (
+                              <span className="font-mono">{formatCurrencyCompact(currentTarget)}</span>
+                            )}
                           </td>
                           <td className="text-right py-3 px-2 font-mono font-medium">
-                            {formatCurrencyCompact(goal.achieved)}
+                            {formatCurrencyCompact(achieved)}
                           </td>
                           <td className={cn(
                             "text-right py-3 px-2 font-mono",
-                            goal.difference >= 0 ? "text-emerald-600" : "text-red-600"
+                            difference >= 0 ? "text-emerald-600" : "text-red-600"
                           )}>
                             <span className="flex items-center justify-end gap-1">
-                              {goal.difference >= 0 ? (
+                              {difference >= 0 ? (
                                 <ArrowUpRight className="w-4 h-4" />
                               ) : (
                                 <ArrowDownRight className="w-4 h-4" />
                               )}
-                              {formatCurrencyCompact(Math.abs(goal.difference))}
+                              {formatCurrencyCompact(Math.abs(difference))}
                             </span>
                           </td>
                           <td className="text-center py-3 px-2">
                             <span className={cn(
                               "font-semibold",
-                              goal.percentAchieved >= 100 ? "text-emerald-600" :
-                              goal.percentAchieved >= 50 ? "text-amber-600" :
+                              percentAchieved >= 100 ? "text-emerald-600" :
+                              percentAchieved >= 50 ? "text-amber-600" :
                               "text-red-600"
                             )}>
-                              {goal.percentAchieved.toFixed(0)}%
+                              {percentAchieved.toFixed(0)}%
                             </span>
                           </td>
                           <td className="text-center py-3 px-2">
                             <Badge className={cn("text-xs", status.color)}>
-                              {goal.percentAchieved >= 100 ? '✅' : 
-                               goal.percentAchieved >= 50 ? '⚠️' : '❌'}
+                              {percentAchieved >= 100 ? '✅' : 
+                               percentAchieved >= 50 ? '⚠️' : 
+                               currentTarget > 0 ? '❌' : '➖'}
                             </Badge>
                           </td>
                         </tr>
                       );
                     })}
+                    {/* Totals row */}
+                    <tr className="bg-slate-100 dark:bg-slate-700 font-semibold">
+                      <td className="py-3 px-2">Total Anual</td>
+                      <td className="text-center py-3 px-2 font-mono">{formatCurrencyCompact(editableAnnualTotal)}</td>
+                      <td className="text-right py-3 px-2 font-mono">{formatCurrencyCompact(yearlyData.totalVGV)}</td>
+                      <td className={cn(
+                        "text-right py-3 px-2 font-mono",
+                        yearlyData.totalVGV - editableAnnualTotal >= 0 ? "text-emerald-600" : "text-red-600"
+                      )}>
+                        {formatCurrencyCompact(Math.abs(yearlyData.totalVGV - editableAnnualTotal))}
+                      </td>
+                      <td className="text-center py-3 px-2">{annualProgress.toFixed(0)}%</td>
+                      <td></td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -566,72 +635,51 @@ const MetaGestao = () => {
           {/* Block 3: Broker Hiring Goal */}
           <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-xl">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Users className="w-5 h-5 text-emerald-600" />
-                  👥 Meta de Contratação de Corretores
-                </CardTitle>
-                {canManage && !editingBrokerGoal && (
-                  <Button variant="ghost" size="sm" onClick={() => setEditingBrokerGoal(true)}>
-                    <Edit2 className="w-4 h-4 mr-1" />
-                    Editar Meta
-                  </Button>
-                )}
-              </div>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Users className="w-5 h-5 text-emerald-600" />
+                👥 Meta de Contratação de Corretores
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Stats */}
                 <div className="space-y-4">
-                  {editingBrokerGoal ? (
-                    <div className="flex items-end gap-4">
-                      <div className="flex-1">
-                        <Label>Meta de Corretores no Ano</Label>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+                      <p className="text-3xl font-bold text-blue-600">{brokerStats.activeBrokers}</p>
+                      <p className="text-xs text-muted-foreground">Ativos</p>
+                    </div>
+                    <div className="text-center p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20">
+                      {canManage ? (
                         <Input 
                           type="number"
                           value={brokerHiringGoal}
                           onChange={(e) => setBrokerHiringGoal(parseInt(e.target.value) || 0)}
-                          className="mt-1"
+                          className="text-center text-2xl font-bold h-12 border-emerald-300"
                         />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                          <Save className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditingBrokerGoal(false)}>
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20">
-                        <p className="text-3xl font-bold text-blue-600">{brokerStats.activeBrokers}</p>
-                        <p className="text-xs text-muted-foreground">Ativos</p>
-                      </div>
-                      <div className="text-center p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20">
+                      ) : (
                         <p className="text-3xl font-bold text-emerald-600">{brokerHiringGoal}</p>
-                        <p className="text-xs text-muted-foreground">Meta</p>
-                      </div>
-                      <div className="text-center p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20">
-                        <p className="text-3xl font-bold text-amber-600">
-                          {Math.max(0, brokerHiringGoal - brokerStats.activeBrokers)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Faltam</p>
-                      </div>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">Meta</p>
                     </div>
-                  )}
+                    <div className="text-center p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20">
+                      <p className="text-3xl font-bold text-amber-600">
+                        {Math.max(0, brokerHiringGoal - brokerStats.activeBrokers)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Faltam</p>
+                    </div>
+                  </div>
                   
                   {/* Progress bar */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Progresso</span>
                       <span className="font-medium">
-                        {Math.round((brokerStats.activeBrokers / brokerHiringGoal) * 100)}%
+                        {brokerHiringGoal > 0 ? Math.round((brokerStats.activeBrokers / brokerHiringGoal) * 100) : 0}%
                       </span>
                     </div>
                     <Progress 
-                      value={Math.min((brokerStats.activeBrokers / brokerHiringGoal) * 100, 100)} 
+                      value={brokerHiringGoal > 0 ? Math.min((brokerStats.activeBrokers / brokerHiringGoal) * 100, 100) : 0} 
                       className="h-3"
                     />
                   </div>
@@ -642,7 +690,7 @@ const MetaGestao = () => {
                       Ritmo necessário para atingir a meta:
                     </p>
                     <p className="text-lg font-semibold text-foreground">
-                      ~{Math.ceil((brokerHiringGoal - brokerStats.activeBrokers) / Math.max(1, 12 - new Date().getMonth()))} contratações/mês
+                      ~{Math.ceil(Math.max(0, brokerHiringGoal - brokerStats.activeBrokers) / Math.max(1, 12 - new Date().getMonth()))} contratações/mês
                     </p>
                   </div>
                 </div>
@@ -655,7 +703,7 @@ const MetaGestao = () => {
                         className="absolute inset-0 rounded-full border-8 border-emerald-500" 
                         style={{ 
                           clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%)`,
-                          transform: `rotate(${(brokerStats.activeBrokers / brokerHiringGoal) * 360}deg)`
+                          transform: `rotate(${brokerHiringGoal > 0 ? (brokerStats.activeBrokers / brokerHiringGoal) * 360 : 0}deg)`
                         }}
                       />
                       <div className="text-center">
