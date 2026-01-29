@@ -42,16 +42,16 @@ export function ResponsiveStatCard({
           </div>
           <div className="min-w-0 flex-1">
             <p className={cn(
-              "font-bold leading-tight truncate",
+              "font-bold leading-tight whitespace-nowrap",
               getValueFontSize(value)
             )}>
               {value}
             </p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+            <p className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
               {label}
             </p>
             {sublabel && (
-              <p className="text-[10px] text-muted-foreground/70 truncate">
+              <p className="text-[10px] text-muted-foreground/70 whitespace-nowrap">
                 {sublabel}
               </p>
             )}
