@@ -64,6 +64,11 @@ const Navigation = () => {
     icon: Handshake,
     screen: "negociacoes"
   }, {
+    href: "/follow-up",
+    label: "Follow Up",
+    icon: Users,
+    screen: "follow-up"
+  }, {
     href: "/metas",
     label: "Metas",
     icon: Target,
@@ -123,9 +128,9 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'].includes(item.screen);
     } else if (userRole === 'corretor') {
-      return ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes'].includes(item.screen);
     }
     
     // Dashboard Equipes é para diretores e admins

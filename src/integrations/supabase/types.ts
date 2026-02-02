@@ -378,6 +378,136 @@ export type Database = {
           },
         ]
       }
+      follow_up_contacts: {
+        Row: {
+          contact_date: string
+          contact_type: string
+          created_at: string
+          created_by: string | null
+          follow_up_id: string
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          contact_date?: string
+          contact_type?: string
+          created_at?: string
+          created_by?: string | null
+          follow_up_id: string
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          contact_date?: string
+          contact_type?: string
+          created_at?: string
+          created_by?: string | null
+          follow_up_id?: string
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_contacts_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follow_up_statuses: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          label: string
+          order_index: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label: string
+          order_index?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label?: string
+          order_index?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      follow_ups: {
+        Row: {
+          broker_id: string
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          created_by: string | null
+          estimated_vgv: number
+          id: string
+          next_contact_date: string | null
+          observations: string | null
+          property_interest: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          broker_id: string
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          estimated_vgv?: number
+          id?: string
+          next_contact_date?: string | null
+          observations?: string | null
+          property_interest?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          broker_id?: string
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          estimated_vgv?: number
+          id?: string
+          next_contact_date?: string | null
+          observations?: string | null
+          property_interest?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goal_progress: {
         Row: {
           created_at: string

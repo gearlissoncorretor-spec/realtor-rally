@@ -21,6 +21,7 @@ import TarefasKanban from "@/pages/TarefasKanban";
 import Atividades from "@/pages/Atividades";
 import Negociacoes from "@/pages/Negociacoes";
 import MetaGestao from "@/pages/MetaGestao";
+import FollowUp from "@/pages/FollowUp";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -111,6 +112,11 @@ const App = () => (
               <Route path="/negociacoes" element={
                 <ProtectedRoute>
                   <Negociacoes />
+                </ProtectedRoute>
+              } />
+              <Route path="/follow-up" element={
+                <ProtectedRoute>
+                  <FollowUp />
                 </ProtectedRoute>
               } />
               <Route path="/meta-gestao" element={
