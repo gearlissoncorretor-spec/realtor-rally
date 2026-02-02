@@ -324,6 +324,40 @@ const Negociacoes = () => {
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
+          {/* Total Negociações Card - Prominent */}
+          <Card 
+            className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => {
+              setActiveTab('active');
+              setFilterStatus('all');
+              setSearchTerm('');
+            }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 rounded-xl bg-primary/10">
+                    <Handshake className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Total de Negociações Ativas
+                    </p>
+                    <p className="text-4xl font-bold text-foreground">
+                      {stats.total}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm text-muted-foreground">Valor em negociação</p>
+                  <p className="text-2xl font-semibold text-primary">
+                    {formatCurrency(stats.valorTotal)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
