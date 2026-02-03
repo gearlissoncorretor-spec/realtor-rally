@@ -53,7 +53,7 @@ import {
 
 const Metas = () => {
   const { getUserRole, profile, user, isCorretor, isGerente, isDiretor, isAdmin } = useAuth();
-  const { goals, loading: goalsLoading, createGoal, updateGoal, deleteGoal } = useGoals();
+  const { goals, loading: goalsLoading, createGoal, updateGoal, deleteGoal, canEditGoal, canDeleteGoal } = useGoals();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { teams, loading: teamsLoading } = useTeams();
   const { tasks: allTasks } = useAllGoalTasks();
@@ -445,24 +445,28 @@ const Metas = () => {
                                     </span>
                                   </div>
                                   
-                                  {canManageGoals && (
+                                  {(canManageGoals || canEditGoal(goal) || canDeleteGoal(goal)) && (
                                     <div className="flex justify-end gap-1 pt-2 border-t" onClick={(e) => e.stopPropagation()}>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => handleEdit(goal)}
-                                        className="h-8 text-muted-foreground hover:text-emerald-600"
-                                      >
-                                        <Pencil className="w-4 h-4" />
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-8 text-red-500 hover:text-red-600"
-                                        onClick={() => setDeleteGoalId(goal.id)}
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
+                                      {canEditGoal(goal) && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => handleEdit(goal)}
+                                          className="h-8 text-muted-foreground hover:text-emerald-600"
+                                        >
+                                          <Pencil className="w-4 h-4" />
+                                        </Button>
+                                      )}
+                                      {canDeleteGoal(goal) && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-8 text-red-500 hover:text-red-600"
+                                          onClick={() => setDeleteGoalId(goal.id)}
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                      )}
                                     </div>
                                   )}
                                 </CardContent>
@@ -563,26 +567,30 @@ const Metas = () => {
                                             {format(new Date(goal.end_date), 'dd/MM/yy', { locale: ptBR })}
                                           </div>
                                         </TableCell>
-                                        {canManageGoals && (
+                                        {(canEditGoal(goal) || canDeleteGoal(goal)) && (
                                           <TableCell className="text-right">
                                             <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => handleEdit(goal)}
-                                                title="Editar"
-                                              >
-                                                <Pencil className="w-4 h-4" />
-                                              </Button>
-                                              <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="text-destructive hover:text-destructive"
-                                                onClick={() => setDeleteGoalId(goal.id)}
-                                                title="Excluir"
-                                              >
-                                                <Trash2 className="w-4 h-4" />
-                                              </Button>
+                                              {canEditGoal(goal) && (
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  onClick={() => handleEdit(goal)}
+                                                  title="Editar"
+                                                >
+                                                  <Pencil className="w-4 h-4" />
+                                                </Button>
+                                              )}
+                                              {canDeleteGoal(goal) && (
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="text-destructive hover:text-destructive"
+                                                  onClick={() => setDeleteGoalId(goal.id)}
+                                                  title="Excluir"
+                                                >
+                                                  <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                              )}
                                             </div>
                                           </TableCell>
                                         )}

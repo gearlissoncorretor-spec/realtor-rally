@@ -17,6 +17,7 @@ export interface Goal {
   assigned_to?: string;
   team_id?: string;
   broker_id?: string;
+  created_by?: string;
   created_at: string;
   updated_at: string;
   tasks?: GoalTask[];
@@ -43,7 +44,7 @@ export interface GoalTask {
 export const useGoals = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user, profile, getUserRole } = useAuth();
+  const { user, profile, getUserRole, isAdmin, isDiretor, isGerente, isCorretor } = useAuth();
 
   const fetchGoals = async () => {
     try {
@@ -127,6 +128,30 @@ export const useGoals = () => {
 
   const updateGoal = async (id: string, updates: Partial<Goal>) => {
     try {
+      // First, check if user can update this goal
+      const goal = goals.find(g => g.id === id);
+      if (!goal) {
+        throw new Error('Meta não encontrada');
+      }
+
+      // Only creator, admins, or directors can update
+      // Managers can update goals in their team
+      const canUpdate = 
+        isAdmin() || 
+        isDiretor() || 
+        goal.created_by === user?.id ||
+        goal.assigned_to === user?.id ||
+        (isGerente() && goal.team_id === profile?.team_id);
+
+      if (!canUpdate) {
+        toast({
+          title: "Erro",
+          description: "Você só pode editar metas que você criou ou que estão atribuídas a você.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('goals')
         .update(updates)
@@ -159,6 +184,29 @@ export const useGoals = () => {
 
   const deleteGoal = async (id: string) => {
     try {
+      // First, check if user can delete this goal
+      const goal = goals.find(g => g.id === id);
+      if (!goal) {
+        throw new Error('Meta não encontrada');
+      }
+
+      // Only creator, admins, or directors can delete
+      // Managers can delete goals in their team
+      const canDelete = 
+        isAdmin() || 
+        isDiretor() || 
+        goal.created_by === user?.id ||
+        (isGerente() && goal.team_id === profile?.team_id);
+
+      if (!canDelete) {
+        toast({
+          title: "Erro",
+          description: "Você só pode excluir metas que você criou.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('goals')
         .delete()
@@ -182,6 +230,23 @@ export const useGoals = () => {
     }
   };
 
+  // Check if user can edit a specific goal
+  const canEditGoal = (goal: Goal): boolean => {
+    if (isAdmin() || isDiretor()) return true;
+    if (goal.created_by === user?.id) return true;
+    if (goal.assigned_to === user?.id) return true;
+    if (isGerente() && goal.team_id === profile?.team_id) return true;
+    return false;
+  };
+
+  // Check if user can delete a specific goal
+  const canDeleteGoal = (goal: Goal): boolean => {
+    if (isAdmin() || isDiretor()) return true;
+    if (goal.created_by === user?.id) return true;
+    if (isGerente() && goal.team_id === profile?.team_id) return true;
+    return false;
+  };
+
   useEffect(() => {
     if (user) {
       fetchGoals();
@@ -195,5 +260,7 @@ export const useGoals = () => {
     updateGoal,
     deleteGoal,
     refreshGoals: fetchGoals,
+    canEditGoal,
+    canDeleteGoal,
   };
 };
