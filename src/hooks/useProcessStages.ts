@@ -74,20 +74,27 @@ export const useProcessStages = () => {
 
   const updateStage = async (id: string, updates: Partial<ProcessStage>) => {
     try {
+      console.log('useProcessStages: Updating stage', { id, updates });
+      
       const { data, error } = await supabase
         .from('process_stages')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error updating stage:', error);
+        throw error;
+      }
       
-      setStages(prev => prev.map(stage => stage.id === id ? data : stage));
-      toast({
-        title: "Sucesso",
-        description: "Etapa atualizada com sucesso",
-      });
+      console.log('useProcessStages: Stage updated successfully', data);
+      
+      // Update local state immediately
+      setStages(prev => prev.map(stage => stage.id === id ? { ...stage, ...data } : stage));
       
       return data;
     } catch (error) {

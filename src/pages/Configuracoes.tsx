@@ -14,7 +14,8 @@ import {
   Globe,
   User,
   Users,
-  CheckCircle
+  CheckCircle,
+  Monitor
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -26,6 +27,7 @@ import BrandingSettings from "@/components/BrandingSettings";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
+import ScreenAccessManager from "@/components/ScreenAccessManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -167,6 +169,13 @@ const Configuracoes = () => {
           {(isDiretor() || isGerente()) && (
             <div className="mb-8">
               <TeamMemberManager />
+            </div>
+          )}
+
+          {/* Screen Access Management - Only for Admins and Directors */}
+          {(isAdmin() || isDiretor()) && (
+            <div className="mb-8">
+              <ScreenAccessManager />
             </div>
           )}
 

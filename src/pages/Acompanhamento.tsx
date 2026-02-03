@@ -158,11 +158,22 @@ const Acompanhamento = () => {
     if (!newTitle.trim()) return;
     
     try {
-      await updateStage(stageId, { title: newTitle.trim() });
+      console.log('Saving stage title:', { stageId, newTitle: newTitle.trim() });
+      const result = await updateStage(stageId, { title: newTitle.trim() });
+      console.log('Stage update result:', result);
       setEditingStage(null);
       setEditingTitle("");
+      toast({
+        title: "Sucesso",
+        description: "Nome da etapa atualizado com sucesso!",
+      });
     } catch (error) {
-      // Error handling is done in the hook
+      console.error('Error in handleEditStage:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o nome da etapa",
+        variant: "destructive",
+      });
     }
   };
 
