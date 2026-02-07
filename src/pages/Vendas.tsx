@@ -363,17 +363,17 @@ const Vendas = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50 border-b border-border">
+                  <div className="overflow-x-auto scrollbar-styled">
+                    <table className="w-full min-w-[900px]">
+                      <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
                         <tr>
-                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
-                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
-                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Corretor</th>
-                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Valor / Comissão</th>
-                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                          <th className="text-left p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
-                          <th className="text-right p-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Corretor</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Valor / Comissão</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
+                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
                         </tr>
                       </thead>
                       <tbody>
