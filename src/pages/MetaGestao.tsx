@@ -60,19 +60,31 @@ interface MonthlyBrokerGoal {
 }
 
 // Custom hook for annual management goals
-const useManagementGoals = (year: number) => {
+const useManagementGoals = (year: number, teamFilter?: string | null) => {
   const { sales, targets, brokers } = useData();
-  const { teams } = useTeams();
+  const { teams, teamMembers } = useTeams();
+  
+  // Filter brokers by team if needed
+  const filteredBrokerIds = useMemo(() => {
+    if (!teamFilter) return null; // No filter = show all
+    // Get broker IDs belonging to this team
+    return brokers.filter(b => b.team_id === teamFilter).map(b => b.id);
+  }, [brokers, teamFilter]);
   
   // Calculate yearly totals
   const yearlyData = useMemo(() => {
     const yearStart = startOfYear(new Date(year, 0, 1));
     const yearEnd = endOfYear(new Date(year, 0, 1));
     
-    // Filter sales for the year
+    // Filter sales for the year and optionally by team
     const yearSales = sales.filter(sale => {
       const saleDate = new Date(sale.sale_date || sale.created_at || '');
-      return saleDate >= yearStart && saleDate <= yearEnd && sale.status === 'confirmada';
+      const inYear = saleDate >= yearStart && saleDate <= yearEnd && sale.status === 'confirmada';
+      if (!inYear) return false;
+      if (filteredBrokerIds && sale.broker_id) {
+        return filteredBrokerIds.includes(sale.broker_id);
+      }
+      return !filteredBrokerIds; // If no filter, show all
     });
     
     // Calculate totals
@@ -92,7 +104,7 @@ const useManagementGoals = (year: number) => {
       yearSales,
       yearTargets
     };
-  }, [sales, targets, year]);
+  }, [sales, targets, year, filteredBrokerIds]);
   
   // Monthly breakdown - returns base achieved data, expected target is calculated in component based on annual goal
   const monthlyGoals = useMemo((): MonthlyGoal[] => {
@@ -133,12 +145,16 @@ const useManagementGoals = (year: number) => {
     });
   }, [sales, targets, year]);
   
-  // Broker stats
+  // Broker stats - filtered by team
   const brokerStats = useMemo(() => {
-    const activeBrokers = brokers.filter(b => b.status === 'ativo').length;
-    const totalBrokers = brokers.length;
+    let filteredBrokers = brokers;
+    if (teamFilter) {
+      filteredBrokers = brokers.filter(b => b.team_id === teamFilter);
+    }
+    const activeBrokers = filteredBrokers.filter(b => b.status === 'ativo').length;
+    const totalBrokers = filteredBrokers.length;
     return { activeBrokers, totalBrokers };
-  }, [brokers]);
+  }, [brokers, teamFilter]);
   
   // Best and worst months
   const performanceStats = useMemo(() => {
@@ -209,7 +225,7 @@ const useManagementGoals = (year: number) => {
 };
 
 const MetaGestao = () => {
-  const { getUserRole, isAdmin, isDiretor, isGerente } = useAuth();
+  const { getUserRole, isAdmin, isDiretor, isGerente, profile } = useAuth();
   const { displayName } = useContextualIdentity();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { teams, loading: teamsLoading } = useTeams();
@@ -218,6 +234,16 @@ const MetaGestao = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [brokerHiringGoal, setBrokerHiringGoal] = useState(25);
   const [savingTargets, setSavingTargets] = useState(false);
+  
+  // Team filter: managers auto-filter to their team, directors can select
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  
+  // Determine team filter based on role
+  const teamFilter = useMemo(() => {
+    if (isGerente() && profile?.team_id) return profile.team_id;
+    if ((isDiretor() || isAdmin()) && selectedTeamId) return selectedTeamId;
+    return null;
+  }, [isGerente, isDiretor, isAdmin, profile, selectedTeamId]);
   
   // Meta anual definida primeiro - é o campo principal
   const [annualGoal, setAnnualGoal] = useState(0);
@@ -234,7 +260,7 @@ const MetaGestao = () => {
   
   const canManage = isAdmin() || isDiretor() || isGerente();
   
-  const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear);
+  const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear, teamFilter);
   
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
   
@@ -435,8 +461,23 @@ const MetaGestao = () => {
                 <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
+            
+            {/* Team Selector for Directors */}
+            {(isDiretor() || isAdmin()) && teams.length > 0 && (
+              <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 rounded-xl p-2 shadow-lg">
+                <select
+                  value={selectedTeamId || ''}
+                  onChange={(e) => setSelectedTeamId(e.target.value || null)}
+                  className="bg-transparent text-sm font-medium text-foreground border-0 outline-none cursor-pointer px-2 py-1"
+                >
+                  <option value="">Todas as Equipes</option>
+                  {teams.map(team => (
+                    <option key={team.id} value={team.id}>{team.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-          
           {/* Quick Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg border-0">

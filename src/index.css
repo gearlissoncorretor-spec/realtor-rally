@@ -310,6 +310,33 @@
     animation: glow-border 2s ease-in-out infinite;
   }
 
+  @keyframes confetti {
+    0% {
+      transform: translateY(-100vh) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) translateX(var(--random-x)) rotate(var(--random-rotation));
+      opacity: 0;
+    }
+  }
+
+  @keyframes podium-rise {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-podium-rise {
+    animation: podium-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
   .hover-lift {
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
   }
