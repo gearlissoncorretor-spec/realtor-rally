@@ -25,7 +25,7 @@ import { UserManagementHub } from "@/components/UserManagementHub";
 import TeamManager from "@/components/TeamManager";
 import TeamMemberManager from "@/components/TeamMemberManager";
 import BrandingSettings from "@/components/BrandingSettings";
-import { NotificationSettings } from "@/components/NotificationSettings";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
@@ -149,7 +149,7 @@ const Configuracoes = () => {
               isOpen={openSections.notifications}
               onToggle={() => toggleSection('notifications')}
             >
-              <NotificationSettings />
+              <NotificationCenter />
             </CollapsibleSection>
 
             {/* Configurações Gerais */}
