@@ -15,7 +15,9 @@ import {
   ClipboardList,
   Handshake,
   DollarSign,
-  PieChart
+  PieChart,
+  CalendarDays,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -114,10 +116,20 @@ const Navigation = () => {
     icon: Columns3,
     screen: "x1"
   }, {
+    href: "/agenda",
+    label: "Agenda",
+    icon: CalendarDays,
+    screen: "agenda"
+  }, {
     href: "/configuracoes",
     label: "Configurações",
     icon: Settings,
     screen: "configuracoes"
+  }, {
+    href: "/instalar",
+    label: "Instalar App",
+    icon: Download,
+    screen: "instalar"
   }];
 
   // Filter nav items based on user permissions
@@ -128,9 +140,9 @@ const Navigation = () => {
     if (userRole === 'diretor') {
       return true; // Diretor has access to everything
     } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar'].includes(item.screen);
     } else if (userRole === 'corretor') {
-      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes'].includes(item.screen);
+      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'instalar'].includes(item.screen);
     }
     
     // Dashboard Equipes é para diretores e admins

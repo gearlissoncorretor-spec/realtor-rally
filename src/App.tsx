@@ -22,6 +22,8 @@ import Atividades from "@/pages/Atividades";
 import Negociacoes from "@/pages/Negociacoes";
 import MetaGestao from "@/pages/MetaGestao";
 import FollowUp from "@/pages/FollowUp";
+import Agenda from "@/pages/Agenda";
+import Instalar from "@/pages/Instalar";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -127,6 +129,16 @@ const App = () => (
               <Route path="/configuracoes" element={
                 <ProtectedRoute>
                   <Configuracoes />
+                </ProtectedRoute>
+              } />
+              <Route path="/agenda" element={
+                <ProtectedRoute>
+                  <Agenda />
+                </ProtectedRoute>
+              } />
+              <Route path="/instalar" element={
+                <ProtectedRoute>
+                  <Instalar />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
