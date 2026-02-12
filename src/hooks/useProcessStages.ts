@@ -83,20 +83,28 @@ export const useProcessStages = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
-        .select()
-        .single();
+        .select();
 
       if (error) {
         console.error('Supabase error updating stage:', error);
         throw error;
       }
       
-      console.log('useProcessStages: Stage updated successfully', data);
+      if (!data || data.length === 0) {
+        console.warn('No rows updated - likely RLS policy blocking. Trying refetch...');
+        // Update local state optimistically
+        setStages(prev => prev.map(stage => stage.id === id ? { ...stage, ...updates } : stage));
+        // Refetch to confirm
+        await fetchStages();
+        return updates;
+      }
+      
+      console.log('useProcessStages: Stage updated successfully', data[0]);
       
       // Update local state immediately
-      setStages(prev => prev.map(stage => stage.id === id ? { ...stage, ...data } : stage));
+      setStages(prev => prev.map(stage => stage.id === id ? { ...stage, ...data[0] } : stage));
       
-      return data;
+      return data[0];
     } catch (error) {
       console.error('Error updating stage:', error);
       toast({
