@@ -202,7 +202,7 @@ const Vendas = () => {
       <Navigation />
       
       <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-8 min-h-screen">
-        <div className="max-w-[1600px] mx-auto space-y-6">
+        <div className="space-y-6">
           
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
