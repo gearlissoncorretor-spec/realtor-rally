@@ -31,14 +31,16 @@ const PATH_TO_SCREEN: Record<string, string> = {
   '/follow-up': 'follow-up',
   '/meta-gestao': 'meta-gestao',
   '/configuracoes': 'configuracoes',
+  '/agenda': 'agenda',
+  '/instalar': 'instalar',
 };
 
 // Screens that are accessible based on role (used as fallback)
 const ROLE_SCREENS: Record<string, string[]> = {
   diretor: ['*'], // All screens
   admin: ['*'], // All screens
-  gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'],
-  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes'],
+  gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar'],
+  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'instalar'],
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
@@ -129,6 +131,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Directors and Admins have access to everything
   if (isDiretor() || isAdmin()) {
+    return <>{children}</>;
+  }
+
+  // "instalar" is always accessible to authenticated users
+  if (screenToCheck === 'instalar') {
     return <>{children}</>;
   }
 

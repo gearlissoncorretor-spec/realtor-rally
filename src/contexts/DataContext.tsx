@@ -196,6 +196,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (!token) throw new Error('Usuário não autenticado');
 
+      // Generate secure random password
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+      const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(12)))
+        .map(b => chars[b % chars.length])
+        .join('');
+
       const response = await fetch(
         'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/create-user',
         {
@@ -207,9 +213,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           body: JSON.stringify({
             full_name: broker.name,
             email: broker.email,
-            password: 'TempPass123!',
+            password: randomPassword,
             role: 'corretor',
-            allowed_screens: ['dashboard', 'vendas'],
+            allowed_screens: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes'],
             team_id: broker.team_id,
             phone: broker.phone,
             cpf: broker.cpf,
@@ -218,7 +224,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             meta_monthly: broker.meta_monthly,
             observations: broker.observations,
             status: broker.status || 'ativo',
-            created_by: user?.id, // Track who created the broker
+            created_by: user?.id,
           }),
         }
       );
@@ -227,13 +233,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const errorData = await response.json();
         throw new Error(errorData.error || 'Erro ao criar corretor');
       }
-      return response.json();
+      return { ...(await response.json()), tempPassword: randomPassword };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['brokers'] });
       toast({
         title: "Corretor criado",
-        description: "Corretor adicionado com sucesso. Senha temporária: TempPass123!",
+        description: `Corretor adicionado com sucesso. Senha temporária: ${data.tempPassword} — Anote e envie ao corretor de forma segura.`,
       });
     },
     onError: (error: Error) => {

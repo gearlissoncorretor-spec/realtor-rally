@@ -132,30 +132,32 @@ const Navigation = () => {
     screen: "instalar"
   }];
 
-  // Filter nav items based on user permissions
+  // Filter nav items based on user permissions (allowed_screens from admin)
   const navItems = allNavItems.filter(item => {
-    // Role-based access control
     const userRole = getUserRole();
     
-    if (userRole === 'diretor') {
-      return true; // Diretor has access to everything
-    } else if (userRole === 'gerente') {
-      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar'].includes(item.screen);
-    } else if (userRole === 'corretor') {
-      return ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'instalar'].includes(item.screen);
-    }
-    
-    // Dashboard Equipes é para diretores e admins
-    if (item.screen === 'dashboard-equipes' && userRole !== 'diretor' && !isAdmin()) {
-      return false;
-    }
-    
-    // Admins also have access to everything
-    if (isAdmin()) {
+    // Admins and Directors see everything
+    if (isAdmin() || userRole === 'diretor') {
       return true;
     }
     
-    return hasAccess(item.screen);
+    // "instalar" is always available to authenticated users
+    if (item.screen === 'instalar') {
+      return true;
+    }
+    
+    // For all other roles, check both role allowance AND allowed_screens
+    const ROLE_SCREENS: Record<string, string[]> = {
+      gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda'],
+      corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda'],
+    };
+    
+    const roleScreens = ROLE_SCREENS[userRole] || [];
+    const hasRolePermission = roleScreens.includes(item.screen);
+    const hasScreenPermission = hasAccess(item.screen);
+    
+    // Must have BOTH role permission AND be in allowed_screens
+    return hasRolePermission && hasScreenPermission;
   });
 
   // Render logo section
