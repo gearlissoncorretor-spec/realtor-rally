@@ -2,34 +2,26 @@ import Navigation from "@/components/Navigation";
 import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
-import { ColumnSelector } from "@/components/ColumnSelector";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SalesMetricsCards } from "@/components/sales/SalesMetricsCards";
 import { SalesInsightsPanel } from "@/components/sales/SalesInsightsPanel";
-import { SalesQuickFilters } from "@/components/sales/SalesQuickFilters";
 import { SalesTableRow } from "@/components/sales/SalesTableRow";
 import { TopBrokersRanking } from "@/components/sales/TopBrokersRanking";
-import { useSearchAndFilters } from "@/components/SearchWithFilters";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Plus, 
-  Search, 
-  User,
-  MapPin,
-  Filter,
-  Calendar,
-  Upload
-} from "lucide-react";
+import { Plus, Search, Calendar } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
-import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Sale } from "@/contexts/DataContext";
 import { VendasSkeleton } from "@/components/skeletons/VendasSkeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+
+const currentYear = new Date().getFullYear();
 
 const Vendas = () => {
   const { toast } = useToast();
@@ -38,135 +30,70 @@ const Vendas = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState<number>(0);
   
   const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
-  const { teams, teamMembers } = useTeams();
+  
 
-  // Filter configurations
-  const filterConfigs = useMemo(() => {
-    const uniqueYears = [...new Set(sales.map(sale => {
-      const saleDate = new Date(sale.sale_date || sale.created_at || '');
-      return saleDate.getFullYear();
-    }))].sort((a, b) => b - a);
+  // Available years from data
+  const availableYears = useMemo(() => {
+    const years = [...new Set(sales.map(sale => {
+      const d = new Date(sale.sale_date || sale.created_at || '');
+      return d.getFullYear();
+    }))].filter(y => !isNaN(y)).sort((a, b) => b - a);
+    // Ensure current year is always in the list
+    if (!years.includes(currentYear)) years.unshift(currentYear);
+    return years;
+  }, [sales]);
 
-    const monthOptions = [
-      { value: 1, label: 'Janeiro' },
-      { value: 2, label: 'Fevereiro' },
-      { value: 3, label: 'Março' },
-      { value: 4, label: 'Abril' },
-      { value: 5, label: 'Maio' },
-      { value: 6, label: 'Junho' },
-      { value: 7, label: 'Julho' },
-      { value: 8, label: 'Agosto' },
-      { value: 9, label: 'Setembro' },
-      { value: 10, label: 'Outubro' },
-      { value: 11, label: 'Novembro' },
-      { value: 12, label: 'Dezembro' },
-    ];
+  const months = [
+    { value: 0, label: 'Todos os meses' },
+    { value: 1, label: 'Janeiro' },
+    { value: 2, label: 'Fevereiro' },
+    { value: 3, label: 'Março' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Maio' },
+    { value: 6, label: 'Junho' },
+    { value: 7, label: 'Julho' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Setembro' },
+    { value: 10, label: 'Outubro' },
+    { value: 11, label: 'Novembro' },
+    { value: 12, label: 'Dezembro' },
+  ];
 
-    return [
-      {
-        id: 'status',
-        label: 'Status',
-        type: 'select' as const,
-        icon: <Filter className="w-4 h-4" />,
-        options: [
-          { value: 'pendente', label: 'Pendente' },
-          { value: 'confirmada', label: 'Confirmada' },
-          { value: 'cancelada', label: 'Cancelada' },
-          { value: 'distrato', label: 'Distrato' },
-        ],
-      },
-      {
-        id: 'broker_id',
-        label: 'Corretor',
-        type: 'select' as const,
-        icon: <User className="w-4 h-4" />,
-        options: brokers.map(broker => ({
-          value: broker.id,
-          label: broker.name,
-        })),
-      },
-      ...(isDiretor() ? [{
-        id: 'team_id',
-        label: 'Equipe',
-        type: 'select' as const,
-        icon: <User className="w-4 h-4" />,
-        options: teams.map(team => ({
-          value: team.id,
-          label: team.name,
-        })),
-      }] : []),
-      {
-        id: 'property_type',
-        label: 'Tipo de Imóvel',
-        type: 'select' as const,
-        icon: <MapPin className="w-4 h-4" />,
-        options: [
-          { value: 'apartamento', label: 'Apartamento' },
-          { value: 'casa', label: 'Casa' },
-          { value: 'terreno', label: 'Terreno' },
-          { value: 'comercial', label: 'Comercial' },
-        ],
-      },
-      {
-        id: 'month',
-        label: 'Mês',
-        type: 'select' as const,
-        icon: <Calendar className="w-4 h-4" />,
-        options: monthOptions,
-      },
-      {
-        id: 'year',
-        label: 'Ano',
-        type: 'select' as const,
-        icon: <Calendar className="w-4 h-4" />,
-        options: uniqueYears.map(year => ({
-          value: year,
-          label: year.toString(),
-        })),
-      },
-    ];
-  }, [brokers, sales, teams, isDiretor]);
+  // Status filter
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Custom filter functions
-  const customFilters = useMemo(() => ({
-    team_id: (sales: Sale[], teamId: string) => {
-      const teamBrokerIds = teamMembers
-        .filter(member => member.team_id === teamId)
-        .map(member => member.id);
-      return sales.filter(sale => 
-        sale.broker_id && teamBrokerIds.includes(sale.broker_id)
-      );
-    },
-  }), [teamMembers]);
+  // Filter by year, month, status
+  const periodFilteredSales = useMemo(() => {
+    return sales.filter(sale => {
+      const d = new Date(sale.sale_date || sale.created_at || '');
+      if (isNaN(d.getTime())) return false;
 
-  const {
-    activeFilters,
-    filteredData: filteredSales,
-    handleFilterChange,
-    handleClearFilter,
-    handleClearAllFilters,
-    resultCount,
-  } = useSearchAndFilters(
-    sales,
-    ['client_name', 'property_address'],
-    filterConfigs,
-    customFilters
-  );
+      // Year filter (0 = all)
+      if (selectedYear > 0 && d.getFullYear() !== selectedYear) return false;
+      // Month filter (0 = all)
+      if (selectedMonth > 0 && d.getMonth() + 1 !== selectedMonth) return false;
+      // Status filter
+      if (statusFilter !== 'all' && sale.status !== statusFilter) return false;
 
-  // Apply search filter on top of other filters
+      return true;
+    });
+  }, [sales, selectedYear, selectedMonth, statusFilter]);
+
+  // Apply search on top
   const searchFilteredSales = useMemo(() => {
-    if (!searchTerm.trim()) return filteredSales;
-    
+    if (!searchTerm.trim()) return periodFilteredSales;
     const lowerSearch = searchTerm.toLowerCase();
-    return filteredSales.filter(sale => 
+    return periodFilteredSales.filter(sale =>
       sale.client_name?.toLowerCase().includes(lowerSearch) ||
       sale.property_address?.toLowerCase().includes(lowerSearch) ||
       brokers.find(b => b.id === sale.broker_id)?.name.toLowerCase().includes(lowerSearch)
     );
-  }, [filteredSales, searchTerm, brokers]);
+  }, [periodFilteredSales, searchTerm, brokers]);
 
   const handleDelete = async (saleId: string) => {
     try {
@@ -318,25 +245,75 @@ const Vendas = () => {
                     />
                   </div>
                   
-                  {/* Quick Filters */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <SalesQuickFilters 
-                      activeFilters={activeFilters}
-                      onFilterChange={handleFilterChange}
-                      onClearFilter={handleClearFilter}
-                      totalResults={searchFilteredSales.length}
-                    />
-                    
-                    {activeFilters.length > 0 && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={handleClearAllFilters}
-                        className="text-muted-foreground hover:text-foreground"
+                  {/* Period & Status Filters */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <Select
+                        value={selectedYear.toString()}
+                        onValueChange={(v) => setSelectedYear(parseInt(v))}
+                      >
+                        <SelectTrigger className="w-[130px] h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">Todos os anos</SelectItem>
+                          {availableYears.map(y => (
+                            <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Select
+                      value={selectedMonth.toString()}
+                      onValueChange={(v) => setSelectedMonth(parseInt(v))}
+                    >
+                      <SelectTrigger className="w-[150px] h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map(m => (
+                          <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={statusFilter}
+                      onValueChange={setStatusFilter}
+                    >
+                      <SelectTrigger className="w-[140px] h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos status</SelectItem>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="confirmada">Confirmada</SelectItem>
+                        <SelectItem value="cancelada">Cancelada</SelectItem>
+                        <SelectItem value="distrato">Distrato</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {(selectedYear !== currentYear || selectedMonth !== 0 || statusFilter !== 'all' || searchTerm) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedYear(currentYear);
+                          setSelectedMonth(0);
+                          setStatusFilter('all');
+                          setSearchTerm('');
+                        }}
+                        className="text-muted-foreground hover:text-foreground h-9"
                       >
                         Limpar filtros
                       </Button>
                     )}
+
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {searchFilteredSales.length} {searchFilteredSales.length === 1 ? 'resultado' : 'resultados'}
+                    </Badge>
                   </div>
                 </div>
               </Card>
@@ -357,7 +334,7 @@ const Vendas = () => {
                 ) : searchFilteredSales.length === 0 ? (
                   <div className="h-32 flex items-center justify-center">
                     <p className="text-muted-foreground text-center text-sm">
-                      {searchTerm || activeFilters.length > 0 
+                      {searchTerm || statusFilter !== 'all' || selectedMonth !== 0 
                         ? 'Nenhuma venda encontrada para os filtros aplicados.' 
                         : 'Nenhuma venda cadastrada ainda.'}
                     </p>
