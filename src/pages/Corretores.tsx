@@ -129,7 +129,7 @@ const Corretores = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-3 sm:p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         {/* Header - Mobile optimized */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>

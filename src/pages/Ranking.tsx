@@ -62,7 +62,7 @@ const Ranking = () => {
     return (
       <div className="min-h-screen bg-background">
         {!isTVMode && <Navigation />}
-        <div className={cn(!isTVMode && "lg:ml-64 pt-16 lg:pt-0", "p-4 lg:p-6")}>
+        <div className={cn(!isTVMode && "lg:ml-72 pt-16 lg:pt-0", "p-4 lg:p-6")}>
           <RankingSkeleton />
         </div>
       </div>
@@ -78,7 +78,7 @@ const Ranking = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-3 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-1 flex items-center gap-2">

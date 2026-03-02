@@ -253,7 +253,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="lg:ml-72 pt-16 lg:pt-0 p-5 lg:p-8">
+        <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
             <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
               <Target className="h-8 w-8 text-destructive" />
@@ -276,7 +276,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="lg:ml-72 pt-16 lg:pt-0 p-5 lg:p-8">
+        <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
           <DashboardSkeleton />
         </main>
       </div>
@@ -288,7 +288,7 @@ const Index = () => {
       <Navigation />
       
       {/* Main Content */}
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-5 lg:p-8 min-h-screen">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
         
         {/* Hero Section - Axis Branding (Compact) */}
         <div className="relative h-[120px] sm:h-[140px] rounded-xl mb-8 overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center">

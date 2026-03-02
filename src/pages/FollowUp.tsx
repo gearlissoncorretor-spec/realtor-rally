@@ -232,7 +232,7 @@ const FollowUpPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-8">
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
           <div className="flex items-center justify-center h-64">
             <div className="text-lg text-muted-foreground">Carregando...</div>
           </div>
@@ -245,8 +245,8 @@ const FollowUpPage = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+        <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>

@@ -383,10 +383,10 @@ export default function X1() {
   }
 
   return (
-    <div className="min-h-screen bg-background lg:pl-72">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:pt-0 pt-16 px-4 py-6 max-w-full">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold">X1 - Gestão de Corretores</h1>
           <p className="text-muted-foreground mt-1">
