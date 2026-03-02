@@ -246,8 +246,8 @@ const Metas = () => {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-emerald-950/20 lg:ml-72">
-          <div className="max-w-7xl mx-auto p-6 space-y-6 pt-20 lg:pt-6">
+        <div className="min-h-screen bg-background lg:ml-72">
+          <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6">
             <MetasSkeleton />
           </div>
         </div>
@@ -258,8 +258,8 @@ const Metas = () => {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-emerald-950/20 lg:ml-72">
-        <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 pt-20 lg:pt-6">
+      <div className="min-h-screen bg-background lg:ml-72">
+        <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6">
           {/* Header with Month Selector */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

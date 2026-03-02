@@ -69,7 +69,7 @@ const Configuracoes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-3 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-1 animate-fade-in">

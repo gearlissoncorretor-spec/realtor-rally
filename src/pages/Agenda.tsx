@@ -69,8 +69,8 @@ const Agenda = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="lg:ml-72 pt-20 lg:pt-8 px-4 lg:px-8 pb-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+        <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>

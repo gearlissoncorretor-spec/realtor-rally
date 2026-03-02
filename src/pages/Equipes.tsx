@@ -39,7 +39,7 @@ const Equipes = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen flex items-center justify-center">
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen flex items-center justify-center">
           <Card className="p-8 max-w-md">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
@@ -94,7 +94,7 @@ const Equipes = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
           <EquipesSkeleton />
         </div>
       </div>
@@ -128,7 +128,7 @@ const Equipes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2 animate-fade-in">

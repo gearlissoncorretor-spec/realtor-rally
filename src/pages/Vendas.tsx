@@ -190,7 +190,7 @@ const Vendas = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-8 min-h-screen">
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
           <VendasSkeleton />
         </div>
       </div>
@@ -201,7 +201,7 @@ const Vendas = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-64 pt-16 lg:pt-0 p-4 lg:p-8 min-h-screen">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
         <div className="space-y-6">
           
           {/* Header */}

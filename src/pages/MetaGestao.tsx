@@ -396,8 +396,8 @@ const MetaGestao = () => {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-emerald-950/20 lg:ml-72">
-          <div className="max-w-7xl mx-auto p-4 lg:p-8 space-y-6 pt-20 lg:pt-6">
+        <div className="min-h-screen bg-background lg:ml-72">
+          <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6">
             <Skeleton className="h-12 w-64" />
             <div className="grid gap-4 md:grid-cols-4">
               {[1,2,3,4].map(i => <Skeleton key={i} className="h-32" />)}
@@ -412,8 +412,8 @@ const MetaGestao = () => {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-emerald-950/20 lg:ml-72">
-        <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-8 space-y-6 pt-20 lg:pt-6">
+      <div className="min-h-screen bg-background lg:ml-72">
+        <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6">
           
           {/* Header */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

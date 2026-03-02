@@ -309,7 +309,7 @@ const Negociacoes = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-8">
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
           <div className="flex items-center justify-center h-64">
             <div className="text-lg text-muted-foreground">Carregando...</div>
           </div>
@@ -322,8 +322,8 @@ const Negociacoes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+        <div className="space-y-6">
           {/* Total Negociações Card - Prominent */}
           <Card 
             className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20 cursor-pointer hover:shadow-lg transition-shadow"
