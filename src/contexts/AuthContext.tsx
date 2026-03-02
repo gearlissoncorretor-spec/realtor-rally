@@ -269,6 +269,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const getDefaultRoute = (): string => {
+    if (userRole === 'diretor' || userRole === 'admin') return '/';
+    
+    const screens = profile?.allowed_screens || [];
+    const screenToRoute: Record<string, string> = {
+      'dashboard': '/',
+      'vendas': '/vendas',
+      'negociacoes': '/negociacoes',
+      'follow-up': '/follow-up',
+      'metas': '/metas',
+      'atividades': '/atividades',
+      'tarefas-kanban': '/tarefas-kanban',
+      'corretores': '/corretores',
+      'equipes': '/equipes',
+      'ranking': '/ranking',
+      'acompanhamento': '/acompanhamento',
+      'relatorios': '/relatorios',
+      'configuracoes': '/configuracoes',
+      'agenda': '/agenda',
+    };
+    
+    const priority = ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades'];
+    for (const screen of priority) {
+      if (screens.includes(screen)) {
+        return screenToRoute[screen] || '/';
+      }
+    }
+    
+    if (screens.length > 0 && screenToRoute[screens[0]]) {
+      return screenToRoute[screens[0]];
+    }
+    
     return '/';
   };
 

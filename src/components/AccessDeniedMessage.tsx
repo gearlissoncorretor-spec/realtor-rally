@@ -1,8 +1,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Home, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { AlertTriangle, Home, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface AccessDeniedMessageProps {
   type?: 'permission' | 'approval' | 'general';
@@ -13,7 +13,13 @@ export const AccessDeniedMessage = ({
   type = 'permission', 
   message 
 }: AccessDeniedMessageProps) => {
-  const { getUserRole, getDefaultRoute, profile } = useAuth();
+  const { getUserRole, getDefaultRoute, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSwitchAccount = async () => {
+    await signOut();
+    navigate('/auth', { replace: true });
+  };
 
   const getContent = () => {
     switch (type) {
@@ -39,6 +45,7 @@ export const AccessDeniedMessage = ({
   };
 
   const content = getContent();
+  const defaultRoute = getDefaultRoute();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -55,18 +62,18 @@ export const AccessDeniedMessage = ({
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2">
             <Button asChild className="w-full">
-              <Link to={getDefaultRoute()}>
+              <Link to={defaultRoute}>
                 <Home className="mr-2 h-4 w-4" />
                 Ir para Início
               </Link>
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => window.history.back()}
+              onClick={handleSwitchAccount}
               className="w-full"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
+              <LogOut className="mr-2 h-4 w-4" />
+              Trocar Conta
             </Button>
           </div>
           

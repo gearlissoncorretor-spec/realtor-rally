@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import AccessDenied from '@/components/AccessDenied';
 import { AccessDeniedMessage } from '@/components/AccessDeniedMessage';
 import LoadingFallback from '@/components/LoadingFallback';
 
@@ -48,7 +47,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredScreen, 
   adminOnly 
 }) => {
-  const { user, loading, hasAccess, profile, isAdmin, isDiretor, getUserRole, error } = useAuth();
+  const { user, loading, hasAccess, profile, isAdmin, isDiretor, getUserRole, getDefaultRoute, error } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
   const location = useLocation();
 
@@ -122,7 +121,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Verificação de admin
   if (adminOnly && !isAdmin()) {
-    return <AccessDenied />;
+    return <AccessDeniedMessage type="permission" />;
   }
 
   // Get the required screen from props or from the current path
@@ -148,7 +147,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const hasRoleAccess = roleScreens.includes('*') || roleScreens.includes(screenToCheck);
     
     if (!hasRoleAccess || !hasScreenAccess) {
-      return <AccessDenied />;
+      const defaultRoute = getDefaultRoute();
+      // Redirect to default route if it's different from current path to avoid loop
+      if (defaultRoute !== location.pathname) {
+        return <Navigate to={defaultRoute} replace />;
+      }
+      // If default route is the same, show access denied with logout option
+      return <AccessDeniedMessage type="permission" />;
     }
   }
 
