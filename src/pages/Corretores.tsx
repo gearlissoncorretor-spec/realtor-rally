@@ -1,5 +1,5 @@
 import Navigation from "@/components/Navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,18 +21,167 @@ import {
   DollarSign,
   Phone,
   Mail,
-  Loader2
+  Loader2,
+  Users,
+  UserCircle
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BrokerForm } from "@/components/forms/BrokerForm";
 import BrokerDetailsModal from "@/components/BrokerDetailsModal";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
+import { useTeams } from "@/hooks/useTeams";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Broker } from "@/contexts/DataContext";
 import { CorretoresSkeleton } from "@/components/skeletons/CorretoresSkeleton";
 import { formatCurrency } from "@/utils/formatting";
+
+const BrokerCard = ({ 
+  broker, 
+  stats, 
+  canDelete, 
+  onEdit, 
+  onDelete, 
+  onDeleteDenied 
+}: { 
+  broker: Broker; 
+  stats: { salesCount: number; totalRevenue: number }; 
+  canDelete: boolean;
+  onEdit: (broker: Broker) => void;
+  onDelete: (broker: Broker) => void;
+  onDeleteDenied: () => void;
+}) => (
+  <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
+    <CardContent className="p-4 sm:p-6">
+      {/* Mobile Layout */}
+      <div className="flex flex-col gap-4 lg:hidden">
+        <div className="flex items-start gap-3">
+          <Avatar className="h-14 w-14 shrink-0">
+            <AvatarImage src={broker.avatar_url || "/placeholder.svg"} />
+            <AvatarFallback className="text-lg">
+              {broker.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold text-foreground truncate">{broker.name}</h3>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground truncate">
+              <Mail className="w-3 h-3 shrink-0" />
+              <span className="truncate">{broker.email}</span>
+            </div>
+            {broker.phone && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Phone className="w-3 h-3 shrink-0" />
+                {broker.phone}
+              </div>
+            )}
+          </div>
+          <Badge 
+            variant="secondary" 
+            className={broker.status === 'ativo' 
+              ? "bg-green-500/10 text-green-600 border-green-500/20 shrink-0" 
+              : "bg-muted/10 text-muted-foreground shrink-0"
+            }
+          >
+            {broker.status === 'ativo' ? 'Ativo' : 'Inativo'}
+          </Badge>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="flex items-center gap-2 text-primary mb-1">
+              <Target className="w-4 h-4" />
+              <span className="text-xs font-medium">Vendas</span>
+            </div>
+            <p className="text-xl font-bold text-foreground">
+              {stats.salesCount}/{broker.meta_monthly || 0}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/10">
+            <div className="flex items-center gap-2 text-green-600 mb-1">
+              <DollarSign className="w-4 h-4" />
+              <span className="text-xs font-medium">Faturamento</span>
+            </div>
+            <p className="text-xl font-bold text-foreground">
+              {formatCurrency(stats.totalRevenue)}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex-1 h-10" onClick={() => onEdit(broker)}>
+            <Edit className="w-4 h-4 mr-1" /> Editar
+          </Button>
+          <Button 
+            variant="outline" 
+            className={`h-10 ${canDelete ? 'text-destructive hover:text-destructive' : 'opacity-50'}`}
+            onClick={() => canDelete ? onDelete(broker) : onDeleteDenied()}
+            disabled={!canDelete}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden lg:flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={broker.avatar_url || "/placeholder.svg"} />
+            <AvatarFallback>
+              {broker.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="text-xl font-semibold text-foreground">{broker.name}</h3>
+            <p className="text-muted-foreground mb-2">{broker.email}</p>
+            <Badge 
+              variant="secondary" 
+              className={broker.status === 'ativo' 
+                ? "bg-green-500/10 text-green-600" 
+                : "bg-muted/10 text-muted-foreground"
+              }
+            >
+              {broker.status === 'ativo' ? 'Ativo' : 'Inativo'}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex gap-8">
+          <div className="text-center">
+            <div className="flex items-center gap-2 mb-1">
+              <Target className="w-4 h-4 text-primary" />
+              <span className="text-sm text-muted-foreground">Vendas</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">
+              {stats.salesCount}/{broker.meta_monthly || 0}
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-4 h-4 text-green-500" />
+              <span className="text-sm text-muted-foreground">Faturamento</span>
+            </div>
+            <p className="text-2xl font-bold text-foreground">
+              {formatCurrency(stats.totalRevenue)}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => onEdit(broker)}>
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            className={canDelete ? "text-destructive hover:text-destructive" : "opacity-50"}
+            onClick={() => canDelete ? onDelete(broker) : onDeleteDenied()}
+            disabled={!canDelete}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 const Corretores = () => {
   const { toast } = useToast();
@@ -45,6 +194,37 @@ const Corretores = () => {
   
   const { brokers, loading: brokersLoading, createBroker, updateBroker, deleteBroker } = useBrokers();
   const { sales } = useSales();
+  const { teams, loading: teamsLoading } = useTeams();
+
+  // Group brokers by team
+  const brokersByTeam = useMemo(() => {
+    const grouped: Record<string, { teamName: string; brokers: Broker[] }> = {};
+    
+    // Add teams first
+    teams.forEach(team => {
+      grouped[team.id] = { teamName: team.name, brokers: [] };
+    });
+    
+    // Add "sem equipe" group
+    grouped['no-team'] = { teamName: 'Sem Equipe', brokers: [] };
+    
+    brokers.forEach(broker => {
+      const teamId = broker.team_id || 'no-team';
+      if (!grouped[teamId]) {
+        grouped[teamId] = { teamName: 'Equipe Desconhecida', brokers: [] };
+      }
+      grouped[teamId].brokers.push(broker);
+    });
+    
+    // Return only groups with brokers, teams with brokers first, then no-team
+    return Object.entries(grouped)
+      .filter(([_, group]) => group.brokers.length > 0)
+      .sort((a, b) => {
+        if (a[0] === 'no-team') return 1;
+        if (b[0] === 'no-team') return -1;
+        return a[1].teamName.localeCompare(b[1].teamName);
+      });
+  }, [brokers, teams]);
 
   const handleNewBroker = () => {
     setSelectedBroker(null);
@@ -56,43 +236,25 @@ const Corretores = () => {
     setIsFormOpen(true);
   };
 
-  // Check if user can delete a specific broker
   const canDeleteBroker = (broker: Broker): boolean => {
-    // Admin and directors can delete any broker
-    if (isAdmin() || isDiretor()) {
-      return true;
-    }
-    // Managers can only delete brokers they created
-    if (isGerente()) {
-      return broker.created_by === user?.id;
-    }
+    if (isAdmin() || isDiretor()) return true;
+    if (isGerente()) return broker.created_by === user?.id;
     return false;
   };
 
   const handleDeleteBroker = async () => {
     if (!deleteConfirmBroker) return;
-    
-    // Check permission before deleting
     if (!canDeleteBroker(deleteConfirmBroker)) {
-      toast({
-        title: "Sem permissão",
-        description: "Você só pode excluir corretores que você mesmo criou.",
-        variant: "destructive",
-      });
+      toast({ title: "Sem permissão", description: "Você só pode excluir corretores que você mesmo criou.", variant: "destructive" });
       setDeleteConfirmBroker(null);
       return;
     }
-
     setIsDeleting(true);
     try {
       await deleteBroker(deleteConfirmBroker.id);
       setDeleteConfirmBroker(null);
     } catch (error: any) {
-      toast({
-        title: "Erro ao excluir",
-        description: error?.message || "Não foi possível excluir o corretor.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao excluir", description: error?.message || "Não foi possível excluir o corretor.", variant: "destructive" });
     } finally {
       setIsDeleting(false);
     }
@@ -111,26 +273,24 @@ const Corretores = () => {
     }
   };
 
-  // Calculate broker statistics - exclude distratos
   const getBrokerStats = (brokerId: string) => {
     const brokerSales = sales.filter(sale => sale.broker_id === brokerId);
     const confirmedSales = brokerSales.filter(sale => sale.status === 'confirmada');
     const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
-    const salesCount = confirmedSales.length;
-    
-    return {
-      salesCount,
-      totalRevenue,
-      conversionRate: brokerSales.length > 0 ? Math.round((confirmedSales.length / brokerSales.length) * 100) : 0
-    };
+    return { salesCount: confirmedSales.length, totalRevenue };
   };
+
+  const handleDeleteDenied = () => {
+    toast({ title: "Sem permissão", description: "Você só pode excluir corretores que você criou.", variant: "destructive" });
+  };
+
+  const isLoading = brokersLoading && brokers.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
-        {/* Header - Mobile optimized */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">
@@ -146,7 +306,7 @@ const Corretores = () => {
           </Button>
         </div>
 
-        {brokersLoading && brokers.length === 0 ? (
+        {isLoading ? (
           <CorretoresSkeleton />
         ) : brokers.length === 0 ? (
           <Card className="p-6">
@@ -155,173 +315,37 @@ const Corretores = () => {
             </p>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:gap-6">
-            {brokers.map((broker, index) => {
-              const stats = getBrokerStats(broker.id);
-              const canDelete = canDeleteBroker(broker);
-              
-              return (
-                <Card 
-                  key={broker.id} 
-                  className="overflow-hidden hover:shadow-lg transition-all duration-300"
-                >
-                  <CardContent className="p-4 sm:p-6">
-                    {/* Mobile Layout */}
-                    <div className="flex flex-col gap-4 lg:hidden">
-                      {/* Header with avatar and status */}
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-14 w-14 shrink-0">
-                          <AvatarImage src={broker.avatar_url || "/placeholder.svg"} />
-                          <AvatarFallback className="text-lg">
-                            {broker.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-foreground truncate">
-                            {broker.name}
-                          </h3>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground truncate">
-                            <Mail className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{broker.email}</span>
-                          </div>
-                          {broker.phone && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              <Phone className="w-3 h-3 shrink-0" />
-                              {broker.phone}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <Badge 
-                          variant="secondary" 
-                          className={broker.status === 'ativo' 
-                            ? "bg-green-500/10 text-green-600 border-green-500/20 shrink-0" 
-                            : "bg-muted/10 text-muted-foreground shrink-0"
-                          }
-                        >
-                          {broker.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                        </Badge>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-                          <div className="flex items-center gap-2 text-primary mb-1">
-                            <Target className="w-4 h-4" />
-                            <span className="text-xs font-medium">Vendas</span>
-                          </div>
-                          <p className="text-xl font-bold text-foreground">
-                            {stats.salesCount}/{broker.meta_monthly || 0}
-                          </p>
-                        </div>
-                        
-                        <div className="p-3 rounded-lg bg-green-500/5 border border-green-500/10">
-                          <div className="flex items-center gap-2 text-green-600 mb-1">
-                            <DollarSign className="w-4 h-4" />
-                            <span className="text-xs font-medium">Faturamento</span>
-                          </div>
-                          <p className="text-xl font-bold text-foreground">
-                            {formatCurrency(stats.totalRevenue)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          className="flex-1 h-10"
-                          onClick={() => handleEditBroker(broker)}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Editar
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className={`h-10 ${canDelete ? 'text-destructive hover:text-destructive' : 'opacity-50'}`}
-                          onClick={() => canDelete ? setDeleteConfirmBroker(broker) : toast({
-                            title: "Sem permissão",
-                            description: "Você só pode excluir corretores que você criou.",
-                            variant: "destructive"
-                          })}
-                          disabled={!canDelete}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Desktop Layout */}
-                    <div className="hidden lg:flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16">
-                          <AvatarImage src={broker.avatar_url || "/placeholder.svg"} />
-                          <AvatarFallback>
-                            {broker.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        
-                        <div>
-                          <h3 className="text-xl font-semibold text-foreground">{broker.name}</h3>
-                          <p className="text-muted-foreground mb-2">{broker.email}</p>
-                          <Badge 
-                            variant="secondary" 
-                            className={broker.status === 'ativo' 
-                              ? "bg-green-500/10 text-green-600" 
-                              : "bg-muted/10 text-muted-foreground"
-                            }
-                          >
-                            {broker.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-8">
-                        <div className="text-center">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Target className="w-4 h-4 text-primary" />
-                            <span className="text-sm text-muted-foreground">Vendas</span>
-                          </div>
-                          <p className="text-2xl font-bold text-foreground">
-                            {stats.salesCount}/{broker.meta_monthly || 0}
-                          </p>
-                        </div>
-                        
-                        <div className="text-center">
-                          <div className="flex items-center gap-2 mb-1">
-                            <DollarSign className="w-4 h-4 text-green-500" />
-                            <span className="text-sm text-muted-foreground">Faturamento</span>
-                          </div>
-                          <p className="text-2xl font-bold text-foreground">
-                            {formatCurrency(stats.totalRevenue)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEditBroker(broker)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className={canDelete ? "text-destructive hover:text-destructive" : "opacity-50"}
-                          onClick={() => canDelete ? setDeleteConfirmBroker(broker) : toast({
-                            title: "Sem permissão",
-                            description: "Você só pode excluir corretores que você criou.",
-                            variant: "destructive"
-                          })}
-                          disabled={!canDelete}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="space-y-8">
+            {brokersByTeam.map(([teamId, group]) => (
+              <div key={teamId}>
+                <div className="flex items-center gap-3 mb-4">
+                  {teamId === 'no-team' ? (
+                    <UserCircle className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <Users className="w-5 h-5 text-primary" />
+                  )}
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {group.teamName}
+                  </h2>
+                  <Badge variant="secondary" className="text-xs">
+                    {group.brokers.length} {group.brokers.length === 1 ? 'corretor' : 'corretores'}
+                  </Badge>
+                </div>
+                <div className="grid gap-4 sm:gap-6">
+                  {group.brokers.map(broker => (
+                    <BrokerCard
+                      key={broker.id}
+                      broker={broker}
+                      stats={getBrokerStats(broker.id)}
+                      canDelete={canDeleteBroker(broker)}
+                      onEdit={handleEditBroker}
+                      onDelete={setDeleteConfirmBroker}
+                      onDeleteDenied={handleDeleteDenied}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -334,7 +358,16 @@ const Corretores = () => {
         title={selectedBroker ? "Editar Corretor" : "Novo Corretor"}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {detailsBroker && (
+        <BrokerDetailsModal
+          broker={detailsBroker}
+          isOpen={!!detailsBroker}
+          onClose={() => setDetailsBroker(null)}
+          sales={sales.filter(s => s.broker_id === detailsBroker.id)}
+          onUpdateBroker={updateBroker}
+        />
+      )}
+
       <AlertDialog open={!!deleteConfirmBroker} onOpenChange={() => setDeleteConfirmBroker(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -352,15 +385,9 @@ const Corretores = () => {
               disabled={isDeleting}
             >
               {isDeleting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Excluindo...
-                </>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Excluindo...</>
               ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir
-                </>
+                <><Trash2 className="w-4 h-4 mr-2" />Excluir</>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
