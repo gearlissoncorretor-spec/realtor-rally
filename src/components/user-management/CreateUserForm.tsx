@@ -22,17 +22,26 @@ const ROLES = [
 const AVAILABLE_SCREENS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart },
   { id: 'vendas', label: 'Vendas', icon: TrendingUp },
+  { id: 'negociacoes', label: 'Negociações', icon: TrendingUp },
+  { id: 'follow-up', label: 'Follow-Up', icon: Eye },
+  { id: 'metas', label: 'Metas', icon: TrendingUp },
+  { id: 'meta-gestao', label: 'Meta Gestão', icon: BarChart },
+  { id: 'atividades', label: 'Atividades', icon: Eye },
+  { id: 'corretores', label: 'Corretores', icon: Users },
+  { id: 'equipes', label: 'Equipes', icon: Users },
   { id: 'ranking', label: 'Ranking', icon: TrendingUp },
   { id: 'acompanhamento', label: 'Acompanhamento', icon: Eye },
+  { id: 'tarefas-kanban', label: 'Tarefas Kanban', icon: BarChart },
+  { id: 'x1', label: 'X1', icon: TrendingUp },
+  { id: 'dashboard-equipes', label: 'Dashboard Equipes', icon: BarChart },
   { id: 'relatorios', label: 'Relatórios', icon: BarChart },
-  { id: 'corretores', label: 'Corretores', icon: Users },
   { id: 'configuracoes', label: 'Configurações', icon: Settings },
 ];
 
-const DEFAULT_PERMISSIONS = {
-  diretor: ['dashboard', 'vendas', 'corretores', 'ranking', 'acompanhamento', 'relatorios', 'configuracoes'],
-  gerente: ['dashboard', 'vendas', 'ranking', 'acompanhamento', 'relatorios'],
-  corretor: ['dashboard', 'vendas']
+const DEFAULT_PERMISSIONS: Record<string, string[]> = {
+  diretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'dashboard-equipes', 'relatorios', 'configuracoes'],
+  gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes'],
+  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes']
 };
 
 const createUserSchema = z.object({
@@ -376,6 +385,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
                     >
                       <Checkbox
                         checked={isChecked}
+                        onCheckedChange={() => toggleScreen(screen.id)}
                       />
                       <Icon className="h-4 w-4" />
                       <Label 

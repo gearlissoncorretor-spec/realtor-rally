@@ -160,6 +160,7 @@ export const useNegotiations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['negotiations'] });
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: 'Negociação criada',
         description: 'A negociação foi registrada com sucesso.',
@@ -226,6 +227,7 @@ export const useNegotiations = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['negotiations'] });
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: 'Negociação excluída',
         description: 'A negociação foi excluída com sucesso.',
