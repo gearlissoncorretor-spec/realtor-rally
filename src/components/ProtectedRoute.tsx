@@ -132,17 +132,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <>{children}</>;
   }
 
-  // Check role-based access first
-  const roleScreens = ROLE_SCREENS[userRole] || [];
-  const hasRoleAccess = roleScreens.includes('*') || roleScreens.includes(screenToCheck);
-
-  // If screen requires specific check, verify both role and allowed_screens
+  // Screen access is controlled by allowed_screens set by admin/director
   if (screenToCheck) {
-    // Check if user has this screen in their allowed_screens
     const hasScreenAccess = hasAccess(screenToCheck);
     
-    // For screens that the role allows, also check allowed_screens
-    if (!hasRoleAccess && !hasScreenAccess) {
+    // Role must allow the screen AND it must be in allowed_screens
+    const roleScreens = ROLE_SCREENS[userRole] || [];
+    const hasRoleAccess = roleScreens.includes('*') || roleScreens.includes(screenToCheck);
+    
+    if (!hasRoleAccess || !hasScreenAccess) {
       return <AccessDenied />;
     }
   }
