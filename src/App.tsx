@@ -24,6 +24,7 @@ import MetaGestao from "@/pages/MetaGestao";
 import FollowUp from "@/pages/FollowUp";
 import Agenda from "@/pages/Agenda";
 import Instalar from "@/pages/Instalar";
+import GestaoUsuarios from "@/pages/GestaoUsuarios";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -139,6 +140,11 @@ const App = () => (
               <Route path="/instalar" element={
                 <ProtectedRoute>
                   <Instalar />
+                </ProtectedRoute>
+              } />
+              <Route path="/gestao-usuarios" element={
+                <ProtectedRoute>
+                  <GestaoUsuarios />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

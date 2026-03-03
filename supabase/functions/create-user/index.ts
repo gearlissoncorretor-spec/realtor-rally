@@ -70,6 +70,8 @@ serve(async (req) => {
       meta_monthly,
       observations,
       status,
+      nickname,
+      birth_date,
       created_by: providedCreatedBy
     } = body
     const resolvedName = (full_name || name || '').toString().trim()
@@ -196,7 +198,10 @@ serve(async (req) => {
           approved: true,
           approved_by: user.id,
           approved_at: new Date().toISOString(),
-          team_id: team_id || null
+          team_id: team_id || null,
+          nickname: nickname || null,
+          phone: phone || null,
+          birth_date: birth_date || null,
         })
         .eq('id', authData.user.id)
 
@@ -216,7 +221,10 @@ serve(async (req) => {
           approved: true,
           approved_by: user.id,
           approved_at: new Date().toISOString(),
-          team_id: team_id || null
+          team_id: team_id || null,
+          nickname: nickname || null,
+          phone: phone || null,
+          birth_date: birth_date || null,
         })
 
       if (profileInsertError) {
