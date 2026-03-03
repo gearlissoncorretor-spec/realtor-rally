@@ -290,23 +290,22 @@ const Index = () => {
       {/* Main Content */}
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
         
-        {/* Hero Section - Axis Branding (Compact) */}
-        <div className="relative h-[120px] sm:h-[140px] rounded-xl mb-8 overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80 flex items-center justify-center">
+        {/* Hero Section - Axis Branding (Compact & Clean) */}
+        <div className="relative h-[100px] sm:h-[120px] rounded-2xl mb-8 overflow-hidden bg-gradient-to-r from-primary/90 via-primary/80 to-primary/60 flex items-center">
           
-          {/* Subtle Background Pattern */}
-          <div className="absolute inset-0 opacity-5">
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 opacity-[0.04]">
             <div className="absolute inset-0" style={{
               backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px)',
-              backgroundSize: '32px 32px'
+              backgroundSize: '40px 40px'
             }} />
           </div>
           
-          {/* Premium Glassmorphism Card */}
-          <div className="relative z-10 backdrop-blur-2xl bg-white/[0.08] rounded-xl px-10 py-5 text-center border border-white/[0.15] shadow-[0_8px_32px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.12)]">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mb-1">
+          <div className="relative z-10 px-8 sm:px-10">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
               Axis Dashboard
             </h1>
-            <p className="text-sm text-white/60 font-medium tracking-wide">
+            <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide mt-0.5">
               A evolução da gestão imobiliária
             </p>
           </div>
@@ -377,24 +376,24 @@ const Index = () => {
             />
           </LazyComponentLoader>
           
-          <div className="bg-card rounded-xl p-6 border border-border">
-            <div className="flex items-center gap-3 mb-5">
-              <Users className="w-5 h-5 text-primary" />
+          <div className="bg-card rounded-2xl p-6 border border-border/50">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Users className="w-4.5 h-4.5 text-primary" />
+              </div>
               <h3 className="font-semibold text-foreground">Estatísticas Rápidas</h3>
             </div>
             <div className="space-y-5">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Corretores Ativos</span>
-                <span className="text-2xl font-bold text-foreground">{quickStats.activeBrokers}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Imóveis Pendentes</span>
-                <span className="text-2xl font-bold text-foreground">{quickStats.pending}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Total de Vendas</span>
-                <span className="text-2xl font-bold text-foreground">{quickStats.total}</span>
-              </div>
+              {[
+                { label: "Corretores Ativos", value: quickStats.activeBrokers },
+                { label: "Imóveis Pendentes", value: quickStats.pending },
+                { label: "Total de Vendas", value: quickStats.total },
+              ].map((stat) => (
+                <div key={stat.label} className="flex justify-between items-center py-1">
+                  <span className="text-sm text-muted-foreground">{stat.label}</span>
+                  <span className="text-xl font-bold text-foreground tabular-nums">{stat.value}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
