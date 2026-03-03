@@ -32,13 +32,14 @@ const PATH_TO_SCREEN: Record<string, string> = {
   '/configuracoes': 'configuracoes',
   '/agenda': 'agenda',
   '/instalar': 'instalar',
+  '/gestao-usuarios': 'gestao-usuarios',
 };
 
 // Screens that are accessible based on role (used as fallback)
 const ROLE_SCREENS: Record<string, string[]> = {
   diretor: ['*'], // All screens
   admin: ['*'], // All screens
-  gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar'],
+  gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
   corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'instalar'],
 };
 

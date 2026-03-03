@@ -853,11 +853,16 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           avatar_url: string | null
+          birth_date: string | null
           created_at: string | null
           email: string
           full_name: string
           id: string
+          last_login_at: string | null
           manager_id: string | null
+          nickname: string | null
+          phone: string | null
+          status: string
           team_id: string | null
           updated_at: string | null
         }
@@ -867,11 +872,16 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string | null
           email: string
           full_name: string
           id: string
+          last_login_at?: string | null
           manager_id?: string | null
+          nickname?: string | null
+          phone?: string | null
+          status?: string
           team_id?: string | null
           updated_at?: string | null
         }
@@ -881,11 +891,16 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string | null
           email?: string
           full_name?: string
           id?: string
+          last_login_at?: string | null
           manager_id?: string | null
+          nickname?: string | null
+          phone?: string | null
+          status?: string
           team_id?: string | null
           updated_at?: string | null
         }

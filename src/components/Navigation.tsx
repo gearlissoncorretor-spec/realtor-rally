@@ -121,6 +121,11 @@ const Navigation = () => {
     icon: CalendarDays,
     screen: "agenda"
   }, {
+    href: "/gestao-usuarios",
+    label: "Gestão de Usuários",
+    icon: Users,
+    screen: "gestao-usuarios"
+  }, {
     href: "/configuracoes",
     label: "Configurações",
     icon: Settings,
