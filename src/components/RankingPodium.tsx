@@ -19,6 +19,10 @@ interface RankingPodiumProps {
 
 const RankingPodium = ({ brokers }: RankingPodiumProps) => {
   const top3 = brokers.slice(0, 3);
+
+  if (top3.length === 0) {
+    return null;
+  }
   
   const getPodiumHeight = (position: number) => {
     switch (position) {

@@ -105,6 +105,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     },
     staleTime: 5 * 60 * 1000,
+    refetchOnMount: true,
     enabled: !!user,
   });
 
@@ -150,6 +151,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     },
     staleTime: 3 * 60 * 1000,
+    refetchOnMount: true,
     enabled: !!user,
   });
 
@@ -185,6 +187,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     },
     staleTime: 10 * 60 * 1000,
+    refetchOnMount: true,
     enabled: !!user,
   });
 

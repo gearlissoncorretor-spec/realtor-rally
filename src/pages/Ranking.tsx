@@ -184,7 +184,12 @@ const Ranking = () => {
             {brokerRankings.length === 0 && (
               <div className="text-center py-12">
                 <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-muted-foreground">Nenhum corretor encontrado no período</p>
+                <p className="text-muted-foreground font-medium">Nenhum corretor encontrado no período</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  {brokers.length === 0 ? 'Nenhum corretor cadastrado' : 
+                   filteredSales.length === 0 ? 'Nenhuma venda encontrada com os filtros atuais' : 
+                   'Nenhum corretor com vendas no período selecionado'}
+                </p>
               </div>
             )}
           </div>
