@@ -253,9 +253,9 @@ const Navigation = () => {
 
   return <>
     {/* Mobile Header */}
-    <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-lg border-b border-border z-50 flex items-center justify-between px-4">
+    <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-card/90 backdrop-blur-xl border-b border-border/50 z-50 flex items-center justify-between px-4">
       {renderMobileLogo()}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <UserProfileDialog>
           <button className="p-1">
             <UserAvatar 
@@ -266,23 +266,23 @@ const Navigation = () => {
           </button>
         </UserProfileDialog>
         <ThemeToggle />
-        <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => setIsMobileOpen(!isMobileOpen)}>
-          {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        <Button variant="ghost" size="sm" className="rounded-xl h-9 w-9 p-0" onClick={() => setIsMobileOpen(!isMobileOpen)}>
+          {isMobileOpen ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
         </Button>
       </div>
     </div>
 
     {/* Desktop Sidebar */}
-    <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border z-50 overflow-hidden">
-      <div className="p-7 flex flex-col h-full min-h-0">
-        {/* Logo Section - fixed at top */}
-        <div className="mb-8 shrink-0">
+    <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/80 backdrop-blur-xl border-r border-border/50 z-50 overflow-hidden">
+      <div className="p-6 flex flex-col h-full min-h-0">
+        {/* Logo Section */}
+        <div className="mb-6 shrink-0">
           {renderLogo()}
         </div>
 
         {/* Navigation Items - scrollable */}
         <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pr-1">
-          <div className="space-y-1.5">
+          <div className="space-y-0.5">
             {navItems.map(item => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
@@ -291,13 +291,13 @@ const Navigation = () => {
                   key={item.href} 
                   to={item.href} 
                   className={cn(
-                    "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                    "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                     isActive 
-                      ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
+                      ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_hsl(217_91%_60%/0.2)]" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
                   )}
                 >
-                  <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
+                  <Icon className={cn("w-[18px] h-[18px] shrink-0", isActive ? "text-primary" : "stroke-[1.5]")} />
                   {item.label}
                 </Link>
               );
@@ -305,8 +305,8 @@ const Navigation = () => {
           </div>
         </div>
         
-        {/* User Profile & Actions - fixed at bottom */}
-        <div className="mt-4 pt-4 border-t border-border space-y-4 shrink-0">
+        {/* User Profile & Actions */}
+        <div className="mt-3 pt-3 border-t border-border/50 space-y-3 shrink-0">
           {renderUserProfile()}
           <div className="flex items-center justify-between px-3">
             <AuthButton />
@@ -320,14 +320,14 @@ const Navigation = () => {
     {isMobileOpen && (
       <div className="lg:hidden fixed inset-0 z-50">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsMobileOpen(false)} />
-        <nav className="absolute left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border flex flex-col overflow-hidden">
-          <div className="p-7 flex flex-col h-full min-h-0">
-            <div className="mb-8 shrink-0">
+        <nav className="absolute left-0 top-0 h-full w-72 bg-card/90 backdrop-blur-xl border-r border-border/50 flex flex-col overflow-hidden animate-slide-in-left">
+          <div className="p-6 flex flex-col h-full min-h-0">
+            <div className="mb-6 shrink-0">
               {renderLogo()}
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pr-1">
-              <div className="space-y-1.5">
+              <div className="space-y-0.5">
                 {navItems.map(item => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.href;
@@ -337,13 +337,13 @@ const Navigation = () => {
                       to={item.href} 
                       onClick={() => setIsMobileOpen(false)} 
                       className={cn(
-                        "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                        "flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200",
                         isActive 
-                          ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
+                          ? "bg-primary/10 text-primary shadow-[inset_0_0_0_1px_hsl(217_91%_60%/0.2)]" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
                       )}
                     >
-                      <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
+                      <Icon className={cn("w-[18px] h-[18px] shrink-0", isActive ? "text-primary" : "stroke-[1.5]")} />
                       {item.label}
                     </Link>
                   );
@@ -352,7 +352,7 @@ const Navigation = () => {
             </div>
 
             {/* User Profile & Actions */}
-            <div className="mt-4 pt-4 border-t border-border space-y-4 shrink-0">
+            <div className="mt-3 pt-3 border-t border-border/50 space-y-3 shrink-0">
               {renderUserProfile()}
               <div className="flex items-center justify-between px-3">
                 <AuthButton />

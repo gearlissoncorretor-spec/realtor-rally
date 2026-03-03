@@ -70,52 +70,52 @@
   }
 
   .dark {
-    /* Deep Tech Dark - Navy Dark #0f172a */
-    --background: 222 47% 5%;
+    /* Deep Tech Dark - Navy Dark */
+    --background: 222 47% 6%;
     --foreground: 210 40% 98%;
 
-    /* Cards - #1e293b with subtle borders */
-    --card: 217 33% 17%;
+    /* Cards - slightly elevated */
+    --card: 217 33% 12%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 217 33% 17%;
+    --popover: 217 33% 14%;
     --popover-foreground: 210 40% 98%;
 
     /* Primary - Slate Blue #3b82f6 */
     --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 217 33% 17%;
+    --secondary: 217 33% 15%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 55%;
 
-    --accent: 215 28% 23%;
+    --accent: 215 28% 18%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Border - #334155 */
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
+    /* Border - subtle */
+    --border: 215 25% 18%;
+    --input: 215 25% 20%;
     --ring: 217 91% 60%;
 
     /* Sidebar Deep Tech */
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 215 20% 75%;
+    --sidebar-background: 222 47% 5%;
+    --sidebar-foreground: 215 20% 70%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent: 217 33% 14%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 25% 20%;
+    --sidebar-border: 215 25% 14%;
     --sidebar-ring: 217 91% 60%;
 
     /* Gradients Deep Tech */
-    --gradient-card: linear-gradient(145deg, hsl(217 33% 17%), hsl(222 47% 11%));
+    --gradient-card: linear-gradient(145deg, hsl(217 33% 12%), hsl(222 47% 8%));
     --gradient-hero: linear-gradient(135deg, hsl(217 91% 50%), hsl(217 91% 40%));
-    --shadow-glow: 0 0 25px hsl(217 91% 60% / 0.25);
+    --shadow-glow: 0 0 20px hsl(217 91% 60% / 0.15);
   }
 }
 
