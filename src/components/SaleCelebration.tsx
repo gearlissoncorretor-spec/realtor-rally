@@ -66,9 +66,52 @@ export function SaleCelebration({ open, onOpenChange, brokerName, clientName, sa
     setParticles(newParticles);
   }, []);
 
+  const playCelebrationSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Play a cheerful ascending arpeggio
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C5, E5, G5, C6, E6
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const start = ctx.currentTime + i * 0.12;
+        gain.gain.setValueAtTime(0.15, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+        osc.start(start);
+        osc.stop(start + 0.4);
+      });
+
+      // Add a shimmer/sparkle effect
+      setTimeout(() => {
+        const shimmerNotes = [1568, 2093, 1760, 2637];
+        shimmerNotes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          const start = ctx.currentTime + i * 0.08;
+          gain.gain.setValueAtTime(0.08, start);
+          gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+          osc.start(start);
+          osc.stop(start + 0.3);
+        });
+      }, 500);
+    } catch (e) {
+      // Audio not supported, fail silently
+    }
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     createParticles();
+    playCelebrationSound();
 
     const interval = setInterval(() => {
       setParticles(prev =>
