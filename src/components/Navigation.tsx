@@ -273,38 +273,40 @@ const Navigation = () => {
     </div>
 
     {/* Desktop Sidebar */}
-    <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border z-50">
-      <div className="p-7 flex-1 flex flex-col">
-        {/* Logo Section */}
-        <div className="mb-8">
+    <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border z-50 overflow-hidden">
+      <div className="p-7 flex flex-col h-full min-h-0">
+        {/* Logo Section - fixed at top */}
+        <div className="mb-8 shrink-0">
           {renderLogo()}
         </div>
 
-        {/* Navigation Items */}
-        <div className="space-y-1.5 flex-1 overflow-y-auto">
-          {navItems.map(item => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.href;
-            return (
-              <Link 
-                key={item.href} 
-                to={item.href} 
-                className={cn(
-                  "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
-                  isActive 
-                    ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
-                )}
-              >
-                <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
-                {item.label}
-              </Link>
-            );
-          })}
+        {/* Navigation Items - scrollable */}
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pr-1">
+          <div className="space-y-1.5">
+            {navItems.map(item => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              return (
+                <Link 
+                  key={item.href} 
+                  to={item.href} 
+                  className={cn(
+                    "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                    isActive 
+                      ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
+                  )}
+                >
+                  <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
         
-        {/* User Profile & Actions */}
-        <div className="mt-6 pt-6 border-t border-border space-y-4">
+        {/* User Profile & Actions - fixed at bottom */}
+        <div className="mt-4 pt-4 border-t border-border space-y-4 shrink-0">
           {renderUserProfile()}
           <div className="flex items-center justify-between px-3">
             <AuthButton />
@@ -318,37 +320,39 @@ const Navigation = () => {
     {isMobileOpen && (
       <div className="lg:hidden fixed inset-0 z-50">
         <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsMobileOpen(false)} />
-        <nav className="absolute left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border flex flex-col">
-          <div className="p-7 flex-1 flex flex-col">
-            <div className="mb-8">
+        <nav className="absolute left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border flex flex-col overflow-hidden">
+          <div className="p-7 flex flex-col h-full min-h-0">
+            <div className="mb-8 shrink-0">
               {renderLogo()}
             </div>
 
-            <div className="space-y-1.5 flex-1 overflow-y-auto">
-              {navItems.map(item => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link 
-                    key={item.href} 
-                    to={item.href} 
-                    onClick={() => setIsMobileOpen(false)} 
-                    className={cn(
-                      "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
-                      isActive 
-                        ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
-                    )}
-                  >
-                    <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pr-1">
+              <div className="space-y-1.5">
+                {navItems.map(item => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link 
+                      key={item.href} 
+                      to={item.href} 
+                      onClick={() => setIsMobileOpen(false)} 
+                      className={cn(
+                        "flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+                        isActive 
+                          ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_20px_hsl(217_91%_60%/0.15)]" 
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent"
+                      )}
+                    >
+                      <Icon className={cn("w-5 h-5 stroke-[1.5]", isActive && "text-primary")} />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
 
             {/* User Profile & Actions */}
-            <div className="mt-6 pt-6 border-t border-border space-y-4">
+            <div className="mt-4 pt-4 border-t border-border space-y-4 shrink-0">
               {renderUserProfile()}
               <div className="flex items-center justify-between px-3">
                 <AuthButton />
