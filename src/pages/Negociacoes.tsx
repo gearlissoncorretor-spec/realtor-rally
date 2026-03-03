@@ -48,6 +48,7 @@ import { NegotiationStatusBadge } from "@/components/negotiations/NegotiationSta
 import { StatusManagerDialog } from "@/components/negotiations/StatusManagerDialog";
 import { useNegotiationStatuses } from "@/hooks/useNegotiationStatuses";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SaleCelebration } from "@/components/SaleCelebration";
 
 const PROPERTY_TYPES = [
   { value: 'apartamento', label: 'Apartamento' },
@@ -81,6 +82,10 @@ const Negociacoes = () => {
   // Loss reason dialog state
   const [lossDialogOpen, setLossDialogOpen] = useState(false);
   const [selectedForLoss, setSelectedForLoss] = useState<Negotiation | null>(null);
+  
+  // Celebration state
+  const [celebrationOpen, setCelebrationOpen] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<{ brokerName: string; clientName: string; saleValue: number }>({ brokerName: '', clientName: '', saleValue: 0 });
   
   // Form state
   const [formData, setFormData] = useState<CreateNegotiationInput>({
@@ -263,6 +268,14 @@ const Negociacoes = () => {
 
     // Update negotiation status to venda_concluida
     await updateNegotiation({ id: selectedForSale.id, status: 'venda_concluida' });
+    
+    // Trigger celebration
+    setCelebrationData({
+      brokerName: getBrokerName(selectedForSale.broker_id),
+      clientName: selectedForSale.client_name,
+      saleValue: data.vgv,
+    });
+    setCelebrationOpen(true);
     
     setSelectedForSale(null);
   };
@@ -931,6 +944,15 @@ const Negociacoes = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Sale Celebration */}
+      <SaleCelebration
+        open={celebrationOpen}
+        onOpenChange={setCelebrationOpen}
+        brokerName={celebrationData.brokerName}
+        clientName={celebrationData.clientName}
+        saleValue={celebrationData.saleValue}
+      />
     </div>
   );
 };
