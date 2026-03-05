@@ -13,6 +13,14 @@ interface Profile {
   avatar_url?: string;
   team_id?: string;
   manager_id?: string;
+  company_id?: string;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  status: string;
+  max_users: number;
 }
 
 interface TeamHierarchy {
@@ -26,6 +34,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  company: Company | null;
   teamHierarchy: TeamHierarchy | null;
   loading: boolean;
   error: string | null;
@@ -38,6 +47,7 @@ interface AuthContextType {
   isDiretor: () => boolean;
   isGerente: () => boolean;
   isCorretor: () => boolean;
+  isSuperAdmin: () => boolean;
   getUserRole: () => string;
   getDefaultRoute: () => string;
   canAccessUserData: (userId: string) => boolean;
@@ -58,6 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,7 +78,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
-      // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -83,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       setProfile(profileData);
       
-      // Fetch user role from user_roles table
+      // Fetch user role
       const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
@@ -94,7 +104,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!roleError && roleData) {
         setUserRole(roleData.role);
       } else {
-        setUserRole('corretor'); // Default role
+        setUserRole('corretor');
+      }
+
+      // Fetch company info
+      if (profileData.company_id) {
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', profileData.company_id)
+          .single();
+        
+        if (companyData) {
+          setCompany(companyData as Company);
+        }
       }
       
       // Fetch team hierarchy
@@ -124,27 +147,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
 
-    // Set up auth state listener - SYNCHRONOUS callback (Supabase recommendation)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         if (!isMounted) return;
         
-        // Update session and user synchronously
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
         if (event === 'SIGNED_OUT') {
-          // Clear all auth state on sign out
           setProfile(null);
           setUserRole(null);
           setTeamHierarchy(null);
+          setCompany(null);
           setLoading(false);
           return;
         }
         
         if (newSession?.user) {
-          // Defer profile fetch to avoid Supabase deadlock
-          // Use setTimeout(0) as recommended by Supabase docs
           setTimeout(() => {
             if (!isMounted) return;
             fetchProfile(newSession.user.id).finally(() => {
@@ -154,13 +173,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             });
           }, 0);
         } else {
-          // No user, stop loading immediately
           setLoading(false);
         }
       }
     );
 
-    // Get initial session - this will trigger INITIAL_SESSION event
     supabase.auth.getSession().then(({ data: { session: initialSession }, error: sessionError }) => {
       if (!isMounted) return;
       
@@ -171,11 +188,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       
-      // If no session exists, onAuthStateChange might not fire, so handle it here
       if (!initialSession) {
         setLoading(false);
       }
-      // If session exists, onAuthStateChange will handle it
     });
 
     return () => {
@@ -199,7 +214,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       }
       
-      // onAuthStateChange will handle the rest
       return { error: null };
     } catch (error) {
       setLoading(false);
@@ -241,11 +255,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     setLoading(true);
     await supabase.auth.signOut();
-    // onAuthStateChange will handle clearing state
   };
 
   const hasAccess = (screen: string): boolean => {
     return profile?.allowed_screens?.includes(screen) ?? false;
+  };
+
+  const isSuperAdmin = (): boolean => {
+    return userRole === 'super_admin';
   };
 
   const isAdmin = (): boolean => {
@@ -269,7 +286,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const getDefaultRoute = (): string => {
+    if (userRole === 'super_admin') return '/super-admin';
     if (userRole === 'diretor' || userRole === 'admin') return '/';
+
+    // Check if company is blocked
+    if (company?.status === 'bloqueado') return '/';
     
     const screens = profile?.allowed_screens || [];
     const screenToRoute: Record<string, string> = {
@@ -306,7 +327,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const canAccessUserData = (userId: string): boolean => {
     if (!userRole || !user) return false;
     
-    if (userRole === 'diretor' || userRole === 'admin') return true;
+    if (userRole === 'super_admin' || userRole === 'diretor' || userRole === 'admin') return true;
     
     if (userRole === 'gerente' && teamHierarchy) {
       return teamHierarchy.team_members.includes(userId);
@@ -319,6 +340,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     profile,
+    company,
     teamHierarchy,
     loading,
     error,
@@ -331,6 +353,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isDiretor,
     isGerente,
     isCorretor,
+    isSuperAdmin,
     getUserRole,
     getDefaultRoute,
     canAccessUserData,
