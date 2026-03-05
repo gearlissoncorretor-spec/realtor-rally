@@ -8,11 +8,11 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredScreen?: string;
   adminOnly?: boolean;
+  superAdminOnly?: boolean;
 }
 
-const LOADING_TIMEOUT = 3000; // 3 segundos conforme requisito
+const LOADING_TIMEOUT = 3000;
 
-// Mapping from URL paths to screen identifiers
 const PATH_TO_SCREEN: Record<string, string> = {
   '/': 'dashboard',
   '/vendas': 'vendas',
@@ -35,10 +35,10 @@ const PATH_TO_SCREEN: Record<string, string> = {
   '/gestao-usuarios': 'gestao-usuarios',
 };
 
-// Screens that are accessible based on role (used as fallback)
 const ROLE_SCREENS: Record<string, string[]> = {
-  diretor: ['*'], // All screens
-  admin: ['*'], // All screens
+  diretor: ['*'],
+  admin: ['*'],
+  super_admin: ['*'],
   gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
   corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'instalar'],
 };
@@ -46,20 +46,19 @@ const ROLE_SCREENS: Record<string, string[]> = {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requiredScreen, 
-  adminOnly 
+  adminOnly,
+  superAdminOnly 
 }) => {
-  const { user, loading, hasAccess, profile, isAdmin, isDiretor, getUserRole, getDefaultRoute, error } = useAuth();
+  const { user, loading, hasAccess, profile, isAdmin, isDiretor, isSuperAdmin, getUserRole, getDefaultRoute, error, company } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
   const location = useLocation();
 
-  // Reset timeout state when loading changes
   useEffect(() => {
     if (!loading) {
       setTimedOut(false);
     }
   }, [loading]);
 
-  // Timeout de segurança para evitar loading infinito
   useEffect(() => {
     if (!loading) return;
 
@@ -78,87 +77,69 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     window.location.reload();
   };
 
-  // Estado de erro de autenticação
   if (error) {
-    return (
-      <LoadingFallback
-        error={error}
-        onRetry={handleRetry}
-      />
-    );
+    return <LoadingFallback error={error} onRetry={handleRetry} />;
   }
 
-  // Estado de timeout - mostrar opções ao usuário
   if (timedOut && loading) {
-    return (
-      <LoadingFallback
-        forceTimeout
-        message="Verificando autenticação..."
-        onRetry={handleRetry}
-      />
-    );
+    return <LoadingFallback forceTimeout message="Verificando autenticação..." onRetry={handleRetry} />;
   }
 
-  // Estado de carregamento normal (antes do timeout)
   if (loading) {
-    return (
-      <LoadingFallback
-        timeout={LOADING_TIMEOUT}
-        message="Verificando autenticação..."
-        onRetry={handleRetry}
-      />
-    );
+    return <LoadingFallback timeout={LOADING_TIMEOUT} message="Verificando autenticação..." onRetry={handleRetry} />;
   }
 
-  // Não autenticado - redirecionar para login
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Usuário não aprovado
+  // Super admin should only access /super-admin
+  if (isSuperAdmin() && location.pathname !== '/super-admin') {
+    return <Navigate to="/super-admin" replace />;
+  }
+
   if (profile && !profile.approved) {
     return <AccessDeniedMessage type="approval" />;
   }
 
-  // Verificação de admin
+  // Check company status - block if company is blocked
+  if (company?.status === 'bloqueado' && !isSuperAdmin()) {
+    return <AccessDeniedMessage type="permission" />;
+  }
+
+  if (superAdminOnly && !isSuperAdmin()) {
+    return <AccessDeniedMessage type="permission" />;
+  }
+
   if (adminOnly && !isAdmin()) {
     return <AccessDeniedMessage type="permission" />;
   }
 
-  // Get the required screen from props or from the current path
   const screenToCheck = requiredScreen || PATH_TO_SCREEN[location.pathname];
   const userRole = getUserRole();
 
-  // Directors and Admins have access to everything
-  if (isDiretor() || isAdmin()) {
+  if (isDiretor() || isAdmin() || isSuperAdmin()) {
     return <>{children}</>;
   }
 
-  // "instalar" is always accessible to authenticated users
   if (screenToCheck === 'instalar') {
     return <>{children}</>;
   }
 
-  // Screen access is controlled by allowed_screens set by admin/director
   if (screenToCheck) {
     const hasScreenAccess = hasAccess(screenToCheck);
-    
-    // Role must allow the screen AND it must be in allowed_screens
     const roleScreens = ROLE_SCREENS[userRole] || [];
     const hasRoleAccess = roleScreens.includes('*') || roleScreens.includes(screenToCheck);
     
     if (!hasRoleAccess || !hasScreenAccess) {
       const defaultRoute = getDefaultRoute();
-      // Redirect to default route if it's different from current path to avoid loop
       if (defaultRoute !== location.pathname) {
         return <Navigate to={defaultRoute} replace />;
       }
-      // If default route is the same, show access denied with logout option
       return <AccessDeniedMessage type="permission" />;
     }
   }
 
-  // Tudo OK - renderizar children
   return <>{children}</>;
 };
 

@@ -72,11 +72,12 @@ serve(async (req) => {
       status,
       nickname,
       birth_date,
+      company_id,
       created_by: providedCreatedBy
     } = body
     const resolvedName = (full_name || name || '').toString().trim()
-    const createdByUserId = providedCreatedBy || user.id // Use provided or current user
-    console.log('Creating user:', { email, role, team_id, allowed_screens })
+    const createdByUserId = providedCreatedBy || user.id
+    console.log('Creating user:', { email, role, team_id, allowed_screens, company_id })
 
     // Validate required fields
     if (!resolvedName || !email || !password || !role) {
@@ -155,11 +156,22 @@ serve(async (req) => {
 
     // Create user in Supabase Auth
     console.log('Creating user in auth...')
+    // Resolve company_id: use provided, or get from requesting user's profile
+    let targetCompanyId = company_id
+    if (!targetCompanyId) {
+      const { data: requesterProfile } = await supabaseClient
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
+      targetCompanyId = requesterProfile?.company_id
+    }
+
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: resolvedName }
+      user_metadata: { full_name: resolvedName, company_id: targetCompanyId }
     })
 
     if (authError) {
@@ -202,6 +214,7 @@ serve(async (req) => {
           nickname: nickname || null,
           phone: phone || null,
           birth_date: birth_date || null,
+          company_id: targetCompanyId,
         })
         .eq('id', authData.user.id)
 
@@ -225,6 +238,7 @@ serve(async (req) => {
           nickname: nickname || null,
           phone: phone || null,
           birth_date: birth_date || null,
+          company_id: targetCompanyId,
         })
 
       if (profileInsertError) {

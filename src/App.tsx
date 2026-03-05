@@ -25,6 +25,7 @@ import FollowUp from "@/pages/FollowUp";
 import Agenda from "@/pages/Agenda";
 import Instalar from "@/pages/Instalar";
 import GestaoUsuarios from "@/pages/GestaoUsuarios";
+import SuperAdmin from "@/pages/SuperAdmin";
 import NotFound from "@/pages/NotFound";
 import "./App.css";
 
@@ -145,6 +146,11 @@ const App = () => (
               <Route path="/gestao-usuarios" element={
                 <ProtectedRoute>
                   <GestaoUsuarios />
+                </ProtectedRoute>
+              } />
+              <Route path="/super-admin" element={
+                <ProtectedRoute superAdminOnly>
+                  <SuperAdmin />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
