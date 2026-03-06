@@ -146,7 +146,7 @@ const Auth = () => {
         </div>
 
         {/* Login Card */}
-        <div className="glass-card rounded-3xl p-8 shadow-2xl hover-lift">
+        <div className="glass-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl hover-lift">
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-white/10 p-1 rounded-xl mb-6">
               <TabsTrigger 
