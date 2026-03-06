@@ -27,6 +27,7 @@ import Instalar from "@/pages/Instalar";
 import GestaoUsuarios from "@/pages/GestaoUsuarios";
 import SuperAdmin from "@/pages/SuperAdmin";
 import NotFound from "@/pages/NotFound";
+import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import "./App.css";
 
 const queryClient = new QueryClient({
