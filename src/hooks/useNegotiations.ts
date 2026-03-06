@@ -66,14 +66,26 @@ export const useNegotiations = () => {
   const { data: allNegotiations = [], isLoading: loadingActive, error: errorActive, refetch: refetchActive } = useQuery({
     queryKey: ['negotiations', 'active'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('negotiations')
-        .select('*')
-        .not('status', 'in', '("venda_concluida","perdida")')
-        .order('start_date', { ascending: false });
+      const allNegotiations: Negotiation[] = [];
+      const PAGE_SIZE = 1000;
+      let from = 0;
+      let hasMore = true;
 
-      if (error) throw error;
-      return data as Negotiation[];
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('negotiations')
+          .select('*')
+          .not('status', 'in', '("venda_concluida","perdida")')
+          .order('start_date', { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (error) throw error;
+        allNegotiations.push(...(data as Negotiation[]));
+        hasMore = data.length === PAGE_SIZE;
+        from += PAGE_SIZE;
+      }
+
+      return allNegotiations;
     },
     enabled: !!user,
   });
