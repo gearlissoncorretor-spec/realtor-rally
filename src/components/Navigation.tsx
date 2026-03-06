@@ -32,7 +32,8 @@ import { UserProfileDialog } from "@/components/UserProfileDialog";
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin, getUserRole, signOut, profile } = useAuth();
+  const { hasAccess, isAdmin, getUserRole, profile } = useAuth();
+  const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
   
