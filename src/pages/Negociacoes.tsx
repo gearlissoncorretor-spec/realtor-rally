@@ -438,7 +438,7 @@ const Negociacoes = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium">Email</label>
                         <Input
@@ -468,7 +468,7 @@ const Negociacoes = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium">Tipo de Imóvel</label>
                         <Select
@@ -499,7 +499,7 @@ const Negociacoes = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium">Data de Início</label>
                         <Input
@@ -567,7 +567,7 @@ const Negociacoes = () => {
           </Alert>
 
           {/* Stats Cards - Responsive Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-2 sm:gap-3">
             <ResponsiveStatCard
               icon={Handshake}
               iconColor="text-primary"
@@ -695,114 +695,150 @@ const Negociacoes = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Imóvel</TableHead>
-                            <TableHead>Corretor</TableHead>
-                            <TableHead>Valor</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Data</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredNegotiations.map((negotiation) => {
-                            const statusConfig = getStatusByValue(negotiation.status);
-                            const canConvert = isApproved(negotiation.status);
-                            
-                            return (
-                              <TableRow key={negotiation.id}>
-                                <TableCell>
-                                  <div>
-                                    <p className="font-medium">{negotiation.client_name}</p>
+                    <>
+                      {/* Mobile Card View */}
+                      <div className="block md:hidden space-y-3">
+                        {filteredNegotiations.map((negotiation) => {
+                          const statusConfig = getStatusByValue(negotiation.status);
+                          const canConvert = isApproved(negotiation.status);
+                          return (
+                            <Card key={negotiation.id} className="border border-border/50">
+                              <CardContent className="p-4 space-y-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-foreground truncate">{negotiation.client_name}</p>
                                     {negotiation.client_phone && (
                                       <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
                                     )}
                                   </div>
-                                </TableCell>
-                                <TableCell>
-                                  <div className="max-w-[200px]">
-                                    <p className="truncate">{negotiation.property_address}</p>
-                                    <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
-                                  </div>
-                                </TableCell>
-                                <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
-                                <TableCell className="font-semibold text-primary">
-                                  {formatCurrency(negotiation.negotiated_value)}
-                                </TableCell>
-                                <TableCell>
                                   <NegotiationStatusBadge 
                                     status={negotiation.status}
                                     label={statusConfig?.label}
                                     color={statusConfig?.color}
                                     icon={statusConfig?.icon}
                                   />
-                                </TableCell>
-                                <TableCell>
-                                  {format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex justify-end gap-1 flex-wrap">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleEdit(negotiation)}
-                                      title="Editar"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                    </Button>
-                                    
-                                    {/* Converter em Venda - só aparece se aprovado */}
-                                    <Button
-                                      size="sm"
-                                      variant="default"
-                                      onClick={() => handleOpenSaleConversion(negotiation)}
-                                      className={`text-white ${
-                                        canConvert 
-                                          ? 'bg-green-600 hover:bg-green-700 animate-pulse' 
-                                          : 'bg-green-600/50 hover:bg-green-600'
-                                      }`}
-                                      title={canConvert 
-                                        ? "Cliente aprovado - Converter em Venda" 
-                                        : "Converter em Venda (disponível para qualquer status)"
-                                      }
-                                    >
-                                      <DollarSign className="w-4 h-4" />
-                                      <span className="hidden sm:inline ml-1">
-                                        {canConvert ? 'VENDA!' : 'VENDA'}
-                                      </span>
-                                    </Button>
-                                    
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      onClick={() => handleOpenLossDialog(negotiation)}
-                                      title="Registrar Perda"
-                                    >
-                                      <XCircle className="w-4 h-4" />
-                                      <span className="hidden sm:inline ml-1">PERDA</span>
-                                    </Button>
-                                    
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="text-destructive hover:text-destructive"
-                                      onClick={() => setDeleteId(negotiation.id)}
-                                      title="Excluir"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Imóvel</p>
+                                    <p className="truncate capitalize">{negotiation.property_type}</p>
                                   </div>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Valor</p>
+                                    <p className="font-semibold text-primary">{formatCurrency(negotiation.negotiated_value)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Corretor</p>
+                                    <p className="truncate">{getBrokerName(negotiation.broker_id)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-muted-foreground">Data</p>
+                                    <p>{format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 pt-1 border-t border-border/30">
+                                  <Button size="sm" variant="ghost" onClick={() => handleEdit(negotiation)} className="flex-1 h-9">
+                                    <Edit className="w-4 h-4 mr-1" /> Editar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleOpenSaleConversion(negotiation)}
+                                    className={`flex-1 h-9 text-white ${canConvert ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600/50 hover:bg-green-600'}`}
+                                  >
+                                    <DollarSign className="w-4 h-4 mr-1" /> Venda
+                                  </Button>
+                                  <Button size="sm" variant="destructive" onClick={() => handleOpenLossDialog(negotiation)} className="h-9">
+                                    <XCircle className="w-4 h-4" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="text-destructive h-9" onClick={() => setDeleteId(negotiation.id)}>
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                      {/* Desktop Table View */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Cliente</TableHead>
+                              <TableHead>Imóvel</TableHead>
+                              <TableHead>Corretor</TableHead>
+                              <TableHead>Valor</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Data</TableHead>
+                              <TableHead className="text-right">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredNegotiations.map((negotiation) => {
+                              const statusConfig = getStatusByValue(negotiation.status);
+                              const canConvert = isApproved(negotiation.status);
+                              return (
+                                <TableRow key={negotiation.id}>
+                                  <TableCell>
+                                    <div>
+                                      <p className="font-medium">{negotiation.client_name}</p>
+                                      {negotiation.client_phone && (
+                                        <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="max-w-[200px]">
+                                      <p className="truncate">{negotiation.property_address}</p>
+                                      <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
+                                  <TableCell className="font-semibold text-primary">
+                                    {formatCurrency(negotiation.negotiated_value)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <NegotiationStatusBadge 
+                                      status={negotiation.status}
+                                      label={statusConfig?.label}
+                                      color={statusConfig?.color}
+                                      icon={statusConfig?.icon}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    {format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex justify-end gap-1 flex-wrap">
+                                      <Button size="sm" variant="ghost" onClick={() => handleEdit(negotiation)} title="Editar">
+                                        <Edit className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        onClick={() => handleOpenSaleConversion(negotiation)}
+                                        className={`text-white ${canConvert ? 'bg-green-600 hover:bg-green-700 animate-pulse' : 'bg-green-600/50 hover:bg-green-600'}`}
+                                        title={canConvert ? "Cliente aprovado - Converter em Venda" : "Converter em Venda"}
+                                      >
+                                        <DollarSign className="w-4 h-4" />
+                                        <span className="ml-1">{canConvert ? 'VENDA!' : 'VENDA'}</span>
+                                      </Button>
+                                      <Button size="sm" variant="destructive" onClick={() => handleOpenLossDialog(negotiation)} title="Registrar Perda">
+                                        <XCircle className="w-4 h-4" />
+                                        <span className="ml-1">PERDA</span>
+                                      </Button>
+                                      <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(negotiation.id)} title="Excluir">
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -831,68 +867,92 @@ const Negociacoes = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Imóvel</TableHead>
-                            <TableHead>Corretor</TableHead>
-                            <TableHead>Valor</TableHead>
-                            <TableHead>Motivo da Perda</TableHead>
-                            <TableHead>Data</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredLostNegotiations.map((negotiation) => (
-                            <TableRow key={negotiation.id} className="opacity-75">
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{negotiation.client_name}</p>
-                                  {negotiation.client_phone && (
-                                    <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="max-w-[200px]">
-                                  <p className="truncate">{negotiation.property_address}</p>
+                    <>
+                      {/* Mobile Card View - Lost */}
+                      <div className="block md:hidden space-y-3">
+                        {filteredLostNegotiations.map((negotiation) => (
+                          <Card key={negotiation.id} className="border border-border/50 opacity-75">
+                            <CardContent className="p-4 space-y-2">
+                              <div className="flex items-start justify-between">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-foreground">{negotiation.client_name}</p>
                                   <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
                                 </div>
-                              </TableCell>
-                              <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
-                              <TableCell className="font-semibold text-muted-foreground line-through">
-                                {formatCurrency(negotiation.negotiated_value)}
-                              </TableCell>
-                              <TableCell>
-                                <NegotiationStatusBadge
-                                  status="perdida"
-                                  label={negotiation.loss_reason || 'Não informado'}
-                                  showIcon={false}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                {format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-end gap-1">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => setDeleteId(negotiation.id)}
-                                    title="Excluir"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                <NegotiationStatusBadge status="perdida" label={negotiation.loss_reason || 'Não informado'} showIcon={false} />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Valor</p>
+                                  <p className="font-semibold text-muted-foreground line-through">{formatCurrency(negotiation.negotiated_value)}</p>
                                 </div>
-                              </TableCell>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Data</p>
+                                  <p>{format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}</p>
+                                </div>
+                              </div>
+                              <div className="flex justify-end pt-1 border-t border-border/30">
+                                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setDeleteId(negotiation.id)}>
+                                  <Trash2 className="w-4 h-4 mr-1" /> Excluir
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                      {/* Desktop Table - Lost */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Cliente</TableHead>
+                              <TableHead>Imóvel</TableHead>
+                              <TableHead>Corretor</TableHead>
+                              <TableHead>Valor</TableHead>
+                              <TableHead>Motivo da Perda</TableHead>
+                              <TableHead>Data</TableHead>
+                              <TableHead className="text-right">Ações</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredLostNegotiations.map((negotiation) => (
+                              <TableRow key={negotiation.id} className="opacity-75">
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{negotiation.client_name}</p>
+                                    {negotiation.client_phone && (
+                                      <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="max-w-[200px]">
+                                    <p className="truncate">{negotiation.property_address}</p>
+                                    <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
+                                <TableCell className="font-semibold text-muted-foreground line-through">
+                                  {formatCurrency(negotiation.negotiated_value)}
+                                </TableCell>
+                                <TableCell>
+                                  <NegotiationStatusBadge status="perdida" label={negotiation.loss_reason || 'Não informado'} showIcon={false} />
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex justify-end gap-1">
+                                    <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(negotiation.id)} title="Excluir">
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>

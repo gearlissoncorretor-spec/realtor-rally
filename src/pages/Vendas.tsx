@@ -3,14 +3,14 @@ import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SalesMetricsCards } from "@/components/sales/SalesMetricsCards";
 import { SalesInsightsPanel } from "@/components/sales/SalesInsightsPanel";
 import { SalesTableRow } from "@/components/sales/SalesTableRow";
 import { TopBrokersRanking } from "@/components/sales/TopBrokersRanking";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Calendar } from "lucide-react";
+import { Plus, Search, Calendar, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
@@ -340,39 +340,86 @@ const Vendas = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto scrollbar-styled">
-                    <table className="w-full min-w-[900px]">
-                      <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
-                        <tr>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Corretor</th>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Valor / Comissão</th>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                          <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
-                          <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {searchFilteredSales.map((sale) => (
-                          <SalesTableRow
-                            key={sale.id}
-                            sale={sale}
-                            broker={brokers.find(b => b.id === sale.broker_id)}
-                            onView={(sale) => {
-                              setSelectedSale(sale);
-                              setIsDetailsOpen(true);
-                            }}
-                            onEdit={(sale) => {
-                              setSelectedSale(sale);
-                              setIsFormOpen(true);
-                            }}
-                            onDelete={handleDelete}
-                          />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <>
+                    {/* Mobile Card View */}
+                    <div className="block md:hidden space-y-3 p-3">
+                      {searchFilteredSales.map((sale) => {
+                        const broker = brokers.find(b => b.id === sale.broker_id);
+                        return (
+                          <Card key={sale.id} className="border border-border/50">
+                            <CardContent className="p-4 space-y-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-foreground truncate">{sale.client_name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{sale.property_address}</p>
+                                </div>
+                                <Badge variant={sale.status === 'confirmada' ? 'default' : sale.status === 'cancelada' || sale.status === 'distrato' ? 'destructive' : 'secondary'} className="shrink-0 text-xs">
+                                  {sale.status}
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Corretor</p>
+                                  <p className="truncate">{broker?.name || '-'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Data</p>
+                                  <p>{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">VGV</p>
+                                  <p className="font-semibold text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgv)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Comissão</p>
+                                  <p className="font-semibold">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgc)}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1 border-t border-border/30">
+                                <Button size="sm" variant="ghost" className="flex-1 h-9" onClick={() => { setSelectedSale(sale); setIsDetailsOpen(true); }}>
+                                  Ver detalhes
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-9" onClick={() => { setSelectedSale(sale); setIsFormOpen(true); }}>
+                                  <Search className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" className="text-destructive h-9" onClick={() => handleDelete(sale.id)}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto scrollbar-styled">
+                      <table className="w-full min-w-[900px]">
+                        <thead className="bg-muted/50 border-b border-border sticky top-0 z-10">
+                          <tr>
+                            <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
+                            <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
+                            <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Corretor</th>
+                            <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Valor / Comissão</th>
+                            <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                            <th className="text-left p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
+                            <th className="text-right p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {searchFilteredSales.map((sale) => (
+                            <SalesTableRow
+                              key={sale.id}
+                              sale={sale}
+                              broker={brokers.find(b => b.id === sale.broker_id)}
+                              onView={(sale) => { setSelectedSale(sale); setIsDetailsOpen(true); }}
+                              onEdit={(sale) => { setSelectedSale(sale); setIsFormOpen(true); }}
+                              onDelete={handleDelete}
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 )}
               </Card>
             </div>

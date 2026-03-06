@@ -296,86 +296,103 @@ const SuperAdmin = () => {
           <CardContent>
             {loading ? (
               <p className="text-muted-foreground text-center py-8">Carregando...</p>
+            ) : companies.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                Nenhuma empresa cadastrada
+              </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Usuários</TableHead>
-                    <TableHead>Limite</TableHead>
-                    <TableHead>Criação</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile Card View */}
+                <div className="block md:hidden space-y-3">
                   {companies.map((company) => (
-                    <TableRow key={company.id}>
-                      <TableCell className="font-medium">{company.name}</TableCell>
-                      <TableCell>
-                        <Badge variant={company.status === 'ativo' ? 'default' : 'destructive'}>
-                          {company.status === 'ativo' ? 'Ativo' : 'Bloqueado'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{company.user_count || 0}</TableCell>
-                      <TableCell>{company.max_users}</TableCell>
-                      <TableCell>{new Date(company.created_at).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedCompany(company);
-                              setUserFormData({ full_name: '', email: '', password: '' });
-                              setCreateUserOpen(true);
-                            }}
-                            title="Criar Diretor"
-                          >
-                            <Users className="w-4 h-4" />
+                    <Card key={company.id} className="border border-border/50">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-foreground">{company.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Criada em {new Date(company.created_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          <Badge variant={company.status === 'ativo' ? 'default' : 'destructive'}>
+                            {company.status === 'ativo' ? 'Ativo' : 'Bloqueado'}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Usuários</p>
+                            <p className="font-semibold">{company.user_count || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Limite</p>
+                            <p className="font-semibold">{company.max_users}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1 border-t border-border/30 flex-wrap">
+                          <Button variant="outline" size="sm" className="flex-1 h-9" onClick={() => { setSelectedCompany(company); setUserFormData({ full_name: '', email: '', password: '' }); setCreateUserOpen(true); }}>
+                            <Users className="w-4 h-4 mr-1" /> Diretor
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditCompany(company);
-                              setFormData({ name: company.name, max_users: company.max_users });
-                            }}
-                          >
+                          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setEditCompany(company); setFormData({ name: company.name, max_users: company.max_users }); }}>
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleStatus(company)}
-                          >
-                            {company.status === 'ativo' ? (
-                              <Ban className="w-4 h-4 text-destructive" />
-                            ) : (
-                              <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            )}
+                          <Button variant="ghost" size="sm" className="h-9" onClick={() => handleToggleStatus(company)}>
+                            {company.status === 'ativo' ? <Ban className="w-4 h-4 text-destructive" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteCompany(company)}
-                            disabled={(company.user_count || 0) > 0}
-                          >
+                          <Button variant="ghost" size="sm" className="h-9" onClick={() => handleDeleteCompany(company)} disabled={(company.user_count || 0) > 0}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </CardContent>
+                    </Card>
                   ))}
-                  {companies.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        Nenhuma empresa cadastrada
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                </div>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Empresa</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Usuários</TableHead>
+                        <TableHead>Limite</TableHead>
+                        <TableHead>Criação</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {companies.map((company) => (
+                        <TableRow key={company.id}>
+                          <TableCell className="font-medium">{company.name}</TableCell>
+                          <TableCell>
+                            <Badge variant={company.status === 'ativo' ? 'default' : 'destructive'}>
+                              {company.status === 'ativo' ? 'Ativo' : 'Bloqueado'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{company.user_count || 0}</TableCell>
+                          <TableCell>{company.max_users}</TableCell>
+                          <TableCell>{new Date(company.created_at).toLocaleDateString('pt-BR')}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => { setSelectedCompany(company); setUserFormData({ full_name: '', email: '', password: '' }); setCreateUserOpen(true); }} title="Criar Diretor">
+                                <Users className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => { setEditCompany(company); setFormData({ name: company.name, max_users: company.max_users }); }}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(company)}>
+                                {company.status === 'ativo' ? <Ban className="w-4 h-4 text-destructive" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDeleteCompany(company)} disabled={(company.user_count || 0) > 0}>
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

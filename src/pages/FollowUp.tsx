@@ -445,139 +445,175 @@ const FollowUpPage = () => {
             </CardContent>
           </Card>
 
-          {/* Table */}
+          {/* Content */}
           <Card>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Telefone</TableHead>
-                      <TableHead>Imóvel</TableHead>
-                      <TableHead>VGV</TableHead>
-                      <TableHead>Responsável</TableHead>
-                      <TableHead>Próximo Contato</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedFollowUps.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                          Nenhum lead encontrado
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      sortedFollowUps.map((followUp) => {
-                        const dateStatus = getDateStatus(followUp.next_contact_date);
-                        const statusConfig = getStatusByValue(followUp.status);
-                        
-                        return (
-                          <TableRow 
-                            key={followUp.id}
-                            className={cn(
-                              dateStatus === 'overdue' && 'bg-red-500/5',
-                              dateStatus === 'today' && 'bg-yellow-500/5'
-                            )}
-                          >
-                            <TableCell className="font-medium">
-                              {followUp.client_name}
-                            </TableCell>
-                            <TableCell>
-                              {followUp.client_phone ? (
-                                <a 
-                                  href={formatWhatsAppLink(followUp.client_phone)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-green-600 hover:text-green-700"
-                                >
-                                  <MessageCircle className="w-4 h-4" />
-                                  {followUp.client_phone}
-                                </a>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <ExpandableCell 
-                                content={followUp.property_interest || 'Não definido'} 
-                                maxLength={30}
-                                title="Imóvel de Interesse"
-                              />
-                            </TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {formatCurrency(followUp.estimated_vgv)}
-                            </TableCell>
-                            <TableCell>{getBrokerName(followUp.broker_id)}</TableCell>
-                            <TableCell>
-                              {followUp.next_contact_date ? (
-                                <span className={cn(
-                                  "flex items-center gap-1",
-                                  dateStatus === 'overdue' && 'text-red-600 font-medium',
-                                  dateStatus === 'today' && 'text-yellow-600 font-medium'
-                                )}>
-                                  {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3" />}
-                                  {dateStatus === 'today' && <Clock className="w-3 h-3" />}
-                                  {format(parseISO(followUp.next_contact_date), "dd/MM/yyyy", { locale: ptBR })}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <FollowUpStatusBadge 
+              {sortedFollowUps.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground p-4">
+                  Nenhum lead encontrado
+                </div>
+              ) : (
+                <>
+                  {/* Mobile Card View */}
+                  <div className="block md:hidden space-y-3 p-3">
+                    {sortedFollowUps.map((followUp) => {
+                      const dateStatus = getDateStatus(followUp.next_contact_date);
+                      const statusConfig = getStatusByValue(followUp.status);
+                      return (
+                        <Card
+                          key={followUp.id}
+                          className={cn(
+                            "border border-border/50",
+                            dateStatus === 'overdue' && 'border-red-500/30 bg-red-500/5',
+                            dateStatus === 'today' && 'border-yellow-500/30 bg-yellow-500/5'
+                          )}
+                        >
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-foreground truncate">{followUp.client_name}</p>
+                                {followUp.client_phone && (
+                                  <a
+                                    href={formatWhatsAppLink(followUp.client_phone)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 text-xs text-green-600"
+                                  >
+                                    <MessageCircle className="w-3 h-3" />
+                                    {followUp.client_phone}
+                                  </a>
+                                )}
+                              </div>
+                              <FollowUpStatusBadge
                                 status={followUp.status}
                                 label={statusConfig?.label}
                                 color={statusConfig?.color}
                                 icon={statusConfig?.icon}
                               />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center justify-end gap-1">
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => handleOpenConversion(followUp)}
-                                  className="gap-1 bg-primary hover:bg-primary/90"
-                                  title="Converter em Negociação"
-                                >
-                                  <Handshake className="w-4 h-4" />
-                                  <span className="hidden sm:inline">Negociação</span>
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleOpenContact(followUp)}
-                                  title="Registrar contato"
-                                >
-                                  <Phone className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEdit(followUp)}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setDeleteId(followUp.id)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Imóvel</p>
+                                <p className="truncate">{followUp.property_interest || 'Não definido'}</p>
                               </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">VGV</p>
+                                <p className="font-semibold">{formatCurrency(followUp.estimated_vgv)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Responsável</p>
+                                <p className="truncate">{getBrokerName(followUp.broker_id)}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Próximo Contato</p>
+                                {followUp.next_contact_date ? (
+                                  <span className={cn(
+                                    "flex items-center gap-1 text-sm",
+                                    dateStatus === 'overdue' && 'text-red-600 font-medium',
+                                    dateStatus === 'today' && 'text-yellow-600 font-medium'
+                                  )}>
+                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3" />}
+                                    {dateStatus === 'today' && <Clock className="w-3 h-3" />}
+                                    {format(parseISO(followUp.next_contact_date), "dd/MM/yy", { locale: ptBR })}
+                                  </span>
+                                ) : <span className="text-muted-foreground">-</span>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 pt-1 border-t border-border/30">
+                              <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="flex-1 h-9 gap-1">
+                                <Handshake className="w-4 h-4" /> Negociação
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} className="h-9">
+                                <Phone className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(followUp)} className="h-9">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => setDeleteId(followUp.id)} className="text-destructive h-9">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Cliente</TableHead>
+                          <TableHead>Telefone</TableHead>
+                          <TableHead>Imóvel</TableHead>
+                          <TableHead>VGV</TableHead>
+                          <TableHead>Responsável</TableHead>
+                          <TableHead>Próximo Contato</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {sortedFollowUps.map((followUp) => {
+                          const dateStatus = getDateStatus(followUp.next_contact_date);
+                          const statusConfig = getStatusByValue(followUp.status);
+                          return (
+                            <TableRow
+                              key={followUp.id}
+                              className={cn(
+                                dateStatus === 'overdue' && 'bg-red-500/5',
+                                dateStatus === 'today' && 'bg-yellow-500/5'
+                              )}
+                            >
+                              <TableCell className="font-medium">{followUp.client_name}</TableCell>
+                              <TableCell>
+                                {followUp.client_phone ? (
+                                  <a href={formatWhatsAppLink(followUp.client_phone)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-green-600 hover:text-green-700">
+                                    <MessageCircle className="w-4 h-4" />{followUp.client_phone}
+                                  </a>
+                                ) : <span className="text-muted-foreground">-</span>}
+                              </TableCell>
+                              <TableCell>
+                                <ExpandableCell content={followUp.property_interest || 'Não definido'} maxLength={30} title="Imóvel de Interesse" />
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap">{formatCurrency(followUp.estimated_vgv)}</TableCell>
+                              <TableCell>{getBrokerName(followUp.broker_id)}</TableCell>
+                              <TableCell>
+                                {followUp.next_contact_date ? (
+                                  <span className={cn("flex items-center gap-1", dateStatus === 'overdue' && 'text-red-600 font-medium', dateStatus === 'today' && 'text-yellow-600 font-medium')}>
+                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3" />}
+                                    {dateStatus === 'today' && <Clock className="w-3 h-3" />}
+                                    {format(parseISO(followUp.next_contact_date), "dd/MM/yyyy", { locale: ptBR })}
+                                  </span>
+                                ) : <span className="text-muted-foreground">-</span>}
+                              </TableCell>
+                              <TableCell>
+                                <FollowUpStatusBadge status={followUp.status} label={statusConfig?.label} color={statusConfig?.color} icon={statusConfig?.icon} />
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="gap-1 bg-primary hover:bg-primary/90" title="Converter em Negociação">
+                                    <Handshake className="w-4 h-4" /><span className="hidden lg:inline">Negociação</span>
+                                  </Button>
+                                  <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} title="Registrar contato">
+                                    <Phone className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(followUp)}>
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" onClick={() => setDeleteId(followUp.id)} className="text-destructive hover:text-destructive">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
