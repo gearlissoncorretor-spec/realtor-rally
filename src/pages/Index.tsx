@@ -288,7 +288,7 @@ const Index = () => {
       <Navigation />
       
       {/* Main Content */}
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 min-h-screen">
         
         {/* Hero Section - Axis Branding (Compact & Clean) */}
         <div className="relative h-[100px] sm:h-[120px] rounded-2xl mb-8 overflow-hidden bg-gradient-to-r from-primary/90 via-primary/80 to-primary/60 flex items-center">
