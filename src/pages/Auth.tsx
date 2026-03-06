@@ -137,7 +137,7 @@ const Auth = () => {
               </span>
             </div>
           )}
-          <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight">
             Axis
           </h1>
           <p className="text-primary text-base font-medium tracking-wide">
