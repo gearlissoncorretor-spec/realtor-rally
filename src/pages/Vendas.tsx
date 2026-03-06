@@ -3,7 +3,7 @@ import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SalesMetricsCards } from "@/components/sales/SalesMetricsCards";
 import { SalesInsightsPanel } from "@/components/sales/SalesInsightsPanel";
