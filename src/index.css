@@ -439,6 +439,11 @@
     background: transparent;
   }
 
+  /* Safe area for bottom navigation */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   /* Mobile-specific utilities */
   @media (max-width: 640px) {
     .mobile-scroll-x {
