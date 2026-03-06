@@ -867,68 +867,92 @@ const Negociacoes = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Imóvel</TableHead>
-                            <TableHead>Corretor</TableHead>
-                            <TableHead>Valor</TableHead>
-                            <TableHead>Motivo da Perda</TableHead>
-                            <TableHead>Data</TableHead>
-                            <TableHead className="text-right">Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredLostNegotiations.map((negotiation) => (
-                            <TableRow key={negotiation.id} className="opacity-75">
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{negotiation.client_name}</p>
-                                  {negotiation.client_phone && (
-                                    <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="max-w-[200px]">
-                                  <p className="truncate">{negotiation.property_address}</p>
+                    <>
+                      {/* Mobile Card View - Lost */}
+                      <div className="block md:hidden space-y-3">
+                        {filteredLostNegotiations.map((negotiation) => (
+                          <Card key={negotiation.id} className="border border-border/50 opacity-75">
+                            <CardContent className="p-4 space-y-2">
+                              <div className="flex items-start justify-between">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-foreground">{negotiation.client_name}</p>
                                   <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
                                 </div>
-                              </TableCell>
-                              <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
-                              <TableCell className="font-semibold text-muted-foreground line-through">
-                                {formatCurrency(negotiation.negotiated_value)}
-                              </TableCell>
-                              <TableCell>
-                                <NegotiationStatusBadge
-                                  status="perdida"
-                                  label={negotiation.loss_reason || 'Não informado'}
-                                  showIcon={false}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                {format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-end gap-1">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-destructive hover:text-destructive"
-                                    onClick={() => setDeleteId(negotiation.id)}
-                                    title="Excluir"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                <NegotiationStatusBadge status="perdida" label={negotiation.loss_reason || 'Não informado'} showIcon={false} />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Valor</p>
+                                  <p className="font-semibold text-muted-foreground line-through">{formatCurrency(negotiation.negotiated_value)}</p>
                                 </div>
-                              </TableCell>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">Data</p>
+                                  <p>{format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}</p>
+                                </div>
+                              </div>
+                              <div className="flex justify-end pt-1 border-t border-border/30">
+                                <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setDeleteId(negotiation.id)}>
+                                  <Trash2 className="w-4 h-4 mr-1" /> Excluir
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                      {/* Desktop Table - Lost */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Cliente</TableHead>
+                              <TableHead>Imóvel</TableHead>
+                              <TableHead>Corretor</TableHead>
+                              <TableHead>Valor</TableHead>
+                              <TableHead>Motivo da Perda</TableHead>
+                              <TableHead>Data</TableHead>
+                              <TableHead className="text-right">Ações</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredLostNegotiations.map((negotiation) => (
+                              <TableRow key={negotiation.id} className="opacity-75">
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{negotiation.client_name}</p>
+                                    {negotiation.client_phone && (
+                                      <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="max-w-[200px]">
+                                    <p className="truncate">{negotiation.property_address}</p>
+                                    <p className="text-xs text-muted-foreground capitalize">{negotiation.property_type}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
+                                <TableCell className="font-semibold text-muted-foreground line-through">
+                                  {formatCurrency(negotiation.negotiated_value)}
+                                </TableCell>
+                                <TableCell>
+                                  <NegotiationStatusBadge status="perdida" label={negotiation.loss_reason || 'Não informado'} showIcon={false} />
+                                </TableCell>
+                                <TableCell>
+                                  {format(new Date(negotiation.updated_at), "dd/MM/yy", { locale: ptBR })}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex justify-end gap-1">
+                                    <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(negotiation.id)} title="Excluir">
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
