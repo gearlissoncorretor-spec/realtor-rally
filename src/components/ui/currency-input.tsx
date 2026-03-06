@@ -11,34 +11,67 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
     const [displayValue, setDisplayValue] = React.useState("");
     const [isFocused, setIsFocused] = React.useState(false);
 
-    // Formatar número para moeda brasileira (apenas números, sem símbolo, pois o símbolo é visual)
     const formatCurrency = (num: number): string => {
-      if (isNaN(num) || num === 0) return ""; // mantém vazio quando 0 para não "sugerir" 0
+      if (isNaN(num) || num === 0) return "";
       return num.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
     };
 
-    // Converter string formatada para número
+    /**
+     * Smart currency parser that handles:
+     * - "500000" → 500000 (plain number, auto-formatted on blur)
+     * - "500.000" → 500000 (Brazilian thousands separator)
+     * - "500.000,00" → 500000 (full Brazilian format)
+     * - "1.500.000,50" → 1500000.50
+     * - "500,50" → 500.50 (comma as decimal)
+     * - "500.50" → 500.50 (dot as decimal when no comma and ≤2 digits after dot)
+     * - "1500,5" → 1500.50
+     */
     const parseCurrency = (str: string): number => {
       if (!str) return 0;
-      let cleanStr = str.replace(/[^\d,.]/g, "");
+      const cleanStr = str.replace(/[^\d,.]/g, "");
+      if (!cleanStr) return 0;
 
-      // Se tem vírgula e ponto, assume ponto como separador de milhar e vírgula como decimal
-      if (cleanStr.includes(",") && cleanStr.includes(".")) {
-        cleanStr = cleanStr.replace(/\./g, "").replace(",", ".");
-      } else if (cleanStr.includes(",")) {
-        // Apenas vírgula
-        cleanStr = cleanStr.replace(",", ".");
+      let normalized: string;
+
+      const hasComma = cleanStr.includes(",");
+      const hasDot = cleanStr.includes(".");
+
+      if (hasComma && hasDot) {
+        // Both separators: dot is thousands, comma is decimal (Brazilian standard)
+        normalized = cleanStr.replace(/\./g, "").replace(",", ".");
+      } else if (hasComma) {
+        // Only comma: treat as decimal separator
+        normalized = cleanStr.replace(",", ".");
+      } else if (hasDot) {
+        // Only dot: check context
+        const parts = cleanStr.split(".");
+        const afterDot = parts[parts.length - 1];
+        
+        if (parts.length > 2) {
+          // Multiple dots like "1.500.000" → thousands separators
+          normalized = cleanStr.replace(/\./g, "");
+        } else if (afterDot.length === 3 && parts[0].length <= 3) {
+          // "500.000" → likely thousands separator (3 digits after dot)
+          normalized = cleanStr.replace(/\./g, "");
+        } else if (afterDot.length <= 2) {
+          // "500.50" or "500.5" → decimal
+          normalized = cleanStr;
+        } else {
+          // "5000.000" with >3 chars before dot → ambiguous, treat as thousands
+          normalized = cleanStr.replace(/\./g, "");
+        }
+      } else {
+        // No separators: plain number
+        normalized = cleanStr;
       }
-      // Apenas ponto: mantém
 
-      const parsed = parseFloat(cleanStr);
+      const parsed = parseFloat(normalized);
       return isNaN(parsed) ? 0 : parsed;
     };
 
-    // Atualizar displayValue quando o value externo mudar, mas não durante a digitação
     React.useEffect(() => {
       if (!isFocused) {
         setDisplayValue(formatCurrency(value));
@@ -47,11 +80,9 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
-      // Permitir apenas números, vírgulas e pontos
       const sanitizedValue = inputValue.replace(/[^\d,.]/g, "");
       setDisplayValue(sanitizedValue);
 
-      // Converter para número e propagar
       const numericValue = parseCurrency(sanitizedValue);
       onChange?.(numericValue);
     };
@@ -62,10 +93,9 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     const handleBlur = () => {
       setIsFocused(false);
-      // Reformatar o valor ao sair do campo
       const numericValue = parseCurrency(displayValue);
-      const formatted = formatCurrency(numericValue);
-      setDisplayValue(formatted);
+      onChange?.(numericValue);
+      setDisplayValue(formatCurrency(numericValue));
     };
 
     return (
