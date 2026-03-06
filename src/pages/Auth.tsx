@@ -114,7 +114,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-6">
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
       {/* Animated Background */}
       <AnimatedBackground />
       
