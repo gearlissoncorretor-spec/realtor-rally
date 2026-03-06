@@ -119,32 +119,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user) return [];
       
       try {
-        // Confia no RLS para filtrar dados por perfil
-        // Isso evita problemas de estado inconsistente
-        const query = supabase
-          .from('sales')
-          .select(`
-            *,
-            broker:brokers(name, email),
-            process_stages (
-              id,
-              title,
-              color,
-              order_index
-            )
-          `)
-          .order('created_at', { ascending: false });
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error('Error fetching sales:', error);
-          throw new Error(`Erro ao carregar vendas: ${error.message}`);
+        // Fetch all sales using pagination to avoid 1000-row limit
+        const allSales: Sale[] = [];
+        const PAGE_SIZE = 1000;
+        let from = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from('sales')
+            .select(`
+              *,
+              broker:brokers(name, email),
+              process_stages (
+                id,
+                title,
+                color,
+                order_index
+              )
+            `)
+            .order('created_at', { ascending: false })
+            .range(from, from + PAGE_SIZE - 1);
+          
+          if (error) {
+            console.error('Error fetching sales:', error);
+            throw new Error(`Erro ao carregar vendas: ${error.message}`);
+          }
+          
+          allSales.push(...(data as Sale[]));
+          hasMore = data.length === PAGE_SIZE;
+          from += PAGE_SIZE;
         }
         
-        // RLS já faz o filtro correto no banco
-        // Não fazemos filtros adicionais no frontend para evitar inconsistência
-        return data as Sale[];
+        return allSales;
       } catch (err) {
         console.error('Sales query failed:', err);
         throw err;
