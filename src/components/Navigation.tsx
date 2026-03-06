@@ -36,9 +36,7 @@ const Navigation = () => {
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
   
-  const handleLogoClick = async () => {
-    await signOut();
-  };
+  // Logo click navigates to dashboard instead of signing out
   
   const allNavItems = [{
     href: "/",
