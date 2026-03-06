@@ -206,13 +206,13 @@ const Navigation = () => {
   // Render mobile logo section (smaller)
   const renderMobileLogo = () => (
     <div className="flex items-center gap-3">
-      {settings?.logo_icon_url ? (
+      {effectiveLogo ? (
         <button 
           onClick={handleLogoClick}
           className="w-9 h-9 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
           title="Sair do sistema"
         >
-          <img src={settings.logo_icon_url} alt={displayName} className="w-full h-full object-contain" />
+          <img src={effectiveLogo} alt={displayName} className="w-full h-full object-contain" />
         </button>
       ) : (
         <button 
@@ -226,7 +226,7 @@ const Navigation = () => {
         </button>
       )}
       <div className="min-w-0">
-        <h1 className="text-lg font-bold text-foreground tracking-tight truncate max-w-[120px]">
+        <h1 className="text-lg font-semibold text-foreground tracking-tight truncate max-w-[120px]">
           {displayName}
         </h1>
       </div>
