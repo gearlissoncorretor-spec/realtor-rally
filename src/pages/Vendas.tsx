@@ -10,7 +10,7 @@ import { SalesInsightsPanel } from "@/components/sales/SalesInsightsPanel";
 import { SalesTableRow } from "@/components/sales/SalesTableRow";
 import { TopBrokersRanking } from "@/components/sales/TopBrokersRanking";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Calendar } from "lucide-react";
+import { Plus, Search, Calendar, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
