@@ -317,7 +317,7 @@ const Auth = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-muted-foreground text-xs font-medium">
-            © 2025 Axis. Todos os direitos reservados.
+            © {new Date().getFullYear()} {settings?.organization_name || 'Axis'}. Todos os direitos reservados.
           </p>
         </div>
       </div>
