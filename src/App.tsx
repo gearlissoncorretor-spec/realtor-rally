@@ -52,6 +52,7 @@ const App = () => (
             v7_startTransition: true,
             v7_relativeSplatPath: true
           }}>
+            <DynamicTitleUpdater />
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
