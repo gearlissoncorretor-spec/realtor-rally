@@ -567,7 +567,7 @@ const Negociacoes = () => {
           </Alert>
 
           {/* Stats Cards - Responsive Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-2 sm:gap-3">
             <ResponsiveStatCard
               icon={Handshake}
               iconColor="text-primary"
