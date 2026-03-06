@@ -103,7 +103,7 @@ serve(async (req) => {
     }
 
     // Validate role is valid
-    const validRoles = ['admin', 'diretor', 'gerente', 'corretor']
+    const validRoles = ['admin', 'diretor', 'gerente', 'corretor', 'super_admin']
     if (!validRoles.includes(role)) {
       console.error('Invalid role:', role)
       throw new Error('❌ Cargo inválido')
