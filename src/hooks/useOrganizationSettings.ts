@@ -9,6 +9,7 @@ export interface OrganizationSettings {
   logo_url: string | null;
   logo_icon_url: string | null;
   primary_color: string;
+  secondary_color: string | null;
 }
 
 export const useOrganizationSettings = () => {
@@ -24,9 +25,9 @@ export const useOrganizationSettings = () => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as OrganizationSettings;
+      return data as OrganizationSettings | null;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
   });
 
   const updateMutation = useMutation({
@@ -59,10 +60,36 @@ export const useOrganizationSettings = () => {
     },
   });
 
+  // Upload logo to Supabase Storage
+  const uploadLogo = async (file: File, type: 'logo' | 'icon'): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${type}-${Date.now()}.${fileExt}`;
+    const filePath = `logos/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  // Get the effective logo URL (upload > URL > null)
+  const getEffectiveLogo = (): string | null => {
+    return settings?.logo_icon_url || settings?.logo_url || null;
+  };
+
   return {
     settings,
     isLoading,
     updateSettings: updateMutation.mutate,
     isUpdating: updateMutation.isPending,
+    uploadLogo,
+    getEffectiveLogo,
   };
 };

@@ -949,6 +949,7 @@ export type Database = {
           organization_name: string
           organization_tagline: string | null
           primary_color: string | null
+          secondary_color: string | null
           updated_at: string | null
         }
         Insert: {
@@ -961,6 +962,7 @@ export type Database = {
           organization_name?: string
           organization_tagline?: string | null
           primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -973,6 +975,7 @@ export type Database = {
           organization_name?: string
           organization_tagline?: string | null
           primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string | null
         }
         Relationships: [

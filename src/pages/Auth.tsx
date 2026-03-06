@@ -120,29 +120,40 @@ const Auth = () => {
       
       {/* Content */}
       <div className="relative z-10 w-full max-w-md animate-float-up">
-        {/* Logo and Title - Axis Branding */}
+        {/* Logo and Title - Dynamic Branding */}
         <div className="text-center mb-10 space-y-5">
-          {settings?.logo_icon_url ? (
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift overflow-hidden">
-              <img 
-                src={settings.logo_icon_url} 
-                alt="Axis"
-                className="w-full h-full object-contain p-2"
-              />
-            </div>
-          ) : (
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift border border-primary/20">
-              <span className="text-3xl font-extrabold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-                A
-              </span>
-            </div>
-          )}
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight">
-            Axis
-          </h1>
-          <p className="text-primary text-base font-medium tracking-wide">
-            A evolução da gestão imobiliária
-          </p>
+          {(() => {
+            const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
+            const orgName = settings?.organization_name || 'Axis';
+            const tagline = settings?.organization_tagline || 'A evolução da gestão imobiliária';
+            const initial = orgName.charAt(0).toUpperCase();
+
+            return (
+              <>
+                {effectiveLogo ? (
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift overflow-hidden">
+                    <img 
+                      src={effectiveLogo} 
+                      alt={orgName}
+                      className="w-full h-full object-contain p-2"
+                    />
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift border border-primary/20">
+                    <span className="text-3xl font-extrabold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+                      {initial}
+                    </span>
+                  </div>
+                )}
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight">
+                  {orgName}
+                </h1>
+                <p className="text-primary text-base font-medium tracking-wide">
+                  {tagline}
+                </p>
+              </>
+            );
+          })()}
         </div>
 
         {/* Login Card */}
@@ -306,7 +317,7 @@ const Auth = () => {
         {/* Footer */}
         <div className="text-center mt-8">
           <p className="text-muted-foreground text-xs font-medium">
-            © 2025 Axis. Todos os direitos reservados.
+            © {new Date().getFullYear()} {settings?.organization_name || 'Axis'}. Todos os direitos reservados.
           </p>
         </div>
       </div>
