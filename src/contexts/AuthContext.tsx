@@ -107,35 +107,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserRole(resolvedRole);
 
       // Parallelize company and hierarchy queries (depend on profile data)
-      const promises: Promise<any>[] = [];
-      
+      let companyData: Company | null = null;
+      let hierarchyData: any = null;
+
       if (profileData.company_id) {
-        promises.push(
+        const [companyResult, hierarchyResult] = await Promise.all([
           supabase
             .from('companies')
             .select('*')
             .eq('id', profileData.company_id)
-            .single()
-        );
+            .single(),
+          supabase.rpc('get_team_hierarchy', { user_id: userId }),
+        ]);
+        
+        if (companyResult.data) {
+          companyData = companyResult.data as Company;
+        }
+        hierarchyData = hierarchyResult.data;
       } else {
-        promises.push(Promise.resolve({ data: null }));
-      }
-      
-      promises.push(
-        supabase.rpc('get_team_hierarchy', { user_id: userId }).catch(err => {
+        try {
+          const hierarchyResult = await supabase.rpc('get_team_hierarchy', { user_id: userId });
+          hierarchyData = hierarchyResult.data;
+        } catch (err) {
           console.error('Error fetching team hierarchy:', err);
-          return { data: null };
-        })
-      );
-
-      const [companyResult, hierarchyResult] = await Promise.all(promises);
-      
-      if (companyResult?.data) {
-        setCompany(companyResult.data as Company);
+        }
       }
       
-      if (hierarchyResult?.data?.[0]) {
-        setTeamHierarchy(hierarchyResult.data[0]);
+      if (companyData) {
+        setCompany(companyData);
+      }
+      
+      if (hierarchyData?.[0]) {
+        setTeamHierarchy(hierarchyData[0]);
       } else {
         setTeamHierarchy(null);
       }

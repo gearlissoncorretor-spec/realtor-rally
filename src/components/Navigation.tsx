@@ -207,17 +207,17 @@ const Navigation = () => {
     <div className="flex items-center gap-3">
       {effectiveLogo ? (
         <button 
-          onClick={handleLogoClick}
+          onClick={() => navigate('/')}
           className="w-9 h-9 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
-          title="Sair do sistema"
+          title="Ir ao Dashboard"
         >
           <img src={effectiveLogo} alt={displayName} className="w-full h-full object-contain" />
         </button>
       ) : (
         <button 
-          onClick={handleLogoClick}
+          onClick={() => navigate('/')}
           className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
-          title="Sair do sistema"
+          title="Ir ao Dashboard"
         >
           <span className="text-sm font-bold text-primary-foreground">
             {displayName.charAt(0).toUpperCase()}
