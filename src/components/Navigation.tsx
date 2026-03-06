@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { 
   LayoutGrid, 
@@ -32,13 +32,12 @@ import { UserProfileDialog } from "@/components/UserProfileDialog";
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin, getUserRole, signOut, profile } = useAuth();
+  const { hasAccess, isAdmin, getUserRole, profile } = useAuth();
+  const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
   
-  const handleLogoClick = async () => {
-    await signOut();
-  };
+  // Logo click navigates to dashboard instead of signing out
   
   const allNavItems = [{
     href: "/",
@@ -173,17 +172,17 @@ const Navigation = () => {
     <div className="flex items-center gap-4">
       {effectiveLogo ? (
         <button 
-          onClick={handleLogoClick}
+          onClick={() => navigate('/')}
           className="w-11 h-11 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
-          title="Sair do sistema"
+          title="Ir ao Dashboard"
         >
           <img src={effectiveLogo} alt={displayName} className="w-full h-full object-contain" />
         </button>
       ) : (
         <button 
-          onClick={handleLogoClick}
+          onClick={() => navigate('/')}
           className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
-          title="Sair do sistema"
+          title="Ir ao Dashboard"
         >
           <span className="text-lg font-bold text-primary-foreground">
             {displayName.charAt(0).toUpperCase()}
@@ -208,17 +207,17 @@ const Navigation = () => {
     <div className="flex items-center gap-3">
       {effectiveLogo ? (
         <button 
-          onClick={handleLogoClick}
+          onClick={() => navigate('/')}
           className="w-9 h-9 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden"
-          title="Sair do sistema"
+          title="Ir ao Dashboard"
         >
           <img src={effectiveLogo} alt={displayName} className="w-full h-full object-contain" />
         </button>
       ) : (
         <button 
-          onClick={handleLogoClick}
+          onClick={() => navigate('/')}
           className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/25"
-          title="Sair do sistema"
+          title="Ir ao Dashboard"
         >
           <span className="text-sm font-bold text-primary-foreground">
             {displayName.charAt(0).toUpperCase()}

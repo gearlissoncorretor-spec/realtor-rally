@@ -78,60 +78,68 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = async (userId: string): Promise<boolean> => {
     try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      // Parallelize profile and role queries
+      const [profileResult, roleResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .maybeSingle(),
+      ]);
 
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
+      if (profileResult.error) {
+        console.error('Error fetching profile:', profileResult.error);
         setProfile(null);
         setUserRole(null);
         return false;
       }
       
+      const profileData = profileResult.data;
       setProfile(profileData);
       
-      // Fetch user role
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .maybeSingle();
-      
-      if (!roleError && roleData) {
-        setUserRole(roleData.role);
-      } else {
-        setUserRole('corretor');
-      }
+      const resolvedRole = (!roleResult.error && roleResult.data) ? roleResult.data.role : 'corretor';
+      setUserRole(resolvedRole);
 
-      // Fetch company info
+      // Parallelize company and hierarchy queries (depend on profile data)
+      let companyData: Company | null = null;
+      let hierarchyData: any = null;
+
       if (profileData.company_id) {
-        const { data: companyData } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', profileData.company_id)
-          .single();
+        const [companyResult, hierarchyResult] = await Promise.all([
+          supabase
+            .from('companies')
+            .select('*')
+            .eq('id', profileData.company_id)
+            .single(),
+          supabase.rpc('get_team_hierarchy', { user_id: userId }),
+        ]);
         
-        if (companyData) {
-          setCompany(companyData as Company);
+        if (companyResult.data) {
+          companyData = companyResult.data as Company;
+        }
+        hierarchyData = hierarchyResult.data;
+      } else {
+        try {
+          const hierarchyResult = await supabase.rpc('get_team_hierarchy', { user_id: userId });
+          hierarchyData = hierarchyResult.data;
+        } catch (err) {
+          console.error('Error fetching team hierarchy:', err);
         }
       }
       
-      // Fetch team hierarchy
-      try {
-        const { data: hierarchyData, error: hierarchyError } = await supabase
-          .rpc('get_team_hierarchy', { user_id: userId });
-
-        if (!hierarchyError && hierarchyData?.[0]) {
-          setTeamHierarchy(hierarchyData[0]);
-        } else {
-          setTeamHierarchy(null);
-        }
-      } catch (err) {
-        console.error('Error fetching team hierarchy:', err);
+      if (companyData) {
+        setCompany(companyData);
+      }
+      
+      if (hierarchyData?.[0]) {
+        setTeamHierarchy(hierarchyData[0]);
+      } else {
         setTeamHierarchy(null);
       }
       
@@ -289,7 +297,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (userRole === 'super_admin') return '/super-admin';
     if (userRole === 'diretor' || userRole === 'admin') return '/';
 
-    // Check if company is blocked
     if (company?.status === 'bloqueado') return '/';
     
     const screens = profile?.allowed_screens || [];
