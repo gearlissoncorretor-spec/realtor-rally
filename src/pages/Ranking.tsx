@@ -1074,13 +1074,13 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
               </div>
             )}
             <div className="text-left">
-              <h1 className="text-2xl lg:text-3xl font-black tracking-tight bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
+              <h1 className="text-2xl lg:text-3xl font-black tracking-tight bg-gradient-to-r from-cyan-200 via-blue-100 to-purple-200 bg-clip-text text-transparent">
                 RANKING DE VENDAS
               </h1>
-              <p className="text-xs text-blue-300/50 font-medium tracking-widest uppercase">{orgName}</p>
+              <p className="text-xs text-cyan-300/60 font-medium tracking-widest uppercase">{orgName}</p>
             </div>
           </div>
-          <div className="h-[1px] max-w-2xl mx-auto bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+          <div className="h-[2px] max-w-2xl mx-auto bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
         </div>
 
         {/* Podium */}
