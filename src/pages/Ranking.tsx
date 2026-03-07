@@ -904,7 +904,7 @@ const SaleCelebrationOverlay = ({
 // ===== TV MODE =====
 const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: BrokerRanking[]; onClose: () => void; sales: any[] }) => {
   const { settings } = useOrganizationSettings();
-  const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
+  const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
