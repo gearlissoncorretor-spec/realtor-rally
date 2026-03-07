@@ -777,18 +777,114 @@ const useRankingSounds = () => {
   return { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled };
 };
 
+// ===== SALE CELEBRATION OVERLAY =====
+const SaleCelebrationOverlay = ({
+  sale,
+  broker,
+  onDismiss,
+}: {
+  sale: { clientName: string; value: number };
+  broker: BrokerRanking | null;
+  onDismiss: () => void;
+}) => {
+  const initials = broker?.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 8000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center" onClick={onDismiss}>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" />
+
+      {/* Celebration content */}
+      <div className="relative z-10 text-center animate-scale-in max-w-lg mx-auto px-6">
+        {/* Glow ring */}
+        <div className="absolute inset-0 -m-20 rounded-full bg-yellow-400/10 blur-[80px] animate-pulse" />
+
+        {/* Trophy icon */}
+        <div className="mb-4 relative inline-block">
+          <div className="absolute -inset-4 rounded-full bg-yellow-400/20 blur-xl animate-pulse" />
+          <div className="relative w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center shadow-2xl shadow-yellow-500/40">
+            <Trophy className="w-10 h-10 text-white" />
+          </div>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-3xl lg:text-4xl font-black text-white mb-2 tracking-tight">
+          🎉 NOVA VENDA! 🎉
+        </h2>
+
+        {/* Broker info */}
+        {broker && (
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Avatar className="w-14 h-14 ring-4 ring-yellow-400/50 shadow-xl">
+              <AvatarImage src={broker.avatar} />
+              <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-lg font-black">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-left">
+              <p className="text-xl font-bold text-white">{broker.name}</p>
+              <p className="text-sm text-yellow-300/70">#{broker.position} no ranking</p>
+            </div>
+          </div>
+        )}
+
+        {/* Sale details */}
+        <div className="bg-white/[0.08] backdrop-blur-sm rounded-2xl border border-white/[0.1] p-5 mb-4">
+          <p className="text-sm text-blue-200/60 mb-1">Cliente</p>
+          <p className="text-lg font-semibold text-white mb-3">{sale.clientName}</p>
+          <p className="text-sm text-blue-200/60 mb-1">Valor da Venda</p>
+          <p className="text-3xl font-black text-yellow-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.4)]">
+            {formatCurrency(sale.value)}
+          </p>
+        </div>
+
+        {/* Motivational text */}
+        <p className="text-lg text-white/60 font-medium">
+          Parabéns! Você é imparável! 🔥
+        </p>
+      </div>
+    </div>
+  );
+};
+
 // ===== TV MODE =====
-const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRanking[]; onClose: () => void }) => {
+const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: BrokerRanking[]; onClose: () => void; sales: any[] }) => {
   const { settings } = useOrganizationSettings();
-  const { playVictory, playReveal, soundEnabled, setSoundEnabled } = useRankingSounds();
+  const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
+  const [viewMode, setViewMode] = useState<'full' | 'podium'>('full');
+  const [celebratingSale, setCelebratingSale] = useState<{ clientName: string; value: number; brokerId: string | null } | null>(null);
+  const lastSaleCountRef = useRef(sales.length);
 
   const top3 = brokerRankings.slice(0, 3);
-  const rest = brokerRankings.slice(3, 10);
+  const rest = viewMode === 'full' ? brokerRankings.slice(3, 10) : [];
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const orgName = settings?.organization_name || 'Ranking';
+
+  // Detect new sales in real-time
+  useEffect(() => {
+    if (sales.length > lastSaleCountRef.current) {
+      const newSale = sales[sales.length - 1];
+      if (newSale) {
+        setCelebratingSale({
+          clientName: newSale.client_name || 'Cliente',
+          value: Number(newSale.property_value || 0),
+          brokerId: newSale.broker_id || null,
+        });
+        setShowConfetti(true);
+        playCelebration();
+        setTimeout(() => setShowConfetti(false), 6000);
+      }
+    }
+    lastSaleCountRef.current = sales.length;
+  }, [sales.length, playCelebration]);
 
   useEffect(() => {
     const timer = setTimeout(() => setPhase('reveal'), 1500);
@@ -827,9 +923,24 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
     return (rest.length + (3 - position)) < revealedCount;
   };
 
+  const celebratingBroker = celebratingSale
+    ? brokerRankings.find(b => b.id === celebratingSale.brokerId) || null
+    : null;
+
   return (
     <div className="fixed inset-0 z-[9999] bg-[#050a18] text-white overflow-hidden">
       <ConfettiCanvas active={showConfetti} />
+
+      {/* Sale celebration overlay */}
+      {celebratingSale && (
+        <SaleCelebrationOverlay
+          sale={celebratingSale}
+          broker={celebratingBroker}
+          onDismiss={() => setCelebratingSale(null)}
+        />
+      )}
+
+      {/* Animated BG */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/8 blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/8 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
@@ -846,7 +957,27 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
         ))}
       </div>
 
+      {/* Controls */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+        {/* View mode toggle */}
+        <div className="flex items-center bg-white/[0.06] rounded-lg p-0.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode('full')}
+            className={cn("text-xs h-7 px-3 rounded-md", viewMode === 'full' ? "bg-white/10 text-white" : "text-white/40 hover:text-white")}
+          >
+            Completo
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode('podium')}
+            className={cn("text-xs h-7 px-3 rounded-md", viewMode === 'podium' ? "bg-white/10 text-white" : "text-white/40 hover:text-white")}
+          >
+            Pódio
+          </Button>
+        </div>
         <Button variant="ghost" size="icon" onClick={() => setSoundEnabled(!soundEnabled)} className="text-white/60 hover:text-white hover:bg-white/10">
           {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
         </Button>
@@ -855,7 +986,9 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
         </Button>
       </div>
 
+      {/* Content */}
       <div className="relative z-10 h-full flex flex-col p-6 lg:p-10">
+        {/* Header */}
         <div className={cn(
           "text-center mb-6 transition-all duration-1000",
           phase === 'intro' ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
@@ -878,13 +1011,18 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
           <div className="h-[1px] max-w-2xl mx-auto bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
         </div>
 
-        <div className="flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full">
-          <div className="flex items-end justify-center gap-4 lg:gap-8 mb-8">
+        {/* Podium */}
+        <div className={cn("flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full", viewMode === 'podium' && "items-center")}>
+          <div className={cn("flex items-end justify-center mb-8", viewMode === 'podium' ? "gap-6 lg:gap-12" : "gap-4 lg:gap-8")}>
             {podiumOrder.map((broker, index) => {
               const isFirst = broker.position === 1;
               const revealed = isRevealed(broker.position);
-              const podiumHeights = ['h-36 lg:h-44', 'h-48 lg:h-56', 'h-28 lg:h-36'];
-              const avatarSizes = ['w-20 h-20 lg:w-24 lg:h-24', 'w-24 h-24 lg:w-32 lg:h-32', 'w-16 h-16 lg:w-20 lg:h-20'];
+              const podiumHeights = viewMode === 'podium'
+                ? ['h-44 lg:h-56', 'h-56 lg:h-72', 'h-36 lg:h-44']
+                : ['h-36 lg:h-44', 'h-48 lg:h-56', 'h-28 lg:h-36'];
+              const avatarSizes = viewMode === 'podium'
+                ? ['w-24 h-24 lg:w-32 lg:h-32', 'w-32 h-32 lg:w-40 lg:h-40', 'w-20 h-20 lg:w-28 lg:h-28']
+                : ['w-20 h-20 lg:w-24 lg:h-24', 'w-24 h-24 lg:w-32 lg:h-32', 'w-16 h-16 lg:w-20 lg:h-20'];
               return (
                 <div key={broker.id} className={cn(
                   "flex flex-col items-center transition-all duration-700",
@@ -892,7 +1030,7 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
                 )} style={{ transitionDelay: revealed ? `${index * 200}ms` : '0ms' }}>
                   {isFirst && revealed && (
                     <div className="mb-2 animate-bounce" style={{ animationDuration: '2s' }}>
-                      <Crown className="w-10 h-10 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]" />
+                      <Crown className={cn("text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]", viewMode === 'podium' ? "w-12 h-12" : "w-10 h-10")} />
                     </div>
                   )}
                   <div className="relative mb-3">
@@ -901,7 +1039,8 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
                       broker.position === 2 ? "ring-slate-300/50 shadow-slate-400/20" : "ring-orange-400/50 shadow-orange-500/20"
                     )}>
                       <AvatarImage src={broker.avatar} alt={broker.name} />
-                      <AvatarFallback className={cn("font-black text-xl",
+                      <AvatarFallback className={cn("font-black",
+                        viewMode === 'podium' ? "text-2xl" : "text-xl",
                         isFirst ? "bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100" :
                         broker.position === 2 ? "bg-gradient-to-br from-slate-500 to-slate-700 text-slate-100" :
                         "bg-gradient-to-br from-orange-600 to-orange-800 text-orange-100"
@@ -909,14 +1048,22 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
                     </Avatar>
                     {isFirst && revealed && <div className="absolute inset-0 rounded-full bg-yellow-400/20 blur-xl animate-pulse" />}
                   </div>
-                  <p className={cn("font-bold text-center mb-0.5", isFirst ? "text-lg text-white" : "text-sm text-white/80")}>
+                  <p className={cn("font-bold text-center mb-0.5",
+                    isFirst
+                      ? viewMode === 'podium' ? "text-xl text-white" : "text-lg text-white"
+                      : viewMode === 'podium' ? "text-base text-white/80" : "text-sm text-white/80"
+                  )}>
                     {broker.name.split(' ').slice(0, 2).join(' ')}
                   </p>
                   <p className="text-xs text-blue-300/70 mb-1">{broker.sales} vendas</p>
                   <p className={cn("font-black mb-3",
-                    isFirst ? "text-xl text-yellow-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.4)]" : "text-base text-blue-200"
+                    isFirst
+                      ? viewMode === 'podium' ? "text-2xl text-yellow-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.4)]" : "text-xl text-yellow-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+                      : viewMode === 'podium' ? "text-lg text-blue-200" : "text-base text-blue-200"
                   )}>{formatCurrency(broker.revenue)}</p>
-                  <div className={cn("w-28 lg:w-36 rounded-t-2xl flex items-center justify-center relative overflow-hidden", podiumHeights[index],
+                  <div className={cn("rounded-t-2xl flex items-center justify-center relative overflow-hidden",
+                    viewMode === 'podium' ? "w-36 lg:w-44" : "w-28 lg:w-36",
+                    podiumHeights[index],
                     isFirst ? "bg-gradient-to-t from-yellow-500/20 via-yellow-500/10 to-transparent border-2 border-yellow-400/30" :
                     broker.position === 2 ? "bg-gradient-to-t from-slate-400/15 to-transparent border-2 border-slate-400/25" :
                     "bg-gradient-to-t from-orange-500/15 to-transparent border-2 border-orange-400/25"
@@ -930,7 +1077,28 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
               );
             })}
           </div>
-          {rest.length > 0 && (
+
+          {/* Podium-only mode: show all positions as compact list */}
+          {viewMode === 'podium' && brokerRankings.length > 3 && phase === 'complete' && (
+            <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto mt-4">
+              {brokerRankings.slice(3).map(broker => (
+                <div key={broker.id} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+                  <span className="text-sm font-black text-white/30">#{broker.position}</span>
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={broker.avatar} />
+                    <AvatarFallback className="text-[10px] bg-slate-700 text-slate-200 font-bold">
+                      {broker.name.split(' ').map((n: string) => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-white/70 font-medium">{broker.name.split(' ')[0]}</span>
+                  <span className="text-xs text-blue-300/50 font-bold">{formatCurrencyCompact(broker.revenue)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Full mode: detailed list */}
+          {viewMode === 'full' && rest.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 max-w-5xl mx-auto w-full">
               {rest.map((broker, idx) => {
                 const revealed = isRevealed(broker.position);
@@ -958,6 +1126,7 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
               })}
             </div>
           )}
+
           {brokerRankings.length === 0 && (
             <div className="text-center py-20">
               <Star className="w-16 h-16 text-white/10 mx-auto mb-4" />
