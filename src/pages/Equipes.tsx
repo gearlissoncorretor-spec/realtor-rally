@@ -130,7 +130,7 @@ const Equipes = () => {
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="flex justify-between items-center mb-8">
-          <div>
+          <div className="w-full text-center sm:text-left">
             <h1 className="text-3xl font-bold text-foreground mb-2 animate-fade-in">
               Equipes
             </h1>

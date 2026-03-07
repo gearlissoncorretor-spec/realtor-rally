@@ -161,9 +161,9 @@ const GestaoUsuarios = () => {
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="w-full text-center sm:text-left">
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
                 <Users className="h-7 w-7" /> Gestão de Usuários
               </h1>
               <p className="text-sm text-muted-foreground mt-1">

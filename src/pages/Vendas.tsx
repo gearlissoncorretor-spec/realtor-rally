@@ -132,8 +132,8 @@ const Vendas = () => {
         <div className="space-y-6">
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
+           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="w-full text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">VENDAS</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Visão geral das vendas e resultados da equipe

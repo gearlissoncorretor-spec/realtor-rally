@@ -47,7 +47,7 @@ const TarefasKanban = () => {
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 flex-1 overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
+          <div className="w-full text-center sm:text-left">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
               Tarefas dos Corretores
             </h1>

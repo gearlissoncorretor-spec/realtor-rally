@@ -291,7 +291,7 @@ const MetaGestao = () => {
               <div className="p-2.5 bg-primary/10 rounded-xl">
                 <Target className="w-7 h-7 text-primary" />
               </div>
-              <div>
+              <div className="text-center sm:text-left">
                 <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Meta Gestão</h1>
                 <p className="text-sm text-muted-foreground">{displayName}</p>
               </div>

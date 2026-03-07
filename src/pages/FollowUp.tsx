@@ -248,8 +248,8 @@ const FollowUpPage = () => {
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
+           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="w-full text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Follow Up
               </h1>

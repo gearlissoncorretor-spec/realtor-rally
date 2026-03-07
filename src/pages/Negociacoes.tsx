@@ -372,8 +372,8 @@ const Negociacoes = () => {
           </Card>
 
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
+           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="w-full text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Negociações
               </h1>
