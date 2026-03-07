@@ -91,10 +91,38 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
     }
   };
 
+  const handleSendByEmail = async () => {
+    if (!generatedPassword || !createdEmail) return;
+    setSendingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-credentials', {
+        body: {
+          email: createdEmail,
+          password: generatedPassword,
+          full_name: createdName,
+          role: createdRole,
+        }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setEmailSent(true);
+      toast({ title: "Credenciais enviadas!", description: `Email enviado para ${createdEmail}` });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const handleClose = () => {
     setOpen(false);
     setGeneratedPassword(null);
     setCopied(false);
+    setEmailSent(false);
+    setSendingEmail(false);
+    setCreatedEmail('');
+    setCreatedName('');
+    setCreatedRole('');
     setForm({ full_name: '', nickname: '', email: '', phone: '', birth_date: '', role: 'corretor', team_id: forcedTeamId || '' });
   };
 
