@@ -201,11 +201,11 @@ const SpotlightBrokerSidebar = ({
             {/* Stats */}
             <div className="grid grid-cols-2 gap-2 w-full mb-3">
               <div className="bg-background/50 rounded-lg p-2">
-                <p className="text-lg font-black text-foreground">{broker.sales}</p>
+                <p className="text-lg font-black text-foreground">{broker.sales ?? 0}</p>
                 <p className="text-[10px] text-muted-foreground">Vendas</p>
               </div>
               <div className="bg-background/50 rounded-lg p-2">
-                <p className="text-sm font-black text-foreground">{formatCurrencyCompact(broker.revenue)}</p>
+                <p className="text-sm font-black text-foreground">{formatCurrencyCompact(broker.revenue ?? 0)}</p>
                 <p className="text-[10px] text-muted-foreground">VGV</p>
               </div>
             </div>
