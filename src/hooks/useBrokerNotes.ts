@@ -6,6 +6,8 @@ export interface BrokerNote {
   id: string;
   broker_id: string;
   note: string;
+  image_url: string | null;
+  audio_url: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -24,7 +26,7 @@ export const useBrokerNotes = (brokerId: string) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotes(data || []);
+      setNotes((data as BrokerNote[]) || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
       toast({
@@ -37,7 +39,7 @@ export const useBrokerNotes = (brokerId: string) => {
     }
   };
 
-  const createNote = async (note: string) => {
+  const createNote = async (note: string, imageUrl?: string | null, audioUrl?: string | null) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -46,14 +48,16 @@ export const useBrokerNotes = (brokerId: string) => {
         .insert({
           broker_id: brokerId,
           note,
+          image_url: imageUrl || null,
+          audio_url: audioUrl || null,
           created_by: user?.id,
-        })
+        } as any)
         .select()
         .single();
 
       if (error) throw error;
       
-      setNotes(prev => [data, ...prev]);
+      setNotes(prev => [data as BrokerNote, ...prev]);
       toast({
         title: 'Anotação criada',
         description: 'Anotação adicionada com sucesso.',
@@ -70,18 +74,22 @@ export const useBrokerNotes = (brokerId: string) => {
     }
   };
 
-  const updateNote = async (noteId: string, note: string) => {
+  const updateNote = async (noteId: string, note: string, imageUrl?: string | null, audioUrl?: string | null) => {
     try {
+      const updateData: any = { note };
+      if (imageUrl !== undefined) updateData.image_url = imageUrl;
+      if (audioUrl !== undefined) updateData.audio_url = audioUrl;
+
       const { data, error } = await supabase
         .from('broker_notes')
-        .update({ note })
+        .update(updateData)
         .eq('id', noteId)
         .select()
         .single();
 
       if (error) throw error;
       
-      setNotes(prev => prev.map(n => n.id === noteId ? data : n));
+      setNotes(prev => prev.map(n => n.id === noteId ? (data as BrokerNote) : n));
       toast({
         title: 'Anotação atualizada',
         description: 'Anotação atualizada com sucesso.',
