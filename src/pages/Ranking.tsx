@@ -27,6 +27,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useSpotlightBroker } from "@/hooks/useSpotlightBroker";
+import { useTVModeSound } from "@/components/TVModeSoundSettings";
 
 // ===== TYPES =====
 interface BrokerRanking {
