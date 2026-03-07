@@ -991,25 +991,39 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
 
       {/* Animated BG - Enhanced */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
-        <div className="absolute top-[30%] right-[20%] w-[400px] h-[400px] rounded-full bg-purple-600/6 blur-[100px] animate-pulse" style={{ animationDelay: '3s' }} />
-        <div className="absolute bottom-[20%] left-[15%] w-[350px] h-[350px] rounded-full bg-emerald-500/5 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        {/* Vibrant color orbs */}
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/15 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/15 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-[30%] right-[20%] w-[500px] h-[500px] rounded-full bg-purple-600/12 blur-[120px] animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-[20%] left-[15%] w-[450px] h-[450px] rounded-full bg-emerald-500/12 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[10%] left-[40%] w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '4s' }} />
+        <div className="absolute bottom-[10%] right-[30%] w-[350px] h-[350px] rounded-full bg-cyan-400/10 blur-[100px] animate-pulse" style={{ animationDelay: '2.5s' }} />
+        <div className="absolute top-[50%] left-[5%] w-[300px] h-[300px] rounded-full bg-rose-500/8 blur-[100px] animate-pulse" style={{ animationDelay: '3.5s' }} />
+        {/* Animated gradient sweep */}
+        <div className="absolute inset-0 opacity-[0.06]" style={{
+          background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(168,85,247,0.2) 25%, rgba(236,72,153,0.2) 50%, rgba(251,191,36,0.3) 75%, rgba(16,185,129,0.2) 100%)',
+          backgroundSize: '400% 400%',
+          animation: 'gradient-shift 8s ease-in-out infinite',
+        }} />
+        {/* Grid */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
         }} />
-        {Array.from({ length: 40 }).map((_, i) => (
+        {/* Colorful particles */}
+        {Array.from({ length: 50 }).map((_, i) => (
           <div key={i} className={cn(
             "absolute rounded-full",
-            i % 5 === 0 ? "w-1.5 h-1.5 bg-yellow-400/30" :
-            i % 5 === 1 ? "w-1 h-1 bg-blue-400/25" :
-            i % 5 === 2 ? "w-1 h-1 bg-purple-400/20" :
-            i % 5 === 3 ? "w-0.5 h-0.5 bg-emerald-400/25" :
-            "w-1 h-1 bg-pink-400/15"
+            i % 7 === 0 ? "w-1.5 h-1.5 bg-yellow-400/40" :
+            i % 7 === 1 ? "w-1 h-1 bg-blue-400/35" :
+            i % 7 === 2 ? "w-1 h-1 bg-purple-400/30" :
+            i % 7 === 3 ? "w-0.5 h-0.5 bg-emerald-400/35" :
+            i % 7 === 4 ? "w-1 h-1 bg-pink-400/30" :
+            i % 7 === 5 ? "w-1.5 h-1.5 bg-cyan-400/25" :
+            "w-1 h-1 bg-rose-400/25"
           )} style={{
             left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
-            animation: `float-particle ${6 + Math.random() * 8}s ease-in-out infinite`,
+            animation: `float-particle ${5 + Math.random() * 8}s ease-in-out infinite`,
             animationDelay: `${Math.random() * 5}s`,
           }} />
         ))}
@@ -1060,13 +1074,13 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
               </div>
             )}
             <div className="text-left">
-              <h1 className="text-2xl lg:text-3xl font-black tracking-tight bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
+              <h1 className="text-2xl lg:text-3xl font-black tracking-tight bg-gradient-to-r from-cyan-200 via-blue-100 to-purple-200 bg-clip-text text-transparent">
                 RANKING DE VENDAS
               </h1>
-              <p className="text-xs text-blue-300/50 font-medium tracking-widest uppercase">{orgName}</p>
+              <p className="text-xs text-cyan-300/60 font-medium tracking-widest uppercase">{orgName}</p>
             </div>
           </div>
-          <div className="h-[1px] max-w-2xl mx-auto bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+          <div className="h-[2px] max-w-2xl mx-auto bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
         </div>
 
         {/* Podium */}
@@ -1265,11 +1279,10 @@ const Ranking = () => {
       if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear();
       if (quickPeriod === 'all') return true;
 
+      // When both filters are "all", show everything
+      if (selectedMonth === 0 && selectedYear === 0) return true;
       if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
       if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
-      if (selectedMonth === 0 && selectedYear === 0) {
-        return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
-      }
       return true;
     });
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
