@@ -16,6 +16,7 @@ import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
 import { Home, TrendingUp, DollarSign, Users, Target, BarChart3 } from "lucide-react";
 import heroImage from "@/assets/dashboard-hero.jpg";
+import { useContextualIdentity } from "@/hooks/useContextualIdentity";
 
 /**
  * Hook para centralizar cálculos de métricas do dashboard
