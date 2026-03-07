@@ -21,11 +21,13 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
   const staleNegotiations = negotiations.filter(neg => {
     const lastUpdate = new Date(neg.updated_at);
     const daysSinceUpdate = differenceInDays(new Date(), lastUpdate);
-    return daysSinceUpdate > 7;
+    return daysSinceUpdate > 3;
   });
 
-  const nearClosing = negotiations.filter(neg => {
-    return neg.status === 'proposta_enviada' || neg.status === 'em_negociacao';
+  const newNegotiations = negotiations.filter(neg => {
+    const createdAt = new Date(neg.created_at);
+    const daysSinceCreation = differenceInDays(new Date(), createdAt);
+    return daysSinceCreation <= 3;
   });
 
   if (totalOpen === 0) {
