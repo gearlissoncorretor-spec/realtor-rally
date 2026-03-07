@@ -1,11 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bell, AlertTriangle, Clock, CheckCircle2, X } from 'lucide-react';
 import { useNegotiations } from '@/hooks/useNegotiations';
 import { useNavigate } from 'react-router-dom';
-import { differenceInDays } from 'date-fns';
+import { differenceInHours, differenceInDays } from 'date-fns';
 
 interface NegotiationAlertProps {
   onClose: () => void;
@@ -15,13 +14,29 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
   const { negotiations } = useNegotiations();
   const navigate = useNavigate();
 
-  // Calcular métricas
   const totalOpen = negotiations.length;
   
   const staleNegotiations = negotiations.filter(neg => {
+    const now = new Date();
     const lastUpdate = new Date(neg.updated_at);
-    const daysSinceUpdate = differenceInDays(new Date(), lastUpdate);
-    return daysSinceUpdate > 3;
+    const createdAt = new Date(neg.created_at);
+    const startDate = new Date(neg.start_date);
+    
+    // Check 1: updated_at is more than 72 hours ago
+    const hoursSinceUpdate = differenceInHours(now, lastUpdate);
+    if (hoursSinceUpdate >= 72) return true;
+    
+    // Check 2: negotiation started/created 3+ days ago but never truly updated
+    // (updated_at is within 5 minutes of created_at = auto-trigger only, no real update)
+    const daysSinceCreation = differenceInDays(now, createdAt);
+    const daysSinceStart = differenceInDays(now, startDate);
+    
+    if (daysSinceStart >= 3 || daysSinceCreation >= 3) {
+      const updateDiffMs = Math.abs(lastUpdate.getTime() - createdAt.getTime());
+      if (updateDiffMs < 5 * 60 * 1000) return true;
+    }
+    
+    return false;
   });
 
   const newNegotiations = negotiations.filter(neg => {
@@ -49,7 +64,6 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Total abertas */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border">
             <div className="p-2 rounded-full bg-primary/10">
               <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -60,18 +74,16 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Sem atualização */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border">
-            <div className="p-2 rounded-full bg-destructive/10">
-              <Clock className="w-4 h-4 text-destructive" />
+            <div className={`p-2 rounded-full ${staleNegotiations.length > 0 ? 'bg-destructive/10' : 'bg-muted/10'}`}>
+              <Clock className={`w-4 h-4 ${staleNegotiations.length > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
             </div>
             <div>
-              <p className="text-2xl font-bold">{staleNegotiations.length}</p>
+              <p className={`text-2xl font-bold ${staleNegotiations.length > 0 ? 'text-destructive' : ''}`}>{staleNegotiations.length}</p>
               <p className="text-xs text-muted-foreground">Sem atualização há 3+ dias</p>
             </div>
           </div>
 
-          {/* Novas negociações */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border">
             <div className="p-2 rounded-full bg-primary/10">
               <AlertTriangle className="w-4 h-4 text-primary" />
