@@ -115,29 +115,35 @@ export type Database = {
       }
       broker_notes: {
         Row: {
+          audio_url: string | null
           broker_id: string
           company_id: string | null
           created_at: string | null
           created_by: string | null
           id: string
+          image_url: string | null
           note: string
           updated_at: string | null
         }
         Insert: {
+          audio_url?: string | null
           broker_id: string
           company_id?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
+          image_url?: string | null
           note: string
           updated_at?: string | null
         }
         Update: {
+          audio_url?: string | null
           broker_id?: string
           company_id?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
+          image_url?: string | null
           note?: string
           updated_at?: string | null
         }
