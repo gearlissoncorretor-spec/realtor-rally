@@ -1296,25 +1296,30 @@ const Ranking = () => {
       filteredBrokers = brokers.filter(b => b.team_id === selectedTeam);
     }
 
-    return filteredBrokers.map(broker => {
-      const brokerSales = filteredSales.filter(sale => sale.broker_id === broker.id);
-      const totalRevenue = brokerSales.reduce((sum, sale) => sum + Number(sale.property_value), 0);
-      return {
-        id: broker.id,
-        name: broker.name,
-        avatar: broker.avatar_url || '',
-        sales: brokerSales.length,
-        revenue: totalRevenue,
-        position: 0,
-        growth: calculateGrowth(broker.id, sales),
-        email: broker.email,
-        userId: broker.user_id,
-        teamId: broker.team_id,
-      };
-    })
-    .filter(b => b.revenue > 0)
-    .sort((a, b) => b.revenue - a.revenue)
-    .map((b, i) => ({ ...b, position: i + 1 }));
+    return filteredBrokers
+      .filter(broker => broker.status === 'ativo')
+      .map(broker => {
+        const brokerSales = filteredSales.filter(sale => 
+          sale.broker_id === broker.id && 
+          sale.status !== 'cancelada' && 
+          sale.status !== 'distrato'
+        );
+        const totalRevenue = brokerSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+        return {
+          id: broker.id,
+          name: broker.name,
+          avatar: broker.avatar_url || '',
+          sales: brokerSales.length,
+          revenue: totalRevenue,
+          position: 0,
+          growth: calculateGrowth(broker.id, sales),
+          email: broker.email,
+          userId: broker.user_id,
+          teamId: broker.team_id,
+        };
+      })
+      .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
+      .map((b, i) => ({ ...b, position: i + 1 }));
   }, [brokers, filteredSales, sales, selectedTeam]);
 
   // Team rankings (for directors)
@@ -1325,7 +1330,7 @@ const Ranking = () => {
       const teamBrokers = brokers.filter(b => b.team_id === team.id);
       const teamBrokerIds = teamBrokers.map(b => b.id);
       const teamSales = filteredSales.filter(s => teamBrokerIds.includes(s.broker_id || ''));
-      const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.property_value), 0);
+      const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
 
       return {
         id: team.id,
