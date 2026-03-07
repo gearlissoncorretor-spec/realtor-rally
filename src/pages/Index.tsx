@@ -305,10 +305,10 @@ const Index = () => {
           
           <div className="relative z-10 px-8 sm:px-10">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
-              Axis Dashboard
+              {displayName}
             </h1>
             <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide mt-0.5">
-              A evolução da gestão imobiliária
+              {subtitle || 'A evolução da gestão imobiliária'}
             </p>
           </div>
         </div>
