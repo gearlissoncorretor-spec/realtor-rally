@@ -155,7 +155,19 @@ const Configuracoes = () => {
               <NotificationCenter />
             </CollapsibleSection>
 
-            {/* Configurações Gerais */}
+            {/* Som do Modo TV */}
+            {(isAdmin() || isDiretor()) && (
+              <CollapsibleSection
+                title="Som do Modo TV"
+                icon={<Tv className="h-5 w-5 text-warning" />}
+                description="Som personalizado para a revelação do ranking"
+                isOpen={openSections.tvSound}
+                onToggle={() => toggleSection('tvSound')}
+              >
+                <TVModeSoundSettings />
+              </CollapsibleSection>
+            )}
+
             <CollapsibleSection
               title="Configurações Gerais"
               icon={<Settings className="h-5 w-5 text-primary" />}
