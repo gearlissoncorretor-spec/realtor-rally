@@ -1451,7 +1451,7 @@ const Ranking = () => {
 
             {/* Podium */}
             {brokerRankings.length >= 1 && (
-              <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative">
+              <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
                 <AnimatedPodium brokers={brokerRankings} currentUserId={user?.id} />
               </Card>
             )}
