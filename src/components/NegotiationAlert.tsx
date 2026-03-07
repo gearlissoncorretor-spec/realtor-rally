@@ -85,7 +85,7 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
 
         {staleNegotiations.length > 0 && (
           <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-            <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+            <div className="flex items-center gap-2 text-sm text-destructive">
               <AlertTriangle className="w-4 h-4" />
               <span className="font-medium">
                 {staleNegotiations.length} negociação(ões) precisam de atenção!
