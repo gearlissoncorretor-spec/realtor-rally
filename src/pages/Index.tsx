@@ -16,6 +16,7 @@ import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
 import { Home, TrendingUp, DollarSign, Users, Target, BarChart3 } from "lucide-react";
 import heroImage from "@/assets/dashboard-hero.jpg";
+import { useContextualIdentity } from "@/hooks/useContextualIdentity";
 
 /**
  * Hook para centralizar cálculos de métricas do dashboard
@@ -218,6 +219,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
 const Index = () => {
   const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
+  const { displayName, subtitle } = useContextualIdentity();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
   const [showNegotiationAlert, setShowNegotiationAlert] = useState(true);
@@ -303,10 +305,10 @@ const Index = () => {
           
           <div className="relative z-10 px-8 sm:px-10">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
-              Axis Dashboard
+              {displayName}
             </h1>
             <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide mt-0.5">
-              A evolução da gestão imobiliária
+              {subtitle || 'A evolução da gestão imobiliária'}
             </p>
           </div>
         </div>
