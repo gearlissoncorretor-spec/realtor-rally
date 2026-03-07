@@ -136,10 +136,10 @@ const SpotlightBrokerSidebar = ({
   onChangeBroker,
   isUpdating,
 }: {
-  broker: BrokerRanking | null;
+  broker: { id: string; name: string; avatar?: string; sales?: number; revenue?: number; position?: number } | null;
   allBrokers: BrokerRanking[];
   canManage: boolean;
-  availableBrokers: BrokerRanking[];
+  availableBrokers: { id: string; name: string }[];
   onChangeBroker: (brokerId: string | null) => void;
   isUpdating: boolean;
 }) => {
