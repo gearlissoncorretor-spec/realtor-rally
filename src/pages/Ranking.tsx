@@ -1338,6 +1338,7 @@ const Ranking = () => {
 
   const closeTVMode = () => {
     setIsTVMode(false);
+    stopCustomSound();
     document.exitFullscreen?.().catch(() => {});
   };
 
