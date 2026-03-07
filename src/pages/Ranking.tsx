@@ -989,20 +989,30 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
         />
       )}
 
-      {/* Animated BG */}
+      {/* Animated BG - Enhanced */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/8 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/8 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-[30%] right-[20%] w-[400px] h-[400px] rounded-full bg-purple-600/6 blur-[100px] animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-[20%] left-[15%] w-[350px] h-[350px] rounded-full bg-emerald-500/5 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
         }} />
-        {Array.from({ length: 30 }).map((_, i) => (
-          <div key={i} className="absolute w-1 h-1 rounded-full bg-white/20" style={{
+        {Array.from({ length: 40 }).map((_, i) => (
+          <div key={i} className={cn(
+            "absolute rounded-full",
+            i % 5 === 0 ? "w-1.5 h-1.5 bg-yellow-400/30" :
+            i % 5 === 1 ? "w-1 h-1 bg-blue-400/25" :
+            i % 5 === 2 ? "w-1 h-1 bg-purple-400/20" :
+            i % 5 === 3 ? "w-0.5 h-0.5 bg-emerald-400/25" :
+            "w-1 h-1 bg-pink-400/15"
+          )} style={{
             left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
             animation: `float-particle ${6 + Math.random() * 8}s ease-in-out infinite`,
             animationDelay: `${Math.random() * 5}s`,
           }} />
+        ))}
         ))}
       </div>
 
