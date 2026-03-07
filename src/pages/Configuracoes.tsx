@@ -49,6 +49,7 @@ const Configuracoes = () => {
     branding: false,
     preferences: false,
     notifications: false,
+    tvSound: false,
     teams: false,
     teamMembers: false,
     screenAccess: false,
