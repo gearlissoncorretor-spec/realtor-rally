@@ -62,23 +62,23 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
 
           {/* Sem atualização */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border">
-            <div className="p-2 rounded-full bg-yellow-500/10">
-              <Clock className="w-4 h-4 text-yellow-500" />
+            <div className="p-2 rounded-full bg-destructive/10">
+              <Clock className="w-4 h-4 text-destructive" />
             </div>
             <div>
               <p className="text-2xl font-bold">{staleNegotiations.length}</p>
-              <p className="text-xs text-muted-foreground">Sem atualização há 7+ dias</p>
+              <p className="text-xs text-muted-foreground">Sem atualização há 3+ dias</p>
             </div>
           </div>
 
-          {/* Próximas do fechamento */}
+          {/* Novas negociações */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border">
-            <div className="p-2 rounded-full bg-green-500/10">
-              <AlertTriangle className="w-4 h-4 text-green-500" />
+            <div className="p-2 rounded-full bg-primary/10">
+              <AlertTriangle className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{nearClosing.length}</p>
-              <p className="text-xs text-muted-foreground">Em negociação ativa</p>
+              <p className="text-2xl font-bold">{newNegotiations.length}</p>
+              <p className="text-xs text-muted-foreground">Novas (últimos 3 dias)</p>
             </div>
           </div>
         </div>
