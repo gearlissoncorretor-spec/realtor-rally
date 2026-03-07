@@ -1341,11 +1341,28 @@ const Ranking = () => {
     .map((t, i) => ({ ...t, position: i + 1 }));
   }, [teams, brokers, filteredSales, isDiretor, isAdmin]);
 
-  // Spotlight broker data
+  // Spotlight broker data - can be ANY broker, not just ranked ones
+  const allBrokersForSpotlight = useMemo(() => {
+    return brokers.map(b => ({ id: b.id, name: b.name }));
+  }, [brokers]);
+
   const spotlightBroker = useMemo(() => {
     if (!spotlightBrokerId) return null;
-    return brokerRankings.find(b => b.id === spotlightBrokerId) || null;
-  }, [spotlightBrokerId, brokerRankings]);
+    // First check ranked brokers for full data
+    const ranked = brokerRankings.find(b => b.id === spotlightBrokerId);
+    if (ranked) return ranked;
+    // Fallback: broker exists but has no sales/ranking
+    const broker = brokers.find(b => b.id === spotlightBrokerId);
+    if (!broker) return null;
+    return {
+      id: broker.id,
+      name: broker.name,
+      avatar: broker.avatar_url || '',
+      sales: 0,
+      revenue: 0,
+      position: 0,
+    };
+  }, [spotlightBrokerId, brokerRankings, brokers]);
 
   const openTVMode = () => {
     setIsTVMode(true);
