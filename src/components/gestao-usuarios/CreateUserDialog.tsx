@@ -71,6 +71,9 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
       if (data?.error) throw new Error(data.error);
 
       setGeneratedPassword(password);
+      setCreatedEmail(form.email);
+      setCreatedName(form.full_name);
+      setCreatedRole(form.role);
       toast({ title: "Usuário criado com sucesso!" });
       onCreated();
     } catch (err: any) {
