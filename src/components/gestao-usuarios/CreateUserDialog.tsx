@@ -151,7 +151,13 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
                 {copied ? <CheckCircle className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
-            <Button onClick={handleClose} className="w-full">Fechar</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleSendByEmail} disabled={sendingEmail || emailSent} className="flex-1 gap-1.5">
+                {sendingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : emailSent ? <CheckCircle className="h-4 w-4 text-success" /> : <Mail className="h-4 w-4" />}
+                {emailSent ? 'Enviado!' : 'Enviar por email'}
+              </Button>
+              <Button onClick={handleClose} className="flex-1">Fechar</Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
