@@ -136,18 +136,19 @@ const SpotlightBrokerSidebar = ({
   onChangeBroker,
   isUpdating,
 }: {
-  broker: BrokerRanking | null;
+  broker: { id: string; name: string; avatar?: string; sales?: number; revenue?: number; position?: number } | null;
   allBrokers: BrokerRanking[];
   canManage: boolean;
-  availableBrokers: BrokerRanking[];
+  availableBrokers: { id: string; name: string }[];
   onChangeBroker: (brokerId: string | null) => void;
   isUpdating: boolean;
 }) => {
   if (!broker && !canManage) return null;
 
-  const achievements = broker ? getAchievements(broker, allBrokers) : [];
-  const xp = broker ? calculateXP(broker) : 0;
-  const level = broker ? getLevel(xp) : null;
+  const brokerRankingData = broker ? allBrokers.find(b => b.id === broker.id) : null;
+  const achievements = brokerRankingData ? getAchievements(brokerRankingData, allBrokers) : [];
+  const xp = brokerRankingData ? calculateXP(brokerRankingData) : 0;
+  const level = brokerRankingData ? getLevel(xp) : null;
   const initials = broker?.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '';
 
   return (
@@ -200,11 +201,11 @@ const SpotlightBrokerSidebar = ({
             {/* Stats */}
             <div className="grid grid-cols-2 gap-2 w-full mb-3">
               <div className="bg-background/50 rounded-lg p-2">
-                <p className="text-lg font-black text-foreground">{broker.sales}</p>
+                <p className="text-lg font-black text-foreground">{broker.sales ?? 0}</p>
                 <p className="text-[10px] text-muted-foreground">Vendas</p>
               </div>
               <div className="bg-background/50 rounded-lg p-2">
-                <p className="text-sm font-black text-foreground">{formatCurrencyCompact(broker.revenue)}</p>
+                <p className="text-sm font-black text-foreground">{formatCurrencyCompact(broker.revenue ?? 0)}</p>
                 <p className="text-[10px] text-muted-foreground">VGV</p>
               </div>
             </div>
@@ -224,9 +225,11 @@ const SpotlightBrokerSidebar = ({
             )}
 
             {/* Position badge */}
-            <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">
-              #{broker.position} no Ranking
-            </Badge>
+            {broker.position && (
+              <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">
+                #{broker.position} no Ranking
+              </Badge>
+            )}
           </div>
         ) : (
           <div className="text-center py-6">
@@ -251,7 +254,7 @@ const SpotlightBrokerSidebar = ({
                 <SelectItem value="none">Nenhum</SelectItem>
                 {availableBrokers.map(b => (
                   <SelectItem key={b.id} value={b.id}>
-                    #{b.position} {b.name.split(' ').slice(0, 2).join(' ')}
+                    {b.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1338,11 +1341,28 @@ const Ranking = () => {
     .map((t, i) => ({ ...t, position: i + 1 }));
   }, [teams, brokers, filteredSales, isDiretor, isAdmin]);
 
-  // Spotlight broker data
+  // Spotlight broker data - can be ANY broker, not just ranked ones
+  const allBrokersForSpotlight = useMemo(() => {
+    return brokers.map(b => ({ id: b.id, name: b.name }));
+  }, [brokers]);
+
   const spotlightBroker = useMemo(() => {
     if (!spotlightBrokerId) return null;
-    return brokerRankings.find(b => b.id === spotlightBrokerId) || null;
-  }, [spotlightBrokerId, brokerRankings]);
+    // First check ranked brokers for full data
+    const ranked = brokerRankings.find(b => b.id === spotlightBrokerId);
+    if (ranked) return ranked;
+    // Fallback: broker exists but has no sales/ranking
+    const broker = brokers.find(b => b.id === spotlightBrokerId);
+    if (!broker) return null;
+    return {
+      id: broker.id,
+      name: broker.name,
+      avatar: broker.avatar_url || '',
+      sales: 0,
+      revenue: 0,
+      position: 0,
+    };
+  }, [spotlightBrokerId, brokerRankings, brokers]);
 
   const openTVMode = () => {
     setIsTVMode(true);
@@ -1503,7 +1523,7 @@ const Ranking = () => {
               broker={spotlightBroker}
               allBrokers={brokerRankings}
               canManage={canManageSpotlight}
-              availableBrokers={brokerRankings}
+              availableBrokers={allBrokersForSpotlight}
               onChangeBroker={setSpotlightBroker}
               isUpdating={spotlightUpdating}
             />
