@@ -3,12 +3,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
@@ -48,29 +48,49 @@ serve(async (req) => {
       .maybeSingle()
 
     const orgName = orgSettings?.organization_name || 'Gestão Imobiliária'
+    const roleName = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Usuário'
 
-    // Use Supabase's built-in invite to send a password reset link
-    // This sends a proper email through Supabase Auth
-    const { error: inviteError } = await supabaseClient.auth.admin.generateLink({
-      type: 'magiclink',
-      email,
-      options: {
-        redirectTo: `${req.headers.get('origin') || Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovable.app')}`,
+    // Use Supabase's inviteUserByEmail to send a proper invite email
+    // This sends an email through Supabase Auth with a magic link
+    const { error: inviteError } = await supabaseClient.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${req.headers.get('origin') || 'https://gestaoequipembsc.lovable.app'}/auth`,
+      data: {
+        full_name,
+        invited: true,
       }
     })
 
-    // Even if magic link fails, we return success since the user was created
-    // The admin can share credentials manually
+    // If invite fails (user already exists), try generating a recovery link instead
+    let fallbackNote = null
+    if (inviteError) {
+      console.log('Invite failed (user may already exist), trying recovery link:', inviteError.message)
+      
+      const { error: recoveryError } = await supabaseClient.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: {
+          redirectTo: `${req.headers.get('origin') || 'https://gestaoequipembsc.lovable.app'}/reset-password`,
+        }
+      })
+
+      if (recoveryError) {
+        console.error('Recovery link also failed:', recoveryError.message)
+        fallbackNote = `O email automático não pôde ser enviado (${inviteError.message}). Compartilhe as credenciais manualmente: Email: ${email} | Senha: ${password}`
+      } else {
+        fallbackNote = 'Um link de recuperação foi gerado. O usuário receberá um email para definir sua senha.'
+      }
+    }
     
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Credenciais de acesso enviadas para ${email}`,
-        note: inviteError ? 'O email pode não ter sido enviado automaticamente. Compartilhe as credenciais manualmente.' : undefined
+        message: `Credenciais de acesso processadas para ${email}`,
+        note: fallbackNote || `Email de convite enviado para ${email}. O usuário poderá acessar o sistema através do link recebido.`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
+    console.error('send-credentials error:', error.message)
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }

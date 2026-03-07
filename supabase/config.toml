@@ -1,1 +1,13 @@
 project_id = "kwsnnwiwflsvsqiuzfja"
+
+[functions.send-credentials]
+verify_jwt = false
+
+[functions.create-user]
+verify_jwt = false
+
+[functions.update-user-password]
+verify_jwt = false
+
+[functions.google-calendar]
+verify_jwt = false
