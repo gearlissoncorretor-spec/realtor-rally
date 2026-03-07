@@ -29,6 +29,7 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
+import { TVModeSoundSettings } from "@/components/TVModeSoundSettings";
 
 const Configuracoes = () => {
   const { toast } = useToast();
