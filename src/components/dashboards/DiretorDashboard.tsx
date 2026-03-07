@@ -222,46 +222,89 @@ const DiretorDashboard = () => {
         </Card>
       </div>
 
-      {/* Team Performance */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Performance por Equipe
-            </CardTitle>
-            <CardDescription>
-              Comparativo de vendas entre as equipes no mês atual
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {teamStats.map((team, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{team.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {team.sales} vendas • {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                        minimumFractionDigits: 0,
-                      }).format(team.vgv)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="w-20 bg-secondary rounded-full h-2">
-                      <div 
-                        className="bg-primary h-2 rounded-full" 
-                        style={{ width: `${Math.min((team.sales / 20) * 100, 100)}%` }}
+      {/* Team Ranking */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-warning" />
+            Ranking de Equipes
+          </CardTitle>
+          <CardDescription>
+            Classificação das equipes por faturamento
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {teamStats.map((team, index) => {
+              const maxVGV = Math.max(...teamStats.map(t => t.vgv), 1);
+              const barPct = (team.vgv / maxVGV) * 100;
+              return (
+                <div
+                  key={team.id}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-xl border transition-all",
+                    index === 0
+                      ? "bg-warning/5 border-warning/20"
+                      : "bg-card/50 border-border/50 hover:border-primary/20"
+                  )}
+                >
+                  {index === 0 ? (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg shadow-yellow-500/30 shrink-0">
+                      <Trophy className="w-4 h-4 text-white" />
+                    </div>
+                  ) : index === 1 ? (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center shrink-0">
+                      <Medal className="w-4 h-4 text-white" />
+                    </div>
+                  ) : index === 2 ? (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shrink-0">
+                      <Medal className="w-4 h-4 text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-muted-foreground">#{index + 1}</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-foreground truncate">{team.name}</p>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{team.sales} vendas</span>
+                      <span>{team.brokers} corretores</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-all duration-700",
+                          index === 0 ? "bg-warning" : "bg-primary/60"
+                        )}
+                        style={{ width: `${barPct}%` }}
                       />
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
+                  <div className="text-right shrink-0">
+                    <p className={cn(
+                      "font-bold text-sm",
+                      index === 0 ? "text-warning" : "text-foreground"
+                    )}>
+                      {formatCurrencyCompact(team.vgv)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+            {teamStats.length === 0 && (
+              <div className="text-center py-6 text-muted-foreground text-sm">
+                Nenhuma equipe com vendas no período
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Financial Summary */}
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
