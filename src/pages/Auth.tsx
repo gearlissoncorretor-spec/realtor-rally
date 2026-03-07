@@ -83,20 +83,22 @@ const Auth = () => {
       
       <div className="relative z-10 w-full max-w-md animate-float-up">
         {/* Logo and Title */}
-        <div className="text-center mb-10 space-y-5">
+        <div className="text-center mb-10 space-y-4">
           {effectiveLogo ? (
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift overflow-hidden">
-              <img src={effectiveLogo} alt={orgName} className="w-full h-full object-contain p-2" />
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-3xl glass-card mb-2 hover-lift overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.15)] transition-shadow duration-500 hover:shadow-[0_0_60px_rgba(59,130,246,0.3)]">
+              <img src={effectiveLogo} alt={orgName} className="w-full h-full object-contain p-3" />
             </div>
           ) : (
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass-card mb-4 hover-lift border border-primary/20">
-              <span className="text-3xl font-extrabold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-3xl glass-card mb-2 hover-lift border border-primary/20 shadow-[0_0_40px_rgba(59,130,246,0.15)]">
+              <span className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
                 {initial}
               </span>
             </div>
           )}
           <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight">{orgName}</h1>
-          <p className="text-primary text-base font-medium tracking-wide">{tagline}</p>
+          <p className="text-primary/90 text-lg sm:text-xl font-semibold tracking-wide leading-relaxed max-w-xs mx-auto">
+            {tagline}
+          </p>
         </div>
 
         {/* Card */}
@@ -219,7 +221,7 @@ const Auth = () => {
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2" 
+                className="w-full h-13 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-base rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_6px_30px_rgba(59,130,246,0.6)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] gap-2 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700" 
                 disabled={isSubmitting}
               >
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
