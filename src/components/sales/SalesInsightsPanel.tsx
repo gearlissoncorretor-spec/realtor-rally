@@ -5,7 +5,8 @@ import {
   Trophy, 
   Clock, 
   TrendingUp,
-  Sparkles
+  Sparkles,
+  Percent
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatting";
 import type { Sale } from "@/contexts/DataContext";
@@ -19,46 +20,35 @@ interface SalesInsightsPanelProps {
 }
 
 export const SalesInsightsPanel = ({ sales, brokers }: SalesInsightsPanelProps) => {
-  // Exclude distratos from calculations
   const activeSales = sales.filter(s => s.status !== 'distrato');
   const confirmedSales = sales.filter(s => s.status === 'confirmada');
   
-  // Calculate ticket médio
   const ticketMedio = activeSales.length > 0 
     ? activeSales.reduce((sum, sale) => sum + Number(sale.vgv || 0), 0) / activeSales.length 
     : 0;
   
-  // Calculate average commission
   const avgCommission = activeSales.length > 0 
     ? activeSales.reduce((sum, sale) => sum + Number(sale.vgc || 0), 0) / activeSales.length 
     : 0;
   
-  // Find top broker
   const brokerSales = brokers.map(broker => {
     const brokerConfirmedSales = confirmedSales.filter(s => s.broker_id === broker.id);
     const totalVGV = brokerConfirmedSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
-    return {
-      broker,
-      salesCount: brokerConfirmedSales.length,
-      totalVGV,
-    };
+    return { broker, salesCount: brokerConfirmedSales.length, totalVGV };
   }).sort((a, b) => b.totalVGV - a.totalVGV);
   
   const topBroker = brokerSales[0];
   
-  // Calculate average closing time (days between created_at and sale_date)
   const salesWithDates = confirmedSales.filter(s => s.sale_date && s.created_at);
   const avgClosingDays = salesWithDates.length > 0 
     ? salesWithDates.reduce((sum, sale) => {
         const created = new Date(sale.created_at!);
         const closed = new Date(sale.sale_date!);
-        const diffTime = Math.abs(closed.getTime() - created.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil(Math.abs(closed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
         return sum + diffDays;
       }, 0) / salesWithDates.length 
     : 0;
   
-  // Conversion rate
   const conversionRate = sales.length > 0 
     ? (confirmedSales.length / sales.length) * 100 
     : 0;
@@ -70,6 +60,7 @@ export const SalesInsightsPanel = ({ sales, brokers }: SalesInsightsPanelProps) 
       value: formatCurrency(ticketMedio),
       color: "text-primary",
       bgColor: "bg-primary/10",
+      borderColor: "border-primary/20",
     },
     {
       icon: Wallet,
@@ -77,6 +68,7 @@ export const SalesInsightsPanel = ({ sales, brokers }: SalesInsightsPanelProps) 
       value: formatCurrency(avgCommission),
       color: "text-success",
       bgColor: "bg-success/10",
+      borderColor: "border-success/20",
     },
     {
       icon: Trophy,
@@ -85,48 +77,53 @@ export const SalesInsightsPanel = ({ sales, brokers }: SalesInsightsPanelProps) 
       subValue: topBroker ? `${topBroker.salesCount} vendas` : undefined,
       color: "text-warning",
       bgColor: "bg-warning/10",
+      borderColor: "border-warning/20",
     },
     {
       icon: Clock,
-      label: "Tempo Médio",
+      label: "Tempo de Fechamento",
       value: avgClosingDays > 0 ? `${Math.round(avgClosingDays)} dias` : "—",
       color: "text-info",
       bgColor: "bg-info/10",
+      borderColor: "border-info/20",
     },
     {
-      icon: TrendingUp,
-      label: "Taxa de Conversão",
+      icon: Percent,
+      label: "Conversão",
       value: `${conversionRate.toFixed(1)}%`,
       color: conversionRate >= 50 ? "text-success" : "text-warning",
       bgColor: conversionRate >= 50 ? "bg-success/10" : "bg-warning/10",
+      borderColor: conversionRate >= 50 ? "border-success/20" : "border-warning/20",
     },
   ];
 
   return (
-    <Card className="p-4 bg-gradient-to-r from-muted/50 to-transparent border-border/50">
+    <Card className="p-5 border-border/50">
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground">Resumo Inteligente</h3>
+        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Sparkles className="w-3.5 h-3.5 text-primary" />
+        </div>
+        <h3 className="text-sm font-semibold text-foreground">Insights de Performance</h3>
       </div>
       
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {insights.map((insight, index) => (
           <div 
             key={index}
-            className="flex items-center gap-3 p-3 rounded-lg bg-background/50 hover:bg-background transition-colors"
+            className={`flex flex-col gap-2 p-3.5 rounded-xl border ${insight.borderColor} bg-background/50 hover:bg-background transition-all duration-200`}
           >
-            <div className={`w-9 h-9 rounded-lg ${insight.bgColor} flex items-center justify-center flex-shrink-0`}>
+            <div className={`w-8 h-8 rounded-lg ${insight.bgColor} flex items-center justify-center`}>
               <insight.icon className={`w-4 h-4 ${insight.color}`} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium truncate">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
                 {insight.label}
               </p>
-              <p className={`text-sm font-bold ${insight.color} truncate`}>
+              <p className={`text-sm font-bold ${insight.color} truncate mt-0.5`}>
                 {insight.value}
               </p>
               {insight.subValue && (
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[10px] text-muted-foreground mt-0.5">
                   {insight.subValue}
                 </p>
               )}
