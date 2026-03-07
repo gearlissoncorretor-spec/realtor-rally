@@ -293,7 +293,7 @@ const Index = () => {
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 min-h-screen">
         
         {/* Hero Section - Axis Branding (Compact & Clean) */}
-        <div className="relative h-[100px] sm:h-[120px] rounded-2xl mb-8 overflow-hidden bg-gradient-to-r from-primary/90 via-primary/80 to-primary/60 flex items-center">
+        <div className="relative h-[100px] sm:h-[120px] rounded-2xl mb-8 overflow-hidden bg-gradient-to-r from-primary/90 via-primary/80 to-primary/60 flex items-center justify-center">
           
           {/* Subtle grid pattern */}
           <div className="absolute inset-0 opacity-[0.04]">
@@ -303,7 +303,7 @@ const Index = () => {
             }} />
           </div>
           
-          <div className="relative z-10 px-8 sm:px-10">
+          <div className="relative z-10 px-8 sm:px-10 text-center">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
               {displayName}
             </h1>
