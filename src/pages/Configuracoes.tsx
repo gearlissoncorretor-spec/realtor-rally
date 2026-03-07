@@ -16,7 +16,8 @@ import {
   CheckCircle,
   Monitor,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Tv
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
