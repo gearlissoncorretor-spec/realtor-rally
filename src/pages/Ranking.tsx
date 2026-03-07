@@ -753,7 +753,28 @@ const useRankingSounds = () => {
     osc.stop(now + 0.35);
   }, [soundEnabled, getCtx]);
 
-  return { playVictory, playReveal, soundEnabled, setSoundEnabled };
+  const playCelebration = useCallback(() => {
+    if (!soundEnabled) return;
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    // Triumphant fanfare: C5 E5 G5 C6 with harmonics
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1046.50];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = i < 4 ? 'triangle' : 'sine';
+      osc.frequency.value = freq;
+      const t = now + i * 0.15;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.15, t + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.8);
+    });
+  }, [soundEnabled, getCtx]);
+
+  return { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled };
 };
 
 // ===== TV MODE =====
