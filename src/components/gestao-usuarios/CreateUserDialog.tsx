@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus, Loader2, Copy, CheckCircle } from 'lucide-react';
+import { UserPlus, Loader2, Copy, CheckCircle, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,8 +18,13 @@ interface CreateUserDialogProps {
 const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, allowedRoles, forcedTeamId }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [createdEmail, setCreatedEmail] = useState('');
+  const [createdName, setCreatedName] = useState('');
+  const [createdRole, setCreatedRole] = useState('');
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -66,6 +71,9 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
       if (data?.error) throw new Error(data.error);
 
       setGeneratedPassword(password);
+      setCreatedEmail(form.email);
+      setCreatedName(form.full_name);
+      setCreatedRole(form.role);
       toast({ title: "Usuário criado com sucesso!" });
       onCreated();
     } catch (err: any) {
@@ -83,10 +91,38 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
     }
   };
 
+  const handleSendByEmail = async () => {
+    if (!generatedPassword || !createdEmail) return;
+    setSendingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-credentials', {
+        body: {
+          email: createdEmail,
+          password: generatedPassword,
+          full_name: createdName,
+          role: createdRole,
+        }
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setEmailSent(true);
+      toast({ title: "Credenciais enviadas!", description: `Email enviado para ${createdEmail}` });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const handleClose = () => {
     setOpen(false);
     setGeneratedPassword(null);
     setCopied(false);
+    setEmailSent(false);
+    setSendingEmail(false);
+    setCreatedEmail('');
+    setCreatedName('');
+    setCreatedRole('');
     setForm({ full_name: '', nickname: '', email: '', phone: '', birth_date: '', role: 'corretor', team_id: forcedTeamId || '' });
   };
 
@@ -115,7 +151,13 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
                 {copied ? <CheckCircle className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
-            <Button onClick={handleClose} className="w-full">Fechar</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleSendByEmail} disabled={sendingEmail || emailSent} className="flex-1 gap-1.5">
+                {sendingEmail ? <Loader2 className="h-4 w-4 animate-spin" /> : emailSent ? <CheckCircle className="h-4 w-4 text-success" /> : <Mail className="h-4 w-4" />}
+                {emailSent ? 'Enviado!' : 'Enviar por email'}
+              </Button>
+              <Button onClick={handleClose} className="flex-1">Fechar</Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

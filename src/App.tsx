@@ -32,6 +32,7 @@ const Agenda = lazy(() => import("@/pages/Agenda"));
 const Instalar = lazy(() => import("@/pages/Instalar"));
 const GestaoUsuarios = lazy(() => import("@/pages/GestaoUsuarios"));
 const SuperAdmin = lazy(() => import("@/pages/SuperAdmin"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -65,6 +66,7 @@ const App = () => (
             <DynamicTitleUpdater />
             <Routes>
               <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
+              <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
               <Route path="/" element={
                 <ProtectedRoute><LazyPage><Index /></LazyPage></ProtectedRoute>
               } />
