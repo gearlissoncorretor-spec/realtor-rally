@@ -1,11 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, Users, Target, TrendingUp, Building, Calendar } from 'lucide-react';
+import { BarChart3, Users, Target, TrendingUp, Building, Calendar, Trophy, Medal } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
 import { useBrokers } from '@/hooks/useBrokers';
 import { useTeams } from '@/hooks/useTeams';
 import DashboardFilters, { DashboardFiltersState } from '@/components/DashboardFilters';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { formatCurrencyCompact } from '@/utils/formatting';
 
 const DiretorDashboard = () => {
   const { profile } = useAuth();
