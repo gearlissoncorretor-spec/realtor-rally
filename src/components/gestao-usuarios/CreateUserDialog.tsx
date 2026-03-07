@@ -18,8 +18,13 @@ interface CreateUserDialogProps {
 const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, allowedRoles, forcedTeamId }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [createdEmail, setCreatedEmail] = useState('');
+  const [createdName, setCreatedName] = useState('');
+  const [createdRole, setCreatedRole] = useState('');
   const { toast } = useToast();
 
   const [form, setForm] = useState({
