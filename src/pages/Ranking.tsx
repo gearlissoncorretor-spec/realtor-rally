@@ -1330,7 +1330,7 @@ const Ranking = () => {
       const teamBrokers = brokers.filter(b => b.team_id === team.id);
       const teamBrokerIds = teamBrokers.map(b => b.id);
       const teamSales = filteredSales.filter(s => teamBrokerIds.includes(s.broker_id || ''));
-      const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.property_value), 0);
+      const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
 
       return {
         id: team.id,
