@@ -91,10 +91,16 @@ const getLevel = (xp: number) => {
 // ===== PARTICLE EFFECTS =====
 const ParticleEffect = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {Array.from({ length: 20 }).map((_, i) => (
+    {Array.from({ length: 30 }).map((_, i) => (
       <div
         key={i}
-        className="absolute w-1 h-1 rounded-full bg-primary/30"
+        className={cn(
+          "absolute rounded-full",
+          i % 4 === 0 ? "w-1.5 h-1.5 bg-warning/30" :
+          i % 4 === 1 ? "w-1 h-1 bg-primary/25" :
+          i % 4 === 2 ? "w-1 h-1 bg-success/20" :
+          "w-0.5 h-0.5 bg-info/30"
+        )}
         style={{
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
@@ -103,10 +109,13 @@ const ParticleEffect = () => (
         }}
       />
     ))}
-    {Array.from({ length: 8 }).map((_, i) => (
+    {Array.from({ length: 12 }).map((_, i) => (
       <div
         key={`glow-${i}`}
-        className="absolute w-2 h-2 rounded-full bg-warning/20 blur-sm"
+        className={cn(
+          "absolute w-3 h-3 rounded-full blur-sm",
+          i % 3 === 0 ? "bg-warning/15" : i % 3 === 1 ? "bg-primary/15" : "bg-destructive/10"
+        )}
         style={{
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
