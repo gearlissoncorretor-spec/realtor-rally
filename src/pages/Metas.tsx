@@ -22,14 +22,15 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
 import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
 import { MetasSkeleton } from '@/components/skeletons/MetasSkeleton';
 import { formatCurrency, formatNumber } from '@/utils/formatting';
-import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
@@ -69,13 +70,9 @@ const Metas = () => {
   const userRole = rawRole === 'admin' ? 'diretor' : rawRole;
   const canManageGoals = ['diretor', 'gerente'].includes(userRole);
 
-  // Get current user's broker record (if they are a broker)
   const currentBroker = brokers.find(b => b.user_id === user?.id);
-  
-  // Get the user's team_id - either from profile (for managers) or from broker record
   const userTeamId = profile?.team_id || currentBroker?.team_id;
 
-  // Calculate urgent/today tasks count for badge
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const urgentTasksCount = allTasks.filter(task => {
@@ -87,67 +84,39 @@ const Metas = () => {
     return dueDate.getTime() === today.getTime();
   }).length;
 
-  // Filter brokers based on role
   const accessibleBrokers = useMemo(() => {
-    if (isDiretor() || isAdmin()) {
-      return brokers;
-    }
-    if (isGerente() && userTeamId) {
-      return brokers.filter(b => b.team_id === userTeamId);
-    }
-    if (isCorretor() && currentBroker) {
-      return [currentBroker];
-    }
+    if (isDiretor() || isAdmin()) return brokers;
+    if (isGerente() && userTeamId) return brokers.filter(b => b.team_id === userTeamId);
+    if (isCorretor() && currentBroker) return [currentBroker];
     return [];
   }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin]);
 
-  // Initialize selected broker
   useEffect(() => {
     if (accessibleBrokers.length > 0 && !selectedBrokerId) {
       setSelectedBrokerId(accessibleBrokers[0].id);
     }
   }, [accessibleBrokers, selectedBrokerId]);
 
-  // Navigate to previous/next month
-  const goToPreviousMonth = () => {
-    setSelectedMonth(prev => subMonths(prev, 1));
-  };
-
+  const goToPreviousMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
   const goToNextMonth = () => {
     const nextMonth = addMonths(selectedMonth, 1);
-    const currentMonth = new Date();
-    currentMonth.setDate(1);
-    if (nextMonth <= addMonths(currentMonth, 12)) {
-      setSelectedMonth(nextMonth);
-    }
+    if (nextMonth <= addMonths(new Date(), 12)) setSelectedMonth(nextMonth);
   };
 
-  const isCurrentMonth = format(selectedMonth, 'yyyy-MM') === format(new Date(), 'yyyy-MM');
-
-  // Filter goals for selected broker and period
   const filteredGoals = useMemo(() => {
     if (!selectedBrokerId) return [];
-    
     const selectedBrokerData = accessibleBrokers.find(b => b.id === selectedBrokerId);
-    
     return goals.filter(goal => {
-      // Filter by broker (direct assignment or team assignment without specific broker)
       const matchesBroker = goal.broker_id === selectedBrokerId || 
         (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id);
-      
-      // Filter by period (goals that overlap with selected month)
       const monthStart = startOfMonth(selectedMonth);
       const monthEnd = endOfMonth(selectedMonth);
       const goalStart = new Date(goal.start_date);
       const goalEnd = new Date(goal.end_date);
-      
-      const overlapsMonth = goalStart <= monthEnd && goalEnd >= monthStart;
-      
-      return matchesBroker && overlapsMonth;
+      return matchesBroker && goalStart <= monthEnd && goalEnd >= monthStart;
     });
   }, [goals, selectedBrokerId, selectedMonth, accessibleBrokers]);
 
-  // Calculate summary stats
   const stats = useMemo(() => {
     const active = filteredGoals.filter(g => g.status === 'active').length;
     const completed = filteredGoals.filter(g => g.status === 'completed').length;
@@ -157,8 +126,7 @@ const Metas = () => {
     const avgProgress = filteredGoals.length > 0 
       ? filteredGoals.reduce((acc, g) => acc + Math.min((g.current_value / g.target_value) * 100, 100), 0) / filteredGoals.length
       : 0;
-    
-    return { active, completed, overdue, avgProgress };
+    return { active, completed, overdue, avgProgress, total: filteredGoals.length };
   }, [filteredGoals]);
 
   const selectedGoal = selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null;
@@ -171,24 +139,14 @@ const Metas = () => {
 
   const handleDelete = async () => {
     if (!deleteGoalId) return;
-    try {
-      await deleteGoal(deleteGoalId);
-      setDeleteGoalId(null);
-    } catch (error) {
-      // Error handled by hook
-    }
+    try { await deleteGoal(deleteGoalId); setDeleteGoalId(null); } catch {}
   };
 
   const formatValue = (value: number, type: string) => {
     switch (type) {
-      case 'revenue':
-      case 'vgv':
-      case 'commission':
-        return formatCurrency(value);
-      case 'sales_count':
-        return formatNumber(value);
-      default:
-        return value.toString();
+      case 'revenue': case 'vgv': case 'commission': return formatCurrency(value);
+      case 'sales_count': return formatNumber(value);
+      default: return value.toString();
     }
   };
 
@@ -211,35 +169,21 @@ const Metas = () => {
     }
   };
 
-  const getStatusBadge = (goal: Goal) => {
-    const progress = Math.min((goal.current_value / goal.target_value) * 100, 100);
-    const isOverdue = new Date(goal.end_date) < new Date() && goal.status === 'active';
-    
-    if (goal.status === 'completed') {
-      return <Badge className="bg-green-500">Concluída</Badge>;
-    }
-    if (isOverdue) {
-      return <Badge variant="destructive">Vencida</Badge>;
-    }
-    if (progress >= 90) {
-      return <Badge className="bg-green-500">Quase lá!</Badge>;
-    }
-    if (progress >= 50) {
-      return <Badge className="bg-yellow-500 text-black">Em progresso</Badge>;
-    }
-    return <Badge variant="secondary">Iniciando</Badge>;
-  };
-
   const getProgress = (goal: Goal) => {
     if (goal.target_value === 0) return 0;
     return Math.min(100, Math.round((goal.current_value / goal.target_value) * 100));
   };
 
-  const getProgressColor = (progress: number) => {
-    if (progress >= 100) return "bg-emerald-500";
-    if (progress >= 75) return "bg-emerald-400";
-    if (progress >= 50) return "bg-yellow-500";
-    return "bg-red-400";
+  const getStatusInfo = (goal: Goal) => {
+    const progress = getProgress(goal);
+    const isOverdue = new Date(goal.end_date) < new Date() && goal.status === 'active';
+    const daysLeft = differenceInDays(new Date(goal.end_date), new Date());
+    
+    if (goal.status === 'completed') return { label: 'Concluída', variant: 'default' as const, className: 'bg-success text-success-foreground' };
+    if (isOverdue) return { label: 'Vencida', variant: 'destructive' as const, className: '' };
+    if (progress >= 90) return { label: 'Quase lá!', variant: 'default' as const, className: 'bg-success text-success-foreground' };
+    if (progress >= 50) return { label: 'Em progresso', variant: 'secondary' as const, className: 'bg-warning/15 text-warning border-warning/30' };
+    return { label: `${daysLeft}d restantes`, variant: 'outline' as const, className: '' };
   };
 
   if (goalsLoading || brokersLoading || teamsLoading) {
@@ -260,52 +204,48 @@ const Metas = () => {
       <Navigation />
       <div className="min-h-screen bg-background lg:ml-72">
         <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6">
-          {/* Header with Month Selector */}
+          
+          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
-                <Target className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600" />
-                🎯 Gestão de Metas
-              </h1>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary/10 rounded-xl">
+                <Target className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
+                  Gestão de Metas
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhe o progresso e performance
+                </p>
+              </div>
             </div>
             
             {/* Month Selector */}
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 rounded-xl p-2 shadow-lg">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToPreviousMonth}
-                className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
-              >
-                <ChevronLeft className="w-5 h-5" />
+            <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
+              <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9">
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-              
-              <div className="flex items-center gap-2 min-w-[150px] justify-center">
-                <Calendar className="w-5 h-5 text-emerald-600" />
-                <span className="font-semibold text-emerald-600">
-                  {format(selectedMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+              <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span className="font-semibold text-foreground capitalize">
+                  {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
                 </span>
               </div>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToNextMonth}
-                className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
-              >
-                <ChevronRight className="w-5 h-5" />
+              <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9">
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
           {/* Tabs */}
           <Tabs defaultValue="metas" className="w-full">
-            <TabsList className="inline-flex h-11 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 shadow-lg rounded-xl p-1.5">
-              <TabsTrigger value="metas" className="gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsList className="h-11 bg-card border border-border shadow-sm rounded-xl p-1">
+              <TabsTrigger value="metas" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                 <Target className="w-4 h-4" />
                 Metas
               </TabsTrigger>
-              <TabsTrigger value="tarefas" className="gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              <TabsTrigger value="tarefas" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                 <ListTodo className="w-4 h-4" />
                 Tarefas
                 {urgentTasksCount > 0 && (
@@ -321,12 +261,12 @@ const Metas = () => {
               {accessibleBrokers.length > 0 ? (
                 <Tabs value={selectedBrokerId} onValueChange={setSelectedBrokerId} className="w-full">
                   <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
-                    <TabsList className="inline-flex h-12 sm:h-14 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 shadow-lg rounded-xl p-1.5 gap-1 min-w-max">
+                    <TabsList className="inline-flex h-11 bg-card border border-border shadow-sm rounded-xl p-1 gap-0.5 min-w-max">
                       {accessibleBrokers.map((broker) => (
                         <TabsTrigger
                           key={broker.id}
                           value={broker.id}
-                          className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-emerald-100 dark:data-[state=inactive]:hover:bg-emerald-900/30 whitespace-nowrap"
+                          className="px-4 py-2 text-sm font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
                         >
                           {broker.name.split(' ')[0]}
                         </TabsTrigger>
@@ -336,176 +276,79 @@ const Metas = () => {
 
                   {accessibleBrokers.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
-                      {/* Summary Cards */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
-                                <Target className="w-5 h-5 text-emerald-600" />
+                      
+                      {/* KPI Strip */}
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                        {[
+                          { label: 'Total', value: stats.total, icon: Target, color: 'text-primary' },
+                          { label: 'Ativas', value: stats.active, icon: Clock, color: 'text-info' },
+                          { label: 'Concluídas', value: stats.completed, icon: CheckCircle2, color: 'text-success' },
+                          { label: 'Vencidas', value: stats.overdue, icon: AlertTriangle, color: 'text-destructive' },
+                          { label: 'Progresso', value: `${stats.avgProgress.toFixed(0)}%`, icon: TrendingUp, color: 'text-primary' },
+                        ].map((kpi, i) => (
+                          <Card key={i} className="border-border/50 bg-card">
+                            <CardContent className="p-3 sm:p-4">
+                              <div className="flex items-center gap-2.5">
+                                <div className="p-1.5 bg-muted rounded-lg shrink-0">
+                                  <kpi.icon className={cn("w-4 h-4", kpi.color)} />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-lg sm:text-xl font-bold text-foreground leading-tight">{kpi.value}</p>
+                                  <p className="text-[10px] sm:text-xs text-muted-foreground">{kpi.label}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Ativas</p>
-                                <p className="text-xl font-bold text-emerald-600">{stats.active}</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Concluídas</p>
-                                <p className="text-xl font-bold text-green-600">{stats.completed}</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                                <Calendar className="w-5 h-5 text-red-600" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Vencidas</p>
-                                <p className="text-xl font-bold text-red-600">{stats.overdue}</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                                <TrendingUp className="w-5 h-5 text-blue-600" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Progresso Médio</p>
-                                <p className="text-xl font-bold text-blue-600">{stats.avgProgress.toFixed(0)}%</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
 
-                      {/* Goals Cards */}
-                      {filteredGoals.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {filteredGoals.map((goal) => {
-                            const progress = getProgress(goal);
-                            const progressColor = progress >= 100 ? 'text-emerald-600' : progress >= 50 ? 'text-yellow-600' : 'text-red-500';
-                            
-                            return (
-                              <Card 
-                                key={goal.id} 
-                                className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] cursor-pointer"
-                                onClick={() => setSelectedGoalId(goal.id)}
-                              >
-                                <CardContent className="p-4 space-y-3">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                      <h3 className="font-semibold text-foreground line-clamp-1">{goal.title}</h3>
-                                      <p className="text-xs text-muted-foreground line-clamp-1">{goal.description}</p>
-                                    </div>
-                                    {getStatusBadge(goal)}
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="secondary">{getTypeLabel(goal.target_type)}</Badge>
-                                    <Badge variant="outline">{getPeriodLabel(goal.period_type)}</Badge>
-                                  </div>
-                                  
-                                  <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                      <span className="text-sm text-muted-foreground">Progresso</span>
-                                      <span className={`text-sm font-bold ${progressColor}`}>{progress}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                                      <div
-                                        className={`h-full rounded-full transition-all duration-500 ${getProgressColor(progress)}`}
-                                        style={{ width: `${progress}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">
-                                      {formatValue(goal.current_value, goal.target_type)} / {formatValue(goal.target_value, goal.target_type)}
-                                    </span>
-                                    <span className="text-muted-foreground flex items-center gap-1">
-                                      <Calendar className="w-3 h-3" />
-                                      {format(new Date(goal.end_date), 'dd/MM', { locale: ptBR })}
-                                    </span>
-                                  </div>
-                                  
-                                  {(canManageGoals || canEditGoal(goal) || canDeleteGoal(goal)) && (
-                                    <div className="flex justify-end gap-1 pt-2 border-t" onClick={(e) => e.stopPropagation()}>
-                                      {canEditGoal(goal) && (
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          onClick={() => handleEdit(goal)}
-                                          className="h-8 text-muted-foreground hover:text-emerald-600"
-                                        >
-                                          <Pencil className="w-4 h-4" />
-                                        </Button>
-                                      )}
-                                      {canDeleteGoal(goal) && (
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-8 text-red-500 hover:text-red-600"
-                                          onClick={() => setDeleteGoalId(goal.id)}
-                                        >
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                      )}
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            );
-                          })}
+                      {/* Circular Progress Gauge */}
+                      {stats.total > 0 && (
+                        <div className="flex justify-center">
+                          <div className="relative w-28 h-28">
+                            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                              <circle cx="50" cy="50" r="42" fill="none" strokeWidth="8" className="stroke-muted/30" />
+                              <circle 
+                                cx="50" cy="50" r="42" fill="none" strokeWidth="8"
+                                strokeLinecap="round"
+                                className="stroke-primary transition-all duration-700"
+                                strokeDasharray={`${Math.min(stats.avgProgress, 100) * 2.64} 264`}
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-2xl font-bold text-foreground">{stats.avgProgress.toFixed(0)}%</span>
+                              <span className="text-[10px] text-muted-foreground">média</span>
+                            </div>
+                          </div>
                         </div>
                       )}
 
                       {/* Goals Table */}
-                      <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg">
+                      <Card className="border-border/50 bg-card shadow-sm">
                         <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                          <CardTitle className="text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
-                            <Target className="w-5 h-5 text-emerald-600" />
+                          <CardTitle className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
+                            <Target className="w-5 h-5 text-primary" />
                             Metas de {broker.name}
                           </CardTitle>
                           {canManageGoals && (
-                            <Button 
-                              onClick={() => setCreateDialogOpen(true)}
-                              className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-md w-full sm:w-auto"
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
+                            <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="w-full sm:w-auto">
+                              <Plus className="w-4 h-4 mr-1.5" />
                               Nova Meta
                             </Button>
                           )}
                         </CardHeader>
                         <CardContent className="p-0 sm:p-6 sm:pt-0">
                           {filteredGoals.length === 0 ? (
-                            <div className="text-center py-12">
-                              <Target className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                              <p className="text-muted-foreground">Nenhuma meta encontrada para este período.</p>
+                            <div className="text-center py-16">
+                              <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                                <Target className="w-8 h-8 text-muted-foreground/40" />
+                              </div>
+                              <p className="text-muted-foreground font-medium">Nenhuma meta neste período</p>
+                              <p className="text-sm text-muted-foreground/70 mt-1">Crie uma meta para começar a acompanhar</p>
                               {canManageGoals && (
-                                <Button 
-                                  onClick={() => setCreateDialogOpen(true)} 
-                                  variant="outline" 
-                                  className="mt-4"
-                                >
-                                  <Plus className="w-4 h-4 mr-2" />
-                                  Criar primeira meta
+                                <Button onClick={() => setCreateDialogOpen(true)} variant="outline" size="sm" className="mt-4">
+                                  <Plus className="w-4 h-4 mr-1.5" />
+                                  Criar meta
                                 </Button>
                               )}
                             </div>
@@ -513,82 +356,81 @@ const Metas = () => {
                             <div className="overflow-x-auto">
                               <Table>
                                 <TableHeader>
-                                  <TableRow className="border-emerald-200/50 dark:border-emerald-800/50">
-                                    <TableHead>Título</TableHead>
+                                  <TableRow>
+                                    <TableHead className="min-w-[180px]">Meta</TableHead>
                                     <TableHead>Tipo</TableHead>
-                                    <TableHead>Período</TableHead>
-                                    <TableHead>Progresso</TableHead>
-                                    <TableHead>Meta</TableHead>
+                                    <TableHead className="min-w-[200px]">Progresso</TableHead>
+                                    <TableHead className="text-right">Atual / Alvo</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Prazo</TableHead>
-                                    {canManageGoals && <TableHead className="text-right">Ações</TableHead>}
+                                    {canManageGoals && <TableHead className="text-right w-[100px]">Ações</TableHead>}
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                   {filteredGoals.map(goal => {
                                     const progress = getProgress(goal);
+                                    const statusInfo = getStatusInfo(goal);
                                     
                                     return (
                                       <TableRow 
                                         key={goal.id} 
-                                        className="cursor-pointer hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10"
+                                        className="cursor-pointer hover:bg-muted/50 transition-colors"
                                         onClick={() => setSelectedGoalId(goal.id)}
                                       >
-                                        <TableCell className="font-medium">
-                                          {goal.title}
-                                        </TableCell>
                                         <TableCell>
-                                          <Badge variant="secondary">{getTypeLabel(goal.target_type)}</Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Badge variant="outline">{getPeriodLabel(goal.period_type)}</Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                          <div className="w-32">
-                                            <div className="flex justify-between text-xs mb-1">
-                                              <span>{formatValue(goal.current_value, goal.target_type)}</span>
-                                              <span className="font-bold">{progress}%</span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                                              <div
-                                                className={`h-full rounded-full ${getProgressColor(progress)}`}
-                                                style={{ width: `${progress}%` }}
-                                              />
-                                            </div>
+                                          <div>
+                                            <p className="font-medium text-foreground">{goal.title}</p>
+                                            {goal.description && (
+                                              <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{goal.description}</p>
+                                            )}
                                           </div>
                                         </TableCell>
-                                        <TableCell className="font-semibold">
-                                          {formatValue(goal.target_value, goal.target_type)}
-                                        </TableCell>
-                                        <TableCell>{getStatusBadge(goal)}</TableCell>
                                         <TableCell>
-                                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                            <Calendar className="w-3 h-3" />
+                                          <Badge variant="secondary" className="text-xs font-medium">
+                                            {getTypeLabel(goal.target_type)}
+                                          </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                          <div className="space-y-1.5">
+                                            <div className="flex justify-between text-xs">
+                                              <span className="text-muted-foreground">{getPeriodLabel(goal.period_type)}</span>
+                                              <span className={cn(
+                                                "font-bold",
+                                                progress >= 90 ? "text-success" : progress >= 50 ? "text-warning" : "text-destructive"
+                                              )}>
+                                                {progress}%
+                                              </span>
+                                            </div>
+                                            <Progress value={progress} className="h-2" />
+                                          </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                          <div className="text-sm">
+                                            <span className="font-semibold text-foreground">{formatValue(goal.current_value, goal.target_type)}</span>
+                                            <span className="text-muted-foreground"> / {formatValue(goal.target_value, goal.target_type)}</span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>
+                                          <Badge variant={statusInfo.variant} className={cn("text-xs", statusInfo.className)}>
+                                            {statusInfo.label}
+                                          </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                          <span className="text-sm text-muted-foreground">
                                             {format(new Date(goal.end_date), 'dd/MM/yy', { locale: ptBR })}
-                                          </div>
+                                          </span>
                                         </TableCell>
                                         {(canEditGoal(goal) || canDeleteGoal(goal)) && (
                                           <TableCell className="text-right">
-                                            <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
+                                            <div className="flex justify-end gap-0.5" onClick={e => e.stopPropagation()}>
                                               {canEditGoal(goal) && (
-                                                <Button
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  onClick={() => handleEdit(goal)}
-                                                  title="Editar"
-                                                >
-                                                  <Pencil className="w-4 h-4" />
+                                                <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-8 w-8">
+                                                  <Pencil className="w-3.5 h-3.5" />
                                                 </Button>
                                               )}
                                               {canDeleteGoal(goal) && (
-                                                <Button
-                                                  size="sm"
-                                                  variant="ghost"
-                                                  className="text-destructive hover:text-destructive"
-                                                  onClick={() => setDeleteGoalId(goal.id)}
-                                                  title="Excluir"
-                                                >
-                                                  <Trash2 className="w-4 h-4" />
+                                                <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                                                  <Trash2 className="w-3.5 h-3.5" />
                                                 </Button>
                                               )}
                                             </div>
@@ -607,7 +449,7 @@ const Metas = () => {
                   ))}
                 </Tabs>
               ) : (
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg">
+                <Card className="border-border/50">
                   <CardContent className="p-12 text-center">
                     <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
                     <p className="text-muted-foreground">Nenhum corretor encontrado.</p>
@@ -623,7 +465,6 @@ const Metas = () => {
         </div>
       </div>
 
-      {/* Create/Edit Goal Dialog */}
       <CreateGoalDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
@@ -631,38 +472,29 @@ const Metas = () => {
         preSelectedBrokerId={selectedBrokerId}
       />
       
-      {/* Goal Details Dialog */}
       {selectedGoal && (
         <GoalDetailsDialog
           goal={selectedGoal}
           open={!!selectedGoalId}
           onOpenChange={(open) => {
-            if (!open) {
-              setSelectedGoalId(null);
-              setEditingGoal(null);
-            }
+            if (!open) { setSelectedGoalId(null); setEditingGoal(null); }
           }}
           onUpdate={updateGoal}
           canEdit={canManageGoals}
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteGoalId} onOpenChange={() => setDeleteGoalId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Meta</AlertDialogTitle>
             <AlertDialogDescription>
               Tem certeza que deseja excluir esta meta? Esta ação não pode ser desfeita.
-              Todas as tarefas associadas também serão removidas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-destructive hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
               <Trash2 className="w-4 h-4 mr-2" />
               Excluir
             </AlertDialogAction>
