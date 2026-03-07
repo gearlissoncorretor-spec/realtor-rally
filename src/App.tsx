@@ -66,6 +66,7 @@ const App = () => (
             <DynamicTitleUpdater />
             <Routes>
               <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
+              <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
               <Route path="/" element={
                 <ProtectedRoute><LazyPage><Index /></LazyPage></ProtectedRoute>
               } />
