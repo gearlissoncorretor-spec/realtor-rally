@@ -219,6 +219,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
 const Index = () => {
   const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
+  const { displayName, subtitle } = useContextualIdentity();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
   const [showNegotiationAlert, setShowNegotiationAlert] = useState(true);
