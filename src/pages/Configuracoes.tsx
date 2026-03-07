@@ -16,7 +16,8 @@ import {
   CheckCircle,
   Monitor,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Tv
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -29,6 +30,7 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
+import { TVModeSoundSettings } from "@/components/TVModeSoundSettings";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -48,6 +50,7 @@ const Configuracoes = () => {
     branding: false,
     preferences: false,
     notifications: false,
+    tvSound: false,
     teams: false,
     teamMembers: false,
     screenAccess: false,
@@ -152,7 +155,19 @@ const Configuracoes = () => {
               <NotificationCenter />
             </CollapsibleSection>
 
-            {/* Configurações Gerais */}
+            {/* Som do Modo TV */}
+            {(isAdmin() || isDiretor()) && (
+              <CollapsibleSection
+                title="Som do Modo TV"
+                icon={<Tv className="h-5 w-5 text-warning" />}
+                description="Som personalizado para a revelação do ranking"
+                isOpen={openSections.tvSound}
+                onToggle={() => toggleSection('tvSound')}
+              >
+                <TVModeSoundSettings />
+              </CollapsibleSection>
+            )}
+
             <CollapsibleSection
               title="Configurações Gerais"
               icon={<Settings className="h-5 w-5 text-primary" />}

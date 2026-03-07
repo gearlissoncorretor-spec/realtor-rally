@@ -27,6 +27,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useSpotlightBroker } from "@/hooks/useSpotlightBroker";
+import { useTVModeSound } from "@/components/TVModeSoundSettings";
 
 // ===== TYPES =====
 interface BrokerRanking {
@@ -90,10 +91,16 @@ const getLevel = (xp: number) => {
 // ===== PARTICLE EFFECTS =====
 const ParticleEffect = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {Array.from({ length: 20 }).map((_, i) => (
+    {Array.from({ length: 30 }).map((_, i) => (
       <div
         key={i}
-        className="absolute w-1 h-1 rounded-full bg-primary/30"
+        className={cn(
+          "absolute rounded-full",
+          i % 4 === 0 ? "w-1.5 h-1.5 bg-warning/30" :
+          i % 4 === 1 ? "w-1 h-1 bg-primary/25" :
+          i % 4 === 2 ? "w-1 h-1 bg-success/20" :
+          "w-0.5 h-0.5 bg-info/30"
+        )}
         style={{
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
@@ -102,10 +109,13 @@ const ParticleEffect = () => (
         }}
       />
     ))}
-    {Array.from({ length: 8 }).map((_, i) => (
+    {Array.from({ length: 12 }).map((_, i) => (
       <div
         key={`glow-${i}`}
-        className="absolute w-2 h-2 rounded-full bg-warning/20 blur-sm"
+        className={cn(
+          "absolute w-3 h-3 rounded-full blur-sm",
+          i % 3 === 0 ? "bg-warning/15" : i % 3 === 1 ? "bg-primary/15" : "bg-destructive/10"
+        )}
         style={{
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
@@ -440,10 +450,10 @@ const StatsHeader = ({ brokers }: { brokers: BrokerRanking[] }) => {
   const topBroker = brokers[0];
 
   const stats = [
-    { icon: Users, label: "Vendas Totais", value: totalSales.toString(), color: "text-primary" },
-    { icon: DollarSign, label: "VGV Total", value: formatCurrencyCompact(totalVGV), color: "text-success" },
-    { icon: Target, label: "Ticket Médio", value: formatCurrencyCompact(avgTicket), color: "text-info" },
-    { icon: Crown, label: "Corretor do Período", value: topBroker?.name.split(' ')[0] || '-', color: "text-warning" },
+    { icon: Users, label: "Vendas Totais", value: totalSales.toString(), color: "text-primary", bg: "bg-primary/10", glow: "shadow-primary/5" },
+    { icon: DollarSign, label: "VGV Total", value: formatCurrencyCompact(totalVGV), color: "text-success", bg: "bg-success/10", glow: "shadow-success/5" },
+    { icon: Target, label: "Ticket Médio", value: formatCurrencyCompact(avgTicket), color: "text-info", bg: "bg-info/10", glow: "shadow-info/5" },
+    { icon: Crown, label: "Líder do Período", value: topBroker?.name.split(' ')[0] || '-', color: "text-warning", bg: "bg-warning/10", glow: "shadow-warning/5" },
   ];
 
   return (
@@ -451,9 +461,20 @@ const StatsHeader = ({ brokers }: { brokers: BrokerRanking[] }) => {
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
-          <Card key={i} className="p-3 md:p-4 border-border/50 hover:border-primary/30 transition-all">
-            <div className="flex items-center gap-2 mb-1">
-              <Icon className={cn("w-4 h-4", stat.color)} />
+          <Card key={i} className={cn(
+            "p-3 md:p-4 border-border/50 hover:border-primary/30 transition-all relative overflow-hidden group",
+            `shadow-lg ${stat.glow}`
+          )}>
+            <div className={cn("absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity", 
+              i === 0 ? "from-primary/60 to-primary/20" : 
+              i === 1 ? "from-success/60 to-success/20" : 
+              i === 2 ? "from-info/60 to-info/20" : 
+              "from-warning/60 to-warning/20"
+            )} />
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className={cn("p-1.5 rounded-lg", stat.bg)}>
+                <Icon className={cn("w-4 h-4", stat.color)} />
+              </div>
               <span className="text-xs text-muted-foreground">{stat.label}</span>
             </div>
             <p className="text-lg md:text-xl font-bold text-foreground">{stat.value}</p>
@@ -711,15 +732,42 @@ const ConfettiCanvas = ({ active }: { active: boolean }) => {
 // ===== SOUNDS =====
 const useRankingSounds = () => {
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const customAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const { soundUrl: customSoundUrl } = useTVModeSound();
 
   const getCtx = useCallback(() => {
     if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
     return audioCtxRef.current;
   }, []);
 
+  // Play custom uploaded sound if available
+  const playCustomSound = useCallback(() => {
+    if (!soundEnabled || !customSoundUrl) return false;
+    try {
+      if (customAudioRef.current) {
+        customAudioRef.current.pause();
+        customAudioRef.current.currentTime = 0;
+      }
+      customAudioRef.current = new Audio(customSoundUrl);
+      customAudioRef.current.volume = 0.7;
+      customAudioRef.current.play().catch(() => {});
+      return true;
+    } catch {
+      return false;
+    }
+  }, [soundEnabled, customSoundUrl]);
+
+  const stopCustomSound = useCallback(() => {
+    if (customAudioRef.current) {
+      customAudioRef.current.pause();
+      customAudioRef.current.currentTime = 0;
+    }
+  }, []);
+
   const playVictory = useCallback(() => {
     if (!soundEnabled) return;
+    if (playCustomSound()) return; // Use custom sound if available
     const ctx = getCtx();
     const now = ctx.currentTime;
     const notes = [523.25, 659.25, 783.99, 1046.50];
@@ -735,10 +783,11 @@ const useRankingSounds = () => {
       osc.start(now + i * 0.18);
       osc.stop(now + i * 0.18 + 0.6);
     });
-  }, [soundEnabled, getCtx]);
+  }, [soundEnabled, getCtx, playCustomSound]);
 
   const playReveal = useCallback(() => {
     if (!soundEnabled) return;
+    if (customSoundUrl) return; // Skip procedural sound if custom is playing
     const ctx = getCtx();
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
@@ -751,13 +800,13 @@ const useRankingSounds = () => {
     osc.connect(gain).connect(ctx.destination);
     osc.start(now);
     osc.stop(now + 0.35);
-  }, [soundEnabled, getCtx]);
+  }, [soundEnabled, getCtx, customSoundUrl]);
 
   const playCelebration = useCallback(() => {
     if (!soundEnabled) return;
+    if (playCustomSound()) return;
     const ctx = getCtx();
     const now = ctx.currentTime;
-    // Triumphant fanfare: C5 E5 G5 C6 with harmonics
     const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1046.50];
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
@@ -772,9 +821,9 @@ const useRankingSounds = () => {
       osc.start(t);
       osc.stop(t + 0.8);
     });
-  }, [soundEnabled, getCtx]);
+  }, [soundEnabled, getCtx, playCustomSound]);
 
-  return { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled };
+  return { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound };
 };
 
 // ===== SALE CELEBRATION OVERLAY =====
@@ -855,7 +904,7 @@ const SaleCelebrationOverlay = ({
 // ===== TV MODE =====
 const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: BrokerRanking[]; onClose: () => void; sales: any[] }) => {
   const { settings } = useOrganizationSettings();
-  const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
+  const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
@@ -940,16 +989,25 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
         />
       )}
 
-      {/* Animated BG */}
+      {/* Animated BG - Enhanced */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/8 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/8 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-[30%] right-[20%] w-[400px] h-[400px] rounded-full bg-purple-600/6 blur-[100px] animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-[20%] left-[15%] w-[350px] h-[350px] rounded-full bg-emerald-500/5 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
         <div className="absolute inset-0 opacity-[0.03]" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
           backgroundSize: '60px 60px',
         }} />
-        {Array.from({ length: 30 }).map((_, i) => (
-          <div key={i} className="absolute w-1 h-1 rounded-full bg-white/20" style={{
+        {Array.from({ length: 40 }).map((_, i) => (
+          <div key={i} className={cn(
+            "absolute rounded-full",
+            i % 5 === 0 ? "w-1.5 h-1.5 bg-yellow-400/30" :
+            i % 5 === 1 ? "w-1 h-1 bg-blue-400/25" :
+            i % 5 === 2 ? "w-1 h-1 bg-purple-400/20" :
+            i % 5 === 3 ? "w-0.5 h-0.5 bg-emerald-400/25" :
+            "w-1 h-1 bg-pink-400/15"
+          )} style={{
             left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
             animation: `float-particle ${6 + Math.random() * 8}s ease-in-out infinite`,
             animationDelay: `${Math.random() * 5}s`,
@@ -1159,7 +1217,7 @@ const Ranking = () => {
   const [quickPeriod, setQuickPeriod] = useState('month');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [showConfetti, setShowConfetti] = useState(false);
-  const { soundEnabled, setSoundEnabled, playVictory } = useRankingSounds();
+  const { soundEnabled, setSoundEnabled, playVictory, stopCustomSound } = useRankingSounds();
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
 
@@ -1280,6 +1338,7 @@ const Ranking = () => {
 
   const closeTVMode = () => {
     setIsTVMode(false);
+    stopCustomSound();
     document.exitFullscreen?.().catch(() => {});
   };
 
@@ -1392,7 +1451,7 @@ const Ranking = () => {
 
             {/* Podium */}
             {brokerRankings.length >= 1 && (
-              <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative">
+              <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
                 <AnimatedPodium brokers={brokerRankings} currentUserId={user?.id} />
               </Card>
             )}
