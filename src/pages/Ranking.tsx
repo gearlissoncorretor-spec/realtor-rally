@@ -225,9 +225,11 @@ const SpotlightBrokerSidebar = ({
             )}
 
             {/* Position badge */}
-            <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">
-              #{broker.position} no Ranking
-            </Badge>
+            {broker.position && (
+              <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">
+                #{broker.position} no Ranking
+              </Badge>
+            )}
           </div>
         ) : (
           <div className="text-center py-6">
