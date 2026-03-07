@@ -254,7 +254,7 @@ const SpotlightBrokerSidebar = ({
                 <SelectItem value="none">Nenhum</SelectItem>
                 {availableBrokers.map(b => (
                   <SelectItem key={b.id} value={b.id}>
-                    #{b.position} {b.name.split(' ').slice(0, 2).join(' ')}
+                    {b.name}
                   </SelectItem>
                 ))}
               </SelectContent>
