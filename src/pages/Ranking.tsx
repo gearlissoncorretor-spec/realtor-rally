@@ -1265,11 +1265,10 @@ const Ranking = () => {
       if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear();
       if (quickPeriod === 'all') return true;
 
+      // When both filters are "all", show everything
+      if (selectedMonth === 0 && selectedYear === 0) return true;
       if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
       if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
-      if (selectedMonth === 0 && selectedYear === 0) {
-        return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
-      }
       return true;
     });
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
