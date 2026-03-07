@@ -1311,7 +1311,7 @@ const Ranking = () => {
   }
 
   if (isTVMode) {
-    return <RankingTVMode brokerRankings={brokerRankings} onClose={closeTVMode} />;
+    return <RankingTVMode brokerRankings={brokerRankings} onClose={closeTVMode} sales={sales} />;
   }
 
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
