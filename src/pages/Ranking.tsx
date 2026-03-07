@@ -1013,7 +1013,6 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
             animationDelay: `${Math.random() * 5}s`,
           }} />
         ))}
-        ))}
       </div>
 
       {/* Controls */}
