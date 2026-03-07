@@ -21,11 +21,13 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
   const staleNegotiations = negotiations.filter(neg => {
     const lastUpdate = new Date(neg.updated_at);
     const daysSinceUpdate = differenceInDays(new Date(), lastUpdate);
-    return daysSinceUpdate > 7;
+    return daysSinceUpdate > 3;
   });
 
-  const nearClosing = negotiations.filter(neg => {
-    return neg.status === 'proposta_enviada' || neg.status === 'em_negociacao';
+  const newNegotiations = negotiations.filter(neg => {
+    const createdAt = new Date(neg.created_at);
+    const daysSinceCreation = differenceInDays(new Date(), createdAt);
+    return daysSinceCreation <= 3;
   });
 
   if (totalOpen === 0) {
@@ -60,30 +62,30 @@ const NegotiationAlert: React.FC<NegotiationAlertProps> = ({ onClose }) => {
 
           {/* Sem atualização */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border">
-            <div className="p-2 rounded-full bg-yellow-500/10">
-              <Clock className="w-4 h-4 text-yellow-500" />
+            <div className="p-2 rounded-full bg-destructive/10">
+              <Clock className="w-4 h-4 text-destructive" />
             </div>
             <div>
               <p className="text-2xl font-bold">{staleNegotiations.length}</p>
-              <p className="text-xs text-muted-foreground">Sem atualização há 7+ dias</p>
+              <p className="text-xs text-muted-foreground">Sem atualização há 3+ dias</p>
             </div>
           </div>
 
-          {/* Próximas do fechamento */}
+          {/* Novas negociações */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border">
-            <div className="p-2 rounded-full bg-green-500/10">
-              <AlertTriangle className="w-4 h-4 text-green-500" />
+            <div className="p-2 rounded-full bg-primary/10">
+              <AlertTriangle className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{nearClosing.length}</p>
-              <p className="text-xs text-muted-foreground">Em negociação ativa</p>
+              <p className="text-2xl font-bold">{newNegotiations.length}</p>
+              <p className="text-xs text-muted-foreground">Novas (últimos 3 dias)</p>
             </div>
           </div>
         </div>
 
         {staleNegotiations.length > 0 && (
-          <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-            <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+            <div className="flex items-center gap-2 text-sm text-destructive">
               <AlertTriangle className="w-4 h-4" />
               <span className="font-medium">
                 {staleNegotiations.length} negociação(ões) precisam de atenção!
