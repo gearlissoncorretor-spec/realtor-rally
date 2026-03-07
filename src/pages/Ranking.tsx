@@ -1217,7 +1217,7 @@ const Ranking = () => {
   const [quickPeriod, setQuickPeriod] = useState('month');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [showConfetti, setShowConfetti] = useState(false);
-  const { soundEnabled, setSoundEnabled, playVictory } = useRankingSounds();
+  const { soundEnabled, setSoundEnabled, playVictory, stopCustomSound } = useRankingSounds();
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
 
