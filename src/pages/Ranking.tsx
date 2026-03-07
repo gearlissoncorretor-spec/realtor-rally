@@ -1523,7 +1523,7 @@ const Ranking = () => {
               broker={spotlightBroker}
               allBrokers={brokerRankings}
               canManage={canManageSpotlight}
-              availableBrokers={brokerRankings}
+              availableBrokers={allBrokersForSpotlight}
               onChangeBroker={setSpotlightBroker}
               isUpdating={spotlightUpdating}
             />
