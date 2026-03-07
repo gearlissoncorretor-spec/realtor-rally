@@ -7,17 +7,26 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Trophy, TrendingUp, TrendingDown, Tv, Flame, Medal, Star, X,
   Volume2, VolumeX, Crown, Zap, Target, DollarSign, Users,
-  ChevronUp, ChevronDown, Sparkles, Award
+  ChevronUp, ChevronDown, Sparkles, Award, Building2
 } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTeams } from "@/hooks/useTeams";
 import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
 import { calculateGrowth } from "@/utils/calculations";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { useSpotlightBroker } from "@/hooks/useSpotlightBroker";
 
 // ===== TYPES =====
 interface BrokerRanking {
@@ -31,6 +40,15 @@ interface BrokerRanking {
   email: string;
   userId?: string | null;
   teamId?: string | null;
+}
+
+interface TeamRanking {
+  id: string;
+  name: string;
+  totalVGV: number;
+  totalSales: number;
+  brokerCount: number;
+  position: number;
 }
 
 // ===== MEDALS & ACHIEVEMENTS =====
@@ -49,8 +67,8 @@ const getAchievements = (broker: BrokerRanking, allBrokers: BrokerRanking[]) => 
 // XP System
 const calculateXP = (broker: BrokerRanking) => {
   let xp = 0;
-  xp += broker.sales * 500; // 500 XP per sale
-  xp += Math.floor(broker.revenue / 100000) * 100; // 100 XP per 100k
+  xp += broker.sales * 500;
+  xp += Math.floor(broker.revenue / 100000) * 100;
   if (broker.position === 1) xp += 1000;
   if (broker.position <= 3) xp += 500;
   return xp;
@@ -70,41 +88,249 @@ const getLevel = (xp: number) => {
 };
 
 // ===== PARTICLE EFFECTS =====
-const ParticleEffect = () => {
+const ParticleEffect = () => (
+  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    {Array.from({ length: 20 }).map((_, i) => (
+      <div
+        key={i}
+        className="absolute w-1 h-1 rounded-full bg-primary/30"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animation: `float-particle ${4 + Math.random() * 6}s ease-in-out infinite`,
+          animationDelay: `${Math.random() * 4}s`,
+        }}
+      />
+    ))}
+    {Array.from({ length: 8 }).map((_, i) => (
+      <div
+        key={`glow-${i}`}
+        className="absolute w-2 h-2 rounded-full bg-warning/20 blur-sm"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          animation: `float-particle ${5 + Math.random() * 5}s ease-in-out infinite`,
+          animationDelay: `${Math.random() * 3}s`,
+        }}
+      />
+    ))}
+  </div>
+);
+
+// ===== SPOTLIGHT BROKER SIDEBAR =====
+const SpotlightBrokerSidebar = ({
+  broker,
+  allBrokers,
+  canManage,
+  availableBrokers,
+  onChangeBroker,
+  isUpdating,
+}: {
+  broker: BrokerRanking | null;
+  allBrokers: BrokerRanking[];
+  canManage: boolean;
+  availableBrokers: BrokerRanking[];
+  onChangeBroker: (brokerId: string | null) => void;
+  isUpdating: boolean;
+}) => {
+  if (!broker && !canManage) return null;
+
+  const achievements = broker ? getAchievements(broker, allBrokers) : [];
+  const xp = broker ? calculateXP(broker) : 0;
+  const level = broker ? getLevel(xp) : null;
+  const initials = broker?.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '';
+
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {Array.from({ length: 20 }).map((_, i) => (
+    <Card className="relative overflow-hidden border-warning/20">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 pointer-events-none">
         <div
-          key={i}
-          className="absolute w-1 h-1 rounded-full bg-primary/30"
+          className="absolute inset-0 opacity-30"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `float-particle ${4 + Math.random() * 6}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 4}s`,
+            background: 'linear-gradient(135deg, hsl(var(--warning) / 0.15) 0%, hsl(var(--primary) / 0.1) 50%, hsl(var(--warning) / 0.15) 100%)',
+            backgroundSize: '200% 200%',
+            animation: 'gradient-shift 6s ease-in-out infinite',
           }}
         />
-      ))}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div
-          key={`glow-${i}`}
-          className="absolute w-2 h-2 rounded-full bg-warning/20 blur-sm"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `float-particle ${5 + Math.random() * 5}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 3}s`,
-          }}
-        />
-      ))}
-    </div>
+        {/* Floating orbs */}
+        <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-warning/10 blur-xl animate-pulse" />
+        <div className="absolute bottom-8 left-4 w-12 h-12 rounded-full bg-primary/10 blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
+      <div className="relative z-10 p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles className="w-4 h-4 text-warning" />
+          <h3 className="text-sm font-bold text-foreground">Corretor Destaque</h3>
+          <Star className="w-3 h-3 text-warning" />
+        </div>
+
+        {broker ? (
+          <div className="flex flex-col items-center text-center">
+            {/* Avatar with golden glow */}
+            <div className="relative mb-3">
+              <div className="absolute -inset-2 rounded-full bg-warning/20 blur-lg animate-pulse" />
+              <Avatar className="w-20 h-20 ring-4 ring-warning/50 shadow-2xl relative z-10">
+                <AvatarImage src={broker.avatar} alt={broker.name} className="object-cover" />
+                <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-xl font-black">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -top-2 -right-2 z-20">
+                <Crown className="w-6 h-6 text-warning drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+              </div>
+            </div>
+
+            <p className="font-bold text-foreground text-base mb-0.5">{broker.name}</p>
+            {level && (
+              <Badge variant="outline" className={cn("text-[10px] mb-2", level.color)}>
+                Nv.{level.level} {level.title}
+              </Badge>
+            )}
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-2 w-full mb-3">
+              <div className="bg-background/50 rounded-lg p-2">
+                <p className="text-lg font-black text-foreground">{broker.sales}</p>
+                <p className="text-[10px] text-muted-foreground">Vendas</p>
+              </div>
+              <div className="bg-background/50 rounded-lg p-2">
+                <p className="text-sm font-black text-foreground">{formatCurrencyCompact(broker.revenue)}</p>
+                <p className="text-[10px] text-muted-foreground">VGV</p>
+              </div>
+            </div>
+
+            {/* Achievements */}
+            {achievements.length > 0 && (
+              <div className="flex flex-wrap gap-1 justify-center mb-3">
+                {achievements.slice(0, 3).map((badge, i) => (
+                  <span key={i} className={cn(
+                    "text-[9px] px-1.5 py-0.5 rounded-full border bg-gradient-to-r font-medium",
+                    badge.color
+                  )}>
+                    {badge.icon} {badge.label}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Position badge */}
+            <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">
+              #{broker.position} no Ranking
+            </Badge>
+          </div>
+        ) : (
+          <div className="text-center py-6">
+            <Star className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">Nenhum corretor selecionado</p>
+          </div>
+        )}
+
+        {/* Manager can change spotlight */}
+        {canManage && (
+          <div className="mt-4 pt-3 border-t border-border/50">
+            <label className="text-[10px] text-muted-foreground block mb-1.5">Selecionar destaque:</label>
+            <Select
+              value={broker?.id || 'none'}
+              onValueChange={(v) => onChangeBroker(v === 'none' ? null : v)}
+              disabled={isUpdating}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="Escolher corretor..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
+                {availableBrokers.map(b => (
+                  <SelectItem key={b.id} value={b.id}>
+                    #{b.position} {b.name.split(' ').slice(0, 2).join(' ')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+// ===== TEAM RANKING (DIRECTOR VIEW) =====
+const TeamRankingSection = ({ teamRankings }: { teamRankings: TeamRanking[] }) => {
+  if (teamRankings.length === 0) return null;
+
+  const maxVGV = Math.max(...teamRankings.map(t => t.totalVGV), 1);
+
+  return (
+    <Card className="overflow-hidden border-border/50 mb-6">
+      <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
+        <Building2 className="w-5 h-5 text-primary" />
+        <h2 className="font-semibold text-foreground text-sm">Ranking por Equipe</h2>
+        <Badge variant="secondary" className="ml-auto text-xs">{teamRankings.length} equipes</Badge>
+      </div>
+      <div className="p-3 space-y-2">
+        {teamRankings.map((team) => {
+          const barPct = (team.totalVGV / maxVGV) * 100;
+          return (
+            <div
+              key={team.id}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-xl border transition-all",
+                team.position === 1
+                  ? "bg-warning/5 border-warning/20"
+                  : "bg-card/50 border-border/50 hover:border-primary/20"
+              )}
+            >
+              {/* Position */}
+              {team.position === 1 ? (
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg shadow-yellow-500/30 shrink-0">
+                  <Trophy className="w-4 h-4 text-white" />
+                </div>
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-muted-foreground">#{team.position}</span>
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-foreground truncate">{team.name}</p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{team.totalSales} vendas</span>
+                  <span>{team.brokerCount} corretores</span>
+                </div>
+                {/* Progress bar */}
+                <div className="mt-1.5">
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-700",
+                        team.position === 1 ? "bg-warning" : "bg-primary/60"
+                      )}
+                      style={{ width: `${barPct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* VGV */}
+              <div className="text-right shrink-0">
+                <p className={cn(
+                  "font-bold text-sm",
+                  team.position === 1 ? "text-warning" : "text-foreground"
+                )}>
+                  {formatCurrencyCompact(team.totalVGV)}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 };
 
 // ===== ANIMATED PODIUM =====
 const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; currentUserId?: string }) => {
   const top3 = brokers.slice(0, 3);
-  // Podium order: 2nd, 1st, 3rd
   const podiumOrder = [
     top3.find(b => b.position === 2),
     top3.find(b => b.position === 1),
@@ -134,17 +360,15 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
           return (
             <div
               key={broker.id}
-              className="flex flex-col items-center animate-podium-rise"
+              className="flex flex-col items-center animate-fade-in"
               style={{ animationDelay: `${isFirst ? 0.4 : index === 0 ? 0.2 : 0.6}s` }}
             >
-              {/* Crown for 1st */}
               {isFirst && (
                 <div className="relative mb-1 animate-bounce" style={{ animationDuration: '2.5s' }}>
                   <Crown className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
                 </div>
               )}
 
-              {/* Avatar with glow */}
               <div className="relative mb-2">
                 {isFirst && (
                   <div className="absolute -inset-3 rounded-full bg-yellow-400/15 blur-xl animate-pulse" />
@@ -172,7 +396,6 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 )}
               </div>
 
-              {/* Name & Stats */}
               <p className={cn("font-bold text-center leading-tight text-foreground", config.nameSize)}>
                 {broker.name.split(' ').slice(0, 2).join(' ')}
               </p>
@@ -188,7 +411,6 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 {formatCurrencyCompact(broker.revenue)}
               </p>
 
-              {/* Podium base */}
               <div className={cn(
                 "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden",
                 config.height,
@@ -211,7 +433,7 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
 };
 
 // ===== STATS HEADER =====
-const StatsHeader = ({ brokers, sales }: { brokers: BrokerRanking[]; sales: any[] }) => {
+const StatsHeader = ({ brokers }: { brokers: BrokerRanking[] }) => {
   const totalSales = brokers.reduce((sum, b) => sum + b.sales, 0);
   const totalVGV = brokers.reduce((sum, b) => sum + b.revenue, 0);
   const avgTicket = totalSales > 0 ? totalVGV / totalSales : 0;
@@ -229,7 +451,7 @@ const StatsHeader = ({ brokers, sales }: { brokers: BrokerRanking[]; sales: any[
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
-          <Card key={i} className="p-3 md:p-4 glass-card border-border/50 hover:border-primary/30 transition-all">
+          <Card key={i} className="p-3 md:p-4 border-border/50 hover:border-primary/30 transition-all">
             <div className="flex items-center gap-2 mb-1">
               <Icon className={cn("w-4 h-4", stat.color)} />
               <span className="text-xs text-muted-foreground">{stat.label}</span>
@@ -260,29 +482,25 @@ const LeaderboardCard = ({
   const achievements = getAchievements(broker, allBrokers);
   const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
 
-  // Progress to next position
   const brokerAbove = allBrokers.find(b => b.position === broker.position - 1);
   const gap = brokerAbove ? brokerAbove.revenue - broker.revenue : 0;
   const progressPct = brokerAbove ? Math.min((broker.revenue / brokerAbove.revenue) * 100, 100) : 100;
 
   return (
     <div className={cn(
-      "flex flex-col gap-2 p-3 md:p-4 rounded-xl border transition-all premium-transition group",
+      "flex flex-col gap-2 p-3 md:p-4 rounded-xl border transition-all group",
       isCurrentUser
-        ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20 shadow-glow"
+        ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
         : "bg-card/50 border-border/50 hover:border-primary/20 hover:bg-card/80"
     )}>
       <div className="flex items-center gap-3">
-        {/* Position */}
         <PositionBadge position={broker.position} />
 
-        {/* Avatar */}
         <Avatar className="h-10 w-10 ring-2 ring-border/50">
           <AvatarImage src={broker.avatar} className="object-cover" />
           <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
         </Avatar>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-semibold text-sm text-foreground truncate">{broker.name}</p>
@@ -298,7 +516,6 @@ const LeaderboardCard = ({
           </div>
         </div>
 
-        {/* Revenue & Growth */}
         <div className="text-right">
           <p className="font-bold text-sm text-foreground">{formatCurrency(broker.revenue)}</p>
           {broker.growth !== null && (
@@ -316,7 +533,6 @@ const LeaderboardCard = ({
         </div>
       </div>
 
-      {/* Achievements */}
       {achievements.length > 0 && (
         <div className="flex flex-wrap gap-1 ml-[52px]">
           {achievements.slice(0, 3).map((badge, i) => (
@@ -330,7 +546,6 @@ const LeaderboardCard = ({
         </div>
       )}
 
-      {/* Progress bar to next position */}
       {showProgressBar && brokerAbove && gap > 0 && (
         <div className="ml-[52px]">
           <div className="flex justify-between items-center mb-1">
@@ -373,40 +588,36 @@ const PositionBadge = ({ position }: { position: number }) => {
 // ===== TEAM FILTER =====
 const TeamFilter = ({
   teams,
-  brokers,
   selectedTeam,
   onTeamChange,
 }: {
   teams: { id: string; name: string }[];
-  brokers: BrokerRanking[];
   selectedTeam: string;
   onTeamChange: (t: string) => void;
-}) => {
-  return (
-    <div className="flex flex-wrap gap-2 mb-4">
+}) => (
+  <div className="flex flex-wrap gap-2 mb-4">
+    <Button
+      variant={selectedTeam === 'all' ? 'default' : 'outline'}
+      size="sm"
+      onClick={() => onTeamChange('all')}
+      className="text-xs h-8"
+    >
+      <Users className="w-3 h-3 mr-1" />
+      Geral
+    </Button>
+    {teams.map(team => (
       <Button
-        variant={selectedTeam === 'all' ? 'default' : 'outline'}
+        key={team.id}
+        variant={selectedTeam === team.id ? 'default' : 'outline'}
         size="sm"
-        onClick={() => onTeamChange('all')}
+        onClick={() => onTeamChange(team.id)}
         className="text-xs h-8"
       >
-        <Users className="w-3 h-3 mr-1" />
-        Geral
+        {team.name}
       </Button>
-      {teams.map(team => (
-        <Button
-          key={team.id}
-          variant={selectedTeam === team.id ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => onTeamChange(team.id)}
-          className="text-xs h-8"
-        >
-          {team.name}
-        </Button>
-      ))}
-    </div>
-  );
-};
+    ))}
+  </div>
+);
 
 // ===== QUICK PERIOD BUTTONS =====
 const QuickPeriodButtons = ({
@@ -431,7 +642,7 @@ const QuickPeriodButtons = ({
           key={p.key}
           variant={activePeriod === p.key ? 'default' : 'ghost'}
           size="sm"
-          className={cn("text-xs h-7 px-3", activePeriod === p.key && "shadow-glow")}
+          className="text-xs h-7 px-3"
           onClick={() => onPeriodChange(p.key)}
         >
           {p.label}
@@ -598,7 +809,6 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
   return (
     <div className="fixed inset-0 z-[9999] bg-[#050a18] text-white overflow-hidden">
       <ConfettiCanvas active={showConfetti} />
-      {/* Animated BG */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-blue-600/8 blur-[120px] animate-pulse" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/8 blur-[120px] animate-pulse" style={{ animationDelay: '1.5s' }} />
@@ -615,7 +825,6 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
         ))}
       </div>
 
-      {/* Controls */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
         <Button variant="ghost" size="icon" onClick={() => setSoundEnabled(!soundEnabled)} className="text-white/60 hover:text-white hover:bg-white/10">
           {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
@@ -625,9 +834,7 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
         </Button>
       </div>
 
-      {/* Content */}
       <div className="relative z-10 h-full flex flex-col p-6 lg:p-10">
-        {/* Header */}
         <div className={cn(
           "text-center mb-6 transition-all duration-1000",
           phase === 'intro' ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
@@ -650,7 +857,6 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
           <div className="h-[1px] max-w-2xl mx-auto bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
         </div>
 
-        {/* Podium */}
         <div className="flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full">
           <div className="flex items-end justify-center gap-4 lg:gap-8 mb-8">
             {podiumOrder.map((broker, index) => {
@@ -755,7 +961,8 @@ const RankingTVMode = ({ brokerRankings, onClose }: { brokerRankings: BrokerRank
 // ===== MAIN PAGE =====
 const Ranking = () => {
   const { brokers, sales, brokersLoading, salesLoading } = useData();
-  const { user } = useAuth();
+  const { user, isDiretor, isAdmin, isGerente, getUserRole, profile } = useAuth();
+  const { teams } = useTeams();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
   const [isTVMode, setIsTVMode] = useState(false);
@@ -764,45 +971,55 @@ const Ranking = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const { soundEnabled, setSoundEnabled, playVictory } = useRankingSounds();
   const { settings } = useOrganizationSettings();
+  const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
 
-  // Build unique teams list from brokers
-  const teams = useMemo(() => {
-    const teamMap = new Map<string, string>();
-    brokers.forEach(b => {
-      if (b.team_id) {
-        teamMap.set(b.team_id, b.team_id); // We don't have team name here
-      }
-    });
-    return Array.from(teamMap.entries()).map(([id]) => ({ id, name: `Equipe` }));
-  }, [brokers]);
+  // Role-based header
+  const headerInfo = useMemo(() => {
+    const role = getUserRole();
+    if (role === 'diretor' || role === 'admin' || role === 'super_admin') {
+      return {
+        title: settings?.organization_name || 'Ranking de Vendas',
+        subtitle: 'Visão geral de todas as equipes',
+      };
+    }
+    if (role === 'gerente' && profile?.team_id) {
+      const team = teams.find(t => t.id === profile.team_id);
+      return {
+        title: team?.name || 'Ranking da Equipe',
+        subtitle: 'Performance da sua equipe',
+      };
+    }
+    return {
+      title: 'Ranking de Vendas',
+      subtitle: 'Performance e classificação',
+    };
+  }, [getUserRole, settings, profile, teams]);
+
+  // Can manage spotlight
+  const canManageSpotlight = isDiretor() || isAdmin() || isGerente();
+
+  // Build teams list with real names
+  const teamsForFilter = useMemo(() => {
+    return teams.map(t => ({ id: t.id, name: t.name }));
+  }, [teams]);
 
   // Filter sales by quick period or month/year
   const filteredSales = useMemo(() => {
     const now = new Date();
     return sales.filter(sale => {
       const saleDate = new Date(sale.sale_date || sale.created_at || '');
-
-      // Quick period filter
-      if (quickPeriod === 'today') {
-        return saleDate.toDateString() === now.toDateString();
-      }
+      if (quickPeriod === 'today') return saleDate.toDateString() === now.toDateString();
       if (quickPeriod === 'week') {
         const weekAgo = new Date(now);
         weekAgo.setDate(weekAgo.getDate() - 7);
         return saleDate >= weekAgo;
       }
-      if (quickPeriod === 'year') {
-        return saleDate.getFullYear() === now.getFullYear();
-      }
-      if (quickPeriod === 'all') {
-        return true;
-      }
+      if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear();
+      if (quickPeriod === 'all') return true;
 
-      // Default 'month' or custom filter
       if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
       if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
       if (selectedMonth === 0 && selectedYear === 0) {
-        // Current month
         return saleDate.getMonth() === now.getMonth() && saleDate.getFullYear() === now.getFullYear();
       }
       return true;
@@ -836,6 +1053,36 @@ const Ranking = () => {
     .map((b, i) => ({ ...b, position: i + 1 }));
   }, [brokers, filteredSales, sales, selectedTeam]);
 
+  // Team rankings (for directors)
+  const teamRankings: TeamRanking[] = useMemo(() => {
+    if (!isDiretor() && !isAdmin()) return [];
+
+    return teams.map(team => {
+      const teamBrokers = brokers.filter(b => b.team_id === team.id);
+      const teamBrokerIds = teamBrokers.map(b => b.id);
+      const teamSales = filteredSales.filter(s => teamBrokerIds.includes(s.broker_id || ''));
+      const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.property_value), 0);
+
+      return {
+        id: team.id,
+        name: team.name,
+        totalVGV,
+        totalSales: teamSales.length,
+        brokerCount: teamBrokers.length,
+        position: 0,
+      };
+    })
+    .filter(t => t.totalSales > 0 || t.brokerCount > 0)
+    .sort((a, b) => b.totalVGV - a.totalVGV)
+    .map((t, i) => ({ ...t, position: i + 1 }));
+  }, [teams, brokers, filteredSales, isDiretor, isAdmin]);
+
+  // Spotlight broker data
+  const spotlightBroker = useMemo(() => {
+    if (!spotlightBrokerId) return null;
+    return brokerRankings.find(b => b.id === spotlightBrokerId) || null;
+  }, [spotlightBrokerId, brokerRankings]);
+
   const openTVMode = () => {
     setIsTVMode(true);
     document.documentElement.requestFullscreen?.().catch(() => {});
@@ -854,7 +1101,6 @@ const Ranking = () => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [isTVMode]);
 
-  // Reset custom filters when using quick period
   const handleQuickPeriod = (period: string) => {
     setQuickPeriod(period);
     if (period !== 'month') {
@@ -879,18 +1125,17 @@ const Ranking = () => {
   }
 
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
-  const orgName = settings?.organization_name || 'Ranking';
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <ConfettiCanvas active={showConfetti} />
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-24 lg:pb-6">
-        {/* Header */}
+        {/* Header with role-based title */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="flex items-center gap-3">
             {effectiveLogo ? (
-              <img src={effectiveLogo} alt={orgName} className="w-8 h-8 object-contain rounded-lg" />
+              <img src={effectiveLogo} alt={headerInfo.title} className="w-8 h-8 object-contain rounded-lg" />
             ) : (
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center">
                 <Trophy className="w-4 h-4 text-primary-foreground" />
@@ -898,10 +1143,10 @@ const Ranking = () => {
             )}
             <div>
               <h1 className="text-xl lg:text-2xl font-black text-foreground flex items-center gap-2">
-                Ranking de Vendas
+                {headerInfo.title}
                 <Sparkles className="w-5 h-5 text-warning" />
               </h1>
-              <p className="text-xs text-muted-foreground">{orgName} • Performance e classificação</p>
+              <p className="text-xs text-muted-foreground">{headerInfo.subtitle}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -924,7 +1169,7 @@ const Ranking = () => {
         {/* Quick period */}
         <QuickPeriodButtons activePeriod={quickPeriod} onPeriodChange={handleQuickPeriod} />
 
-        {/* Custom period filter (only when month is selected) */}
+        {/* Custom period filter */}
         {quickPeriod === 'month' && (
           <PeriodFilter
             selectedMonth={selectedMonth}
@@ -935,52 +1180,94 @@ const Ranking = () => {
         )}
 
         {/* Team filter */}
-        {teams.length > 0 && (
+        {teamsForFilter.length > 0 && (
           <TeamFilter
-            teams={teams}
-            brokers={brokerRankings}
+            teams={teamsForFilter}
             selectedTeam={selectedTeam}
             onTeamChange={setSelectedTeam}
           />
         )}
 
         {/* Stats */}
-        <StatsHeader brokers={brokerRankings} sales={filteredSales} />
+        <StatsHeader brokers={brokerRankings} />
 
-        {/* Podium */}
-        {brokerRankings.length >= 1 && (
-          <Card className="p-4 md:p-6 mb-6 glass-card border-border/30 overflow-hidden relative">
-            <AnimatedPodium brokers={brokerRankings} currentUserId={user?.id} />
-          </Card>
-        )}
-
-        {/* Leaderboard */}
-        <Card className="overflow-hidden border-border/50">
-          <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
-            <Flame className="w-5 h-5 text-warning" />
-            <h2 className="font-semibold text-foreground text-sm">Classificação Completa</h2>
-            <Badge variant="secondary" className="ml-auto text-xs">{brokerRankings.length} corretores</Badge>
-          </div>
-          <div className="p-3 space-y-2">
-            {brokerRankings.map((broker) => (
-              <LeaderboardCard
-                key={broker.id}
-                broker={broker}
-                allBrokers={brokerRankings}
-                currentUserId={user?.id}
-                showProgressBar={broker.position > 1}
-              />
-            ))}
-            {brokerRankings.length === 0 && (
-              <div className="text-center py-12">
-                <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-muted-foreground font-medium">Nenhum corretor encontrado no período</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
-              </div>
+        {/* Main content: Ranking + Spotlight sidebar */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left: Main ranking */}
+          <div className="flex-1 min-w-0">
+            {/* Team ranking for directors */}
+            {(isDiretor() || isAdmin()) && teamRankings.length > 0 && selectedTeam === 'all' && (
+              <TeamRankingSection teamRankings={teamRankings} />
             )}
+
+            {/* Podium */}
+            {brokerRankings.length >= 1 && (
+              <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative">
+                <AnimatedPodium brokers={brokerRankings} currentUserId={user?.id} />
+              </Card>
+            )}
+
+            {/* Leaderboard */}
+            <Card className="overflow-hidden border-border/50">
+              <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
+                <Flame className="w-5 h-5 text-warning" />
+                <h2 className="font-semibold text-foreground text-sm">Classificação Completa</h2>
+                <Badge variant="secondary" className="ml-auto text-xs">{brokerRankings.length} corretores</Badge>
+              </div>
+              <div className="p-3 space-y-2">
+                {brokerRankings.map((broker) => (
+                  <LeaderboardCard
+                    key={broker.id}
+                    broker={broker}
+                    allBrokers={brokerRankings}
+                    currentUserId={user?.id}
+                    showProgressBar={broker.position > 1}
+                  />
+                ))}
+                {brokerRankings.length === 0 && (
+                  <div className="text-center py-12">
+                    <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-muted-foreground font-medium">Nenhum corretor encontrado no período</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
+                  </div>
+                )}
+              </div>
+            </Card>
           </div>
-        </Card>
+
+          {/* Right: Spotlight sidebar */}
+          <div className="w-full lg:w-72 shrink-0">
+            <SpotlightBrokerSidebar
+              broker={spotlightBroker}
+              allBrokers={brokerRankings}
+              canManage={canManageSpotlight}
+              availableBrokers={brokerRankings}
+              onChangeBroker={setSpotlightBroker}
+              isUpdating={spotlightUpdating}
+            />
+          </div>
+        </div>
       </div>
+
+      <style>{`
+        @keyframes float-particle {
+          0%, 100% { transform: translateY(0) scale(1); opacity: 0.2; }
+          50% { transform: translateY(-30px) scale(1.5); opacity: 0.5; }
+        }
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .shimmer-effect {
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+          background-size: 200% 100%;
+          animation: shimmer 2s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
     </div>
   );
 };
