@@ -32,6 +32,7 @@ const Agenda = lazy(() => import("@/pages/Agenda"));
 const Instalar = lazy(() => import("@/pages/Instalar"));
 const GestaoUsuarios = lazy(() => import("@/pages/GestaoUsuarios"));
 const SuperAdmin = lazy(() => import("@/pages/SuperAdmin"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
 const queryClient = new QueryClient({
