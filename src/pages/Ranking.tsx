@@ -712,15 +712,42 @@ const ConfettiCanvas = ({ active }: { active: boolean }) => {
 // ===== SOUNDS =====
 const useRankingSounds = () => {
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const customAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const { soundUrl: customSoundUrl } = useTVModeSound();
 
   const getCtx = useCallback(() => {
     if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
     return audioCtxRef.current;
   }, []);
 
+  // Play custom uploaded sound if available
+  const playCustomSound = useCallback(() => {
+    if (!soundEnabled || !customSoundUrl) return false;
+    try {
+      if (customAudioRef.current) {
+        customAudioRef.current.pause();
+        customAudioRef.current.currentTime = 0;
+      }
+      customAudioRef.current = new Audio(customSoundUrl);
+      customAudioRef.current.volume = 0.7;
+      customAudioRef.current.play().catch(() => {});
+      return true;
+    } catch {
+      return false;
+    }
+  }, [soundEnabled, customSoundUrl]);
+
+  const stopCustomSound = useCallback(() => {
+    if (customAudioRef.current) {
+      customAudioRef.current.pause();
+      customAudioRef.current.currentTime = 0;
+    }
+  }, []);
+
   const playVictory = useCallback(() => {
     if (!soundEnabled) return;
+    if (playCustomSound()) return; // Use custom sound if available
     const ctx = getCtx();
     const now = ctx.currentTime;
     const notes = [523.25, 659.25, 783.99, 1046.50];
@@ -736,10 +763,11 @@ const useRankingSounds = () => {
       osc.start(now + i * 0.18);
       osc.stop(now + i * 0.18 + 0.6);
     });
-  }, [soundEnabled, getCtx]);
+  }, [soundEnabled, getCtx, playCustomSound]);
 
   const playReveal = useCallback(() => {
     if (!soundEnabled) return;
+    if (customSoundUrl) return; // Skip procedural sound if custom is playing
     const ctx = getCtx();
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
@@ -752,13 +780,13 @@ const useRankingSounds = () => {
     osc.connect(gain).connect(ctx.destination);
     osc.start(now);
     osc.stop(now + 0.35);
-  }, [soundEnabled, getCtx]);
+  }, [soundEnabled, getCtx, customSoundUrl]);
 
   const playCelebration = useCallback(() => {
     if (!soundEnabled) return;
+    if (playCustomSound()) return;
     const ctx = getCtx();
     const now = ctx.currentTime;
-    // Triumphant fanfare: C5 E5 G5 C6 with harmonics
     const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1046.50];
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
@@ -773,9 +801,9 @@ const useRankingSounds = () => {
       osc.start(t);
       osc.stop(t + 0.8);
     });
-  }, [soundEnabled, getCtx]);
+  }, [soundEnabled, getCtx, playCustomSound]);
 
-  return { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled };
+  return { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound };
 };
 
 // ===== SALE CELEBRATION OVERLAY =====
