@@ -292,7 +292,7 @@ const Corretores = () => {
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-          <div>
+          <div className="w-full text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 sm:mb-2">
               👥 Corretores
             </h1>

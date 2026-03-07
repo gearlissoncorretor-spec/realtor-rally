@@ -74,7 +74,7 @@ const Configuracoes = () => {
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-6 text-center">
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-1 animate-fade-in">
               Configurações
             </h1>

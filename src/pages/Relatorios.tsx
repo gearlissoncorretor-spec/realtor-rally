@@ -298,7 +298,7 @@ const Relatorios = () => {
       <Navigation />
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
-        <div className="mb-8">
+        <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-foreground mb-2 animate-fade-in">
             Relatórios
           </h1>

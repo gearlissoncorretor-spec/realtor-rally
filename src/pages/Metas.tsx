@@ -206,12 +206,12 @@ const Metas = () => {
         <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6">
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
+           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3 w-full justify-center sm:justify-start">
               <div className="p-2.5 bg-primary/10 rounded-xl">
                 <Target className="w-7 h-7 text-primary" />
               </div>
-              <div>
+              <div className="text-center sm:text-left">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                   Gestão de Metas
                 </h1>

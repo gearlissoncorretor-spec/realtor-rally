@@ -73,8 +73,8 @@ const Agenda = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <div className="w-full text-center sm:text-left">
+              <h1 className="text-2xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Agenda
               </h1>

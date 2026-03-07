@@ -1395,7 +1395,7 @@ const Ranking = () => {
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-24 lg:pb-6">
         {/* Header with role-based title */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 justify-center sm:justify-start">
             {effectiveLogo ? (
               <img src={effectiveLogo} alt={headerInfo.title} className="w-8 h-8 object-contain rounded-lg" />
             ) : (
@@ -1403,7 +1403,7 @@ const Ranking = () => {
                 <Trophy className="w-4 h-4 text-primary-foreground" />
               </div>
             )}
-            <div>
+            <div className="text-center sm:text-left">
               <h1 className="text-xl lg:text-2xl font-black text-foreground flex items-center gap-2">
                 {headerInfo.title}
                 <Sparkles className="w-5 h-5 text-warning" />

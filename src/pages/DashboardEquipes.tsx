@@ -142,7 +142,7 @@ const DashboardEquipes = () => {
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="space-y-6">
           <div className="flex items-center justify-between mb-6">
-          <div>
+          <div className="w-full text-center sm:text-left">
             <h1 className="text-3xl font-bold tracking-tight">Dashboard de Equipes</h1>
             <p className="text-muted-foreground mt-2">
               Bem-vindo, {profile?.full_name}. Análise completa do desempenho das equipes.

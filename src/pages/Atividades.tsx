@@ -316,9 +316,9 @@ const Atividades = () => {
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="space-y-6">
           {/* Header with Week Selector */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="w-full text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
                 <ClipboardList className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600" />
                 Gestão de Atividades Semanais
               </h1>
