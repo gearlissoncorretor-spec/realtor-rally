@@ -145,9 +145,10 @@ const SpotlightBrokerSidebar = ({
 }) => {
   if (!broker && !canManage) return null;
 
-  const achievements = broker ? getAchievements(broker, allBrokers) : [];
-  const xp = broker ? calculateXP(broker) : 0;
-  const level = broker ? getLevel(xp) : null;
+  const brokerRankingData = broker ? allBrokers.find(b => b.id === broker.id) : null;
+  const achievements = brokerRankingData ? getAchievements(brokerRankingData, allBrokers) : [];
+  const xp = brokerRankingData ? calculateXP(brokerRankingData) : 0;
+  const level = brokerRankingData ? getLevel(xp) : null;
   const initials = broker?.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '';
 
   return (
