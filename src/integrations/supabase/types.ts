@@ -950,6 +950,7 @@ export type Database = {
           organization_tagline: string | null
           primary_color: string | null
           secondary_color: string | null
+          spotlight_broker_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -963,6 +964,7 @@ export type Database = {
           organization_tagline?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          spotlight_broker_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -976,6 +978,7 @@ export type Database = {
           organization_tagline?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          spotlight_broker_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -984,6 +987,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_settings_spotlight_broker_id_fkey"
+            columns: ["spotlight_broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
             referencedColumns: ["id"]
           },
         ]
