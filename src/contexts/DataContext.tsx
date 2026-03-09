@@ -105,7 +105,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     },
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: true,
+    gcTime: 15 * 60 * 1000,
     enabled: !!user,
   });
 
