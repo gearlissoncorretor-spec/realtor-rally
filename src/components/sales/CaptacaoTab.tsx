@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Home, TrendingUp, DollarSign } from "lucide-react";
+import { Search, Filter, Home, TrendingUp, DollarSign, BarChart3 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
 import type { Broker } from "@/contexts/DataContext";
 
