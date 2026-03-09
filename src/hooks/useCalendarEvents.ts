@@ -121,7 +121,7 @@ export function useCalendarEvents(startDate?: string, endDate?: string) {
 
   const updateEvent = useMutation({
     mutationFn: async ({ id, ...data }: Partial<CalendarEvent> & { id: string }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('calendar_events')
         .update(data)
         .eq('id', id);
