@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.google-calendar]
 verify_jwt = false
+
+[functions.delete-broker]
+verify_jwt = false
