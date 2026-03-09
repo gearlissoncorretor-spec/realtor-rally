@@ -907,6 +907,96 @@ const SaleCelebrationOverlay = ({
   );
 };
 
+// ===== LIVE CLOCK =====
+const LiveClock = () => {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const time = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const date = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  return (
+    <div className="text-right">
+      <p className="text-2xl font-mono font-bold text-white/90 tracking-wider">{time}</p>
+      <p className="text-xs text-white/40 capitalize">{date}</p>
+    </div>
+  );
+};
+
+// ===== TV KPI STATS =====
+const TVStatsBar = ({ brokers }: { brokers: BrokerRanking[] }) => {
+  const totalSales = brokers.reduce((sum, b) => sum + b.sales, 0);
+  const totalVGV = brokers.reduce((sum, b) => sum + b.revenue, 0);
+  const avgTicket = totalSales > 0 ? totalVGV / totalSales : 0;
+  const topBroker = brokers[0];
+
+  const stats = [
+    { icon: Users, label: "Vendas", value: totalSales.toString(), color: "from-blue-400 to-blue-600" },
+    { icon: DollarSign, label: "VGV Total", value: formatCurrencyCompact(totalVGV), color: "from-emerald-400 to-emerald-600" },
+    { icon: Target, label: "Ticket Médio", value: formatCurrencyCompact(avgTicket), color: "from-cyan-400 to-cyan-600" },
+    { icon: Crown, label: "Líder", value: topBroker?.name.split(' ')[0] || '-', color: "from-yellow-400 to-amber-500" },
+  ];
+
+  return (
+    <div className="grid grid-cols-4 gap-3 mb-6">
+      {stats.map((stat, i) => {
+        const Icon = stat.icon;
+        return (
+          <div key={i} className="relative overflow-hidden rounded-xl bg-white/[0.06] backdrop-blur-sm border border-white/[0.08] p-3">
+            <div className={cn("absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r", stat.color)} />
+            <div className="flex items-center gap-2 mb-1">
+              <Icon className="w-4 h-4 text-white/50" />
+              <span className="text-[10px] text-white/40 uppercase tracking-wider">{stat.label}</span>
+            </div>
+            <p className="text-xl font-black text-white">{stat.value}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// ===== RECENT SALES TICKER =====
+const RecentSalesTicker = ({ sales, brokers }: { sales: any[]; brokers: BrokerRanking[] }) => {
+  const recentSales = useMemo(() => {
+    return sales
+      .filter(s => s.status !== 'cancelada' && s.status !== 'distrato')
+      .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
+      .slice(0, 10)
+      .map(s => {
+        const broker = brokers.find(b => b.id === s.broker_id);
+        return {
+          id: s.id,
+          brokerName: broker?.name || s.vendedor || 'Corretor',
+          clientName: s.client_name,
+          value: Number(s.vgv || s.property_value || 0),
+          date: s.sale_date || s.created_at,
+        };
+      });
+  }, [sales, brokers]);
+
+  if (recentSales.length === 0) return null;
+
+  return (
+    <div className="relative overflow-hidden h-10 bg-white/[0.04] border-t border-white/[0.06] backdrop-blur-sm">
+      <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#030712] to-transparent z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#030712] to-transparent z-10" />
+      <div className="flex items-center h-full animate-[ticker_30s_linear_infinite] whitespace-nowrap">
+        {[...recentSales, ...recentSales].map((sale, i) => (
+          <div key={`${sale.id}-${i}`} className="flex items-center gap-3 px-6">
+            <span className="text-yellow-400 text-xs">🏆</span>
+            <span className="text-white/70 text-xs font-medium">{sale.brokerName}</span>
+            <span className="text-white/30 text-xs">→</span>
+            <span className="text-white/50 text-xs">{sale.clientName}</span>
+            <span className="text-emerald-400 text-xs font-bold">{formatCurrencyCompact(sale.value)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ===== TV MODE =====
 const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode }) => {
   const { settings } = useOrganizationSettings();
@@ -917,6 +1007,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
   const [viewMode, setViewMode] = useState<'full' | 'podium'>('full');
   const [celebratingSale, setCelebratingSale] = useState<{ clientName: string; value: number; brokerId: string | null } | null>(null);
   const [activeRankingType, setActiveRankingType] = useState<RankingType>(tvRankingMode === 'captacao' ? 'captacao' : 'vendas');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const lastSaleCountRef = useRef(sales.length);
 
   const currentRankings = activeRankingType === 'captacao' ? captacaoRankings : brokerRankings;
@@ -925,14 +1016,18 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const orgName = settings?.organization_name || 'Ranking';
 
-  // Auto-alternate rankings in TV mode
+  // Auto-alternate rankings with smooth transition
   useEffect(() => {
     if (tvRankingMode !== 'alternate') return;
     const interval = setInterval(() => {
-      setActiveRankingType(prev => prev === 'vendas' ? 'captacao' : 'vendas');
-      setPhase('intro');
-      setRevealedCount(0);
-    }, 20000); // Switch every 20 seconds
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setActiveRankingType(prev => prev === 'vendas' ? 'captacao' : 'vendas');
+        setPhase('intro');
+        setRevealedCount(0);
+        setTimeout(() => setIsTransitioning(false), 300);
+      }, 500);
+    }, 20000);
     return () => clearInterval(interval);
   }, [tvRankingMode]);
 
@@ -957,7 +1052,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
   useEffect(() => {
     const timer = setTimeout(() => setPhase('reveal'), 1500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [activeRankingType]);
 
   useEffect(() => {
     if (phase !== 'reveal') return;
@@ -979,6 +1074,15 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
     revealNext(0);
   }, [phase]);
 
+  // ESC key handler
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
   const podiumOrder = [
     top3.find(b => b.position === 2),
     top3.find(b => b.position === 1),
@@ -996,7 +1100,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
     : null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#030712] text-white overflow-hidden">
+    <div className="fixed inset-0 z-[9999] bg-[#030712] text-white overflow-hidden flex flex-col">
       <ConfettiCanvas active={showConfetti} />
 
       {/* Sale celebration overlay */}
@@ -1010,7 +1114,6 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
 
       {/* Animated BG - Ultra vibrant */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Large vibrant orbs */}
         <div className="absolute top-[-15%] left-[-5%] w-[700px] h-[700px] rounded-full bg-blue-600/20 blur-[150px]" style={{ animation: 'orb-float 12s ease-in-out infinite' }} />
         <div className="absolute bottom-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-amber-500/20 blur-[150px]" style={{ animation: 'orb-float 10s ease-in-out infinite', animationDelay: '2s' }} />
         <div className="absolute top-[20%] right-[10%] w-[600px] h-[600px] rounded-full bg-purple-600/18 blur-[130px]" style={{ animation: 'orb-float 14s ease-in-out infinite', animationDelay: '4s' }} />
@@ -1019,20 +1122,17 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
         <div className="absolute bottom-[5%] right-[25%] w-[450px] h-[450px] rounded-full bg-cyan-400/15 blur-[110px]" style={{ animation: 'orb-float 9s ease-in-out infinite', animationDelay: '5s' }} />
         <div className="absolute top-[45%] left-[50%] w-[400px] h-[400px] rounded-full bg-rose-500/12 blur-[100px]" style={{ animation: 'orb-float 15s ease-in-out infinite', animationDelay: '6s' }} />
 
-        {/* Animated rainbow gradient sweep */}
         <div className="absolute inset-0 opacity-[0.08]" style={{
           background: 'linear-gradient(135deg, rgba(59,130,246,0.4) 0%, rgba(168,85,247,0.3) 20%, rgba(236,72,153,0.3) 40%, rgba(251,191,36,0.4) 60%, rgba(16,185,129,0.3) 80%, rgba(6,182,212,0.3) 100%)',
           backgroundSize: '600% 600%',
           animation: 'gradient-shift 10s ease-in-out infinite',
         }} />
 
-        {/* Subtle grid overlay */}
         <div className="absolute inset-0 opacity-[0.04]" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)',
           backgroundSize: '80px 80px',
         }} />
 
-        {/* Colorful animated particles */}
         {Array.from({ length: 70 }).map((_, i) => {
           const colors = [
             'bg-yellow-400/50', 'bg-blue-400/45', 'bg-purple-400/40', 'bg-emerald-400/45',
@@ -1053,7 +1153,6 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
           );
         })}
 
-        {/* Shooting stars */}
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={`star-${i}`} className="absolute w-[2px] h-[80px] rounded-full" style={{
             background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.6), rgba(255,255,255,0))',
@@ -1066,39 +1165,61 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
         ))}
       </div>
 
-      {/* Controls */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        <div className="flex items-center bg-white/[0.08] backdrop-blur-sm rounded-xl p-0.5 border border-white/[0.1]">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode('full')}
-            className={cn("text-xs h-7 px-3 rounded-lg", viewMode === 'full' ? "bg-white/15 text-white shadow-inner" : "text-white/40 hover:text-white")}
-          >
-            Completo
+      {/* Top bar: controls + clock */}
+      <div className="relative z-50 flex items-center justify-between p-4">
+        <div className="flex items-center gap-2">
+          {/* Ranking type indicator pill */}
+          {tvRankingMode === 'alternate' && (
+            <div className="flex items-center gap-1 bg-white/[0.06] backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/[0.08]">
+              <div className={cn(
+                "w-2 h-2 rounded-full transition-colors duration-500",
+                activeRankingType === 'vendas' ? "bg-blue-400" : "bg-emerald-400"
+              )} />
+              <span className="text-xs text-white/60 font-medium">
+                {activeRankingType === 'vendas' ? 'Vendas' : 'Captação'}
+              </span>
+              <span className="text-[10px] text-white/25 ml-1">auto</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <LiveClock />
+          <div className="flex items-center bg-white/[0.08] backdrop-blur-sm rounded-xl p-0.5 border border-white/[0.1]">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('full')}
+              className={cn("text-xs h-7 px-3 rounded-lg", viewMode === 'full' ? "bg-white/15 text-white shadow-inner" : "text-white/40 hover:text-white")}
+            >
+              Completo
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('podium')}
+              className={cn("text-xs h-7 px-3 rounded-lg", viewMode === 'podium' ? "bg-white/15 text-white shadow-inner" : "text-white/40 hover:text-white")}
+            >
+              Pódio
+            </Button>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setSoundEnabled(!soundEnabled)} className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl">
+            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode('podium')}
-            className={cn("text-xs h-7 px-3 rounded-lg", viewMode === 'podium' ? "bg-white/15 text-white shadow-inner" : "text-white/40 hover:text-white")}
-          >
-            Pódio
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl">
+            <X className="w-5 h-5" />
           </Button>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setSoundEnabled(!soundEnabled)} className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl">
-          {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </Button>
-        <Button variant="ghost" size="icon" onClick={onClose} className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl">
-          <X className="w-5 h-5" />
-        </Button>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col p-6 lg:p-10">
+      {/* Content with transition */}
+      <div className={cn(
+        "relative z-10 flex-1 flex flex-col px-6 lg:px-10 pb-0 transition-all duration-500",
+        isTransitioning ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'
+      )}>
         {/* Header */}
         <div className={cn(
-          "text-center mb-6 transition-all duration-1000",
+          "text-center mb-4 transition-all duration-1000",
           phase === 'intro' ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
         )}>
           <div className="flex items-center justify-center gap-4 mb-3">
@@ -1125,6 +1246,13 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
           </div>
         </div>
 
+        {/* KPI Stats Bar */}
+        {phase === 'complete' && (
+          <div className="animate-fade-in">
+            <TVStatsBar brokers={currentRankings} />
+          </div>
+        )}
+
         {/* Podium */}
         <div className={cn("flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full", viewMode === 'podium' && "items-center")}>
           <div className={cn("flex items-end justify-center mb-8", viewMode === 'podium' ? "gap-6 lg:gap-14" : "gap-4 lg:gap-8")}>
@@ -1149,6 +1277,10 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
                 'ring-orange-400/60 shadow-orange-500/30',
               ];
 
+              const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+              const xp = calculateXP(broker);
+              const level = getLevel(xp);
+
               return (
                 <div key={broker.id} className={cn(
                   "flex flex-col items-center transition-all duration-700",
@@ -1169,39 +1301,42 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
                       }} />
                     )}
                     <Avatar className={cn(avatarSizes[index], "ring-4 shadow-2xl relative z-10", ringColors[index])}>
-                      <AvatarImage src={broker.avatar} alt={broker.name} />
-                      <AvatarFallback className={cn("font-black",
-                        viewMode === 'podium' ? "text-2xl" : "text-xl",
-                        isFirst ? "bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100" :
-                        broker.position === 2 ? "bg-gradient-to-br from-slate-500 to-slate-700 text-slate-100" :
-                        "bg-gradient-to-br from-orange-600 to-orange-800 text-orange-100"
-                      )}>{broker.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                      <AvatarImage src={broker.avatar} alt={broker.name} className="object-cover" />
+                      <AvatarFallback className={cn(
+                        "font-black",
+                        isFirst ? "bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-xl md:text-2xl" :
+                        broker.position === 2 ? "bg-gradient-to-br from-slate-500 to-slate-700 text-slate-100 text-lg" :
+                        "bg-gradient-to-br from-orange-600 to-orange-800 text-orange-100 text-sm"
+                      )}>
+                        {initials}
+                      </AvatarFallback>
                     </Avatar>
                   </div>
-                  <p className={cn("font-bold text-center mb-0.5",
-                    isFirst
-                      ? viewMode === 'podium' ? "text-xl text-white" : "text-lg text-white"
-                      : viewMode === 'podium' ? "text-base text-white/85" : "text-sm text-white/85"
+
+                  <p className={cn(
+                    "font-bold text-center leading-tight text-white",
+                    viewMode === 'podium' ? "text-base lg:text-lg" : "text-sm lg:text-base"
                   )}>
                     {broker.name.split(' ').slice(0, 2).join(' ')}
                   </p>
-                  <p className={cn("text-xs mb-1", 
-                    isFirst ? "text-yellow-300/80" : broker.position === 2 ? "text-slate-300/70" : "text-orange-300/70"
-                  )}>{broker.sales} vendas</p>
-                  <p className={cn("font-black mb-3",
-                    isFirst
-                      ? viewMode === 'podium' 
-                        ? "text-3xl text-yellow-400 drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]" 
-                        : "text-xl text-yellow-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.4)]"
-                      : viewMode === 'podium' ? "text-lg text-blue-200" : "text-base text-blue-200"
-                  )}>{formatCurrency(broker.revenue)}</p>
-                  <div className={cn("rounded-t-2xl flex items-center justify-center relative overflow-hidden",
-                    viewMode === 'podium' ? "w-40 lg:w-48" : "w-28 lg:w-36",
+                  <p className="text-xs text-blue-200/60 mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
+                  <Badge variant="outline" className={cn("text-[10px] mb-1 border-white/20", level.color)}>
+                    Nv.{level.level} {level.title}
+                  </Badge>
+                  <p className={cn(
+                    "font-black mb-2",
+                    viewMode === 'podium' ? "text-lg lg:text-xl" : "text-base lg:text-lg",
+                    isFirst ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]" : "text-white"
+                  )}>
+                    {formatCurrencyCompact(broker.revenue)}
+                  </p>
+
+                  <div className={cn(
+                    "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden",
                     podiumHeights[index],
-                    `bg-gradient-to-t ${podiumGradients[index]} border-2`
+                    `bg-gradient-to-t ${podiumGradients[index]}`
                   )}>
                     {isFirst && <div className="absolute inset-0 shimmer-effect" />}
-                    {/* Colored glow inside podium */}
                     <div className={cn("absolute bottom-0 left-0 right-0 h-1/2 blur-2xl",
                       isFirst ? "bg-yellow-500/15" : broker.position === 2 ? "bg-slate-400/10" : "bg-orange-500/10"
                     )} />
@@ -1216,7 +1351,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
 
           {/* Podium-only mode: compact list */}
           {viewMode === 'podium' && currentRankings.length > 3 && phase === 'complete' && (
-            <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto mt-4">
+            <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto mt-4 animate-fade-in">
               {currentRankings.slice(3).map((broker, i) => {
                 const chipColors = [
                   'from-blue-500/10 to-blue-500/5 border-blue-400/20',
@@ -1292,10 +1427,13 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
             </div>
           )}
         </div>
-        <div className="text-center mt-4">
-          <p className="text-white/15 text-xs tracking-widest uppercase">Pressione ESC para sair</p>
-        </div>
       </div>
+
+      {/* Bottom: Recent sales ticker */}
+      <div className="relative z-10">
+        <RecentSalesTicker sales={sales} brokers={brokerRankings} />
+      </div>
+
       <style>{`
         @keyframes float-particle {
           0%, 100% { transform: translateY(0) scale(1); opacity: 0.15; }
@@ -1313,6 +1451,10 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
           15% { opacity: 1; }
           20% { transform: rotate(35deg) translateY(100vh); opacity: 0; }
           100% { transform: rotate(35deg) translateY(100vh); opacity: 0; }
+        }
+        @keyframes ticker {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
       `}</style>
     </div>
