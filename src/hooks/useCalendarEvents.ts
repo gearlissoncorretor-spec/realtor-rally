@@ -79,7 +79,7 @@ export function useCalendarEvents(startDate?: string, endDate?: string) {
     mutationFn: async (eventData: CreateEventData) => {
       const { share_with_team, share_with_users, ...insertData } = eventData;
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('calendar_events')
         .insert({ ...insertData, user_id: user!.id })
         .select()
