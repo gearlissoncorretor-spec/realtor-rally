@@ -1545,7 +1545,7 @@ const Ranking = () => {
   }
 
   if (isTVMode) {
-    return <RankingTVMode brokerRankings={brokerRankings} onClose={closeTVMode} sales={sales} />;
+    return <RankingTVMode brokerRankings={brokerRankings} captacaoRankings={captacaoRankings} onClose={closeTVMode} sales={sales} tvRankingMode={tvRankingMode} />;
   }
 
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
