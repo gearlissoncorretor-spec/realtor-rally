@@ -845,9 +845,7 @@ const MetaGestao = () => {
               onOpenChange={(open) => !open && setSelectedGoal(null)}
               goal={selectedGoal}
               onUpdate={updateGoal}
-              onDelete={deleteGoal}
               canEdit={canEditGoal(selectedGoal)}
-              canDelete={canEditGoal(selectedGoal)}
             />
           )}
           
