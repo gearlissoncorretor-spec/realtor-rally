@@ -59,7 +59,7 @@ export function useCalendarEvents(startDate?: string, endDate?: string) {
   const eventsQuery = useQuery({
     queryKey: ['calendar-events', startDate, endDate],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('calendar_events')
         .select('*')
         .order('event_date', { ascending: true })
