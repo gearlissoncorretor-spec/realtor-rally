@@ -52,6 +52,9 @@ interface TeamRanking {
   position: number;
 }
 
+type RankingType = 'vendas' | 'captacao';
+type TVRankingMode = 'alternate' | 'vendas' | 'captacao';
+
 // ===== MEDALS & ACHIEVEMENTS =====
 const getAchievements = (broker: BrokerRanking, allBrokers: BrokerRanking[]) => {
   const badges: { icon: string; label: string; color: string }[] = [];
