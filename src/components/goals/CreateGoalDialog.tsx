@@ -106,6 +106,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
         description: '',
         target_value: '',
         target_type: 'sales_count',
+        custom_target_type: '',
         period_type: 'monthly',
         start_date: new Date(),
         end_date: new Date(),
