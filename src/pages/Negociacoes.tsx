@@ -783,6 +783,9 @@ const Negociacoes = () => {
                                   <Button size="sm" variant="destructive" onClick={() => handleOpenLossDialog(negotiation)} className="h-9">
                                     <XCircle className="w-4 h-4" />
                                   </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleOpenReturnToFollowUp(negotiation)} className="h-9" title="Voltar para Follow Up">
+                                    <Undo2 className="w-4 h-4" />
+                                  </Button>
                                   <Button size="sm" variant="ghost" className="text-destructive h-9" onClick={() => setDeleteId(negotiation.id)}>
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
