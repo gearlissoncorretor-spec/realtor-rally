@@ -1053,6 +1053,41 @@ const Negociacoes = () => {
         clientName={celebrationData.clientName}
         saleValue={celebrationData.saleValue}
       />
+
+      {/* Return to Follow Up Dialog */}
+      <AlertDialog open={returnToFollowUpOpen} onOpenChange={setReturnToFollowUpOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Undo2 className="w-5 h-5 text-primary" />
+              Voltar para Follow Up
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Você está prestes a mover esta negociação de volta para a tela de Follow Up.
+              </p>
+              {selectedForFollowUp && (
+                <div className="bg-muted p-3 rounded-lg space-y-2 text-sm">
+                  <p><strong>Cliente:</strong> {selectedForFollowUp.client_name}</p>
+                  <p><strong>Telefone:</strong> {selectedForFollowUp.client_phone || 'Não informado'}</p>
+                  <p><strong>Imóvel:</strong> {selectedForFollowUp.property_address}</p>
+                  <p><strong>Valor:</strong> {formatCurrency(selectedForFollowUp.negotiated_value)}</p>
+                </div>
+              )}
+              <p className="text-amber-600 dark:text-amber-400">
+                A negociação será removida e um novo registro será criado no Follow Up com status "Novo Lead".
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReturnToFollowUp}>
+              <Undo2 className="w-4 h-4 mr-2" />
+              Voltar para Follow Up
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
