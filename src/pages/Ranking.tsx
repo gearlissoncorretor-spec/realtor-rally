@@ -1215,9 +1215,9 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
           </div>
 
           {/* Podium-only mode: compact list */}
-          {viewMode === 'podium' && brokerRankings.length > 3 && phase === 'complete' && (
+          {viewMode === 'podium' && currentRankings.length > 3 && phase === 'complete' && (
             <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto mt-4">
-              {brokerRankings.slice(3).map((broker, i) => {
+              {currentRankings.slice(3).map((broker, i) => {
                 const chipColors = [
                   'from-blue-500/10 to-blue-500/5 border-blue-400/20',
                   'from-purple-500/10 to-purple-500/5 border-purple-400/20',
