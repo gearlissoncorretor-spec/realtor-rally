@@ -24,7 +24,7 @@ const Metas = lazy(() => import("@/pages/Metas"));
 const X1 = lazy(() => import("@/pages/X1"));
 const DashboardEquipes = lazy(() => import("@/pages/DashboardEquipes"));
 const TarefasKanban = lazy(() => import("@/pages/TarefasKanban"));
-const Atividades = lazy(() => import("@/pages/Atividades"));
+const Atividades = lazy(() => import("@/pages/TarefasKanban")); // Redirect to unified page
 const Negociacoes = lazy(() => import("@/pages/Negociacoes"));
 const MetaGestao = lazy(() => import("@/pages/MetaGestao"));
 const FollowUp = lazy(() => import("@/pages/FollowUp"));

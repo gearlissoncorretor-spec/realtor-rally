@@ -104,7 +104,7 @@ const Navigation = () => {
     },
     {
       label: "Produtividade",
-      items: navItems.filter(i => ['metas', 'meta-gestao', 'atividades', 'tarefas-kanban', 'x1', 'agenda'].includes(i.screen)),
+      items: navItems.filter(i => ['metas', 'meta-gestao', 'tarefas-kanban', 'x1', 'agenda'].includes(i.screen)),
     },
     {
       label: "Relatórios",
