@@ -1111,7 +1111,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
             )}
             <div className="text-left">
               <h1 className="text-3xl lg:text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent drop-shadow-sm">
-                RANKING DE VENDAS
+                {activeRankingType === 'captacao' ? 'RANKING DE CAPTAÇÃO' : 'RANKING DE VENDAS'}
               </h1>
               <p className="text-sm text-cyan-300/70 font-medium tracking-[0.3em] uppercase">{orgName}</p>
             </div>
