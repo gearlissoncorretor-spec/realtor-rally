@@ -107,7 +107,7 @@ export function useCalendarEvents(startDate?: string, endDate?: string) {
           event_id: data.id,
           shared_with_user_id: userId,
         }));
-        await supabase.from('calendar_event_shares').insert(shares);
+        await (supabase as any).from('calendar_event_shares').insert(shares);
       }
 
       return data;
