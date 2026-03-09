@@ -1574,6 +1574,25 @@ const Ranking = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Ranking Type Selector */}
+            <div className="flex items-center bg-muted rounded-lg p-0.5">
+              <Button
+                variant={rankingType === 'vendas' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setRankingType('vendas')}
+                className="text-xs h-7 px-3 rounded-md"
+              >
+                Vendas
+              </Button>
+              <Button
+                variant={rankingType === 'captacao' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setRankingType('captacao')}
+                className="text-xs h-7 px-3 rounded-md"
+              >
+                Captação
+              </Button>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -1583,10 +1602,23 @@ const Ranking = () => {
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
             </Button>
-            <Button onClick={openTVMode} className="gap-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 shadow-lg text-sm h-9">
-              <Tv className="w-4 h-4" />
-              Modo TV
-            </Button>
+            {/* TV Mode with config */}
+            <div className="flex items-center gap-1">
+              <Select value={tvRankingMode} onValueChange={(v) => setTVRankingMode(v as TVRankingMode)}>
+                <SelectTrigger className="h-9 w-[140px] text-xs border-border/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alternate">Alternar rankings</SelectItem>
+                  <SelectItem value="vendas">Só Vendas</SelectItem>
+                  <SelectItem value="captacao">Só Captação</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={openTVMode} className="gap-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 shadow-lg text-sm h-9">
+                <Tv className="w-4 h-4" />
+                Modo TV
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -1613,21 +1645,21 @@ const Ranking = () => {
         )}
 
         {/* Stats */}
-        <StatsHeader brokers={brokerRankings} />
+        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} />
 
         {/* Main content: Ranking + Spotlight sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left: Main ranking */}
           <div className="flex-1 min-w-0">
-            {/* Team ranking for directors */}
-            {(isDiretor() || isAdmin()) && teamRankings.length > 0 && selectedTeam === 'all' && (
+            {/* Team ranking for directors (only in vendas mode) */}
+            {rankingType === 'vendas' && (isDiretor() || isAdmin()) && teamRankings.length > 0 && selectedTeam === 'all' && (
               <TeamRankingSection teamRankings={teamRankings} />
             )}
 
             {/* Podium */}
-            {brokerRankings.length >= 1 && (
+            {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length >= 1 && (
               <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
-                <AnimatedPodium brokers={brokerRankings} currentUserId={user?.id} />
+                <AnimatedPodium brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} currentUserId={user?.id} />
               </Card>
             )}
 
@@ -1635,23 +1667,29 @@ const Ranking = () => {
             <Card className="overflow-hidden border-border/50">
               <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
                 <Flame className="w-5 h-5 text-warning" />
-                <h2 className="font-semibold text-foreground text-sm">Classificação Completa</h2>
-                <Badge variant="secondary" className="ml-auto text-xs">{brokerRankings.length} corretores</Badge>
+                <h2 className="font-semibold text-foreground text-sm">
+                  {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
+                </h2>
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
+                </Badge>
               </div>
               <div className="p-3 space-y-2">
-                {brokerRankings.map((broker) => (
+                {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).map((broker) => (
                   <LeaderboardCard
                     key={broker.id}
                     broker={broker}
-                    allBrokers={brokerRankings}
+                    allBrokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings}
                     currentUserId={user?.id}
                     showProgressBar={broker.position > 1}
                   />
                 ))}
-                {brokerRankings.length === 0 && (
+                {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length === 0 && (
                   <div className="text-center py-12">
                     <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground font-medium">Nenhum corretor encontrado no período</p>
+                    <p className="text-muted-foreground font-medium">
+                      {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
+                    </p>
                     <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
                   </div>
                 )}
