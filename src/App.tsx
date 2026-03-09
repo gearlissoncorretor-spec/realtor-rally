@@ -56,7 +56,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
-        <DataProvider>
           <Toaster />
           <Router future={{
             v7_startTransition: true,
@@ -129,7 +128,6 @@ const App = () => (
               <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
             </Routes>
           </Router>
-        </DataProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
