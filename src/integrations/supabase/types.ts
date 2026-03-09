@@ -389,6 +389,123 @@ export type Database = {
           },
         ]
       }
+      calendar_event_shares: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          event_id: string
+          id: string
+          shared_with_team_id: string | null
+          shared_with_user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          shared_with_team_id?: string | null
+          shared_with_user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          shared_with_team_id?: string | null
+          shared_with_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_shares_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_event_shares_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_event_shares_shared_with_team_id_fkey"
+            columns: ["shared_with_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          client_name: string | null
+          color: string | null
+          company_id: string | null
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          event_type: string
+          id: string
+          is_all_day: boolean
+          is_private: boolean
+          property_reference: string | null
+          responsible_id: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_name?: string | null
+          color?: string | null
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          is_all_day?: boolean
+          is_private?: boolean
+          property_reference?: string | null
+          responsible_id?: string | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_name?: string | null
+          color?: string | null
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          is_all_day?: boolean
+          is_private?: boolean
+          property_reference?: string | null
+          responsible_id?: string | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       column_targets: {
         Row: {
           broker_id: string
