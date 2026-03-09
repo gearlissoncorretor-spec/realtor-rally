@@ -1,295 +1,179 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import Navigation from '@/components/Navigation';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink, Plus, Clock, MapPin, RefreshCw, Link2, Unlink, Loader2, Mail } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { format, parseISO, isToday, isTomorrow, addDays } from 'date-fns';
+import { Calendar, Plus, ChevronLeft, ChevronRight, CalendarDays, CalendarRange, LayoutGrid } from 'lucide-react';
+import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCalendarEvents, CalendarEvent as CalEvent, CreateEventData } from '@/hooks/useCalendarEvents';
+import CreateEventDialog from '@/components/calendar/CreateEventDialog';
+import CalendarMonthView from '@/components/calendar/CalendarMonthView';
+import CalendarWeekView from '@/components/calendar/CalendarWeekView';
+import CalendarDayView from '@/components/calendar/CalendarDayView';
 
-interface CalendarEvent {
-  id: string;
-  summary: string;
-  description?: string;
-  location?: string;
-  start: string;
-  end: string;
-  htmlLink?: string;
-}
-
-// Use published URL to match Google Console redirect URI
-const REDIRECT_URI = window.location.hostname.includes('lovableproject.com') || window.location.hostname.includes('localhost')
-  ? 'https://gestaoequipembsc.lovable.app/agenda'
-  : `${window.location.origin}/agenda`;
+type ViewMode = 'month' | 'week' | 'day';
 
 const Agenda = () => {
-  const queryClient = useQueryClient();
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [editingEvent, setEditingEvent] = useState<CalEvent | null>(null);
 
-  // Check connection status
-  const { data: connectionStatus, isLoading: statusLoading } = useQuery({
-    queryKey: ['google-calendar-status'],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('google-calendar', {
-        body: { action: 'status' },
-      });
-      if (error) throw error;
-      return data as { connected: boolean; email: string | null };
-    },
-    staleTime: 60 * 1000,
-  });
-
-  // Handle OAuth callback
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get('code');
-    if (code && !isConnecting) {
-      setIsConnecting(true);
-      // Clean URL
-      window.history.replaceState({}, '', '/agenda');
-
-      supabase.functions.invoke('google-calendar', {
-        body: { action: 'exchange-code', code, redirectUri: REDIRECT_URI },
-      }).then(({ data, error }) => {
-        if (error || !data?.success) {
-          toast.error('Erro ao conectar Google Calendar');
-          console.error('Exchange error:', error || data);
-        } else {
-          toast.success(`Google Calendar conectado: ${data.email}`);
-          queryClient.invalidateQueries({ queryKey: ['google-calendar-status'] });
-          queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
-        }
-        setIsConnecting(false);
-      });
+  // Calculate date range for query
+  const getDateRange = () => {
+    if (viewMode === 'month') {
+      const start = startOfWeek(startOfMonth(currentDate), { locale: ptBR });
+      const end = endOfWeek(endOfMonth(currentDate), { locale: ptBR });
+      return { start: format(start, 'yyyy-MM-dd'), end: format(end, 'yyyy-MM-dd') };
     }
-  }, []);
-
-  // Fetch events
-  const { data: events, isLoading: eventsLoading, error: eventsError, refetch } = useQuery({
-    queryKey: ['google-calendar-events'],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('google-calendar', {
-        body: {
-          action: 'list',
-          timeMin: new Date().toISOString(),
-          timeMax: addDays(new Date(), 30).toISOString(),
-          maxResults: 50,
-        },
-      });
-      if (error) throw error;
-      if (data?.error === 'not_connected' || data?.error === 'token_revoked') {
-        return [] as CalendarEvent[];
-      }
-      return (data?.events || []) as CalendarEvent[];
-    },
-    enabled: connectionStatus?.connected === true,
-    retry: 1,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Connect to Google
-  const connectMutation = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('google-calendar', {
-        body: { action: 'auth-url', redirectUri: REDIRECT_URI },
-      });
-      if (error) throw error;
-      return data.url as string;
-    },
-    onSuccess: (url) => {
-      window.location.href = url;
-    },
-    onError: () => {
-      toast.error('Erro ao iniciar conexão com Google');
-    },
-  });
-
-  // Disconnect
-  const disconnectMutation = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('google-calendar', {
-        body: { action: 'disconnect' },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success('Google Calendar desconectado');
-      queryClient.invalidateQueries({ queryKey: ['google-calendar-status'] });
-      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
-    },
-  });
-
-  const getDateLabel = (dateStr: string) => {
-    const date = parseISO(dateStr);
-    if (isToday(date)) return 'Hoje';
-    if (isTomorrow(date)) return 'Amanhã';
-    return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
+    if (viewMode === 'week') {
+      const start = startOfWeek(currentDate, { locale: ptBR });
+      const end = endOfWeek(currentDate, { locale: ptBR });
+      return { start: format(start, 'yyyy-MM-dd'), end: format(end, 'yyyy-MM-dd') };
+    }
+    return { start: format(currentDate, 'yyyy-MM-dd'), end: format(currentDate, 'yyyy-MM-dd') };
   };
 
-  const getTimeStr = (dateStr: string) => {
-    try {
-      return format(parseISO(dateStr), 'HH:mm');
-    } catch {
-      return '';
+  const { start, end } = getDateRange();
+  const { events, isLoading, createEvent, updateEvent, deleteEvent } = useCalendarEvents(start, end);
+
+  const navigate = (direction: 'prev' | 'next') => {
+    const fn = direction === 'next'
+      ? viewMode === 'month' ? addMonths : viewMode === 'week' ? addWeeks : addDays
+      : viewMode === 'month' ? subMonths : viewMode === 'week' ? subWeeks : subDays;
+    setCurrentDate(fn(currentDate, 1));
+  };
+
+  const getTitle = () => {
+    if (viewMode === 'month') return format(currentDate, "MMMM 'de' yyyy", { locale: ptBR });
+    if (viewMode === 'week') {
+      const ws = startOfWeek(currentDate, { locale: ptBR });
+      const we = endOfWeek(currentDate, { locale: ptBR });
+      return `${format(ws, 'd MMM', { locale: ptBR })} - ${format(we, "d MMM 'de' yyyy", { locale: ptBR })}`;
+    }
+    return format(currentDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
+  };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    if (viewMode === 'month') {
+      setCurrentDate(date);
+      setViewMode('day');
+    } else {
+      setShowCreateDialog(true);
     }
   };
 
-  const groupedEvents = (events || []).reduce((groups: Record<string, CalendarEvent[]>, event) => {
-    const dateKey = event.start.split('T')[0];
-    if (!groups[dateKey]) groups[dateKey] = [];
-    groups[dateKey].push(event);
-    return groups;
-  }, {});
+  const handleEventClick = (event: CalEvent) => {
+    setEditingEvent(event);
+    setShowCreateDialog(true);
+  };
 
-  const sortedDates = Object.keys(groupedEvents).sort();
-  const isConnected = connectionStatus?.connected === true;
-  const isLoading = statusLoading || isConnecting;
+  const handleCreateSubmit = (data: CreateEventData) => {
+    createEvent.mutate(data);
+  };
+
+  const handleUpdateSubmit = (data: Partial<CalEvent> & { id: string }) => {
+    updateEvent.mutate(data);
+    setEditingEvent(null);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteEvent.mutate(id);
+    setEditingEvent(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Agenda
               </h1>
-              <p className="text-sm text-muted-foreground">
-                {isConnected
-                  ? <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {connectionStatus?.email}</span>
-                  : 'Conecte seu Google Calendar para ver seus compromissos'}
-              </p>
+              <p className="text-sm text-muted-foreground">Organize compromissos, metas e atividades</p>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              {isConnected ? (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => refetch()}>
-                    <RefreshCw className="w-4 h-4 mr-1" /> Atualizar
-                  </Button>
-                  <Button size="sm" asChild>
-                    <a href="https://calendar.google.com/calendar/r/eventedit" target="_blank" rel="noopener noreferrer">
-                      <Plus className="w-4 h-4 mr-1" /> Novo evento
-                    </a>
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => disconnectMutation.mutate()} disabled={disconnectMutation.isPending}>
-                    <Unlink className="w-4 h-4 mr-1" /> Desconectar
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => connectMutation.mutate()}
-                  disabled={connectMutation.isPending || isLoading}
-                  size="sm"
-                >
-                  {connectMutation.isPending || isLoading ? (
-                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                  ) : (
-                    <Link2 className="w-4 h-4 mr-1" />
-                  )}
-                  Conectar Google Calendar
-                </Button>
-              )}
-            </div>
+            <Button size="sm" onClick={() => { setSelectedDate(new Date()); setEditingEvent(null); setShowCreateDialog(true); }}>
+              <Plus className="w-4 h-4 mr-1" /> Novo evento
+            </Button>
           </div>
 
-          {/* Loading */}
-          {(isLoading || eventsLoading) && (
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <Card key={i}>
-                  <CardContent className="p-4 space-y-3">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-16 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={() => navigate('prev')}>
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
+                Hoje
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => navigate('next')}>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <h2 className="text-lg font-semibold text-foreground capitalize ml-2">
+                {getTitle()}
+              </h2>
             </div>
+
+            <Tabs value={viewMode} onValueChange={v => setViewMode(v as ViewMode)}>
+              <TabsList>
+                <TabsTrigger value="day" className="gap-1">
+                  <CalendarDays className="w-3.5 h-3.5" /> Dia
+                </TabsTrigger>
+                <TabsTrigger value="week" className="gap-1">
+                  <CalendarRange className="w-3.5 h-3.5" /> Semana
+                </TabsTrigger>
+                <TabsTrigger value="month" className="gap-1">
+                  <LayoutGrid className="w-3.5 h-3.5" /> Mês
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Calendar Views */}
+          {viewMode === 'month' && (
+            <CalendarMonthView
+              currentDate={currentDate}
+              events={events}
+              onDateClick={handleDateClick}
+              onEventClick={handleEventClick}
+            />
           )}
 
-          {/* Not connected */}
-          {!isLoading && !isConnected && (
-            <Card className="border-primary/20">
-              <CardContent className="p-8 text-center space-y-4">
-                <Calendar className="w-16 h-16 text-primary mx-auto opacity-50" />
-                <h3 className="font-semibold text-lg text-foreground">Conecte sua conta Google</h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Cada usuário conecta sua própria conta Google para visualizar seus compromissos pessoais. 
-                  Seus dados são isolados e ninguém mais terá acesso à sua agenda.
-                </p>
-                <Button onClick={() => connectMutation.mutate()} disabled={connectMutation.isPending}>
-                  {connectMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Link2 className="w-4 h-4 mr-2" />
-                  )}
-                  Conectar Google Calendar
-                </Button>
-              </CardContent>
-            </Card>
+          {viewMode === 'week' && (
+            <CalendarWeekView
+              currentDate={currentDate}
+              events={events}
+              onDateClick={handleDateClick}
+              onEventClick={handleEventClick}
+            />
           )}
 
-          {/* Connected but no events */}
-          {!isLoading && !eventsLoading && isConnected && sortedDates.length === 0 && (
-            <Card>
-              <CardContent className="p-8 text-center space-y-3">
-                <Calendar className="w-12 h-12 text-muted-foreground mx-auto" />
-                <h3 className="font-semibold text-foreground">Nenhum evento</h3>
-                <p className="text-sm text-muted-foreground">Você não tem compromissos nos próximos 30 dias</p>
-              </CardContent>
-            </Card>
+          {viewMode === 'day' && (
+            <CalendarDayView
+              currentDate={currentDate}
+              events={events}
+              onEventClick={handleEventClick}
+            />
           )}
-
-          {/* Events list */}
-          {sortedDates.map(dateKey => (
-            <div key={dateKey} className="space-y-2">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-1">
-                {getDateLabel(dateKey + 'T00:00:00')}
-              </h3>
-              <div className="space-y-2">
-                {groupedEvents[dateKey].map(event => (
-                  <Card key={event.id} className="hover:border-primary/30 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-foreground truncate">{event.summary}</h4>
-                          {event.description && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
-                          )}
-                          <div className="flex flex-wrap items-center gap-3 mt-2">
-                            <Badge variant="secondary" className="text-xs">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {getTimeStr(event.start)} - {getTimeStr(event.end)}
-                            </Badge>
-                            {event.location && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <MapPin className="w-3 h-3" /> {event.location}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        {event.htmlLink && (
-                          <Button variant="ghost" size="icon" asChild className="shrink-0">
-                            <a href={event.htmlLink} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          ))}
         </div>
+
+        {/* Create/Edit Event Dialog */}
+        <CreateEventDialog
+          open={showCreateDialog}
+          onOpenChange={(open) => { setShowCreateDialog(open); if (!open) setEditingEvent(null); }}
+          onSubmit={handleCreateSubmit}
+          isLoading={createEvent.isPending}
+          defaultDate={selectedDate}
+          editEvent={editingEvent}
+          onUpdate={handleUpdateSubmit}
+          onDelete={handleDelete}
+        />
       </main>
     </div>
   );
