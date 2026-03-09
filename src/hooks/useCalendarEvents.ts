@@ -88,7 +88,7 @@ export function useCalendarEvents(startDate?: string, endDate?: string) {
 
       // Handle sharing
       if (share_with_team && data) {
-        const { data: profile } = await supabase
+        const { data: profile } = await (supabase as any)
           .from('profiles')
           .select('team_id')
           .eq('id', user!.id)
