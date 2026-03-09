@@ -88,8 +88,49 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
 
   const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || searchTerm;
 
+  // Monthly evolution chart data
+  const monthlyChartData = useMemo(() => {
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const monthMap = new Map<number, { count: number; vgv: number }>();
+    
+    // Initialize all 12 months
+    for (let i = 0; i < 12; i++) {
+      monthMap.set(i, { count: 0, vgv: 0 });
+    }
+
+    // Use captacaoSales (already year-filtered, but ignore month filter for the chart)
+    const yearFilteredSales = sales.filter(sale => {
+      if (!sale.captador || sale.captador.trim() === '') return false;
+      if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
+      const d = new Date(sale.sale_date || sale.created_at || '');
+      if (isNaN(d.getTime())) return false;
+      if (selectedYear > 0 && d.getFullYear() !== selectedYear) return false;
+      return true;
+    });
+
+    yearFilteredSales.forEach(sale => {
+      const d = new Date(sale.sale_date || sale.created_at || '');
+      const month = d.getMonth();
+      const existing = monthMap.get(month)!;
+      existing.count += 1;
+      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+    });
+
+    return monthNames.map((name, i) => ({
+      name,
+      captacoes: monthMap.get(i)!.count,
+      vgv: monthMap.get(i)!.vgv,
+    }));
+  }, [sales, selectedYear]);
+
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  const formatCompactCurrency = (value: number) => {
+    if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}K`;
+    return `R$ ${value}`;
+  };
 
   if (loading) {
     return (
