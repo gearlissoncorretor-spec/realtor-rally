@@ -59,7 +59,7 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
 
   // Metrics
   const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
-  const uniqueCaptadores = [...new Set(filteredSales.map(s => s.captador).filter(Boolean))];
+  
   const totalCaptacoes = filteredSales.length;
 
   // Top captadores ranking
