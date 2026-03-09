@@ -1419,6 +1419,42 @@ const Ranking = () => {
       .map((b, i) => ({ ...b, position: i + 1 }));
   }, [brokers, filteredSales, sales, selectedTeam]);
 
+  // Captação rankings - based on captador field
+  const captacaoRankings: BrokerRanking[] = useMemo(() => {
+    const captadorMap = new Map<string, { name: string; count: number; vgv: number }>();
+    
+    filteredSales.forEach(sale => {
+      if (!sale.captador || sale.captador.trim() === '') return;
+      if (sale.status === 'cancelada' || sale.status === 'distrato') return;
+      const captador = sale.captador.trim();
+      const existing = captadorMap.get(captador) || { name: captador, count: 0, vgv: 0 };
+      existing.count += 1;
+      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+      captadorMap.set(captador, existing);
+    });
+
+    // Try to match captador names to brokers for avatar/id
+    return Array.from(captadorMap.values())
+      .sort((a, b) => b.vgv - a.vgv || b.count - a.count)
+      .map((cap, i) => {
+        const matchedBroker = brokers.find(b => 
+          b.name.toLowerCase() === cap.name.toLowerCase()
+        );
+        return {
+          id: matchedBroker?.id || cap.name,
+          name: cap.name,
+          avatar: matchedBroker?.avatar_url || '',
+          sales: cap.count,
+          revenue: cap.vgv,
+          position: i + 1,
+          growth: null,
+          email: matchedBroker?.email || '',
+          userId: matchedBroker?.user_id || null,
+          teamId: matchedBroker?.team_id || null,
+        };
+      });
+  }, [filteredSales, brokers]);
+
   // Team rankings (for directors)
   const teamRankings: TeamRanking[] = useMemo(() => {
     if (!isDiretor() && !isAdmin()) return [];
