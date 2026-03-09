@@ -1282,11 +1282,10 @@ const Ranking = () => {
       if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear();
       if (quickPeriod === 'all') return true;
 
-      // When both filters are "all", show everything
-      if (selectedMonth === 0 && selectedYear === 0) return true;
-      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
-      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
-      return true;
+      // Default 'month' mode: if no specific month/year selected, use current month
+      const filterMonth = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
+      const filterYear = selectedYear > 0 ? selectedYear : now.getFullYear();
+      return saleDate.getMonth() + 1 === filterMonth && saleDate.getFullYear() === filterYear;
     });
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
 
@@ -1329,7 +1328,11 @@ const Ranking = () => {
     return teams.map(team => {
       const teamBrokers = brokers.filter(b => b.team_id === team.id);
       const teamBrokerIds = teamBrokers.map(b => b.id);
-      const teamSales = filteredSales.filter(s => teamBrokerIds.includes(s.broker_id || ''));
+      const teamSales = filteredSales.filter(s => 
+        teamBrokerIds.includes(s.broker_id || '') && 
+        s.status !== 'cancelada' && 
+        s.status !== 'distrato'
+      );
       const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
 
       return {
