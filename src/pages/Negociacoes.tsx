@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
+import { useFollowUps } from "@/hooks/useFollowUps";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
