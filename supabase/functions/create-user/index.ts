@@ -304,6 +304,7 @@ serve(async (req) => {
             observations: observations || null,
             status: status || 'ativo',
             team_id: team_id || null,
+            company_id: targetCompanyId || null,
             created_by: createdByUserId // Track who created the broker
           })
 
