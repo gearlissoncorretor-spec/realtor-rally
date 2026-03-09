@@ -992,7 +992,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
   };
 
   const celebratingBroker = celebratingSale
-    ? brokerRankings.find(b => b.id === celebratingSale.brokerId) || null
+    ? currentRankings.find(b => b.id === celebratingSale.brokerId) || null
     : null;
 
   return (
