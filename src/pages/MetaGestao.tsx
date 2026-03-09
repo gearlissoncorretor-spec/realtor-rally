@@ -38,6 +38,7 @@ import {
   Percent,
   Building2,
   UserPlus,
+  Plus,
   Loader2
 } from 'lucide-react';
 import { formatCurrency, formatCurrencyCompact, formatPercentage } from '@/utils/formatting';
