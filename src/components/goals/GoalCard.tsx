@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Target, Calendar, TrendingUp, CheckCircle2, Clock, AlertCircle, Award, Flame } from 'lucide-react';
 import { Goal } from '@/hooks/useGoals';
 import { formatCurrency, formatNumber } from '@/utils/formatting';
@@ -15,6 +14,25 @@ interface GoalCardProps {
   onClick: () => void;
   canEdit: boolean;
 }
+
+const TYPE_LABELS: Record<string, string> = {
+  sales_count: 'Vendas',
+  captacao: 'Captação',
+  contratacao: 'Contratação',
+  revenue: 'Receita',
+  vgv: 'VGV',
+  commission: 'Comissão',
+};
+
+const PERIOD_LABELS: Record<string, string> = {
+  daily: 'Diária',
+  weekly: 'Semanal',
+  monthly: 'Mensal',
+  quarterly: 'Trimestral',
+  semester: 'Semestral',
+  yearly: 'Anual',
+  custom: 'Personalizado',
+};
 
 export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) => {
   const progress = Math.min((goal.current_value / goal.target_value) * 100, 100);
@@ -29,25 +47,18 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) =>
 
   const getStatusIcon = () => {
     switch (goal.status) {
-      case 'completed':
-        return <CheckCircle2 className="w-4 h-4" />;
-      case 'paused':
-        return <Clock className="w-4 h-4" />;
-      case 'cancelled':
-        return <AlertCircle className="w-4 h-4" />;
-      default:
-        return <Target className="w-4 h-4" />;
+      case 'completed': return <CheckCircle2 className="w-4 h-4" />;
+      case 'paused': return <Clock className="w-4 h-4" />;
+      case 'cancelled': return <AlertCircle className="w-4 h-4" />;
+      default: return <Target className="w-4 h-4" />;
     }
   };
 
   const getStatusColor = () => {
     switch (goal.status) {
-      case 'completed':
-        return 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/30';
-      case 'paused':
-        return 'bg-gradient-to-br from-yellow-500 to-amber-600 shadow-lg shadow-yellow-500/30';
-      case 'cancelled':
-        return 'bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/30';
+      case 'completed': return 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/30';
+      case 'paused': return 'bg-gradient-to-br from-yellow-500 to-amber-600 shadow-lg shadow-yellow-500/30';
+      case 'cancelled': return 'bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/30';
       default:
         if (isOverdue) return 'bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/30';
         if (isNearlyComplete) return 'bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/30';
@@ -72,39 +83,16 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) =>
       case 'commission':
         return formatCurrency(value);
       case 'sales_count':
+      case 'captacao':
+      case 'contratacao':
         return formatNumber(value);
       default:
         return value.toString();
     }
   };
 
-  const getTypeLabel = () => {
-    switch (goal.target_type) {
-      case 'sales_count':
-        return 'Vendas';
-      case 'revenue':
-        return 'Receita';
-      case 'vgv':
-        return 'VGV';
-      case 'commission':
-        return 'Comissão';
-      default:
-        return goal.target_type;
-    }
-  };
-
-  const getPeriodLabel = () => {
-    switch (goal.period_type) {
-      case 'monthly':
-        return 'Mensal';
-      case 'quarterly':
-        return 'Trimestral';
-      case 'yearly':
-        return 'Anual';
-      default:
-        return goal.period_type;
-    }
-  };
+  const getTypeLabel = () => TYPE_LABELS[goal.target_type] || goal.target_type;
+  const getPeriodLabel = () => PERIOD_LABELS[goal.period_type] || goal.period_type;
 
   return (
     <Card 
@@ -144,7 +132,6 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) =>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Progress Section */}
         <div className="space-y-3 p-4 rounded-xl bg-gradient-to-br from-muted/30 to-muted/10 border border-border/30">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Progresso</span>
@@ -161,15 +148,11 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) =>
           <div className="grid grid-cols-2 gap-4 mt-3">
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Realizado</p>
-              <p className="text-base font-bold text-foreground">
-                {formatValue(goal.current_value)}
-              </p>
+              <p className="text-base font-bold text-foreground">{formatValue(goal.current_value)}</p>
             </div>
             <div className="space-y-1 text-right">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Meta</p>
-              <p className="text-base font-bold text-foreground">
-                {formatValue(goal.target_value)}
-              </p>
+              <p className="text-base font-bold text-foreground">{formatValue(goal.target_value)}</p>
             </div>
           </div>
           <div className="flex items-center justify-center gap-2 pt-2 border-t border-border/30">
@@ -187,7 +170,6 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) =>
           </div>
         </div>
 
-        {/* Date Info */}
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4" />
@@ -209,14 +191,10 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) =>
           )}
         </div>
 
-        {/* Description */}
         {goal.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {goal.description}
-          </p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{goal.description}</p>
         )}
 
-        {/* Tasks Summary */}
         {goal.tasks && goal.tasks.length > 0 && (
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">

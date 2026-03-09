@@ -2,6 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useGoals } from '@/hooks/useGoals';
+import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
+import { GoalCard } from '@/components/goals/GoalCard';
+import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import { useBrokers } from '@/hooks/useBrokers';
 import { useTeams } from '@/hooks/useTeams';
 import { useContextualIdentity } from '@/hooks/useContextualIdentity';
@@ -34,6 +38,7 @@ import {
   Percent,
   Building2,
   UserPlus,
+  Plus,
   Loader2
 } from 'lucide-react';
 import { formatCurrency, formatCurrencyCompact, formatPercentage } from '@/utils/formatting';
@@ -162,6 +167,10 @@ const MetaGestao = () => {
   const [brokerHiringGoal, setBrokerHiringGoal] = useState(25);
   const [savingTargets, setSavingTargets] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<any>(null);
+  
+  const { goals, loading: goalsLoading, createGoal, updateGoal, deleteGoal, canEditGoal, refreshGoals } = useGoals();
   
   const teamFilter = useMemo(() => {
     if (isGerente() && profile?.team_id) return profile.team_id;
@@ -760,6 +769,85 @@ const MetaGestao = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Goals Section */}
+          <Card className="border-border/50 bg-card shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Target className="w-5 h-5 text-primary" />
+                  Metas Personalizadas
+                </CardTitle>
+                {canManage && (
+                  <Button size="sm" onClick={() => setShowCreateGoal(true)}>
+                    <Plus className="w-4 h-4 mr-1" />
+                    Nova Meta
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Crie e acompanhe metas de vendas, captação, contratação e mais.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {goalsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1,2,3].map(i => <Skeleton key={i} className="h-64" />)}
+                </div>
+              ) : goals.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Target className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm font-medium">Nenhuma meta criada ainda</p>
+                  <p className="text-xs mt-1">Clique em "Nova Meta" para começar</p>
+                </div>
+              ) : (
+                <>
+                  {/* Active goals summary */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    {[
+                      { label: 'Ativas', value: goals.filter(g => g.status === 'active').length, color: 'text-primary' },
+                      { label: 'Concluídas', value: goals.filter(g => g.status === 'completed').length, color: 'text-success' },
+                      { label: 'Pausadas', value: goals.filter(g => g.status === 'paused').length, color: 'text-warning' },
+                      { label: 'Vencidas', value: goals.filter(g => g.status === 'active' && new Date(g.end_date) < new Date()).length, color: 'text-destructive' },
+                    ].map((stat, i) => (
+                      <div key={i} className="p-3 rounded-xl bg-muted/30 text-center">
+                        <p className={cn("text-2xl font-bold", stat.color)}>{stat.value}</p>
+                        <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {goals.map(goal => (
+                      <GoalCard
+                        key={goal.id}
+                        goal={goal}
+                        onClick={() => setSelectedGoal(goal)}
+                        canEdit={canEditGoal(goal)}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Dialogs */}
+          <CreateGoalDialog
+            open={showCreateGoal}
+            onOpenChange={setShowCreateGoal}
+            onCreate={createGoal}
+          />
+
+          {selectedGoal && (
+            <GoalDetailsDialog
+              open={!!selectedGoal}
+              onOpenChange={(open) => !open && setSelectedGoal(null)}
+              goal={selectedGoal}
+              onUpdate={updateGoal}
+              canEdit={canEditGoal(selectedGoal)}
+            />
+          )}
           
         </div>
       </div>
