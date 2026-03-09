@@ -65,6 +65,7 @@ const Negociacoes = () => {
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
   const { createSale, sales } = useData();
+  const { createFollowUp } = useFollowUps();
   const { flowStatuses, getStatusByValue } = useNegotiationStatuses();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
