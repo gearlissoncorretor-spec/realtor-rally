@@ -82,7 +82,7 @@ const TarefasKanban = () => {
               <ClipboardList className="w-4 h-4" />
               Atividades Semanais
             </TabsTrigger>
-          </Tabs>
+          </TabsList>
 
           <TabsContent value="kanban" className="flex-1 overflow-hidden mt-0">
             <div className="h-full">
