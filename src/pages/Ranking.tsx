@@ -52,6 +52,9 @@ interface TeamRanking {
   position: number;
 }
 
+type RankingType = 'vendas' | 'captacao';
+type TVRankingMode = 'alternate' | 'vendas' | 'captacao';
+
 // ===== MEDALS & ACHIEVEMENTS =====
 const getAchievements = (broker: BrokerRanking, allBrokers: BrokerRanking[]) => {
   const badges: { icon: string; label: string; color: string }[] = [];
@@ -905,7 +908,7 @@ const SaleCelebrationOverlay = ({
 };
 
 // ===== TV MODE =====
-const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: BrokerRanking[]; onClose: () => void; sales: any[] }) => {
+const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode }) => {
   const { settings } = useOrganizationSettings();
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
@@ -913,12 +916,25 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
   const [viewMode, setViewMode] = useState<'full' | 'podium'>('full');
   const [celebratingSale, setCelebratingSale] = useState<{ clientName: string; value: number; brokerId: string | null } | null>(null);
+  const [activeRankingType, setActiveRankingType] = useState<RankingType>(tvRankingMode === 'captacao' ? 'captacao' : 'vendas');
   const lastSaleCountRef = useRef(sales.length);
 
-  const top3 = brokerRankings.slice(0, 3);
-  const rest = viewMode === 'full' ? brokerRankings.slice(3, 10) : [];
+  const currentRankings = activeRankingType === 'captacao' ? captacaoRankings : brokerRankings;
+  const top3 = currentRankings.slice(0, 3);
+  const rest = viewMode === 'full' ? currentRankings.slice(3, 10) : [];
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const orgName = settings?.organization_name || 'Ranking';
+
+  // Auto-alternate rankings in TV mode
+  useEffect(() => {
+    if (tvRankingMode !== 'alternate') return;
+    const interval = setInterval(() => {
+      setActiveRankingType(prev => prev === 'vendas' ? 'captacao' : 'vendas');
+      setPhase('intro');
+      setRevealedCount(0);
+    }, 20000); // Switch every 20 seconds
+    return () => clearInterval(interval);
+  }, [tvRankingMode]);
 
   // Detect new sales in real-time
   useEffect(() => {
@@ -976,7 +992,7 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
   };
 
   const celebratingBroker = celebratingSale
-    ? brokerRankings.find(b => b.id === celebratingSale.brokerId) || null
+    ? currentRankings.find(b => b.id === celebratingSale.brokerId) || null
     : null;
 
   return (
@@ -1095,7 +1111,7 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
             )}
             <div className="text-left">
               <h1 className="text-3xl lg:text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent drop-shadow-sm">
-                RANKING DE VENDAS
+                {activeRankingType === 'captacao' ? 'RANKING DE CAPTAÇÃO' : 'RANKING DE VENDAS'}
               </h1>
               <p className="text-sm text-cyan-300/70 font-medium tracking-[0.3em] uppercase">{orgName}</p>
             </div>
@@ -1199,9 +1215,9 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
           </div>
 
           {/* Podium-only mode: compact list */}
-          {viewMode === 'podium' && brokerRankings.length > 3 && phase === 'complete' && (
+          {viewMode === 'podium' && currentRankings.length > 3 && phase === 'complete' && (
             <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto mt-4">
-              {brokerRankings.slice(3).map((broker, i) => {
+              {currentRankings.slice(3).map((broker, i) => {
                 const chipColors = [
                   'from-blue-500/10 to-blue-500/5 border-blue-400/20',
                   'from-purple-500/10 to-purple-500/5 border-purple-400/20',
@@ -1269,7 +1285,7 @@ const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: Bro
             </div>
           )}
 
-          {brokerRankings.length === 0 && (
+          {currentRankings.length === 0 && (
             <div className="text-center py-20">
               <Star className="w-16 h-16 text-white/10 mx-auto mb-4" />
               <p className="text-white/30 text-lg">Nenhum dado para exibir</p>
@@ -1314,6 +1330,8 @@ const Ranking = () => {
   const [quickPeriod, setQuickPeriod] = useState('month');
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [showConfetti, setShowConfetti] = useState(false);
+  const [rankingType, setRankingType] = useState<RankingType>('vendas');
+  const [tvRankingMode, setTVRankingMode] = useState<TVRankingMode>('alternate');
   const { soundEnabled, setSoundEnabled, playVictory, stopCustomSound } = useRankingSounds();
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
@@ -1400,6 +1418,42 @@ const Ranking = () => {
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
   }, [brokers, filteredSales, sales, selectedTeam]);
+
+  // Captação rankings - based on captador field
+  const captacaoRankings: BrokerRanking[] = useMemo(() => {
+    const captadorMap = new Map<string, { name: string; count: number; vgv: number }>();
+    
+    filteredSales.forEach(sale => {
+      if (!sale.captador || sale.captador.trim() === '') return;
+      if (sale.status === 'cancelada' || sale.status === 'distrato') return;
+      const captador = sale.captador.trim();
+      const existing = captadorMap.get(captador) || { name: captador, count: 0, vgv: 0 };
+      existing.count += 1;
+      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+      captadorMap.set(captador, existing);
+    });
+
+    // Try to match captador names to brokers for avatar/id
+    return Array.from(captadorMap.values())
+      .sort((a, b) => b.vgv - a.vgv || b.count - a.count)
+      .map((cap, i) => {
+        const matchedBroker = brokers.find(b => 
+          b.name.toLowerCase() === cap.name.toLowerCase()
+        );
+        return {
+          id: matchedBroker?.id || cap.name,
+          name: cap.name,
+          avatar: matchedBroker?.avatar_url || '',
+          sales: cap.count,
+          revenue: cap.vgv,
+          position: i + 1,
+          growth: null,
+          email: matchedBroker?.email || '',
+          userId: matchedBroker?.user_id || null,
+          teamId: matchedBroker?.team_id || null,
+        };
+      });
+  }, [filteredSales, brokers]);
 
   // Team rankings (for directors)
   const teamRankings: TeamRanking[] = useMemo(() => {
@@ -1491,7 +1545,7 @@ const Ranking = () => {
   }
 
   if (isTVMode) {
-    return <RankingTVMode brokerRankings={brokerRankings} onClose={closeTVMode} sales={sales} />;
+    return <RankingTVMode brokerRankings={brokerRankings} captacaoRankings={captacaoRankings} onClose={closeTVMode} sales={sales} tvRankingMode={tvRankingMode} />;
   }
 
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
@@ -1520,6 +1574,25 @@ const Ranking = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Ranking Type Selector */}
+            <div className="flex items-center bg-muted rounded-lg p-0.5">
+              <Button
+                variant={rankingType === 'vendas' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setRankingType('vendas')}
+                className="text-xs h-7 px-3 rounded-md"
+              >
+                Vendas
+              </Button>
+              <Button
+                variant={rankingType === 'captacao' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setRankingType('captacao')}
+                className="text-xs h-7 px-3 rounded-md"
+              >
+                Captação
+              </Button>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -1529,10 +1602,23 @@ const Ranking = () => {
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-muted-foreground" />}
             </Button>
-            <Button onClick={openTVMode} className="gap-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 shadow-lg text-sm h-9">
-              <Tv className="w-4 h-4" />
-              Modo TV
-            </Button>
+            {/* TV Mode with config */}
+            <div className="flex items-center gap-1">
+              <Select value={tvRankingMode} onValueChange={(v) => setTVRankingMode(v as TVRankingMode)}>
+                <SelectTrigger className="h-9 w-[140px] text-xs border-border/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alternate">Alternar rankings</SelectItem>
+                  <SelectItem value="vendas">Só Vendas</SelectItem>
+                  <SelectItem value="captacao">Só Captação</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={openTVMode} className="gap-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 shadow-lg text-sm h-9">
+                <Tv className="w-4 h-4" />
+                Modo TV
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -1559,21 +1645,21 @@ const Ranking = () => {
         )}
 
         {/* Stats */}
-        <StatsHeader brokers={brokerRankings} />
+        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} />
 
         {/* Main content: Ranking + Spotlight sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left: Main ranking */}
           <div className="flex-1 min-w-0">
-            {/* Team ranking for directors */}
-            {(isDiretor() || isAdmin()) && teamRankings.length > 0 && selectedTeam === 'all' && (
+            {/* Team ranking for directors (only in vendas mode) */}
+            {rankingType === 'vendas' && (isDiretor() || isAdmin()) && teamRankings.length > 0 && selectedTeam === 'all' && (
               <TeamRankingSection teamRankings={teamRankings} />
             )}
 
             {/* Podium */}
-            {brokerRankings.length >= 1 && (
+            {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length >= 1 && (
               <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
-                <AnimatedPodium brokers={brokerRankings} currentUserId={user?.id} />
+                <AnimatedPodium brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} currentUserId={user?.id} />
               </Card>
             )}
 
@@ -1581,23 +1667,29 @@ const Ranking = () => {
             <Card className="overflow-hidden border-border/50">
               <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
                 <Flame className="w-5 h-5 text-warning" />
-                <h2 className="font-semibold text-foreground text-sm">Classificação Completa</h2>
-                <Badge variant="secondary" className="ml-auto text-xs">{brokerRankings.length} corretores</Badge>
+                <h2 className="font-semibold text-foreground text-sm">
+                  {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
+                </h2>
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
+                </Badge>
               </div>
               <div className="p-3 space-y-2">
-                {brokerRankings.map((broker) => (
+                {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).map((broker) => (
                   <LeaderboardCard
                     key={broker.id}
                     broker={broker}
-                    allBrokers={brokerRankings}
+                    allBrokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings}
                     currentUserId={user?.id}
                     showProgressBar={broker.position > 1}
                   />
                 ))}
-                {brokerRankings.length === 0 && (
+                {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length === 0 && (
                   <div className="text-center py-12">
                     <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground font-medium">Nenhum corretor encontrado no período</p>
+                    <p className="text-muted-foreground font-medium">
+                      {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
+                    </p>
                     <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
                   </div>
                 )}

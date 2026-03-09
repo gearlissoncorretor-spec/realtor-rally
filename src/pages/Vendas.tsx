@@ -9,8 +9,10 @@ import { SalesMetricsCards } from "@/components/sales/SalesMetricsCards";
 import { SalesInsightsPanel } from "@/components/sales/SalesInsightsPanel";
 import { SalesTableRow } from "@/components/sales/SalesTableRow";
 import { TopBrokersRanking } from "@/components/sales/TopBrokersRanking";
+import { CaptacaoTab } from "@/components/sales/CaptacaoTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
@@ -192,215 +194,223 @@ const Vendas = () => {
             </div>
           </div>
 
-          {/* Filtros Compactos */}
-          <Card className="p-4 border-border/50 bg-card/80 backdrop-blur-sm">
-            <div className="flex flex-col sm:flex-row gap-3">
-              {/* Search */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar cliente, imóvel ou corretor..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-10 bg-background/50 border-border/50"
-                />
-              </div>
-              
-              {/* Filter Row */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Filter className="w-3.5 h-3.5" />
+          {/* Tabs: Vendas / Captação */}
+          <Tabs defaultValue="vendas" className="w-full">
+            <TabsList className="grid w-full max-w-[300px] grid-cols-2">
+              <TabsTrigger value="vendas" className="gap-1.5 text-xs">
+                <BarChart3 className="w-3.5 h-3.5" />
+                Vendas
+              </TabsTrigger>
+              <TabsTrigger value="captacao" className="gap-1.5 text-xs">
+                <Home className="w-3.5 h-3.5" />
+                Captação
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="vendas" className="space-y-6 mt-4">
+              {/* Filtros Compactos */}
+              <Card className="p-4 border-border/50 bg-card/80 backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar cliente, imóvel ou corretor..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 h-10 bg-background/50 border-border/50"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <Filter className="w-3.5 h-3.5" />
+                    </div>
+                    <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                      <SelectTrigger className="w-[110px] h-9 text-xs bg-background/50 border-border/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Todos anos</SelectItem>
+                        {availableYears.map(y => (
+                          <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
+                      <SelectTrigger className="w-[130px] h-9 text-xs bg-background/50 border-border/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map(m => (
+                          <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-[120px] h-9 text-xs bg-background/50 border-border/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="confirmada">Confirmada</SelectItem>
+                        <SelectItem value="cancelada">Cancelada</SelectItem>
+                        <SelectItem value="distrato">Distrato</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {hasActiveFilters && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedYear(currentYear);
+                          setSelectedMonth(0);
+                          setStatusFilter('all');
+                          setSearchTerm('');
+                        }}
+                        className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
+                      >
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                
-                <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                  <SelectTrigger className="w-[110px] h-9 text-xs bg-background/50 border-border/50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Todos anos</SelectItem>
-                    {availableYears.map(y => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              </Card>
 
-                <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                  <SelectTrigger className="w-[130px] h-9 text-xs bg-background/50 border-border/50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map(m => (
-                      <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <SalesMetricsCards sales={searchFilteredSales} />
 
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[120px] h-9 text-xs bg-background/50 border-border/50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="confirmada">Confirmada</SelectItem>
-                    <SelectItem value="cancelada">Cancelada</SelectItem>
-                    <SelectItem value="distrato">Distrato</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {hasActiveFilters && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedYear(currentYear);
-                      setSelectedMonth(0);
-                      setStatusFilter('all');
-                      setSearchTerm('');
-                    }}
-                    className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
-                  >
-                    Limpar
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* KPI Metrics */}
-          <SalesMetricsCards sales={searchFilteredSales} />
-
-          {/* Insights + Ranking Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2">
-              <SalesInsightsPanel sales={searchFilteredSales} brokers={brokers} />
-            </div>
-            <div>
-              <TopBrokersRanking sales={searchFilteredSales} brokers={brokers} />
-            </div>
-          </div>
-
-          {/* Sales Table */}
-          <Card className="overflow-hidden border-border/50 shadow-sm">
-            <div className="px-5 py-4 border-b border-border/50 bg-muted/20 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <FileSpreadsheet className="w-4 h-4 text-primary" />
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2">
+                  <SalesInsightsPanel sales={searchFilteredSales} brokers={brokers} />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground text-sm">Registro de Vendas</h3>
-                  <p className="text-xs text-muted-foreground">Detalhamento completo das transações</p>
+                  <TopBrokersRanking sales={searchFilteredSales} brokers={brokers} />
                 </div>
               </div>
-              <Badge variant="outline" className="text-xs font-medium">
-                {searchFilteredSales.length} {searchFilteredSales.length === 1 ? 'registro' : 'registros'}
-              </Badge>
-            </div>
-            
-            {loading ? (
-              <div className="h-40 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                  <p className="text-sm text-muted-foreground">Carregando vendas...</p>
-                </div>
-              </div>
-            ) : searchFilteredSales.length === 0 ? (
-              <div className="h-40 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-2 text-center px-4">
-                  <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
-                    <Search className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {hasActiveFilters
-                      ? 'Nenhuma venda encontrada para os filtros aplicados.' 
-                      : 'Nenhuma venda cadastrada ainda.'}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Mobile Card View */}
-                <div className="block md:hidden space-y-2 p-3">
-                  {searchFilteredSales.map((sale) => {
-                    const broker = brokers.find(b => b.id === sale.broker_id);
-                    return (
-                      <Card key={sale.id} className="border-border/40 hover:border-border/80 transition-colors">
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-foreground truncate text-sm">{sale.client_name}</p>
-                              <p className="text-xs text-muted-foreground truncate">{sale.property_address}</p>
-                            </div>
-                            <Badge 
-                              variant={sale.status === 'confirmada' ? 'default' : sale.status === 'cancelada' || sale.status === 'distrato' ? 'destructive' : 'secondary'} 
-                              className="shrink-0 text-[10px]"
-                            >
-                              {sale.status}
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Corretor</p>
-                              <p className="truncate font-medium">{broker?.name || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Data</p>
-                              <p className="font-medium">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">VGV</p>
-                              <p className="font-bold text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgv)}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Comissão</p>
-                              <p className="font-bold text-success">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgc)}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 pt-2 border-t border-border/30">
-                            <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => { setSelectedSale(sale); setIsDetailsOpen(true); }}>
-                              Detalhes
-                            </Button>
-                            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setSelectedSale(sale); setIsFormOpen(true); }}>
-                              Editar
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
 
-                {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full min-w-[900px]">
-                    <thead className="bg-muted/30 border-b border-border/50">
-                      <tr>
-                        <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
-                        <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
-                        <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Corretor</th>
-                        <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Valor / Comissão</th>
-                        <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                        <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
-                        <th className="text-right p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/30">
-                      {searchFilteredSales.map((sale) => (
-                        <SalesTableRow
-                          key={sale.id}
-                          sale={sale}
-                          broker={brokers.find(b => b.id === sale.broker_id)}
-                          onView={(sale) => { setSelectedSale(sale); setIsDetailsOpen(true); }}
-                          onEdit={(sale) => { setSelectedSale(sale); setIsFormOpen(true); }}
-                          onDelete={handleDelete}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
+              <Card className="overflow-hidden border-border/50 shadow-sm">
+                <div className="px-5 py-4 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <FileSpreadsheet className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground text-sm">Registro de Vendas</h3>
+                      <p className="text-xs text-muted-foreground">Detalhamento completo das transações</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs font-medium">
+                    {searchFilteredSales.length} {searchFilteredSales.length === 1 ? 'registro' : 'registros'}
+                  </Badge>
                 </div>
-              </>
-            )}
-          </Card>
+                
+                {loading ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      <p className="text-sm text-muted-foreground">Carregando vendas...</p>
+                    </div>
+                  </div>
+                ) : searchFilteredSales.length === 0 ? (
+                  <div className="h-40 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-2 text-center px-4">
+                      <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center">
+                        <Search className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {hasActiveFilters
+                          ? 'Nenhuma venda encontrada para os filtros aplicados.' 
+                          : 'Nenhuma venda cadastrada ainda.'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="block md:hidden space-y-2 p-3">
+                      {searchFilteredSales.map((sale) => {
+                        const broker = brokers.find(b => b.id === sale.broker_id);
+                        return (
+                          <Card key={sale.id} className="border-border/40 hover:border-border/80 transition-colors">
+                            <CardContent className="p-4 space-y-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-foreground truncate text-sm">{sale.client_name}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{sale.property_address}</p>
+                                </div>
+                                <Badge 
+                                  variant={sale.status === 'confirmada' ? 'default' : sale.status === 'cancelada' || sale.status === 'distrato' ? 'destructive' : 'secondary'} 
+                                  className="shrink-0 text-[10px]"
+                                >
+                                  {sale.status}
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Corretor</p>
+                                  <p className="truncate font-medium">{broker?.name || '-'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Data</p>
+                                  <p className="font-medium">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">VGV</p>
+                                  <p className="font-bold text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgv)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Comissão</p>
+                                  <p className="font-bold text-success">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgc)}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                                <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => { setSelectedSale(sale); setIsDetailsOpen(true); }}>
+                                  Detalhes
+                                </Button>
+                                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setSelectedSale(sale); setIsFormOpen(true); }}>
+                                  Editar
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="w-full min-w-[900px]">
+                        <thead className="bg-muted/30 border-b border-border/50">
+                          <tr>
+                            <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
+                            <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
+                            <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Corretor</th>
+                            <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Valor / Comissão</th>
+                            <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                            <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
+                            <th className="text-right p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/30">
+                          {searchFilteredSales.map((sale) => (
+                            <SalesTableRow
+                              key={sale.id}
+                              sale={sale}
+                              broker={brokers.find(b => b.id === sale.broker_id)}
+                              onView={(sale) => { setSelectedSale(sale); setIsDetailsOpen(true); }}
+                              onEdit={(sale) => { setSelectedSale(sale); setIsFormOpen(true); }}
+                              onDelete={handleDelete}
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="captacao" className="mt-4">
+              <CaptacaoTab sales={sales} brokers={brokers} loading={loading} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
