@@ -141,7 +141,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }
 
-  return <DataProvider>{children}</DataProvider>;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;
