@@ -21,7 +21,10 @@ interface CalendarEvent {
   htmlLink?: string;
 }
 
-const REDIRECT_URI = `${window.location.origin}/agenda`;
+// Use published URL to match Google Console redirect URI
+const REDIRECT_URI = window.location.hostname.includes('lovableproject.com') || window.location.hostname.includes('localhost')
+  ? 'https://gestaoequipembsc.lovable.app/agenda'
+  : `${window.location.origin}/agenda`;
 
 const Agenda = () => {
   const queryClient = useQueryClient();
