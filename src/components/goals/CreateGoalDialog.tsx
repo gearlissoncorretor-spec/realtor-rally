@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, addDays, addWeeks, addMonths, addYears } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Goal } from '@/hooks/useGoals';
@@ -22,6 +22,32 @@ interface CreateGoalDialogProps {
   onCreate: (goal: Partial<Goal>) => Promise<Goal>;
   preSelectedBrokerId?: string;
 }
+
+const GOAL_TYPES = [
+  { value: 'sales_count', label: 'Meta de Vendas' },
+  { value: 'captacao', label: 'Meta de Captação' },
+  { value: 'contratacao', label: 'Meta de Contratação de Corretores' },
+  { value: 'revenue', label: 'Receita' },
+  { value: 'vgv', label: 'VGV' },
+  { value: 'commission', label: 'Comissão' },
+  { value: 'custom', label: 'Meta Personalizada' },
+];
+
+const PERIOD_TYPES = [
+  { value: 'daily', label: 'Diária' },
+  { value: 'weekly', label: 'Semanal' },
+  { value: 'monthly', label: 'Mensal' },
+  { value: 'quarterly', label: 'Trimestral' },
+  { value: 'semester', label: 'Semestral' },
+  { value: 'yearly', label: 'Anual' },
+  { value: 'custom', label: 'Personalizado' },
+];
+
+const GOAL_SCOPE = [
+  { value: 'broker', label: 'Por Corretor' },
+  { value: 'team', label: 'Por Equipe' },
+  { value: 'company', label: 'Geral da Imobiliária' },
+];
 
 export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
   open,
@@ -39,42 +65,57 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     target_value: '',
     target_type: 'sales_count' as string,
     custom_target_type: '',
-    period_type: 'monthly' as Goal['period_type'],
+    period_type: 'monthly' as string,
     start_date: new Date(),
     end_date: new Date(),
     assigned_to: '',
     team_id: '',
     broker_id: preSelectedBrokerId,
+    scope: 'broker' as string,
   });
 
-  // Update broker_id when preSelectedBrokerId changes
   React.useEffect(() => {
     if (preSelectedBrokerId && open) {
-      setFormData(prev => ({ ...prev, broker_id: preSelectedBrokerId }));
+      setFormData(prev => ({ ...prev, broker_id: preSelectedBrokerId, scope: 'broker' }));
     }
   }, [preSelectedBrokerId, open]);
 
   const userRole = getUserRole();
-  const isDirector = userRole === 'diretor';
+  const isDirector = userRole === 'diretor' || userRole === 'admin' || userRole === 'super_admin';
 
   const [brokerError, setBrokerError] = useState(false);
   const [dateError, setDateError] = useState(false);
+
+  // Auto-calculate end_date based on period
+  const handlePeriodChange = (value: string) => {
+    const start = formData.start_date;
+    let end = start;
+    switch (value) {
+      case 'daily': end = start; break;
+      case 'weekly': end = addWeeks(start, 1); break;
+      case 'monthly': end = addMonths(start, 1); break;
+      case 'quarterly': end = addMonths(start, 3); break;
+      case 'semester': end = addMonths(start, 6); break;
+      case 'yearly': end = addYears(start, 1); break;
+      // custom: keep current end_date
+      default: end = formData.end_date; break;
+    }
+    setFormData(prev => ({ ...prev, period_type: value, end_date: end }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBrokerError(false);
     setDateError(false);
 
-    // Validation
     if (!formData.title || !formData.target_value) return;
-    
-    // Validate broker is selected
-    if (!formData.broker_id || formData.broker_id === 'all') {
+
+    // Validate scope-specific fields
+    if (formData.scope === 'broker' && (!formData.broker_id || formData.broker_id === 'all')) {
       setBrokerError(true);
       return;
     }
 
-    // Validate end_date >= start_date
     if (formData.end_date < formData.start_date) {
       setDateError(true);
       return;
@@ -82,8 +123,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
     setLoading(true);
     try {
-      const effectiveTargetType = formData.target_type === 'custom' 
-        ? formData.custom_target_type 
+      const effectiveTargetType = formData.target_type === 'custom'
+        ? formData.custom_target_type
         : formData.target_type;
 
       await onCreate({
@@ -92,29 +133,20 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
         target_value: parseFloat(formData.target_value),
         current_value: 0,
         target_type: effectiveTargetType as Goal['target_type'],
-        period_type: formData.period_type,
+        period_type: formData.period_type as Goal['period_type'],
         start_date: formData.start_date.toISOString().split('T')[0],
         end_date: formData.end_date.toISOString().split('T')[0],
         assigned_to: formData.assigned_to || undefined,
-        team_id: (formData.team_id && formData.team_id !== 'all') ? formData.team_id : undefined,
-        broker_id: formData.broker_id,
+        team_id: (formData.scope === 'team' && formData.team_id && formData.team_id !== 'all') ? formData.team_id : undefined,
+        broker_id: formData.scope === 'broker' ? formData.broker_id : undefined,
       });
 
-      // Reset form
       setFormData({
-        title: '',
-        description: '',
-        target_value: '',
-        target_type: 'sales_count',
-        custom_target_type: '',
-        period_type: 'monthly',
-        start_date: new Date(),
-        end_date: new Date(),
-        assigned_to: '',
-        team_id: '',
-        broker_id: '',
+        title: '', description: '', target_value: '',
+        target_type: 'sales_count', custom_target_type: '',
+        period_type: 'monthly', start_date: new Date(), end_date: new Date(),
+        assigned_to: '', team_id: '', broker_id: '', scope: 'broker',
       });
-      
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating goal:', error);
@@ -127,6 +159,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     ? brokers.filter(broker => broker.team_id === formData.team_id)
     : brokers;
 
+  const isCustomPeriod = formData.period_type === 'custom';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -136,6 +170,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Title */}
             <div className="md:col-span-2">
               <Label htmlFor="title">Título da Meta *</Label>
               <Input
@@ -147,6 +182,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               />
             </div>
 
+            {/* Description */}
             <div className="md:col-span-2">
               <Label htmlFor="description">Descrição</Label>
               <Textarea
@@ -158,11 +194,12 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               />
             </div>
 
+            {/* Goal Type */}
             <div>
               <Label htmlFor="target_type">Tipo de Meta *</Label>
-              <Select 
-                value={formData.target_type} 
-                onValueChange={(value) => 
+              <Select
+                value={formData.target_type}
+                onValueChange={(value) =>
                   setFormData(prev => ({ ...prev, target_type: value, custom_target_type: '' }))
                 }
               >
@@ -170,11 +207,9 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sales_count">Número de Vendas</SelectItem>
-                  <SelectItem value="revenue">Receita</SelectItem>
-                  <SelectItem value="vgv">VGV</SelectItem>
-                  <SelectItem value="commission">Comissão</SelectItem>
-                  <SelectItem value="custom">Outro (personalizado)</SelectItem>
+                  {GOAL_TYPES.map(t => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {formData.target_type === 'custom' && (
@@ -182,12 +217,13 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   className="mt-2"
                   value={formData.custom_target_type}
                   onChange={(e) => setFormData(prev => ({ ...prev, custom_target_type: e.target.value }))}
-                  placeholder="Ex: Captações, Visitas, Ligações..."
+                  placeholder="Ex: Visitas, Ligações, Propostas..."
                   required
                 />
               )}
             </div>
 
+            {/* Target Value */}
             <div>
               <Label htmlFor="target_value">Valor da Meta *</Label>
               <Input
@@ -196,30 +232,48 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                 step="0.01"
                 value={formData.target_value}
                 onChange={(e) => setFormData(prev => ({ ...prev, target_value: e.target.value }))}
-                placeholder="0"
+                placeholder="Ex: 10 vendas, R$ 500.000..."
                 required
               />
             </div>
 
+            {/* Period Type */}
             <div>
-              <Label htmlFor="period_type">Período</Label>
-              <Select 
-                value={formData.period_type} 
-                onValueChange={(value: Goal['period_type']) => 
-                  setFormData(prev => ({ ...prev, period_type: value }))
-                }
+              <Label htmlFor="period_type">Período da Meta *</Label>
+              <Select
+                value={formData.period_type}
+                onValueChange={handlePeriodChange}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">Mensal</SelectItem>
-                  <SelectItem value="quarterly">Trimestral</SelectItem>
-                  <SelectItem value="yearly">Anual</SelectItem>
+                  {PERIOD_TYPES.map(p => (
+                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Scope */}
+            <div>
+              <Label>Nível da Meta *</Label>
+              <Select
+                value={formData.scope}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, scope: value, broker_id: '', team_id: '' }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {GOAL_SCOPE.map(s => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Start Date */}
             <div>
               <Label>Data de Início *</Label>
               <Popover>
@@ -232,18 +286,24 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.start_date ? (
-                      format(formData.start_date, "dd/MM/yyyy", { locale: ptBR })
-                    ) : (
-                      <span>Selecione a data</span>
-                    )}
+                    {formData.start_date
+                      ? format(formData.start_date, "dd/MM/yyyy", { locale: ptBR })
+                      : <span>Selecione a data</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={formData.start_date}
-                    onSelect={(date) => date && setFormData(prev => ({ ...prev, start_date: date }))}
+                    onSelect={(date) => {
+                      if (date) {
+                        setFormData(prev => ({ ...prev, start_date: date }));
+                        // Re-calculate end based on period
+                        if (formData.period_type !== 'custom') {
+                          handlePeriodChange(formData.period_type);
+                        }
+                      }
+                    }}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -251,6 +311,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               </Popover>
             </div>
 
+            {/* End Date */}
             <div>
               <Label>Data de Término *</Label>
               <Popover>
@@ -260,15 +321,13 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                     className={cn(
                       "w-full justify-start text-left font-normal",
                       !formData.end_date && "text-muted-foreground",
-                      dateError && "border-red-500 ring-red-500"
+                      dateError && "border-destructive ring-destructive"
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.end_date ? (
-                      format(formData.end_date, "dd/MM/yyyy", { locale: ptBR })
-                    ) : (
-                      <span>Selecione a data</span>
-                    )}
+                    {formData.end_date
+                      ? format(formData.end_date, "dd/MM/yyyy", { locale: ptBR })
+                      : <span>Selecione a data</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -281,70 +340,76 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                         setDateError(false);
                       }
                     }}
+                    disabled={!isCustomPeriod}
                     initialFocus
                     className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
+              {!isCustomPeriod && (
+                <p className="text-xs text-muted-foreground mt-1">Calculada automaticamente pelo período</p>
+              )}
               {dateError && (
-                <p className="text-sm text-red-500 mt-1">Data de término deve ser após a data de início</p>
+                <p className="text-sm text-destructive mt-1">Data de término deve ser após a data de início</p>
               )}
             </div>
 
-            {isDirector && (
+            {/* Team selector (for team scope or director filtering brokers) */}
+            {(formData.scope === 'team' || (formData.scope === 'broker' && isDirector)) && (
               <div>
-                <Label htmlFor="team_id">Equipe</Label>
-                <Select 
-                  value={formData.team_id} 
-                  onValueChange={(value) => 
-                    setFormData(prev => ({ ...prev, team_id: value, broker_id: 'all' }))
+                <Label htmlFor="team_id">Equipe {formData.scope === 'team' ? '*' : ''}</Label>
+                <Select
+                  value={formData.team_id}
+                  onValueChange={(value) =>
+                    setFormData(prev => ({ ...prev, team_id: value, broker_id: '' }))
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecionar equipe" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as equipes</SelectItem>
+                    {formData.scope === 'broker' && <SelectItem value="all">Todas as equipes</SelectItem>}
                     {teams.map(team => (
-                      <SelectItem key={team.id} value={team.id}>
-                        {team.name}
-                      </SelectItem>
+                      <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
 
-            <div>
-              <Label htmlFor="broker_id">Corretor *</Label>
-              <Select 
-                value={formData.broker_id} 
-                onValueChange={(value) => {
-                  setFormData(prev => ({ ...prev, broker_id: value }));
-                  setBrokerError(false);
-                }}
-              >
-                <SelectTrigger className={brokerError ? 'border-red-500 ring-red-500' : ''}>
-                  <SelectValue placeholder="Selecionar corretor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredBrokers.map(broker => (
-                    <SelectItem key={broker.id} value={broker.id}>
-                      {broker.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {brokerError && (
-                <p className="text-sm text-red-500 mt-1">Selecione um corretor específico</p>
-              )}
-            </div>
+            {/* Broker selector (for broker scope) */}
+            {formData.scope === 'broker' && (
+              <div>
+                <Label htmlFor="broker_id">Corretor *</Label>
+                <Select
+                  value={formData.broker_id}
+                  onValueChange={(value) => {
+                    setFormData(prev => ({ ...prev, broker_id: value }));
+                    setBrokerError(false);
+                  }}
+                >
+                  <SelectTrigger className={brokerError ? 'border-destructive ring-destructive' : ''}>
+                    <SelectValue placeholder="Selecionar corretor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredBrokers.map(broker => (
+                      <SelectItem key={broker.id} value={broker.id}>
+                        {broker.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {brokerError && (
+                  <p className="text-sm text-destructive mt-1">Selecione um corretor específico</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
