@@ -32,10 +32,12 @@ import {
   Settings,
   Star,
   Clock,
-  Ban
+  Ban,
+  Undo2
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
+import { useFollowUps } from "@/hooks/useFollowUps";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
@@ -63,6 +65,7 @@ const Negociacoes = () => {
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
   const { createSale, sales } = useData();
+  const { createFollowUp } = useFollowUps();
   const { flowStatuses, getStatusByValue } = useNegotiationStatuses();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -86,6 +89,10 @@ const Negociacoes = () => {
   // Celebration state
   const [celebrationOpen, setCelebrationOpen] = useState(false);
   const [celebrationData, setCelebrationData] = useState<{ brokerName: string; clientName: string; saleValue: number }>({ brokerName: '', clientName: '', saleValue: 0 });
+  
+  // Return to follow-up state
+  const [returnToFollowUpOpen, setReturnToFollowUpOpen] = useState(false);
+  const [selectedForFollowUp, setSelectedForFollowUp] = useState<Negotiation | null>(null);
   
   // Form state
   const [formData, setFormData] = useState<CreateNegotiationInput>({
@@ -296,6 +303,32 @@ const Negociacoes = () => {
     });
     
     setSelectedForLoss(null);
+  };
+
+  // Handle return to follow-up
+  const handleOpenReturnToFollowUp = (negotiation: Negotiation) => {
+    setSelectedForFollowUp(negotiation);
+    setReturnToFollowUpOpen(true);
+  };
+
+  const handleConfirmReturnToFollowUp = async () => {
+    if (!selectedForFollowUp) return;
+    try {
+      await createFollowUp({
+        broker_id: selectedForFollowUp.broker_id,
+        client_name: selectedForFollowUp.client_name,
+        client_phone: selectedForFollowUp.client_phone || undefined,
+        property_interest: selectedForFollowUp.property_address,
+        estimated_vgv: selectedForFollowUp.negotiated_value,
+        observations: `Retornado da Negociação. ${selectedForFollowUp.observations || ''}`.trim(),
+        status: 'novo_lead',
+      });
+      await deleteNegotiation(selectedForFollowUp.id);
+      setSelectedForFollowUp(null);
+      setReturnToFollowUpOpen(false);
+    } catch (error) {
+      // Error handled by hooks
+    }
   };
 
   const handleDelete = async () => {
@@ -750,6 +783,9 @@ const Negociacoes = () => {
                                   <Button size="sm" variant="destructive" onClick={() => handleOpenLossDialog(negotiation)} className="h-9">
                                     <XCircle className="w-4 h-4" />
                                   </Button>
+                                  <Button size="sm" variant="outline" onClick={() => handleOpenReturnToFollowUp(negotiation)} className="h-9" title="Voltar para Follow Up">
+                                    <Undo2 className="w-4 h-4" />
+                                  </Button>
                                   <Button size="sm" variant="ghost" className="text-destructive h-9" onClick={() => setDeleteId(negotiation.id)}>
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -826,6 +862,10 @@ const Negociacoes = () => {
                                       <Button size="sm" variant="destructive" onClick={() => handleOpenLossDialog(negotiation)} title="Registrar Perda">
                                         <XCircle className="w-4 h-4" />
                                         <span className="ml-1">PERDA</span>
+                                      </Button>
+                                      <Button size="sm" variant="outline" onClick={() => handleOpenReturnToFollowUp(negotiation)} title="Voltar para Follow Up">
+                                        <Undo2 className="w-4 h-4" />
+                                        <span className="ml-1">Follow Up</span>
                                       </Button>
                                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(negotiation.id)} title="Excluir">
                                         <Trash2 className="w-4 h-4" />
@@ -1013,6 +1053,41 @@ const Negociacoes = () => {
         clientName={celebrationData.clientName}
         saleValue={celebrationData.saleValue}
       />
+
+      {/* Return to Follow Up Dialog */}
+      <AlertDialog open={returnToFollowUpOpen} onOpenChange={setReturnToFollowUpOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Undo2 className="w-5 h-5 text-primary" />
+              Voltar para Follow Up
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Você está prestes a mover esta negociação de volta para a tela de Follow Up.
+              </p>
+              {selectedForFollowUp && (
+                <div className="bg-muted p-3 rounded-lg space-y-2 text-sm">
+                  <p><strong>Cliente:</strong> {selectedForFollowUp.client_name}</p>
+                  <p><strong>Telefone:</strong> {selectedForFollowUp.client_phone || 'Não informado'}</p>
+                  <p><strong>Imóvel:</strong> {selectedForFollowUp.property_address}</p>
+                  <p><strong>Valor:</strong> {formatCurrency(selectedForFollowUp.negotiated_value)}</p>
+                </div>
+              )}
+              <p className="text-amber-600 dark:text-amber-400">
+                A negociação será removida e um novo registro será criado no Follow Up com status "Novo Lead".
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReturnToFollowUp}>
+              <Undo2 className="w-4 h-4 mr-2" />
+              Voltar para Follow Up
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
