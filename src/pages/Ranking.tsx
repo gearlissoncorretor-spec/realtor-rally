@@ -1328,7 +1328,11 @@ const Ranking = () => {
     return teams.map(team => {
       const teamBrokers = brokers.filter(b => b.team_id === team.id);
       const teamBrokerIds = teamBrokers.map(b => b.id);
-      const teamSales = filteredSales.filter(s => teamBrokerIds.includes(s.broker_id || ''));
+      const teamSales = filteredSales.filter(s => 
+        teamBrokerIds.includes(s.broker_id || '') && 
+        s.status !== 'cancelada' && 
+        s.status !== 'distrato'
+      );
       const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
 
       return {

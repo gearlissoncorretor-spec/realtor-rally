@@ -122,8 +122,8 @@ export const calculateGrowth = (brokerId: string, sales: Sale[], monthsBack: num
            sale.status === 'confirmada';
   });
 
-  const currentRevenue = currentSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
-  const previousRevenue = previousSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
+  const currentRevenue = currentSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+  const previousRevenue = previousSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
 
   // Return null if there's no previous data to compare
   if (previousRevenue === 0) {
