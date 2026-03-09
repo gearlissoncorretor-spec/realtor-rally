@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Home, TrendingUp, DollarSign, Users } from "lucide-react";
+import { Search, Filter, Home, TrendingUp, DollarSign } from "lucide-react";
 import { useState, useMemo } from "react";
 import type { Sale } from "@/contexts/DataContext";
 import type { Broker } from "@/contexts/DataContext";
@@ -59,7 +59,7 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
 
   // Metrics
   const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
-  const uniqueCaptadores = [...new Set(filteredSales.map(s => s.captador).filter(Boolean))];
+  
   const totalCaptacoes = filteredSales.length;
 
   // Top captadores ranking
@@ -153,7 +153,7 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
       </Card>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="p-4 border-border/50">
           <div className="flex items-center gap-2 mb-1.5">
             <div className="p-1.5 rounded-lg bg-primary/10">
@@ -171,15 +171,6 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
             <span className="text-xs text-muted-foreground">VGV Captações</span>
           </div>
           <p className="text-lg font-bold text-foreground">{formatCurrency(totalVGV)}</p>
-        </Card>
-        <Card className="p-4 border-border/50">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="p-1.5 rounded-lg bg-info/10">
-              <Users className="w-4 h-4 text-info" />
-            </div>
-            <span className="text-xs text-muted-foreground">Captadores Ativos</span>
-          </div>
-          <p className="text-2xl font-bold text-foreground">{uniqueCaptadores.length}</p>
         </Card>
         <Card className="p-4 border-border/50">
           <div className="flex items-center gap-2 mb-1.5">
