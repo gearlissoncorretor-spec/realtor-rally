@@ -273,7 +273,7 @@ const Navigation = () => {
         </button>
 
         {/* Navigation */}
-        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/10 hover:scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent pr-1 -mr-1">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 hover:scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20 pr-1 -mr-1">
           {renderGroupedNav()}
         </div>
         
