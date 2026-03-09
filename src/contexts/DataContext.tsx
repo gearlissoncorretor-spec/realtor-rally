@@ -105,7 +105,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     },
     staleTime: 5 * 60 * 1000,
-    refetchOnMount: true,
+    gcTime: 15 * 60 * 1000,
     enabled: !!user,
   });
 
@@ -119,27 +119,59 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user) return [];
       
       try {
-        // Fetch all sales using pagination to avoid 1000-row limit
+        const role = getUserRole();
+        
+        // Build base query with role-based filtering
+        let baseQuery = supabase
+          .from('sales')
+          .select(`
+            *,
+            broker:brokers(name, email),
+            process_stages (
+              id,
+              title,
+              color,
+              order_index
+            )
+          `)
+          .order('created_at', { ascending: false });
+        
+        // Apply role-based filters to reduce data volume
+        if (role === 'corretor') {
+          // Corretor: only their own sales via broker
+          const { data: brokerData } = await supabase
+            .from('brokers')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (brokerData) {
+            baseQuery = baseQuery.eq('broker_id', brokerData.id);
+          } else {
+            return [];
+          }
+        } else if (role === 'gerente' && teamHierarchy?.team_id) {
+          // Gerente: sales from team brokers
+          const { data: teamBrokers } = await supabase
+            .from('brokers')
+            .select('id')
+            .eq('team_id', teamHierarchy.team_id);
+          
+          if (teamBrokers && teamBrokers.length > 0) {
+            const brokerIds = teamBrokers.map(b => b.id);
+            baseQuery = baseQuery.in('broker_id', brokerIds);
+          }
+        }
+        // Diretor and Admin see all - no filter
+        
+        // Fetch with pagination
         const allSales: Sale[] = [];
         const PAGE_SIZE = 1000;
         let from = 0;
         let hasMore = true;
 
         while (hasMore) {
-          const { data, error } = await supabase
-            .from('sales')
-            .select(`
-              *,
-              broker:brokers(name, email),
-              process_stages (
-                id,
-                title,
-                color,
-                order_index
-              )
-            `)
-            .order('created_at', { ascending: false })
-            .range(from, from + PAGE_SIZE - 1);
+          const { data, error } = await baseQuery.range(from, from + PAGE_SIZE - 1);
           
           if (error) {
             console.error('Error fetching sales:', error);
@@ -157,8 +189,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw err;
       }
     },
-    staleTime: 3 * 60 * 1000,
-    refetchOnMount: true,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     enabled: !!user,
   });
 
@@ -194,7 +226,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     },
     staleTime: 10 * 60 * 1000,
-    refetchOnMount: true,
+    gcTime: 20 * 60 * 1000,
     enabled: !!user,
   });
 

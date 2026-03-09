@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -39,7 +39,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       retry: 1,
@@ -53,20 +53,33 @@ const LazyPage = ({ children }: { children: React.ReactNode }) => (
   </Suspense>
 );
 
+// Only loads DataProvider when user is authenticated
+const AuthenticatedLayout = () => {
+  const { user } = useAuth();
+  
+  if (!user) return <Outlet />;
+  
+  return (
+    <DataProvider>
+      <Outlet />
+    </DataProvider>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
-        <DataProvider>
-          <Toaster />
-          <Router future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}>
-            <DynamicTitleUpdater />
-            <Routes>
-              <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
-              <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+        <Toaster />
+        <Router future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}>
+          <DynamicTitleUpdater />
+          <Routes>
+            <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
+            <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+            <Route element={<AuthenticatedLayout />}>
               <Route path="/" element={
                 <ProtectedRoute><LazyPage><Index /></LazyPage></ProtectedRoute>
               } />
@@ -127,10 +140,10 @@ const App = () => (
               <Route path="/super-admin" element={
                 <ProtectedRoute superAdminOnly><LazyPage><SuperAdmin /></LazyPage></ProtectedRoute>
               } />
-              <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
-            </Routes>
-          </Router>
-        </DataProvider>
+            </Route>
+            <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
+          </Routes>
+        </Router>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
