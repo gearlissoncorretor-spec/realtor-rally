@@ -916,12 +916,25 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
   const [viewMode, setViewMode] = useState<'full' | 'podium'>('full');
   const [celebratingSale, setCelebratingSale] = useState<{ clientName: string; value: number; brokerId: string | null } | null>(null);
+  const [activeRankingType, setActiveRankingType] = useState<RankingType>(tvRankingMode === 'captacao' ? 'captacao' : 'vendas');
   const lastSaleCountRef = useRef(sales.length);
 
-  const top3 = brokerRankings.slice(0, 3);
-  const rest = viewMode === 'full' ? brokerRankings.slice(3, 10) : [];
+  const currentRankings = activeRankingType === 'captacao' ? captacaoRankings : brokerRankings;
+  const top3 = currentRankings.slice(0, 3);
+  const rest = viewMode === 'full' ? currentRankings.slice(3, 10) : [];
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const orgName = settings?.organization_name || 'Ranking';
+
+  // Auto-alternate rankings in TV mode
+  useEffect(() => {
+    if (tvRankingMode !== 'alternate') return;
+    const interval = setInterval(() => {
+      setActiveRankingType(prev => prev === 'vendas' ? 'captacao' : 'vendas');
+      setPhase('intro');
+      setRevealedCount(0);
+    }, 20000); // Switch every 20 seconds
+    return () => clearInterval(interval);
+  }, [tvRankingMode]);
 
   // Detect new sales in real-time
   useEffect(() => {
