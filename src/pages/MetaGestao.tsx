@@ -167,6 +167,10 @@ const MetaGestao = () => {
   const [brokerHiringGoal, setBrokerHiringGoal] = useState(25);
   const [savingTargets, setSavingTargets] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [showCreateGoal, setShowCreateGoal] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<any>(null);
+  
+  const { goals, loading: goalsLoading, createGoal, updateGoal, deleteGoal, canEditGoal, refreshGoals } = useGoals();
   
   const teamFilter = useMemo(() => {
     if (isGerente() && profile?.team_id) return profile.team_id;
