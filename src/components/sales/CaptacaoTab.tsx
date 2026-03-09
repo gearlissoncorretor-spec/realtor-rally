@@ -227,6 +227,54 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
         </Card>
       </div>
 
+      {/* Monthly Evolution Chart */}
+      <Card className="overflow-hidden border-border/50">
+        <div className="px-5 py-4 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-foreground text-sm">Evolução Mensal de Captações</h3>
+          </div>
+          <Badge variant="outline" className="text-xs">{selectedYear > 0 ? selectedYear : 'Todos'}</Badge>
+        </div>
+        <CardContent className="p-4">
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={monthlyChartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <YAxis yAxisId="left" tick={{ fontSize: 11 }} className="fill-muted-foreground" allowDecimals={false} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} className="fill-muted-foreground" tickFormatter={formatCompactCurrency} />
+                <Tooltip
+                  contentStyle={{ 
+                    borderRadius: '8px', 
+                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--foreground))',
+                    fontSize: '12px'
+                  }}
+                  formatter={(value: number, name: string) => {
+                    if (name === 'vgv') return [formatCurrency(value), 'VGV'];
+                    return [value, 'Captações'];
+                  }}
+                />
+                <Bar yAxisId="left" dataKey="captacoes" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={28} opacity={0.85} />
+                <Line yAxisId="right" type="monotone" dataKey="vgv" stroke="hsl(var(--success, 142 71% 45%))" strokeWidth={2} dot={{ r: 3 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex items-center justify-center gap-6 mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm bg-primary" />
+              <span>Captações</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-0.5 bg-success rounded" />
+              <span>VGV</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Top Captadores */}
       {captadorRanking.length > 0 && (
         <Card className="overflow-hidden border-border/50">
