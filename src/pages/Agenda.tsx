@@ -1,14 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navigation from '@/components/Navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, ExternalLink, Plus, Clock, MapPin, RefreshCw } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Calendar, ExternalLink, Plus, Clock, MapPin, RefreshCw, Link2, Unlink, Loader2, Mail } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isToday, isTomorrow, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 interface CalendarEvent {
   id: string;
@@ -20,10 +21,52 @@ interface CalendarEvent {
   htmlLink?: string;
 }
 
-const Agenda = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+const REDIRECT_URI = `${window.location.origin}/agenda`;
 
-  const { data: events, isLoading, error, refetch } = useQuery({
+const Agenda = () => {
+  const queryClient = useQueryClient();
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  // Check connection status
+  const { data: connectionStatus, isLoading: statusLoading } = useQuery({
+    queryKey: ['google-calendar-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('google-calendar', {
+        body: { action: 'status' },
+      });
+      if (error) throw error;
+      return data as { connected: boolean; email: string | null };
+    },
+    staleTime: 60 * 1000,
+  });
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    if (code && !isConnecting) {
+      setIsConnecting(true);
+      // Clean URL
+      window.history.replaceState({}, '', '/agenda');
+
+      supabase.functions.invoke('google-calendar', {
+        body: { action: 'exchange-code', code, redirectUri: REDIRECT_URI },
+      }).then(({ data, error }) => {
+        if (error || !data?.success) {
+          toast.error('Erro ao conectar Google Calendar');
+          console.error('Exchange error:', error || data);
+        } else {
+          toast.success(`Google Calendar conectado: ${data.email}`);
+          queryClient.invalidateQueries({ queryKey: ['google-calendar-status'] });
+          queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
+        }
+        setIsConnecting(false);
+      });
+    }
+  }, []);
+
+  // Fetch events
+  const { data: events, isLoading: eventsLoading, error: eventsError, refetch } = useQuery({
     queryKey: ['google-calendar-events'],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('google-calendar', {
@@ -35,10 +78,47 @@ const Agenda = () => {
         },
       });
       if (error) throw error;
+      if (data?.error === 'not_connected' || data?.error === 'token_revoked') {
+        return [] as CalendarEvent[];
+      }
       return (data?.events || []) as CalendarEvent[];
     },
+    enabled: connectionStatus?.connected === true,
     retry: 1,
     staleTime: 5 * 60 * 1000,
+  });
+
+  // Connect to Google
+  const connectMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('google-calendar', {
+        body: { action: 'auth-url', redirectUri: REDIRECT_URI },
+      });
+      if (error) throw error;
+      return data.url as string;
+    },
+    onSuccess: (url) => {
+      window.location.href = url;
+    },
+    onError: () => {
+      toast.error('Erro ao iniciar conexão com Google');
+    },
+  });
+
+  // Disconnect
+  const disconnectMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('google-calendar', {
+        body: { action: 'disconnect' },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Google Calendar desconectado');
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-status'] });
+      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
+    },
   });
 
   const getDateLabel = (dateStr: string) => {
@@ -56,7 +136,6 @@ const Agenda = () => {
     }
   };
 
-  // Group events by date
   const groupedEvents = (events || []).reduce((groups: Record<string, CalendarEvent[]>, event) => {
     const dateKey = event.start.split('T')[0];
     if (!groups[dateKey]) groups[dateKey] = [];
@@ -65,6 +144,8 @@ const Agenda = () => {
   }, {});
 
   const sortedDates = Object.keys(groupedEvents).sort();
+  const isConnected = connectionStatus?.connected === true;
+  const isLoading = statusLoading || isConnecting;
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,28 +153,52 @@ const Agenda = () => {
       <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="w-full text-center sm:text-left">
-              <h1 className="text-2xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
                 Agenda
               </h1>
-              <p className="text-sm text-muted-foreground">Seus compromissos do Google Calendar</p>
+              <p className="text-sm text-muted-foreground">
+                {isConnected
+                  ? <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {connectionStatus?.email}</span>
+                  : 'Conecte seu Google Calendar para ver seus compromissos'}
+              </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                <RefreshCw className="w-4 h-4 mr-1" /> Atualizar
-              </Button>
-              <Button size="sm" asChild>
-                <a href="https://calendar.google.com/calendar/r/eventedit" target="_blank" rel="noopener noreferrer">
-                  <Plus className="w-4 h-4 mr-1" /> Novo evento
-                </a>
-              </Button>
+            <div className="flex gap-2 flex-wrap">
+              {isConnected ? (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => refetch()}>
+                    <RefreshCw className="w-4 h-4 mr-1" /> Atualizar
+                  </Button>
+                  <Button size="sm" asChild>
+                    <a href="https://calendar.google.com/calendar/r/eventedit" target="_blank" rel="noopener noreferrer">
+                      <Plus className="w-4 h-4 mr-1" /> Novo evento
+                    </a>
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => disconnectMutation.mutate()} disabled={disconnectMutation.isPending}>
+                    <Unlink className="w-4 h-4 mr-1" /> Desconectar
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => connectMutation.mutate()}
+                  disabled={connectMutation.isPending || isLoading}
+                  size="sm"
+                >
+                  {connectMutation.isPending || isLoading ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Link2 className="w-4 h-4 mr-1" />
+                  )}
+                  Conectar Google Calendar
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* Content */}
-          {isLoading && (
+          {/* Loading */}
+          {(isLoading || eventsLoading) && (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
                 <Card key={i}>
@@ -106,20 +211,30 @@ const Agenda = () => {
             </div>
           )}
 
-          {error && (
-            <Card className="border-destructive/30">
-              <CardContent className="p-6 text-center space-y-3">
-                <Calendar className="w-12 h-12 text-muted-foreground mx-auto" />
-                <h3 className="font-semibold text-foreground">Conecte seu Google Calendar</h3>
+          {/* Not connected */}
+          {!isLoading && !isConnected && (
+            <Card className="border-primary/20">
+              <CardContent className="p-8 text-center space-y-4">
+                <Calendar className="w-16 h-16 text-primary mx-auto opacity-50" />
+                <h3 className="font-semibold text-lg text-foreground">Conecte sua conta Google</h3>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Para ver seus compromissos aqui, é necessário configurar a integração com o Google Calendar. 
-                  Entre em contato com o administrador para configurar as credenciais.
+                  Cada usuário conecta sua própria conta Google para visualizar seus compromissos pessoais. 
+                  Seus dados são isolados e ninguém mais terá acesso à sua agenda.
                 </p>
+                <Button onClick={() => connectMutation.mutate()} disabled={connectMutation.isPending}>
+                  {connectMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Link2 className="w-4 h-4 mr-2" />
+                  )}
+                  Conectar Google Calendar
+                </Button>
               </CardContent>
             </Card>
           )}
 
-          {!isLoading && !error && sortedDates.length === 0 && (
+          {/* Connected but no events */}
+          {!isLoading && !eventsLoading && isConnected && sortedDates.length === 0 && (
             <Card>
               <CardContent className="p-8 text-center space-y-3">
                 <Calendar className="w-12 h-12 text-muted-foreground mx-auto" />
@@ -129,6 +244,7 @@ const Agenda = () => {
             </Card>
           )}
 
+          {/* Events list */}
           {sortedDates.map(dateKey => (
             <div key={dateKey} className="space-y-2">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-1">
