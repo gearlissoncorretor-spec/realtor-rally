@@ -1285,7 +1285,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
             </div>
           )}
 
-          {brokerRankings.length === 0 && (
+          {currentRankings.length === 0 && (
             <div className="text-center py-20">
               <Star className="w-16 h-16 text-white/10 mx-auto mb-4" />
               <p className="text-white/30 text-lg">Nenhum dado para exibir</p>
