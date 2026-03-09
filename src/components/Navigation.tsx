@@ -52,7 +52,7 @@ interface NavGroup {
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin, getUserRole, profile } = useAuth();
+  const { hasAccess, isAdmin, getUserRole, profile, user, signOut } = useAuth();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
