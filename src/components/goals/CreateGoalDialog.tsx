@@ -162,8 +162,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               <Label htmlFor="target_type">Tipo de Meta *</Label>
               <Select 
                 value={formData.target_type} 
-                onValueChange={(value: Goal['target_type']) => 
-                  setFormData(prev => ({ ...prev, target_type: value }))
+                onValueChange={(value) => 
+                  setFormData(prev => ({ ...prev, target_type: value, custom_target_type: '' }))
                 }
               >
                 <SelectTrigger>
@@ -174,8 +174,18 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   <SelectItem value="revenue">Receita</SelectItem>
                   <SelectItem value="vgv">VGV</SelectItem>
                   <SelectItem value="commission">Comissão</SelectItem>
+                  <SelectItem value="custom">Outro (personalizado)</SelectItem>
                 </SelectContent>
               </Select>
+              {formData.target_type === 'custom' && (
+                <Input
+                  className="mt-2"
+                  value={formData.custom_target_type}
+                  onChange={(e) => setFormData(prev => ({ ...prev, custom_target_type: e.target.value }))}
+                  placeholder="Ex: Captações, Visitas, Ligações..."
+                  required
+                />
+              )}
             </div>
 
             <div>
