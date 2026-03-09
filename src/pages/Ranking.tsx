@@ -908,7 +908,7 @@ const SaleCelebrationOverlay = ({
 };
 
 // ===== TV MODE =====
-const RankingTVMode = ({ brokerRankings, onClose, sales }: { brokerRankings: BrokerRanking[]; onClose: () => void; sales: any[] }) => {
+const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode }) => {
   const { settings } = useOrganizationSettings();
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
