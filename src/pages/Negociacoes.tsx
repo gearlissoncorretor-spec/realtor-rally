@@ -305,6 +305,32 @@ const Negociacoes = () => {
     setSelectedForLoss(null);
   };
 
+  // Handle return to follow-up
+  const handleOpenReturnToFollowUp = (negotiation: Negotiation) => {
+    setSelectedForFollowUp(negotiation);
+    setReturnToFollowUpOpen(true);
+  };
+
+  const handleConfirmReturnToFollowUp = async () => {
+    if (!selectedForFollowUp) return;
+    try {
+      await createFollowUp({
+        broker_id: selectedForFollowUp.broker_id,
+        client_name: selectedForFollowUp.client_name,
+        client_phone: selectedForFollowUp.client_phone || undefined,
+        property_interest: selectedForFollowUp.property_address,
+        estimated_vgv: selectedForFollowUp.negotiated_value,
+        observations: `Retornado da Negociação. ${selectedForFollowUp.observations || ''}`.trim(),
+        status: 'novo_lead',
+      });
+      await deleteNegotiation(selectedForFollowUp.id);
+      setSelectedForFollowUp(null);
+      setReturnToFollowUpOpen(false);
+    } catch (error) {
+      // Error handled by hooks
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
