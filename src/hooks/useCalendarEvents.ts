@@ -95,7 +95,7 @@ export function useCalendarEvents(startDate?: string, endDate?: string) {
           .single();
         
         if (profile?.team_id) {
-          await supabase.from('calendar_event_shares').insert({
+          await (supabase as any).from('calendar_event_shares').insert({
             event_id: data.id,
             shared_with_team_id: profile.team_id,
           });
