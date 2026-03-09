@@ -291,24 +291,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteBrokerMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('brokers')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(
+        'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/delete-broker',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ broker_id: id }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao excluir corretor');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['brokers'] });
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
-        title: "Corretor removido",
-        description: "Corretor removido com sucesso.",
+        title: "Corretor excluído",
+        description: "Corretor e todos os dados relacionados foram removidos com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erro ao remover corretor",
-        description: "Não foi possível remover o corretor.",
+        title: "Erro ao excluir corretor",
+        description: error.message,
         variant: "destructive",
       });
     },
