@@ -52,7 +52,7 @@ interface NavGroup {
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin, getUserRole, profile } = useAuth();
+  const { hasAccess, isAdmin, getUserRole, profile, user, signOut } = useAuth();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
@@ -284,6 +284,17 @@ const Navigation = () => {
             <AuthButton />
             <ThemeToggle />
           </div>
+          {user && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+              onClick={() => signOut()}
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+          )}
         </div>
       </div>
     </nav>
@@ -305,6 +316,17 @@ const Navigation = () => {
                 <AuthButton />
                 <ThemeToggle />
               </div>
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sair
+                </Button>
+              )}
             </div>
           </div>
         </nav>
