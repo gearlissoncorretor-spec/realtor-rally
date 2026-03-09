@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Home, TrendingUp, DollarSign } from "lucide-react";
+import { Search, Filter, Home, TrendingUp, DollarSign, BarChart3 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
 import type { Broker } from "@/contexts/DataContext";
 
@@ -87,8 +88,49 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
 
   const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || searchTerm;
 
+  // Monthly evolution chart data
+  const monthlyChartData = useMemo(() => {
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const monthMap = new Map<number, { count: number; vgv: number }>();
+    
+    // Initialize all 12 months
+    for (let i = 0; i < 12; i++) {
+      monthMap.set(i, { count: 0, vgv: 0 });
+    }
+
+    // Use captacaoSales (already year-filtered, but ignore month filter for the chart)
+    const yearFilteredSales = sales.filter(sale => {
+      if (!sale.captador || sale.captador.trim() === '') return false;
+      if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
+      const d = new Date(sale.sale_date || sale.created_at || '');
+      if (isNaN(d.getTime())) return false;
+      if (selectedYear > 0 && d.getFullYear() !== selectedYear) return false;
+      return true;
+    });
+
+    yearFilteredSales.forEach(sale => {
+      const d = new Date(sale.sale_date || sale.created_at || '');
+      const month = d.getMonth();
+      const existing = monthMap.get(month)!;
+      existing.count += 1;
+      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+    });
+
+    return monthNames.map((name, i) => ({
+      name,
+      captacoes: monthMap.get(i)!.count,
+      vgv: monthMap.get(i)!.vgv,
+    }));
+  }, [sales, selectedYear]);
+
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  const formatCompactCurrency = (value: number) => {
+    if (value >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(1)}M`;
+    if (value >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}K`;
+    return `R$ ${value}`;
+  };
 
   if (loading) {
     return (
@@ -184,6 +226,54 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
           </p>
         </Card>
       </div>
+
+      {/* Monthly Evolution Chart */}
+      <Card className="overflow-hidden border-border/50">
+        <div className="px-5 py-4 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-foreground text-sm">Evolução Mensal de Captações</h3>
+          </div>
+          <Badge variant="outline" className="text-xs">{selectedYear > 0 ? selectedYear : 'Todos'}</Badge>
+        </div>
+        <CardContent className="p-4">
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={monthlyChartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <YAxis yAxisId="left" tick={{ fontSize: 11 }} className="fill-muted-foreground" allowDecimals={false} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} className="fill-muted-foreground" tickFormatter={formatCompactCurrency} />
+                <Tooltip
+                  contentStyle={{ 
+                    borderRadius: '8px', 
+                    border: '1px solid hsl(var(--border))',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--foreground))',
+                    fontSize: '12px'
+                  }}
+                  formatter={(value: number, name: string) => {
+                    if (name === 'vgv') return [formatCurrency(value), 'VGV'];
+                    return [value, 'Captações'];
+                  }}
+                />
+                <Bar yAxisId="left" dataKey="captacoes" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={28} opacity={0.85} />
+                <Line yAxisId="right" type="monotone" dataKey="vgv" stroke="hsl(var(--success, 142 71% 45%))" strokeWidth={2} dot={{ r: 3 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex items-center justify-center gap-6 mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm bg-primary" />
+              <span>Captações</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-0.5 bg-success rounded" />
+              <span>VGV</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Top Captadores */}
       {captadorRanking.length > 0 && (
