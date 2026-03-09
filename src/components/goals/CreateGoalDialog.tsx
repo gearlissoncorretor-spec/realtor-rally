@@ -82,12 +82,16 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
     setLoading(true);
     try {
+      const effectiveTargetType = formData.target_type === 'custom' 
+        ? formData.custom_target_type 
+        : formData.target_type;
+
       await onCreate({
         title: formData.title,
         description: formData.description || undefined,
         target_value: parseFloat(formData.target_value),
         current_value: 0,
-        target_type: formData.target_type,
+        target_type: effectiveTargetType as Goal['target_type'],
         period_type: formData.period_type,
         start_date: formData.start_date.toISOString().split('T')[0],
         end_date: formData.end_date.toISOString().split('T')[0],
