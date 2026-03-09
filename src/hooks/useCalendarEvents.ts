@@ -136,7 +136,7 @@ export function useCalendarEvents(startDate?: string, endDate?: string) {
 
   const deleteEvent = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('calendar_events')
         .delete()
         .eq('id', id);
