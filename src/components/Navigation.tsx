@@ -307,7 +307,7 @@ const Navigation = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-primary/[0.01] pointer-events-none" />
           <div className="relative p-5 flex flex-col h-full min-h-0">
             <div className="mb-5 shrink-0">{renderLogo()}</div>
-            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/10 scrollbar-track-transparent pr-1 -mr-1">
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 hover:scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20 pr-1 -mr-1">
               {renderGroupedNav(() => setIsMobileOpen(false))}
             </div>
             <div className="mt-3 pt-3 border-t border-border/30 space-y-2 shrink-0">
