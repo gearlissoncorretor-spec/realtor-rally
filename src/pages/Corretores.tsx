@@ -241,8 +241,8 @@ const BrokerCardView = ({
   );
 };
 
-// ─── Broker Row (List View) ──────────────────────────────────
-const BrokerListRow = ({ 
+// ─── Broker Table Row (Professional Table) ───────────────────
+const BrokerTableRow = ({ 
   broker, stats, metaProgress, rank, badges, canDelete, lastLogin, teamName,
   onEdit, onDelete, onDeleteDenied, onClick
 }: { 
@@ -252,17 +252,30 @@ const BrokerListRow = ({
   onEdit: (broker: Broker) => void; onDelete: (broker: Broker) => void;
   onDeleteDenied: () => void; onClick: (broker: Broker) => void;
 }) => (
-  <Card 
-    className="overflow-hidden border-border/40 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer group"
+  <TableRow 
+    className="cursor-pointer hover:bg-muted/30 transition-colors group"
     onClick={() => onClick(broker)}
   >
-    <CardContent className="p-0">
-      <div className="flex items-center p-4 lg:p-5 gap-4 lg:gap-6">
-        {/* Avatar */}
+    {/* Rank */}
+    <TableCell className="w-[50px] text-center font-bold text-muted-foreground">
+      {rank <= 3 && rank > 0 ? (
+        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
+          rank === 1 ? 'bg-amber-500/15 text-amber-400' : rank === 2 ? 'bg-muted text-muted-foreground' : 'bg-orange-500/10 text-orange-400'
+        }`}>
+          #{rank}
+        </span>
+      ) : rank > 0 ? (
+        <span className="text-xs text-muted-foreground/60">#{rank}</span>
+      ) : null}
+    </TableCell>
+
+    {/* Corretor */}
+    <TableCell>
+      <div className="flex items-center gap-3">
         <div className="relative shrink-0">
-          <Avatar className="h-12 w-12 lg:h-14 lg:w-14 ring-2 ring-border group-hover:ring-primary/40 transition-all duration-300">
+          <Avatar className="h-9 w-9 ring-1 ring-border">
             <AvatarImage src={broker.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+            <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
               {broker.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </AvatarFallback>
           </Avatar>
@@ -270,96 +283,90 @@ const BrokerListRow = ({
             <ActivityDot lastLogin={lastLogin} />
           </div>
         </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="text-base lg:text-lg font-semibold text-foreground truncate">{broker.name}</h3>
-            {rank <= 3 && rank > 0 && (
-              <span className="text-amber-400 text-xs font-bold">#{rank}</span>
-            )}
-            <Badge variant={broker.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0 h-4 hidden sm:inline-flex">
-              {broker.status === 'ativo' ? 'Ativo' : broker.status === 'ferias' ? 'Férias' : 'Inativo'}
-            </Badge>
-          </div>
-          <p className="text-xs text-muted-foreground truncate">{broker.email}</p>
-          
-          {/* Badges */}
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {badges.slice(0, 3).map((badge, i) => (
-              <span key={i} className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0 rounded-full border ${badge.color}`}>
-                {badge.icon} {badge.label}
-              </span>
-            ))}
-          </div>
-
-          {/* Meta on mobile */}
-          {broker.meta_monthly && Number(broker.meta_monthly) > 0 && (
-            <div className="flex items-center gap-2 mt-2 max-w-[250px] lg:hidden">
-              <Progress value={metaProgress} className="h-1.5 flex-1" />
-              <span className={`text-[10px] font-semibold ${metaProgress >= 70 ? 'text-emerald-400' : metaProgress >= 30 ? 'text-amber-400' : 'text-destructive'}`}>
-                {Math.round(metaProgress)}%
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Desktop Stats */}
-        <div className="hidden lg:flex items-center gap-6 shrink-0">
-          {broker.meta_monthly && Number(broker.meta_monthly) > 0 && (
-            <div className="flex items-center gap-2 min-w-[160px]">
-              <Progress value={metaProgress} className="h-1.5 flex-1" />
-              <span className={`text-xs font-semibold whitespace-nowrap ${metaProgress >= 70 ? 'text-emerald-400' : metaProgress >= 30 ? 'text-amber-400' : 'text-muted-foreground'}`}>
-                {Math.round(metaProgress)}%
-              </span>
-            </div>
-          )}
-          <div className="text-center min-w-[70px]">
-            <p className="text-xs text-muted-foreground">Vendas</p>
-            <p className="text-xl font-bold text-foreground">{stats.salesCount}</p>
-          </div>
-          <div className="w-px h-8 bg-border/50" />
-          <div className="text-center min-w-[100px]">
-            <p className="text-xs text-muted-foreground">VGV</p>
-            <p className="text-lg font-bold text-foreground">{formatCurrency(stats.totalRevenue)}</p>
-          </div>
-        </div>
-
-        {/* Mobile Stats */}
-        <div className="flex lg:hidden flex-col items-end gap-0.5 shrink-0">
-          <p className="text-sm font-bold text-foreground">{stats.salesCount} <span className="text-[10px] text-muted-foreground font-normal">vendas</span></p>
-          <p className="text-xs text-muted-foreground">{formatCurrency(stats.totalRevenue)}</p>
-        </div>
-
-        {/* Actions */}
-        <div className="hidden lg:flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-          <TooltipProvider delayDuration={200}>
-            {broker.phone && (
-              <Tooltip><TooltipTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-500 hover:text-emerald-400"
-                  onClick={() => window.open(`https://wa.me/55${broker.phone?.replace(/\D/g, '')}`, '_blank')}>
-                  <MessageCircle className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger><TooltipContent>WhatsApp</TooltipContent></Tooltip>
-            )}
-            <Tooltip><TooltipTrigger asChild>
-              <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => onEdit(broker)}>
-                <Edit className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger><TooltipContent>Editar</TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild>
-              <Button size="icon" variant="ghost"
-                className={`h-8 w-8 ${canDelete ? "text-muted-foreground hover:text-destructive" : "opacity-30"}`}
-                onClick={() => canDelete ? onDelete(broker) : onDeleteDenied()} disabled={!canDelete}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger><TooltipContent>{canDelete ? 'Excluir' : 'Sem permissão'}</TooltipContent></Tooltip>
-          </TooltipProvider>
-          <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary ml-1 transition-colors" />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground truncate max-w-[180px]">{broker.name}</p>
+          <p className="text-[11px] text-muted-foreground truncate max-w-[180px]">{broker.email}</p>
         </div>
       </div>
-    </CardContent>
-  </Card>
+    </TableCell>
+
+    {/* Status */}
+    <TableCell>
+      <Badge variant={broker.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px] px-2 py-0.5">
+        {broker.status === 'ativo' ? 'Ativo' : broker.status === 'ferias' ? 'Férias' : 'Inativo'}
+      </Badge>
+    </TableCell>
+
+    {/* Equipe */}
+    <TableCell className="text-sm text-muted-foreground">
+      {teamName || <span className="text-muted-foreground/40">—</span>}
+    </TableCell>
+
+    {/* Vendas */}
+    <TableCell className="text-center">
+      <span className="text-sm font-bold text-foreground">{stats.salesCount}</span>
+    </TableCell>
+
+    {/* VGV */}
+    <TableCell className="text-right">
+      <span className="text-sm font-semibold text-foreground">{formatCurrency(stats.totalRevenue)}</span>
+    </TableCell>
+
+    {/* Meta */}
+    <TableCell className="min-w-[140px]">
+      {broker.meta_monthly && Number(broker.meta_monthly) > 0 ? (
+        <div className="flex items-center gap-2">
+          <Progress value={metaProgress} className="h-1.5 flex-1" />
+          <span className={`text-xs font-bold min-w-[36px] text-right ${
+            metaProgress >= 70 ? 'text-emerald-400' : metaProgress >= 30 ? 'text-amber-400' : 'text-destructive'
+          }`}>
+            {Math.round(metaProgress)}%
+          </span>
+        </div>
+      ) : (
+        <span className="text-xs text-muted-foreground/40">Sem meta</span>
+      )}
+    </TableCell>
+
+    {/* Badges */}
+    <TableCell className="hidden xl:table-cell">
+      <div className="flex flex-wrap gap-1">
+        {badges.slice(0, 2).map((badge, i) => (
+          <span key={i} className={`inline-flex items-center gap-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded-full border ${badge.color}`}>
+            {badge.icon} {badge.label}
+          </span>
+        ))}
+      </div>
+    </TableCell>
+
+    {/* Ações */}
+    <TableCell onClick={e => e.stopPropagation()}>
+      <div className="flex items-center gap-0.5 justify-end">
+        <TooltipProvider delayDuration={200}>
+          {broker.phone && (
+            <Tooltip><TooltipTrigger asChild>
+              <Button size="icon" variant="ghost" className="h-7 w-7 text-emerald-500 hover:text-emerald-400"
+                onClick={() => window.open(`https://wa.me/55${broker.phone?.replace(/\D/g, '')}`, '_blank')}>
+                <MessageCircle className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger><TooltipContent>WhatsApp</TooltipContent></Tooltip>
+          )}
+          <Tooltip><TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => onEdit(broker)}>
+              <Edit className="w-3.5 h-3.5" />
+            </Button>
+          </TooltipTrigger><TooltipContent>Editar</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild>
+            <Button size="icon" variant="ghost"
+              className={`h-7 w-7 ${canDelete ? "text-muted-foreground hover:text-destructive" : "opacity-30"}`}
+              onClick={() => canDelete ? onDelete(broker) : onDeleteDenied()} disabled={!canDelete}>
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </TooltipTrigger><TooltipContent>{canDelete ? 'Excluir' : 'Sem permissão'}</TooltipContent></Tooltip>
+        </TooltipProvider>
+      </div>
+    </TableCell>
+  </TableRow>
 );
 
 // ─── Main Page ───────────────────────────────────────────────
