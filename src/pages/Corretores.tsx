@@ -615,7 +615,7 @@ const Corretores = () => {
 
     return viewMode === 'cards' 
       ? <BrokerCardView key={broker.id} {...commonProps} />
-      : <BrokerListRow key={broker.id} {...commonProps} />;
+      : <BrokerTableRow key={broker.id} {...commonProps} />;
   };
 
   return (
