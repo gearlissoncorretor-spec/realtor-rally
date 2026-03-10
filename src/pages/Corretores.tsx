@@ -743,22 +743,26 @@ const Corretores = () => {
             {filteredBrokers.map(renderBrokerItem)}
           </div>
         ) : (
-          <div className="space-y-6">
-            {brokersByTeam.map(([teamId, group]) => (
-              <div key={teamId}>
-                <div className="flex items-center gap-2.5 mb-3 px-1">
-                  <div className={`w-7 h-7 rounded-md flex items-center justify-center ${teamId === 'no-team' ? 'bg-muted' : 'bg-primary/10'}`}>
-                    {teamId === 'no-team' ? <UserCircle className="w-4 h-4 text-muted-foreground" /> : <Users className="w-4 h-4 text-primary" />}
-                  </div>
-                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">{group.teamName}</h2>
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-muted text-muted-foreground">{group.brokers.length}</Badge>
-                </div>
-                <div className="grid gap-3">
-                  {group.brokers.map(renderBrokerItem)}
-                </div>
-              </div>
-            ))}
-          </div>
+          <Card className="border-border/40 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                  <TableHead className="w-[50px] text-center">#</TableHead>
+                  <TableHead>Corretor</TableHead>
+                  <TableHead className="w-[90px]">Status</TableHead>
+                  <TableHead className="w-[130px]">Equipe</TableHead>
+                  <TableHead className="w-[80px] text-center">Vendas</TableHead>
+                  <TableHead className="w-[130px] text-right">VGV</TableHead>
+                  <TableHead className="w-[160px]">Meta</TableHead>
+                  <TableHead className="hidden xl:table-cell w-[160px]">Badges</TableHead>
+                  <TableHead className="w-[120px] text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBrokers.map(renderBrokerItem)}
+              </TableBody>
+            </Table>
+          </Card>
         )}
       </div>
 
