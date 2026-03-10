@@ -46,7 +46,7 @@ import {
   ArrowUpDown,
   XCircle
 } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BrokerForm } from "@/components/forms/BrokerForm";
 import BrokerDetailsModal from "@/components/BrokerDetailsModal";
