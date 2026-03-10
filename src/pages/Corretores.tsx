@@ -385,7 +385,7 @@ const Corretores = () => {
   const [profilesMap, setProfilesMap] = useState<Record<string, { last_login_at: string | null }>>({});
   
   // Load profiles for activity indicators
-  useState(() => {
+  useEffect(() => {
     const loadProfiles = async () => {
       const { supabase } = await import('@/integrations/supabase/client');
       const { data } = await supabase.from('profiles').select('id, last_login_at');
