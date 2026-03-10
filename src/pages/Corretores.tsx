@@ -396,7 +396,7 @@ const Corretores = () => {
       }
     };
     loadProfiles();
-  });
+  }, []);
 
   const getBrokerStats = useCallback((brokerId: string) => {
     const brokerSales = sales.filter(sale => sale.broker_id === brokerId);
