@@ -262,8 +262,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    setLoading(true);
-    await supabase.auth.signOut();
+    try {
+      setLoading(true);
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    } finally {
+      // Always clear state, even if signOut fails (expired session)
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setUserRole(null);
+      setTeamHierarchy(null);
+      setCompany(null);
+      setLoading(false);
+    }
   };
 
   const hasAccess = (screen: string): boolean => {
