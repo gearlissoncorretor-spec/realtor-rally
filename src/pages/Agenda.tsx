@@ -1,26 +1,38 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
-import { Calendar, Plus, ChevronLeft, ChevronRight, CalendarDays, CalendarRange, LayoutGrid } from 'lucide-react';
-import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
+import {
+  Calendar, Plus, ChevronLeft, ChevronRight, CalendarDays, CalendarRange,
+  LayoutGrid, Phone, UserPlus, RotateCcw, Zap, ListTodo,
+} from 'lucide-react';
+import {
+  format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCalendarEvents, CalendarEvent as CalEvent, CreateEventData } from '@/hooks/useCalendarEvents';
 import CreateEventDialog from '@/components/calendar/CreateEventDialog';
 import CalendarMonthView from '@/components/calendar/CalendarMonthView';
 import CalendarWeekView from '@/components/calendar/CalendarWeekView';
-import CalendarDayView from '@/components/calendar/CalendarDayView';
+import AgendaDayView from '@/components/calendar/AgendaDayView';
+import AgendaSummaryCards from '@/components/calendar/AgendaSummaryCards';
+import AgendaActivitiesPanel from '@/components/calendar/AgendaActivitiesPanel';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'month' | 'week' | 'day';
+type FilterMode = 'todos' | 'minha' | 'equipe';
 
 const Agenda = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>('day');
+  const [filterMode, setFilterMode] = useState<FilterMode>('todos');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [editingEvent, setEditingEvent] = useState<CalEvent | null>(null);
+  const [quickEventType, setQuickEventType] = useState<string | undefined>();
+  const isMobile = useIsMobile();
 
-  // Calculate date range for query
   const getDateRange = () => {
     if (viewMode === 'month') {
       const start = startOfWeek(startOfMonth(currentDate), { locale: ptBR });
@@ -55,18 +67,27 @@ const Agenda = () => {
     return format(currentDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR });
   };
 
+  const openQuickCreate = (eventType?: string) => {
+    setSelectedDate(new Date());
+    setEditingEvent(null);
+    setQuickEventType(eventType);
+    setShowCreateDialog(true);
+  };
+
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
     if (viewMode === 'month') {
       setCurrentDate(date);
       setViewMode('day');
     } else {
+      setQuickEventType(undefined);
       setShowCreateDialog(true);
     }
   };
 
   const handleEventClick = (event: CalEvent) => {
     setEditingEvent(event);
+    setQuickEventType(undefined);
     setShowCreateDialog(true);
   };
 
@@ -84,89 +105,148 @@ const Agenda = () => {
     setEditingEvent(null);
   };
 
+  const quickActions = [
+    { label: 'Nova Ligação', icon: Phone, type: 'lembrete', className: 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/20' },
+    { label: 'Novo Cliente', icon: UserPlus, type: 'visita', className: 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20' },
+    { label: 'Follow-up', icon: RotateCcw, type: 'follow_up', className: 'bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 border-orange-500/20' },
+    { label: 'Planejar meu dia', icon: Zap, type: undefined, className: 'bg-gradient-to-r from-primary/20 to-primary/10 text-primary hover:from-primary/30 hover:to-primary/20 border-primary/20' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Calendar className="w-6 h-6 text-primary" />
-                Agenda
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+                <Calendar className="w-7 h-7 text-primary" />
+                Agenda Comercial
               </h1>
-              <p className="text-sm text-muted-foreground">Organize compromissos, metas e atividades</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Gerencie visitas, ligações e compromissos da equipe
+              </p>
             </div>
-            <Button size="sm" onClick={() => { setSelectedDate(new Date()); setEditingEvent(null); setShowCreateDialog(true); }}>
-              <Plus className="w-4 h-4 mr-1" /> Novo evento
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {!isMobile && quickActions.map((action) => (
+                <Button
+                  key={action.label}
+                  variant="outline"
+                  size="sm"
+                  className={`gap-1.5 border ${action.className} transition-all`}
+                  onClick={() => openQuickCreate(action.type)}
+                >
+                  <action.icon className="w-3.5 h-3.5" />
+                  {action.label}
+                </Button>
+              ))}
+              {isMobile && (
+                <>
+                  <Button size="sm" onClick={() => openQuickCreate()} className="gap-1.5">
+                    <Plus className="w-4 h-4" /> Novo Evento
+                  </Button>
+                  <AgendaActivitiesPanel events={events} currentDate={currentDate} onEventClick={handleEventClick} />
+                </>
+              )}
+            </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={() => navigate('prev')}>
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
-                Hoje
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => navigate('next')}>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-              <h2 className="text-lg font-semibold text-foreground capitalize ml-2">
+          {/* Summary Cards */}
+          <AgendaSummaryCards events={events} currentDate={currentDate} />
+
+          {/* Filter + View Controls */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Agenda Filter */}
+              <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/50">
+                {([['todos', 'Todos'], ['minha', 'Minha agenda'], ['equipe', 'Equipe']] as const).map(([val, label]) => (
+                  <button
+                    key={val}
+                    onClick={() => setFilterMode(val)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                      filterMode === val
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Navigation */}
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('prev')}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs h-8" onClick={() => setCurrentDate(new Date())}>
+                  Hoje
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate('next')}>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <h2 className="text-sm lg:text-base font-semibold text-foreground capitalize">
                 {getTitle()}
               </h2>
             </div>
 
+            {/* View Mode */}
             <Tabs value={viewMode} onValueChange={v => setViewMode(v as ViewMode)}>
-              <TabsList>
-                <TabsTrigger value="day" className="gap-1">
+              <TabsList className="h-8">
+                <TabsTrigger value="day" className="gap-1 text-xs h-7 px-3">
                   <CalendarDays className="w-3.5 h-3.5" /> Dia
                 </TabsTrigger>
-                <TabsTrigger value="week" className="gap-1">
+                <TabsTrigger value="week" className="gap-1 text-xs h-7 px-3">
                   <CalendarRange className="w-3.5 h-3.5" /> Semana
                 </TabsTrigger>
-                <TabsTrigger value="month" className="gap-1">
+                <TabsTrigger value="month" className="gap-1 text-xs h-7 px-3">
                   <LayoutGrid className="w-3.5 h-3.5" /> Mês
                 </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
-          {/* Calendar Views */}
-          {viewMode === 'month' && (
-            <CalendarMonthView
-              currentDate={currentDate}
-              events={events}
-              onDateClick={handleDateClick}
-              onEventClick={handleEventClick}
-            />
-          )}
+          {/* Main Content: Calendar + Activities Sidebar */}
+          <div className="flex gap-4">
+            <div className="flex-1 min-w-0">
+              {viewMode === 'month' && (
+                <CalendarMonthView
+                  currentDate={currentDate}
+                  events={events}
+                  onDateClick={handleDateClick}
+                  onEventClick={handleEventClick}
+                />
+              )}
+              {viewMode === 'week' && (
+                <CalendarWeekView
+                  currentDate={currentDate}
+                  events={events}
+                  onDateClick={handleDateClick}
+                  onEventClick={handleEventClick}
+                />
+              )}
+              {viewMode === 'day' && (
+                <AgendaDayView
+                  currentDate={currentDate}
+                  events={events}
+                  onEventClick={handleEventClick}
+                />
+              )}
+            </div>
 
-          {viewMode === 'week' && (
-            <CalendarWeekView
-              currentDate={currentDate}
-              events={events}
-              onDateClick={handleDateClick}
-              onEventClick={handleEventClick}
-            />
-          )}
-
-          {viewMode === 'day' && (
-            <CalendarDayView
-              currentDate={currentDate}
-              events={events}
-              onEventClick={handleEventClick}
-            />
-          )}
+            {/* Desktop Activities Panel */}
+            {!isMobile && (
+              <AgendaActivitiesPanel events={events} currentDate={currentDate} onEventClick={handleEventClick} />
+            )}
+          </div>
         </div>
 
-        {/* Create/Edit Event Dialog */}
         <CreateEventDialog
           open={showCreateDialog}
-          onOpenChange={(open) => { setShowCreateDialog(open); if (!open) setEditingEvent(null); }}
+          onOpenChange={(open) => { setShowCreateDialog(open); if (!open) { setEditingEvent(null); setQuickEventType(undefined); } }}
           onSubmit={handleCreateSubmit}
           isLoading={createEvent.isPending}
           defaultDate={selectedDate}
