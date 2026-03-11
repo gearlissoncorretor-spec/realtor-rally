@@ -284,76 +284,88 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
             {/* Start Date */}
             <div>
               <Label>Data de Início *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.start_date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.start_date
-                      ? format(formData.start_date, "dd/MM/yyyy", { locale: ptBR })
-                      : <span>Selecione a data</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.start_date}
-                    onSelect={(date) => {
-                      if (date) {
-                        setFormData(prev => ({ ...prev, start_date: date }));
-                        // Re-calculate end based on period
-                        if (formData.period_type !== 'custom') {
-                          handlePeriodChange(formData.period_type);
-                        }
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={formData.start_date ? format(formData.start_date, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value + 'T12:00:00') : null;
+                    if (date && !isNaN(date.getTime())) {
+                      setFormData(prev => ({ ...prev, start_date: date }));
+                      if (formData.period_type !== 'custom') {
+                        handlePeriodChange(formData.period_type);
                       }
-                    }}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" type="button">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.start_date}
+                      onSelect={(date) => {
+                        if (date) {
+                          setFormData(prev => ({ ...prev, start_date: date }));
+                          if (formData.period_type !== 'custom') {
+                            handlePeriodChange(formData.period_type);
+                          }
+                        }
+                      }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
 
             {/* End Date */}
             <div>
               <Label>Data de Término *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.end_date && "text-muted-foreground",
-                      dateError && "border-destructive ring-destructive"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.end_date
-                      ? format(formData.end_date, "dd/MM/yyyy", { locale: ptBR })
-                      : <span>Selecione a data</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.end_date}
-                    onSelect={(date) => {
-                      if (date) {
-                        setFormData(prev => ({ ...prev, end_date: date }));
-                        setDateError(false);
-                      }
-                    }}
-                    disabled={!isCustomPeriod}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={formData.end_date ? format(formData.end_date, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => {
+                    const date = e.target.value ? new Date(e.target.value + 'T12:00:00') : null;
+                    if (date && !isNaN(date.getTime())) {
+                      setFormData(prev => ({ ...prev, end_date: date }));
+                      setDateError(false);
+                    }
+                  }}
+                  disabled={!isCustomPeriod}
+                  className={cn("flex-1", dateError && "border-destructive ring-destructive")}
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" type="button" disabled={!isCustomPeriod}>
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.end_date}
+                      onSelect={(date) => {
+                        if (date) {
+                          setFormData(prev => ({ ...prev, end_date: date }));
+                          setDateError(false);
+                        }
+                      }}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                      locale={ptBR}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               {!isCustomPeriod && (
                 <p className="text-xs text-muted-foreground mt-1">Calculada automaticamente pelo período</p>
               )}
