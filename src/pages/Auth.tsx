@@ -95,9 +95,12 @@ const Auth = () => {
               </span>
             </div>
           )}
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight">{orgName}</h1>
-          <p className="text-primary/90 text-lg sm:text-xl font-semibold tracking-wide leading-relaxed max-w-xs mx-auto">
-            {tagline}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">{orgName}</h1>
+          <p className="text-blue-400 text-base sm:text-lg font-semibold tracking-wide leading-relaxed max-w-sm mx-auto">
+            Plataforma profissional para gestão de vendas imobiliárias
+          </p>
+          <p className="text-white/50 text-sm max-w-md mx-auto">
+            💡 Organize clientes, negociações e resultados em <strong className="text-white/70">um único sistema</strong>.
           </p>
         </div>
 
