@@ -584,14 +584,14 @@ const Corretores = () => {
   const handleEditBroker = (broker: Broker) => { setSelectedBroker(broker); setIsFormOpen(true); };
   const canDeleteBroker = (broker: Broker): boolean => {
     if (isAdmin() || isDiretor()) return true;
-    if (isGerente()) return broker.created_by === user?.id;
+    if (isGerente()) return true; // Gerentes podem excluir corretores da equipe (validação no backend)
     return false;
   };
 
   const handleDeleteBroker = async () => {
     if (!deleteConfirmBroker) return;
     if (!canDeleteBroker(deleteConfirmBroker)) {
-      toast({ title: "Sem permissão", description: "Você só pode excluir corretores que você mesmo criou.", variant: "destructive" });
+      toast({ title: "Sem permissão", description: "Você não tem permissão para excluir este corretor.", variant: "destructive" });
       setDeleteConfirmBroker(null);
       return;
     }
@@ -620,7 +620,7 @@ const Corretores = () => {
   };
 
   const handleDeleteDenied = () => {
-    toast({ title: "Sem permissão", description: "Você só pode excluir corretores que você criou.", variant: "destructive" });
+    toast({ title: "Sem permissão", description: "Você não tem permissão para excluir este corretor.", variant: "destructive" });
   };
 
   const hasActiveFilters = statusFilter !== 'all' || teamFilter !== 'all' || performanceFilter !== 'all' || searchTerm;
