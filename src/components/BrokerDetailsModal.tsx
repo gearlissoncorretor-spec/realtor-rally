@@ -52,10 +52,15 @@ const StatCard = ({ icon, value, label, color }: { icon: React.ReactNode; value:
 const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: BrokerDetailsModalProps) => {
   const { toast } = useToast();
   const [isEditingGoal, setIsEditingGoal] = useState(false);
-  const [newGoal, setNewGoal] = useState('');
+  const [newGoalValue, setNewGoalValue] = useState(0);
+  const [newGoalSalesCount, setNewGoalSalesCount] = useState('');
 
   useEffect(() => {
-    if (broker) setNewGoal(String(broker.meta_monthly || 0));
+    if (broker) {
+      setNewGoalValue(Number(broker.meta_monthly || 0));
+      // Sales count goal could be stored elsewhere; for now derive from meta or default 0
+      setNewGoalSalesCount('');
+    }
   }, [broker]);
 
   const stats = useMemo(() => {
