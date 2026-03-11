@@ -44,7 +44,9 @@ import { AddContactDialog } from "@/components/followup/AddContactDialog";
 import { ResponsiveStatCard } from "@/components/negotiations/ResponsiveStatCard";
 import { ExpandableCell } from "@/components/ExpandableCell";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatusManagerDialog";
 import { cn } from "@/lib/utils";
+import { Settings } from "lucide-react";
 
 const FollowUpPage = () => {
   const { user, isCorretor } = useAuth();
@@ -75,6 +77,7 @@ const FollowUpPage = () => {
   // Add contact dialog
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [selectedForContact, setSelectedForContact] = useState<FollowUpType | null>(null);
+  const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<CreateFollowUpInput>({
@@ -258,13 +261,22 @@ const FollowUpPage = () => {
               </p>
             </div>
             
-            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Novo Lead
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setStatusManagerOpen(true)}
+                title="Gerenciar Status"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Novo Lead
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
@@ -381,6 +393,7 @@ const FollowUpPage = () => {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -650,6 +663,11 @@ const FollowUpPage = () => {
         open={contactDialogOpen}
         onOpenChange={setContactDialogOpen}
         onConfirm={handleConfirmContact}
+      />
+
+      <FollowUpStatusManagerDialog
+        open={statusManagerOpen}
+        onOpenChange={setStatusManagerOpen}
       />
     </div>
   );
