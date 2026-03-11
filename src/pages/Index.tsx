@@ -7,6 +7,8 @@ import NegotiationAlert from "@/components/NegotiationAlert";
 import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import React, { useState, useMemo, useEffect } from "react";
+import GerenteDashboard from "@/components/dashboards/GerenteDashboard";
+import CorretorDashboard from "@/components/dashboards/CorretorDashboard";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
