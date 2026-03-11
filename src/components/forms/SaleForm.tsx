@@ -402,15 +402,54 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               <FormField
                 control={form.control}
                 name="origem"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Origem *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Indicação, Site, etc." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const origemOptions = [
+                    'Indicação', 'Site', 'Redes Sociais', 'Plantão', 'Portal Imobiliário',
+                    'WhatsApp', 'Telefone', 'Stand de Vendas', 'Evento', 'Parceiro',
+                    'Google Ads', 'Facebook Ads', 'Instagram', 'Placa', 'Outros'
+                  ];
+                  const [showOrigemDropdown, setShowOrigemDropdown] = useState(false);
+                  const filteredOptions = origemOptions.filter(opt =>
+                    opt.toLowerCase().includes((field.value || '').toLowerCase())
+                  );
+                  return (
+                    <FormItem className="relative">
+                      <FormLabel>Origem *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Digite ou selecione a origem..."
+                          {...field}
+                          onFocus={() => setShowOrigemDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowOrigemDropdown(false), 200)}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setShowOrigemDropdown(true);
+                          }}
+                          autoComplete="off"
+                        />
+                      </FormControl>
+                      {showOrigemDropdown && filteredOptions.length > 0 && (
+                        <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-popover shadow-lg">
+                          {filteredOptions.map((opt) => (
+                            <button
+                              key={opt}
+                              type="button"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors text-popover-foreground"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                field.onChange(opt);
+                                setShowOrigemDropdown(false);
+                              }}
+                            >
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
               
               <FormField
