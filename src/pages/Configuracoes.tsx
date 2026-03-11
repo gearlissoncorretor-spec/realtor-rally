@@ -1,5 +1,5 @@
 import Navigation from "@/components/Navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,6 @@ import {
   Monitor,
   ChevronDown,
   ChevronRight,
-  Tv
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -30,7 +29,6 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
-import { TVModeSoundSettings } from "@/components/TVModeSoundSettings";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -44,13 +42,11 @@ const Configuracoes = () => {
     autoRefresh: true
   });
 
-  // Collapsible section states
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     general: true,
     branding: false,
     preferences: false,
     notifications: false,
-    tvSound: false,
     teams: false,
     teamMembers: false,
     screenAccess: false,
@@ -72,7 +68,7 @@ const Configuracoes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6 text-center">
             <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-1 animate-fade-in">
@@ -155,32 +151,28 @@ const Configuracoes = () => {
               <NotificationCenter />
             </CollapsibleSection>
 
-            {/* Som do Modo TV */}
+            {/* Identidade Visual & Som — Admin or Director */}
             {(isAdmin() || isDiretor()) && (
               <CollapsibleSection
-                title="Som do Modo TV"
-                icon={<Tv className="h-5 w-5 text-warning" />}
-                description="Som personalizado para a revelação do ranking"
-                isOpen={openSections.tvSound}
-                onToggle={() => toggleSection('tvSound')}
+                title="Identidade Visual & Som"
+                icon={<Palette className="h-5 w-5 text-primary" />}
+                description="Logo, nome do sistema, cores e som do ranking"
+                isOpen={openSections.branding}
+                onToggle={() => toggleSection('branding')}
               >
-                <TVModeSoundSettings />
+                <BrandingSettings />
               </CollapsibleSection>
             )}
 
             <CollapsibleSection
               title="Configurações Gerais"
               icon={<Settings className="h-5 w-5 text-primary" />}
-              description="Nome da empresa, moeda e idioma"
+              description="Moeda, fuso horário e idioma"
               isOpen={openSections.general}
               onToggle={() => toggleSection('general')}
             >
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="company-name" className="text-sm">Nome da Empresa</Label>
-                    <Input id="company-name" placeholder="Sua Imobiliária" />
-                  </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="currency" className="text-sm">Moeda</Label>
                     <Input id="currency" value="BRL (R$)" disabled />
@@ -194,24 +186,10 @@ const Configuracoes = () => {
                     <Input id="language" value="Português (BR)" disabled />
                   </div>
                 </div>
-                <Button onClick={handleSaveSettings} size="sm">Salvar Alterações</Button>
               </div>
             </CollapsibleSection>
 
-            {/* Branding Settings - Only visible to Admins */}
-            {isAdmin() && (
-              <CollapsibleSection
-                title="Identidade Visual"
-                icon={<Palette className="h-5 w-5 text-primary" />}
-                description="Logo, nome e cores da marca"
-                isOpen={openSections.branding}
-                onToggle={() => toggleSection('branding')}
-              >
-                <BrandingSettings />
-              </CollapsibleSection>
-            )}
-
-            {/* Team Management - Only for Directors */}
+            {/* Team Management - Directors */}
             {isDiretor() && (
               <CollapsibleSection
                 title="Gestão de Equipes"
@@ -224,7 +202,7 @@ const Configuracoes = () => {
               </CollapsibleSection>
             )}
 
-            {/* Team Member Management - For Directors and Managers */}
+            {/* Team Members - Directors and Managers */}
             {(isDiretor() || isGerente()) && (
               <CollapsibleSection
                 title="Membros das Equipes"
@@ -237,7 +215,7 @@ const Configuracoes = () => {
               </CollapsibleSection>
             )}
 
-            {/* Screen Access Management - Only for Admins and Directors */}
+            {/* Screen Access - Admins and Directors */}
             {(isAdmin() || isDiretor()) && (
               <CollapsibleSection
                 title="Acesso às Telas"
@@ -250,7 +228,7 @@ const Configuracoes = () => {
               </CollapsibleSection>
             )}
 
-            {/* User Management Hub - Only visible to Admins */}
+            {/* User Management - Admins */}
             {isAdmin() && (
               <CollapsibleSection
                 title="Gestão de Usuários"
