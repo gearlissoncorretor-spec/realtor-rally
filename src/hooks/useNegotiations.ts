@@ -52,7 +52,7 @@ export interface UpdateNegotiationInput {
 }
 
 export const useNegotiations = () => {
-  const { user, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy } = useAuth();
+  const { user, profile, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { brokers } = useBrokers();
