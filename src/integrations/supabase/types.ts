@@ -561,6 +561,85 @@ export type Database = {
           },
         ]
       }
+      commissions: {
+        Row: {
+          base_value: number
+          broker_id: string
+          commission_percentage: number
+          commission_value: number
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          installments: number | null
+          observations: string | null
+          paid_installments: number | null
+          payment_date: string | null
+          payment_method: string | null
+          sale_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          base_value?: number
+          broker_id: string
+          commission_percentage?: number
+          commission_value?: number
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          installments?: number | null
+          observations?: string | null
+          paid_installments?: number | null
+          payment_date?: string | null
+          payment_method?: string | null
+          sale_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          base_value?: number
+          broker_id?: string
+          commission_percentage?: number
+          commission_value?: number
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          installments?: number | null
+          observations?: string | null
+          paid_installments?: number | null
+          payment_date?: string | null
+          payment_method?: string | null
+          sale_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string
