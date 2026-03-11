@@ -190,38 +190,50 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
                     <Badge className={goalBadge.color}>{goalBadge.text}</Badge>
                   </div>
                   <div className="space-y-4">
-                    {/* Meta em R$ */}
-                    <div className="flex items-center gap-4">
-                      <Label className="text-sm font-medium min-w-[80px]">Meta (R$):</Label>
-                      {isEditingGoal ? (
-                        <CurrencyInput 
-                          value={newGoalValue} 
-                          onChange={(val) => setNewGoalValue(val)} 
-                          className="flex-1 h-9" 
-                          autoFocus
-                        />
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold">{formatCurrency(Number(broker.meta_monthly || 0))}</span>
-                          <Button size="sm" variant="ghost" onClick={() => setIsEditingGoal(true)}><Edit3 className="w-3.5 h-3.5" /></Button>
-                        </div>
-                      )}
+                    {/* Meta em R$ e Vendas lado a lado */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Meta em R$ */}
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium">Meta (R$)</Label>
+                        {isEditingGoal ? (
+                          <CurrencyInput 
+                            value={newGoalValue} 
+                            onChange={(val) => setNewGoalValue(val)} 
+                            className="h-9" 
+                            autoFocus
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold">{formatCurrency(Number(broker.meta_monthly || 0))}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Meta em número de vendas (opcional) */}
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium text-muted-foreground">Nº Vendas <span className="text-[10px]">(opcional)</span></Label>
+                        {isEditingGoal ? (
+                          <Input 
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={newGoalSalesCount} 
+                            onChange={(e) => setNewGoalSalesCount(e.target.value.replace(/\D/g, ''))} 
+                            placeholder="Ex: 10"
+                            className="h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold">{newGoalSalesCount || '—'}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Meta em número de vendas */}
-                    {isEditingGoal && (
-                      <div className="flex items-center gap-4">
-                        <Label className="text-sm font-medium min-w-[80px]">Vendas:</Label>
-                        <Input 
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={newGoalSalesCount} 
-                          onChange={(e) => setNewGoalSalesCount(e.target.value.replace(/\D/g, ''))} 
-                          placeholder="Ex: 10 vendas"
-                          className="flex-1 h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                        />
-                      </div>
+                    {!isEditingGoal && (
+                      <Button size="sm" variant="ghost" onClick={() => setIsEditingGoal(true)} className="w-fit">
+                        <Edit3 className="w-3.5 h-3.5 mr-1" /> Editar Metas
+                      </Button>
                     )}
 
                     {isEditingGoal && (
