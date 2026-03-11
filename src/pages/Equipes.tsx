@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { 
@@ -15,13 +16,20 @@ import {
   Trash2,
   Target,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  UserCheck
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTeams } from "@/hooks/useTeams";
 import { useSales } from "@/hooks/useSales";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ManagerOption {
+  id: string;
+  full_name: string;
+}
 
 const Equipes = () => {
   const { toast } = useToast();
@@ -29,10 +37,32 @@ const Equipes = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', manager_id: '' });
+  const [managers, setManagers] = useState<ManagerOption[]>([]);
   
   const { teams, teamMembers, loading, createTeam, updateTeam, deleteTeam } = useTeams();
   const { sales } = useSales();
+
+  useEffect(() => {
+    const fetchManagers = async () => {
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['gerente', 'diretor']);
+      
+      if (!rolesData?.length) return;
+      
+      const userIds = rolesData.map(r => r.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds)
+        .order('full_name');
+      
+      setManagers(profiles || []);
+    };
+    fetchManagers();
+  }, []);
 
   // Only directors can access this page
   if (!isDiretor()) {
