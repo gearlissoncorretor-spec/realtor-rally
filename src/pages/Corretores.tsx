@@ -591,7 +591,7 @@ const Corretores = () => {
   const handleDeleteBroker = async () => {
     if (!deleteConfirmBroker) return;
     if (!canDeleteBroker(deleteConfirmBroker)) {
-      toast({ title: "Sem permissão", description: "Você só pode excluir corretores que você mesmo criou.", variant: "destructive" });
+      toast({ title: "Sem permissão", description: "Você não tem permissão para excluir este corretor.", variant: "destructive" });
       setDeleteConfirmBroker(null);
       return;
     }
