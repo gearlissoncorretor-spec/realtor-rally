@@ -11,7 +11,7 @@ import { LoadingFallback } from "@/components/LoadingFallback";
 import "./App.css";
 
 // Lazy-loaded pages
-const Index = lazy(() => import("@/pages/Home"));
+const Index = lazy(() => import("@/pages/Index"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const Vendas = lazy(() => import("@/pages/Vendas"));
 const Corretores = lazy(() => import("@/pages/Corretores"));
