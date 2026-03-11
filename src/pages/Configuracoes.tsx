@@ -158,7 +158,7 @@ const Configuracoes = () => {
             {isGerente() && (
               <CollapsibleSection
                 title="Logo da Equipe"
-                icon={<Image className="h-5 w-5 text-primary" />}
+                icon={<ImageIcon className="h-5 w-5 text-primary" />}
                 description="Personalize a logo da sua equipe"
                 isOpen={openSections.teamLogo}
                 onToggle={() => toggleSection('teamLogo')}
