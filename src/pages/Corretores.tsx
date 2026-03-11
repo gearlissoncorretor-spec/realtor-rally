@@ -407,8 +407,15 @@ const Corretores = () => {
   }, []);
 
   const getBrokerStats = useCallback((brokerId: string) => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
     const brokerSales = sales.filter(sale => sale.broker_id === brokerId);
-    const confirmedSales = brokerSales.filter(sale => sale.status !== 'cancelada' && sale.status !== 'distrato');
+    const confirmedSales = brokerSales.filter(sale => {
+      if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
+      const d = new Date(sale.sale_date || sale.created_at || '');
+      return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+    });
     const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
     return { salesCount: confirmedSales.length, totalRevenue };
   }, [sales]);
