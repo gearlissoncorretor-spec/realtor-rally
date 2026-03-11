@@ -273,11 +273,17 @@ const Equipes = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 mt-4">
+                      <div className="flex items-center gap-4 mt-4 flex-wrap">
                         <Badge variant="secondary" className="gap-1">
                           <Users className="w-3 h-3" />
                           {memberCount} {memberCount === 1 ? 'membro' : 'membros'}
                         </Badge>
+                        {team.manager_id && (
+                          <Badge variant="outline" className="gap-1">
+                            <UserCheck className="w-3 h-3" />
+                            {managers.find(m => m.id === team.manager_id)?.full_name || 'Gerente'}
+                          </Badge>
+                        )}
                         <p className="text-sm text-muted-foreground">
                           📅 Criada em {new Date(team.created_at).toLocaleDateString('pt-BR')}
                         </p>
