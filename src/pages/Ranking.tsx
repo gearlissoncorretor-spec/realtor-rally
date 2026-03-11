@@ -81,22 +81,34 @@ const calculateXP = (broker: BrokerRanking) => {
   let xp = 0;
   xp += broker.sales * 500;
   xp += Math.floor(broker.revenue / 100000) * 100;
-  if (broker.position === 1) xp += 1000;
-  if (broker.position <= 3) xp += 500;
+  if (broker.position === 1) xp += 2000;
+  else if (broker.position === 2) xp += 1200;
+  else if (broker.position === 3) xp += 800;
+  else if (broker.position <= 5) xp += 400;
+  if (broker.growth && broker.growth > 50) xp += 500;
   return xp;
 };
 
-const getLevel = (xp: number) => {
-  if (xp >= 10000) return { level: 10, title: "Lenda", color: "text-yellow-400" };
-  if (xp >= 7500) return { level: 9, title: "Mestre", color: "text-purple-400" };
-  if (xp >= 5000) return { level: 8, title: "Elite", color: "text-blue-400" };
-  if (xp >= 3500) return { level: 7, title: "Veterano", color: "text-cyan-400" };
-  if (xp >= 2500) return { level: 6, title: "Experiente", color: "text-emerald-400" };
-  if (xp >= 1500) return { level: 5, title: "Avançado", color: "text-green-400" };
-  if (xp >= 1000) return { level: 4, title: "Intermediário", color: "text-lime-400" };
-  if (xp >= 500) return { level: 3, title: "Iniciante", color: "text-orange-400" };
-  if (xp >= 100) return { level: 2, title: "Novato", color: "text-slate-400" };
-  return { level: 1, title: "Recruta", color: "text-slate-500" };
+const getLevel = (xp: number): { level: number; title: string; color: string; icon: string; nextXp: number } => {
+  if (xp >= 15000) return { level: 10, title: "Lenda", color: "text-yellow-400", icon: "👑", nextXp: 15000 };
+  if (xp >= 10000) return { level: 9, title: "Mestre", color: "text-purple-400", icon: "🔮", nextXp: 15000 };
+  if (xp >= 7500) return { level: 8, title: "Elite", color: "text-blue-400", icon: "💎", nextXp: 10000 };
+  if (xp >= 5000) return { level: 7, title: "Veterano", color: "text-cyan-400", icon: "⚡", nextXp: 7500 };
+  if (xp >= 3500) return { level: 6, title: "Experiente", color: "text-emerald-400", icon: "🌟", nextXp: 5000 };
+  if (xp >= 2500) return { level: 5, title: "Avançado", color: "text-green-400", icon: "🔥", nextXp: 3500 };
+  if (xp >= 1500) return { level: 4, title: "Intermediário", color: "text-lime-400", icon: "⭐", nextXp: 2500 };
+  if (xp >= 800) return { level: 3, title: "Iniciante", color: "text-orange-400", icon: "🎯", nextXp: 1500 };
+  if (xp >= 200) return { level: 2, title: "Novato", color: "text-slate-400", icon: "🌱", nextXp: 800 };
+  return { level: 1, title: "Recruta", color: "text-slate-500", icon: "🏁", nextXp: 200 };
+};
+
+// XP Progress percentage to next level
+const getXPProgress = (xp: number) => {
+  const level = getLevel(xp);
+  const prevThresholds = [0, 200, 800, 1500, 2500, 3500, 5000, 7500, 10000, 15000];
+  const currentThreshold = prevThresholds[level.level - 1] || 0;
+  if (level.level === 10) return 100;
+  return Math.min(((xp - currentThreshold) / (level.nextXp - currentThreshold)) * 100, 100);
 };
 
 // ===== PARTICLE EFFECTS =====
