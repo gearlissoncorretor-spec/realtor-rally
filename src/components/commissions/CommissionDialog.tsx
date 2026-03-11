@@ -32,6 +32,7 @@ const CommissionDialog = ({ isOpen, onClose, saleData }: CommissionDialogProps) 
 
   const [percentage, setPercentage] = useState<number>(saleData?.commissionRate || 5);
   const [baseValue, setBaseValue] = useState<number>(saleData?.vgc || saleData?.propertyValue || 0);
+  const [commissionType, setCommissionType] = useState<string>('venda');
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [installments, setInstallments] = useState<number>(1);
   const [observations, setObservations] = useState('');
