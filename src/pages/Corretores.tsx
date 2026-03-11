@@ -259,18 +259,6 @@ const BrokerTableRow = ({
     className="cursor-pointer hover:bg-muted/30 transition-colors group"
     onClick={() => onClick(broker)}
   >
-    {/* Rank */}
-    <TableCell className="w-[50px] text-center font-bold text-muted-foreground">
-      {rank <= 3 && rank > 0 ? (
-        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-          rank === 1 ? 'bg-amber-500/15 text-amber-400' : rank === 2 ? 'bg-muted text-muted-foreground' : 'bg-orange-500/10 text-orange-400'
-        }`}>
-          #{rank}
-        </span>
-      ) : rank > 0 ? (
-        <span className="text-xs text-muted-foreground/60">#{rank}</span>
-      ) : null}
-    </TableCell>
 
     {/* Corretor */}
     <TableCell>
