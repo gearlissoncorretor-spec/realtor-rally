@@ -60,9 +60,8 @@ import { CorretoresSkeleton } from "@/components/skeletons/CorretoresSkeleton";
 import { formatCurrency } from "@/utils/formatting";
 
 // ─── Performance Badges ──────────────────────────────────────
-const getPerformanceBadges = (salesCount: number, metaProgress: number, totalRevenue: number, rank: number) => {
+const getPerformanceBadges = (salesCount: number, metaProgress: number, totalRevenue: number) => {
   const badges: { icon: React.ReactNode; label: string; color: string }[] = [];
-  if (rank === 1) badges.push({ icon: <Trophy className="w-3 h-3" />, label: "Top Vendedor", color: "bg-amber-500/15 text-amber-400 border-amber-500/20" });
   if (salesCount >= 3) badges.push({ icon: <Star className="w-3 h-3" />, label: `${salesCount} vendas`, color: "bg-primary/15 text-primary border-primary/20" });
   if (metaProgress >= 70) badges.push({ icon: <Flame className="w-3 h-3" />, label: "Em alta", color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" });
   if (metaProgress > 0 && metaProgress < 30) badges.push({ icon: <AlertTriangle className="w-3 h-3" />, label: "Abaixo da meta", color: "bg-destructive/15 text-destructive border-destructive/20" });
