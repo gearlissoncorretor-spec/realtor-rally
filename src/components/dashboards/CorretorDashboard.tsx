@@ -1,260 +1,468 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, Target, TrendingUp, Calendar, Award, DollarSign } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
 import { useBrokers } from '@/hooks/useBrokers';
+import { useNegotiations } from '@/hooks/useNegotiations';
+import { useFollowUps } from '@/hooks/useFollowUps';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useGoals } from '@/hooks/useGoals';
+import { format } from 'date-fns';
+import { formatCurrency } from '@/utils/formatting';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
+import {
+  Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
+  CheckSquare, Square, Eye, MessageCircle, ChevronRight,
+  Calendar, MapPin, Users, RotateCcw, FileText, BarChart3,
+  TrendingUp, DollarSign, Lightbulb, Focus, X,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const CorretorDashboard = () => {
   const { profile, user } = useAuth();
   const { sales } = useSales();
   const { brokers } = useBrokers();
+  const { negotiations } = useNegotiations();
+  const { followUps } = useFollowUps();
+  const { goals } = useGoals();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [focusMode, setFocusMode] = useState(false);
+  const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set());
 
-  // Find current broker data
-  const currentBroker = brokers?.find(broker => broker.user_id === user?.id);
-  
-  // Filter sales for current broker only
-  const brokerSales = sales?.filter(sale => sale.broker_id === currentBroker?.id) || [];
-  
-  const totalSales = brokerSales.length;
-  const totalVGV = brokerSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
-  const totalCommission = brokerSales.reduce((sum, sale) => sum + (sale.commission_value || 0), 0);
-  
-  // Current month data
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const { events } = useCalendarEvents(today, today);
+
+  // Current broker
+  const currentBroker = brokers?.find(b => b.user_id === user?.id);
+  const brokerId = currentBroker?.id;
+
+  // Current month sales
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
-  const monthSales = brokerSales.filter(sale => {
-    const saleDate = new Date(sale.sale_date || '');
-    return saleDate.getMonth() + 1 === currentMonth && saleDate.getFullYear() === currentYear;
-  });
-  
-  const monthVGV = monthSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
+  const brokerSales = useMemo(() =>
+    (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato'), [sales, brokerId]);
+  const monthSales = useMemo(() =>
+    brokerSales.filter(s => {
+      const d = new Date(s.sale_date || s.created_at || '');
+      return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+    }), [brokerSales, currentMonth, currentYear]);
 
-  // Mock goals data (in real app, this would come from targets table)
-  const goals = {
-    metaPiso: 500000,
-    metaAlvo: 1000000,
-    realizado: monthVGV
+  // Broker negotiations
+  const brokerNegotiations = useMemo(() =>
+    (negotiations || []).filter(n => n.broker_id === brokerId), [negotiations, brokerId]);
+  const activeNegotiations = brokerNegotiations.filter(n => !['perdida', 'cancelada', 'ganha'].includes(n.status));
+  const hotNegotiations = activeNegotiations.slice(0, 4);
+
+  // Follow-ups
+  const brokerFollowUps = useMemo(() =>
+    (followUps || []).filter(f => f.broker_id === brokerId), [followUps, brokerId]);
+  const pendingFollowUps = brokerFollowUps.filter(f => f.status !== 'convertido' && f.status !== 'perdido');
+
+  // Today events
+  const todayEvents = events || [];
+
+  // Goal progress
+  const brokerGoals = useMemo(() =>
+    (goals || []).filter(g => g.status === 'active' && (g.assigned_to === user?.id || g.broker_id === brokerId)),
+    [goals, user?.id, brokerId]);
+  const primaryGoal = brokerGoals[0];
+  const goalProgress = primaryGoal ? Math.min((primaryGoal.current_value / primaryGoal.target_value) * 100, 100) : 0;
+
+  // Activity counts
+  const callEvents = todayEvents.filter(e => e.event_type === 'lembrete' || e.event_type === 'outro').length;
+  const visitEvents = todayEvents.filter(e => e.event_type === 'visita' || e.event_type === 'captacao').length;
+  const followUpCount = pendingFollowUps.length;
+  const proposalCount = activeNegotiations.filter(n => n.status === 'proposta_enviada' || n.status === 'em_negociacao').length;
+
+  // Funnel data
+  const funnelData = [
+    { label: 'Leads', value: brokerFollowUps.length, color: 'bg-blue-500' },
+    { label: 'Atendimento', value: activeNegotiations.length, color: 'bg-cyan-500' },
+    { label: 'Visitas', value: activeNegotiations.filter(n => n.status === 'visita_realizada' || n.status === 'em_negociacao').length, color: 'bg-emerald-500' },
+    { label: 'Propostas', value: proposalCount, color: 'bg-purple-500' },
+    { label: 'Fechados', value: monthSales.length, color: 'bg-amber-500' },
+  ];
+  const maxFunnel = Math.max(...funnelData.map(f => f.value), 1);
+
+  // Mini ranking
+  const brokerRankings = useMemo(() => {
+    if (!brokers || !sales) return [];
+    const activeBrokers = brokers.filter(b => b.status === 'ativo');
+    return activeBrokers.map(b => {
+      const bSales = (sales || []).filter(s => {
+        if (s.broker_id !== b.id || s.status === 'distrato') return false;
+        const d = new Date(s.sale_date || s.created_at || '');
+        return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+      });
+      return { id: b.id, name: b.name, vgv: bSales.reduce((sum, s) => sum + (s.vgv || 0), 0) };
+    }).sort((a, b) => b.vgv - a.vgv).slice(0, 5);
+  }, [brokers, sales, currentMonth, currentYear]);
+
+  const myRankPosition = brokerRankings.findIndex(r => r.id === brokerId) + 1;
+
+  // Tasks from negotiations + follow-ups
+  const priorityTasks = useMemo(() => {
+    const tasks: { id: string; label: string; type: string }[] = [];
+    hotNegotiations.slice(0, 2).forEach(n => {
+      tasks.push({ id: `neg-${n.id}`, label: `Acompanhar negociação - ${n.client_name}`, type: 'negotiation' });
+    });
+    pendingFollowUps.slice(0, 3).forEach(f => {
+      tasks.push({ id: `fu-${f.id}`, label: `Follow-up - ${f.client_name}`, type: 'followup' });
+    });
+    todayEvents.slice(0, 2).forEach(e => {
+      tasks.push({ id: `ev-${e.id}`, label: `${e.title}${e.start_time ? ` às ${e.start_time.slice(0, 5)}` : ''}`, type: 'event' });
+    });
+    return tasks.slice(0, 6);
+  }, [hotNegotiations, pendingFollowUps, todayEvents]);
+
+  const toggleTask = (id: string) => {
+    setCheckedTasks(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
 
-  const metaPercentage = goals.metaAlvo > 0 ? (goals.realizado / goals.metaAlvo) * 100 : 0;
+  const monthVGV = monthSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
 
-  // Recent sales for the broker
-  const recentSales = brokerSales
-    .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
-    .slice(0, 5);
+  // Focus mode sections
+  const focusSections = ['activities', 'agenda', 'negotiations', 'tasks'];
+  const allSections = ['activities', 'agenda', 'negotiations', 'goal', 'funnel', 'tasks', 'ranking', 'opportunities'];
+
+  const sections = focusMode ? focusSections : allSections;
+
+  const activityCards = [
+    { label: 'Ligações', count: callEvents, icon: Phone, gradient: 'from-blue-500/20 to-blue-600/5', border: 'border-blue-500/30', iconColor: 'text-blue-400' },
+    { label: 'Visitas', count: visitEvents, icon: MapPin, gradient: 'from-emerald-500/20 to-emerald-600/5', border: 'border-emerald-500/30', iconColor: 'text-emerald-400' },
+    { label: 'Follow-ups', count: followUpCount, icon: RotateCcw, gradient: 'from-orange-500/20 to-orange-600/5', border: 'border-orange-500/30', iconColor: 'text-orange-400' },
+    { label: 'Propostas', count: proposalCount, icon: FileText, gradient: 'from-purple-500/20 to-purple-600/5', border: 'border-purple-500/30', iconColor: 'text-purple-400' },
+  ];
+
+  const eventTypeColors: Record<string, string> = {
+    visita: '#10b981', captacao: '#10b981', reuniao: '#8b5cf6', meta: '#8b5cf6',
+    follow_up: '#f59e0b', lembrete: '#3b82f6', venda: '#06b6d4', outro: '#6b7280',
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard Corretor</h1>
-          <p className="text-muted-foreground mt-2">
-            Bem-vindo, {profile?.full_name}. Acompanhe seu desempenho individual.
-          </p>
-        </div>
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <span>{new Date().toLocaleDateString('pt-BR')}</span>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
+        <div className="space-y-5 max-w-7xl mx-auto">
 
-      {/* Personal KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendas do Mês</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{monthSales.length}</div>
-            <p className="text-xs text-muted-foreground">
-              de {totalSales} vendas totais
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">VGV do Mês</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-                minimumFractionDigits: 0,
-              }).format(monthVGV)}
+          {/* Header */}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                Central do Corretor
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Painel diário de vendas, negociações e produtividade
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Meta: {new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-                minimumFractionDigits: 0,
-              }).format(goals.metaAlvo)}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Comissões</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL',
-                minimumFractionDigits: 0,
-              }).format(totalCommission)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Comissões acumuladas
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Meta Atingida</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{Math.round(metaPercentage)}%</div>
-            <p className="text-xs text-muted-foreground">
-              da meta alvo mensal
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Goals Progress and Recent Sales */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Metas Pessoais
-            </CardTitle>
-            <CardDescription>
-              Acompanhe seu progresso em relação às metas estabelecidas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* Meta Piso */}
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Meta Piso</span>
-                  <span className="text-sm text-muted-foreground">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                      minimumFractionDigits: 0,
-                    }).format(goals.metaPiso)}
-                  </span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full ${goals.realizado >= goals.metaPiso ? 'bg-green-500' : 'bg-yellow-500'}`}
-                    style={{ width: `${Math.min((goals.realizado / goals.metaPiso) * 100, 100)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {goals.realizado >= goals.metaPiso ? 'Meta atingida!' : 
-                   `Faltam ${new Intl.NumberFormat('pt-BR', {
-                     style: 'currency',
-                     currency: 'BRL',
-                     minimumFractionDigits: 0,
-                   }).format(goals.metaPiso - goals.realizado)}`}
-                </p>
-              </div>
-
-              {/* Meta Alvo */}
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Meta Alvo</span>
-                  <span className="text-sm text-muted-foreground">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                      minimumFractionDigits: 0,
-                    }).format(goals.metaAlvo)}
-                  </span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full ${goals.realizado >= goals.metaAlvo ? 'bg-green-500' : 'bg-primary'}`}
-                    style={{ width: `${Math.min((goals.realizado / goals.metaAlvo) * 100, 100)}%` }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {goals.realizado >= goals.metaAlvo ? 'Meta superada!' : 
-                   `${Math.round(metaPercentage)}% concluído`}
-                </p>
-              </div>
-
-              {/* Realizado */}
-              <div className="pt-2 border-t">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Realizado</span>
-                  <span className="text-lg font-bold text-primary">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                      minimumFractionDigits: 0,
-                    }).format(goals.realizado)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              Vendas Recentes
-            </CardTitle>
-            <CardDescription>
-              Suas últimas vendas realizadas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentSales.length > 0 ? recentSales.map((sale, index) => (
-                <div key={sale.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{sale.client_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {sale.property_type} • {new Date(sale.sale_date || '').toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold">
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                        minimumFractionDigits: 0,
-                      }).format(sale.vgv || 0)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {sale.status}
-                    </p>
-                  </div>
-                </div>
-              )) : (
-                <p className="text-center text-muted-foreground py-4">
-                  Nenhuma venda realizada ainda
-                </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant={focusMode ? 'default' : 'outline'}
+                size="sm"
+                className={cn("gap-1.5 transition-all", focusMode && "bg-amber-500 hover:bg-amber-600 text-white")}
+                onClick={() => setFocusMode(!focusMode)}
+              >
+                {focusMode ? <X className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
+                {focusMode ? 'Sair do Foco' : 'Modo Foco'}
+              </Button>
+              {!focusMode && (
+                <>
+                  <Button variant="outline" size="sm" className="gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => navigate('/follow-up')}>
+                    <UserPlus className="w-3.5 h-3.5" /> Novo Cliente
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5 border-blue-500/20 text-blue-400 hover:bg-blue-500/10" onClick={() => navigate('/agenda')}>
+                    <Phone className="w-3.5 h-3.5" /> Registrar Ligação
+                  </Button>
+                </>
               )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+
+          {/* Focus mode banner */}
+          {focusMode && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 flex items-center gap-3">
+              <Zap className="w-5 h-5 text-amber-400 shrink-0" />
+              <p className="text-sm text-amber-200">
+                <strong>Modo Foco ativo</strong> — Mostrando apenas o essencial: clientes, visitas, follow-ups e negociações quentes.
+              </p>
+            </div>
+          )}
+
+          {/* Activity Cards */}
+          {sections.includes('activities') && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {activityCards.map(card => (
+                <div key={card.label} className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-4 transition-all hover:scale-[1.02]`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{card.label}</p>
+                      <p className="text-3xl font-bold text-foreground mt-1">{card.count}</p>
+                    </div>
+                    <card.icon className={`w-8 h-8 ${card.iconColor} opacity-80`} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Agenda + Negotiations Row */}
+          <div className={cn("grid gap-4", sections.includes('negotiations') ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
+
+            {/* Agenda do Dia */}
+            {sections.includes('agenda') && (
+              <div className="rounded-xl border border-border bg-card/50 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" /> Agenda do Dia
+                  </h2>
+                  <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={() => navigate('/agenda')}>
+                    Ver tudo <ChevronRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+                {todayEvents.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nenhum compromisso hoje</p>
+                ) : (
+                  <div className="space-y-2">
+                    {todayEvents.slice(0, 5).map(event => {
+                      const color = eventTypeColors[event.event_type] || '#3b82f6';
+                      return (
+                        <div key={event.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate('/agenda')}>
+                          <span className="text-xs font-mono text-muted-foreground w-12 shrink-0">
+                            {event.start_time?.slice(0, 5) || '—'}
+                          </span>
+                          <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate" style={{ color }}>{event.title}</p>
+                            {event.client_name && <p className="text-xs text-muted-foreground truncate">{event.client_name}</p>}
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-blue-400">
+                              <Phone className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-emerald-400">
+                              <MessageCircle className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Negociações Quentes */}
+            {sections.includes('negotiations') && (
+              <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-orange-400" /> Negociações Quentes
+                  </h2>
+                  <Button variant="ghost" size="sm" className="text-xs text-orange-400" onClick={() => navigate('/negociacoes')}>
+                    Ver todas <ChevronRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
+                {hotNegotiations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nenhuma negociação ativa</p>
+                ) : (
+                  <div className="space-y-2">
+                    {hotNegotiations.map((neg, idx) => {
+                      const chance = Math.max(90 - idx * 15, 30);
+                      return (
+                        <div key={neg.id} className="p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all cursor-pointer" onClick={() => navigate('/negociacoes')}>
+                          <div className="flex items-start justify-between">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{neg.client_name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{neg.property_address}</p>
+                            </div>
+                            <Badge variant="outline" className="shrink-0 text-[10px] border-orange-500/30 text-orange-400 bg-orange-500/10">
+                              {chance}%
+                            </Badge>
+                          </div>
+                          <div className="mt-2">
+                            <Progress value={chance} className="h-1.5" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Goal + Funnel Row */}
+          {!focusMode && (
+            <div className="grid lg:grid-cols-2 gap-4">
+              {/* Meta do Mês */}
+              {sections.includes('goal') && (
+                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5">
+                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
+                    <Target className="w-4 h-4 text-primary" /> Meta do Mês
+                  </h2>
+                  {primaryGoal ? (
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">{primaryGoal.title}</p>
+                        <p className="text-3xl font-bold text-foreground">{formatCurrency(primaryGoal.current_value)}</p>
+                        <p className="text-xs text-muted-foreground">de {formatCurrency(primaryGoal.target_value)}</p>
+                      </div>
+                      <Progress value={goalProgress} className="h-3" />
+                      <div className="flex justify-between text-xs">
+                        <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
+                        <span className="text-muted-foreground">
+                          Faltam: {formatCurrency(Math.max(primaryGoal.target_value - primaryGoal.current_value, 0))}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center space-y-3">
+                      <p className="text-3xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
+                      <p className="text-xs text-muted-foreground">VGV do mês • {monthSales.length} vendas</p>
+                      <p className="text-xs text-muted-foreground">Meta mensal: {formatCurrency(currentBroker?.meta_monthly || 0)}</p>
+                      {(currentBroker?.meta_monthly || 0) > 0 && (
+                        <>
+                          <Progress value={Math.min((monthVGV / (currentBroker?.meta_monthly || 1)) * 100, 100)} className="h-3" />
+                          <div className="flex justify-between text-xs">
+                            <span className="text-primary font-semibold">{Math.round((monthVGV / (currentBroker?.meta_monthly || 1)) * 100)}%</span>
+                            <span className="text-muted-foreground">Faltam: {formatCurrency(Math.max((currentBroker?.meta_monthly || 0) - monthVGV, 0))}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Funil de Vendas */}
+              {sections.includes('funnel') && (
+                <div className="rounded-xl border border-border bg-card/50 p-5">
+                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
+                    <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas
+                  </h2>
+                  <div className="space-y-3">
+                    {funnelData.map(item => (
+                      <div key={item.label} className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground w-24 text-right">{item.label}</span>
+                        <div className="flex-1 bg-muted/30 rounded-full h-6 overflow-hidden">
+                          <div
+                            className={`h-full ${item.color} rounded-full flex items-center justify-end pr-2 transition-all`}
+                            style={{ width: `${Math.max((item.value / maxFunnel) * 100, 8)}%` }}
+                          >
+                            <span className="text-[10px] font-bold text-white">{item.value}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tasks + Ranking Row */}
+          <div className={cn("grid gap-4", !focusMode ? "lg:grid-cols-3" : "lg:grid-cols-1")}>
+
+            {/* Tarefas Prioritárias */}
+            {sections.includes('tasks') && (
+              <div className={cn("rounded-xl border border-border bg-card/50 p-4", !focusMode ? "lg:col-span-2" : "")}>
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <CheckSquare className="w-4 h-4 text-primary" /> Tarefas Prioritárias
+                </h2>
+                {priorityTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nenhuma tarefa pendente 🎉</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {priorityTasks.map(task => {
+                      const isDone = checkedTasks.has(task.id);
+                      const typeColors: Record<string, string> = {
+                        negotiation: 'text-orange-400', followup: 'text-amber-400', event: 'text-blue-400',
+                      };
+                      return (
+                        <div key={task.id} className={cn(
+                          "flex items-center gap-3 p-2.5 rounded-lg transition-all",
+                          isDone ? "opacity-50" : "hover:bg-muted/30"
+                        )}>
+                          <button onClick={() => toggleTask(task.id)} className="shrink-0">
+                            {isDone ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
+                          </button>
+                          <p className={cn("text-sm flex-1", isDone && "line-through text-muted-foreground")}>{task.label}</p>
+                          <span className={cn("text-[10px] font-medium", typeColors[task.type] || 'text-muted-foreground')}>
+                            {task.type === 'negotiation' ? '🔥' : task.type === 'followup' ? '💬' : '📅'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mini Ranking */}
+            {!focusMode && sections.includes('ranking') && (
+              <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <Trophy className="w-4 h-4 text-amber-400" /> Ranking da Semana
+                </h2>
+                <div className="space-y-2">
+                  {brokerRankings.map((r, idx) => {
+                    const isMe = r.id === brokerId;
+                    const medals = ['🥇', '🥈', '🥉'];
+                    return (
+                      <div key={r.id} className={cn(
+                        "flex items-center gap-3 p-2 rounded-lg transition-all",
+                        isMe ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/20"
+                      )}>
+                        <span className="text-sm w-6 text-center">{idx < 3 ? medals[idx] : `${idx + 1}º`}</span>
+                        <span className={cn("text-sm flex-1 truncate", isMe && "font-semibold text-primary")}>
+                          {isMe ? 'Você' : r.name.split(' ')[0]}
+                        </span>
+                        <span className="text-xs font-medium text-muted-foreground">{formatCurrency(r.vgv)}</span>
+                      </div>
+                    );
+                  })}
+                  {brokerRankings.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">Sem dados do ranking</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Opportunities */}
+          {!focusMode && sections.includes('opportunities') && (
+            <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-transparent p-4">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+                <Lightbulb className="w-4 h-4 text-cyan-400" /> Radar de Oportunidades
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3 rounded-lg bg-card/30 border border-border/30">
+                  <p className="text-2xl font-bold text-foreground">{pendingFollowUps.length}</p>
+                  <p className="text-xs text-muted-foreground">Leads aguardando contato</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card/30 border border-border/30">
+                  <p className="text-2xl font-bold text-foreground">{activeNegotiations.length}</p>
+                  <p className="text-xs text-muted-foreground">Negociações em andamento</p>
+                </div>
+                <div className="p-3 rounded-lg bg-card/30 border border-border/30">
+                  <p className="text-2xl font-bold text-foreground">{todayEvents.length}</p>
+                  <p className="text-xs text-muted-foreground">Compromissos hoje</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
