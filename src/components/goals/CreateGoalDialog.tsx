@@ -143,6 +143,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
         assigned_to: formData.assigned_to || undefined,
         team_id: (formData.scope === 'team' && formData.team_id && formData.team_id !== 'all') ? formData.team_id : undefined,
         broker_id: formData.scope === 'broker' ? formData.broker_id : undefined,
+        show_in_ranking: formData.show_in_ranking,
+        show_in_tv: formData.show_in_tv,
       });
 
       setFormData({
