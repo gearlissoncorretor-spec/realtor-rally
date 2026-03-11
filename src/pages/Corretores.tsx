@@ -622,6 +622,7 @@ const Corretores = () => {
 
   const renderBrokerItem = (broker: Broker) => {
     const stats = getBrokerStats(broker.id);
+    const allTimeStats = getAllTimeBrokerStats(broker.id);
     const metaProgress = getMetaProgress(broker, currentMonthStats[broker.id]?.monthlyRevenue || 0);
     const rank = brokerRanks[broker.id] || 0;
     const badges = getPerformanceBadges(stats.salesCount, metaProgress, stats.totalRevenue, rank);
@@ -629,7 +630,7 @@ const Corretores = () => {
     const teamName = broker.team_id ? teamsMap[broker.team_id] : undefined;
     
     const commonProps = {
-      broker, stats, metaProgress, rank, badges, lastLogin, teamName,
+      broker, stats, allTimeStats, metaProgress, rank, badges, lastLogin, teamName,
       canDelete: canDeleteBroker(broker),
       onEdit: handleEditBroker,
       onDelete: setDeleteConfirmBroker,
