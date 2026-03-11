@@ -227,8 +227,8 @@ const Auth = () => {
                 className="w-full h-13 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-base rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_6px_30px_rgba(59,130,246,0.6)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] gap-2 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700" 
                 disabled={isSubmitting}
               >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
-                {isSubmitting ? "Entrando..." : "Entrar"}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>🚀</span>}
+                {isSubmitting ? "Entrando..." : "Entrar no Sistema"}
               </Button>
 
               <p className="text-center text-white/40 text-xs mt-4">
