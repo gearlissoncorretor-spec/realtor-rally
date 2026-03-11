@@ -414,6 +414,30 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
             )}
           </div>
 
+          {/* Visibility Toggles */}
+          <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-muted/50 border border-border">
+            <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
+              <Label htmlFor="show_ranking" className="text-sm font-medium cursor-pointer">
+                Exibir no Ranking
+              </Label>
+              <Switch
+                id="show_ranking"
+                checked={formData.show_in_ranking}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_in_ranking: checked }))}
+              />
+            </div>
+            <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
+              <Label htmlFor="show_tv" className="text-sm font-medium cursor-pointer">
+                Exibir no Modo TV
+              </Label>
+              <Switch
+                id="show_tv"
+                checked={formData.show_in_tv}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_in_tv: checked }))}
+              />
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2">
             <Button
               type="button"
