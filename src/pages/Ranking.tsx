@@ -61,12 +61,18 @@ type TVRankingMode = 'alternate' | 'vendas' | 'captacao';
 const getAchievements = (broker: BrokerRanking, allBrokers: BrokerRanking[]) => {
   const badges: { icon: string; label: string; color: string }[] = [];
   if (broker.position === 1) badges.push({ icon: "🏆", label: "Campeão", color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400" });
-  if (broker.sales >= 10) badges.push({ icon: "🚀", label: "10+ Vendas", color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-blue-400" });
-  if (broker.sales >= 5) badges.push({ icon: "🔥", label: "5+ Vendas", color: "from-orange-500/20 to-red-500/10 border-orange-500/30 text-orange-400" });
-  if (broker.revenue >= 1000000) badges.push({ icon: "💰", label: "1M+ VGV", color: "from-emerald-500/20 to-green-500/10 border-emerald-500/30 text-emerald-400" });
+  if (broker.position <= 3 && broker.position > 1) badges.push({ icon: "🥇", label: `Top ${broker.position}`, color: "from-amber-500/20 to-yellow-500/10 border-amber-500/30 text-amber-400" });
+  if (broker.sales >= 20) badges.push({ icon: "💎", label: "20+ Vendas", color: "from-violet-500/20 to-purple-500/10 border-violet-500/30 text-violet-400" });
+  else if (broker.sales >= 10) badges.push({ icon: "🚀", label: "10+ Vendas", color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-blue-400" });
+  else if (broker.sales >= 5) badges.push({ icon: "🔥", label: "5+ Vendas", color: "from-orange-500/20 to-red-500/10 border-orange-500/30 text-orange-400" });
+  if (broker.revenue >= 5000000) badges.push({ icon: "👑", label: "5M+ VGV", color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400" });
+  else if (broker.revenue >= 1000000) badges.push({ icon: "💰", label: "1M+ VGV", color: "from-emerald-500/20 to-green-500/10 border-emerald-500/30 text-emerald-400" });
   const maxRevenue = Math.max(...allBrokers.map(b => b.revenue));
   if (broker.revenue === maxRevenue && maxRevenue > 0) badges.push({ icon: "⚡", label: "Maior VGV", color: "from-purple-500/20 to-violet-500/10 border-purple-500/30 text-purple-400" });
-  if (broker.growth && broker.growth > 50) badges.push({ icon: "📈", label: "Crescimento 50%+", color: "from-teal-500/20 to-cyan-500/10 border-teal-500/30 text-teal-400" });
+  if (broker.growth && broker.growth > 100) badges.push({ icon: "🌟", label: "Meteórico", color: "from-rose-500/20 to-pink-500/10 border-rose-500/30 text-rose-400" });
+  else if (broker.growth && broker.growth > 50) badges.push({ icon: "📈", label: "Crescimento 50%+", color: "from-teal-500/20 to-cyan-500/10 border-teal-500/30 text-teal-400" });
+  // Streak badge for consecutive top positions
+  if (broker.sales > 0 && broker.position <= 5) badges.push({ icon: "🎯", label: "Top 5", color: "from-indigo-500/20 to-blue-500/10 border-indigo-500/30 text-indigo-400" });
   return badges;
 };
 
@@ -75,22 +81,34 @@ const calculateXP = (broker: BrokerRanking) => {
   let xp = 0;
   xp += broker.sales * 500;
   xp += Math.floor(broker.revenue / 100000) * 100;
-  if (broker.position === 1) xp += 1000;
-  if (broker.position <= 3) xp += 500;
+  if (broker.position === 1) xp += 2000;
+  else if (broker.position === 2) xp += 1200;
+  else if (broker.position === 3) xp += 800;
+  else if (broker.position <= 5) xp += 400;
+  if (broker.growth && broker.growth > 50) xp += 500;
   return xp;
 };
 
-const getLevel = (xp: number) => {
-  if (xp >= 10000) return { level: 10, title: "Lenda", color: "text-yellow-400" };
-  if (xp >= 7500) return { level: 9, title: "Mestre", color: "text-purple-400" };
-  if (xp >= 5000) return { level: 8, title: "Elite", color: "text-blue-400" };
-  if (xp >= 3500) return { level: 7, title: "Veterano", color: "text-cyan-400" };
-  if (xp >= 2500) return { level: 6, title: "Experiente", color: "text-emerald-400" };
-  if (xp >= 1500) return { level: 5, title: "Avançado", color: "text-green-400" };
-  if (xp >= 1000) return { level: 4, title: "Intermediário", color: "text-lime-400" };
-  if (xp >= 500) return { level: 3, title: "Iniciante", color: "text-orange-400" };
-  if (xp >= 100) return { level: 2, title: "Novato", color: "text-slate-400" };
-  return { level: 1, title: "Recruta", color: "text-slate-500" };
+const getLevel = (xp: number): { level: number; title: string; color: string; icon: string; nextXp: number } => {
+  if (xp >= 15000) return { level: 10, title: "Lenda", color: "text-yellow-400", icon: "👑", nextXp: 15000 };
+  if (xp >= 10000) return { level: 9, title: "Mestre", color: "text-purple-400", icon: "🔮", nextXp: 15000 };
+  if (xp >= 7500) return { level: 8, title: "Elite", color: "text-blue-400", icon: "💎", nextXp: 10000 };
+  if (xp >= 5000) return { level: 7, title: "Veterano", color: "text-cyan-400", icon: "⚡", nextXp: 7500 };
+  if (xp >= 3500) return { level: 6, title: "Experiente", color: "text-emerald-400", icon: "🌟", nextXp: 5000 };
+  if (xp >= 2500) return { level: 5, title: "Avançado", color: "text-green-400", icon: "🔥", nextXp: 3500 };
+  if (xp >= 1500) return { level: 4, title: "Intermediário", color: "text-lime-400", icon: "⭐", nextXp: 2500 };
+  if (xp >= 800) return { level: 3, title: "Iniciante", color: "text-orange-400", icon: "🎯", nextXp: 1500 };
+  if (xp >= 200) return { level: 2, title: "Novato", color: "text-slate-400", icon: "🌱", nextXp: 800 };
+  return { level: 1, title: "Recruta", color: "text-slate-500", icon: "🏁", nextXp: 200 };
+};
+
+// XP Progress percentage to next level
+const getXPProgress = (xp: number) => {
+  const level = getLevel(xp);
+  const prevThresholds = [0, 200, 800, 1500, 2500, 3500, 5000, 7500, 10000, 15000];
+  const currentThreshold = prevThresholds[level.level - 1] || 0;
+  if (level.level === 10) return 100;
+  return Math.min(((xp - currentThreshold) / (level.nextXp - currentThreshold)) * 100, 100);
 };
 
 // ===== PARTICLE EFFECTS =====
@@ -358,9 +376,9 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
   if (podiumOrder.length === 0) return null;
 
   const podiumConfig = [
-    { height: "h-32 md:h-40", avatarSize: "w-18 h-18 md:w-22 md:h-22", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl" },
-    { height: "h-40 md:h-52", avatarSize: "w-22 h-22 md:w-28 md:h-28", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl" },
-    { height: "h-24 md:h-32", avatarSize: "w-14 h-14 md:w-18 md:h-18", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl" },
+    { height: "h-32 md:h-40", avatarSize: "w-18 h-18 md:w-22 md:h-22", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
+    { height: "h-40 md:h-52", avatarSize: "w-22 h-22 md:w-28 md:h-28", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
+    { height: "h-24 md:h-32", avatarSize: "w-14 h-14 md:w-18 md:h-18", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
   ];
 
   return (
@@ -374,11 +392,13 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
           const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
           const xp = calculateXP(broker);
           const level = getLevel(xp);
+          const xpProgress = getXPProgress(xp);
+          const achievements = getAchievements(broker, brokers);
 
           return (
             <div
               key={broker.id}
-              className="flex flex-col items-center animate-fade-in"
+              className="flex flex-col items-center animate-fade-in group"
               style={{ animationDelay: `${isFirst ? 0.4 : index === 0 ? 0.2 : 0.6}s` }}
             >
               {isFirst && (
@@ -387,13 +407,22 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 </div>
               )}
 
+              {/* Avatar with glow ring */}
               <div className="relative mb-2">
                 {isFirst && (
-                  <div className="absolute -inset-3 rounded-full bg-yellow-400/15 blur-xl animate-pulse" />
+                  <div className="absolute -inset-4 rounded-full blur-2xl animate-pulse" style={{ background: `radial-gradient(circle, ${config.glowColor}, transparent 70%)` }} />
                 )}
+                <div className="absolute -inset-1 rounded-full animate-[spin_8s_linear_infinite] opacity-60" style={{
+                  background: isFirst
+                    ? 'conic-gradient(from 0deg, rgba(250,204,21,0.6), rgba(245,158,11,0.4), rgba(250,204,21,0.1), rgba(250,204,21,0.6))'
+                    : broker.position === 2
+                    ? 'conic-gradient(from 0deg, rgba(148,163,184,0.4), rgba(148,163,184,0.1), rgba(148,163,184,0.4))'
+                    : 'conic-gradient(from 0deg, rgba(251,146,60,0.4), rgba(251,146,60,0.1), rgba(251,146,60,0.4))',
+                  borderRadius: '50%',
+                }} />
                 <Avatar className={cn(
                   config.avatarSize,
-                  "ring-4 shadow-2xl transition-all relative z-10",
+                  "ring-4 shadow-2xl transition-all relative z-10 group-hover:scale-105",
                   config.ring,
                   isCurrentUser && "ring-primary ring-offset-2 ring-offset-background"
                 )}>
@@ -418,9 +447,31 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 {broker.name.split(' ').slice(0, 2).join(' ')}
               </p>
               <p className="text-xs text-muted-foreground mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
-              <Badge variant="outline" className={cn("text-[10px] mb-1", level.color)}>
-                Nv.{level.level} {level.title}
-              </Badge>
+              
+              {/* Level badge with XP bar */}
+              <div className="flex flex-col items-center mb-1 gap-0.5">
+                <Badge variant="outline" className={cn("text-[10px]", level.color)}>
+                  {level.icon} Nv.{level.level} {level.title}
+                </Badge>
+                <div className="w-16 h-1 bg-muted/50 rounded-full overflow-hidden">
+                  <div className={cn("h-full rounded-full transition-all duration-1000", 
+                    level.level >= 8 ? "bg-gradient-to-r from-purple-500 to-pink-500" :
+                    level.level >= 5 ? "bg-gradient-to-r from-blue-500 to-cyan-500" :
+                    "bg-gradient-to-r from-green-500 to-emerald-500"
+                  )} style={{ width: `${xpProgress}%` }} />
+                </div>
+                <span className="text-[9px] text-muted-foreground">{xp.toLocaleString()} XP</span>
+              </div>
+
+              {/* Achievement badges */}
+              {achievements.length > 0 && (
+                <div className="flex gap-0.5 mb-1">
+                  {achievements.slice(0, 2).map((badge, i) => (
+                    <span key={i} className="text-sm" title={badge.label}>{badge.icon}</span>
+                  ))}
+                </div>
+              )}
+
               <p className={cn(
                 "font-black mb-2",
                 config.valueSize,
@@ -429,12 +480,15 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 {formatCurrencyCompact(broker.revenue)}
               </p>
 
+              {/* Podium base with 3D perspective */}
               <div className={cn(
-                "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden",
+                "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden transition-all group-hover:scale-[1.02]",
                 config.height,
                 `bg-gradient-to-t ${config.gradient}`,
                 config.border
-              )}>
+              )} style={{
+                boxShadow: `0 8px 32px -4px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+              }}>
                 {isFirst && (
                   <div className="absolute inset-0 shimmer-effect" />
                 )}
@@ -508,6 +562,7 @@ const LeaderboardCard = ({
   const isCurrentUser = broker.userId === currentUserId;
   const xp = calculateXP(broker);
   const level = getLevel(xp);
+  const xpProgress = getXPProgress(xp);
   const achievements = getAchievements(broker, allBrokers);
   const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
 
@@ -520,12 +575,14 @@ const LeaderboardCard = ({
       "flex flex-col gap-2 p-3 md:p-4 rounded-xl border transition-all group",
       isCurrentUser
         ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
+        : broker.position <= 3
+        ? "bg-card/80 border-border/60 hover:border-primary/30 hover:shadow-md"
         : "bg-card/50 border-border/50 hover:border-primary/20 hover:bg-card/80"
     )}>
       <div className="flex items-center gap-3">
         <PositionBadge position={broker.position} />
 
-        <Avatar className="h-10 w-10 ring-2 ring-border/50">
+        <Avatar className="h-10 w-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
           <AvatarImage src={broker.avatar} className="object-cover" />
           <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
         </Avatar>
@@ -540,8 +597,19 @@ const LeaderboardCard = ({
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</span>
             <Badge variant="outline" className={cn("text-[9px] px-1 py-0", level.color)}>
-              Nv.{level.level}
+              {level.icon} Nv.{level.level}
             </Badge>
+            {/* XP mini bar */}
+            <div className="hidden md:flex items-center gap-1">
+              <div className="w-12 h-1 bg-muted/50 rounded-full overflow-hidden">
+                <div className={cn("h-full rounded-full transition-all duration-700",
+                  level.level >= 8 ? "bg-gradient-to-r from-purple-500 to-pink-500" :
+                  level.level >= 5 ? "bg-gradient-to-r from-blue-500 to-cyan-500" :
+                  "bg-gradient-to-r from-green-500 to-emerald-500"
+                )} style={{ width: `${xpProgress}%` }} />
+              </div>
+              <span className="text-[8px] text-muted-foreground">{xp.toLocaleString()}</span>
+            </div>
           </div>
         </div>
 
@@ -562,9 +630,10 @@ const LeaderboardCard = ({
         </div>
       </div>
 
+      {/* Achievement badges row */}
       {achievements.length > 0 && (
         <div className="flex flex-wrap gap-1 ml-[52px]">
-          {achievements.slice(0, 3).map((badge, i) => (
+          {achievements.slice(0, 4).map((badge, i) => (
             <span key={i} className={cn(
               "text-[10px] px-1.5 py-0.5 rounded-full border bg-gradient-to-r font-medium",
               badge.color
