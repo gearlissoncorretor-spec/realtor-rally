@@ -6,7 +6,8 @@ import { z } from 'zod';
 // Validation schemas
 const teamSchema = z.object({
   name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
-  description: z.string().trim().max(500, 'Descrição muito longa').optional()
+  description: z.string().trim().max(500, 'Descrição muito longa').optional(),
+  manager_id: z.string().uuid().nullable().optional()
 });
 
 export interface Team {
