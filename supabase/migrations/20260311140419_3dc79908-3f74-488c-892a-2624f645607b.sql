@@ -1,0 +1,1 @@
+UPDATE brokers SET status = 'inativo' WHERE id = '4d902d8d-a8ac-45f6-95d6-c334c967a23f';
