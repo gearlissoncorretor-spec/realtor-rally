@@ -163,6 +163,7 @@ export const useNegotiations = () => {
         .insert({
           ...input,
           created_by: user?.id,
+          company_id: profile?.company_id || undefined,
         })
         .select()
         .single();
