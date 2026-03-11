@@ -410,6 +410,16 @@ const Metas = () => {
                                             <span className="text-muted-foreground"> / {formatValue(goal.target_value, goal.target_type)}</span>
                                           </div>
                                         </TableCell>
+                                        <TableCell className="text-right">
+                                          <span className={cn(
+                                            "text-sm font-medium",
+                                            goal.target_value - goal.current_value <= 0 ? "text-success" : "text-muted-foreground"
+                                          )}>
+                                            {goal.target_value - goal.current_value > 0
+                                              ? formatValue(goal.target_value - goal.current_value, goal.target_type)
+                                              : '✅ Atingida'}
+                                          </span>
+                                        </TableCell>
                                         <TableCell>
                                           <Badge variant={statusInfo.variant} className={cn("text-xs", statusInfo.className)}>
                                             {statusInfo.label}
