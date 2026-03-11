@@ -368,7 +368,7 @@ const Negociacoes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="space-y-6">
           {/* Total Negociações Card - Prominent */}
           <Card 

@@ -87,7 +87,7 @@ const Agenda = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="space-y-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

@@ -150,7 +150,7 @@ const DashboardEquipes = () => {
   return (
     <>
       <Navigation />
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 min-h-screen">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 min-h-screen">
         <div className="space-y-6 max-w-[1400px] mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

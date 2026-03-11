@@ -174,7 +174,7 @@ const Acompanhamento = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       <Navigation />
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 flex-1 max-w-full overflow-hidden flex flex-col gap-4">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 flex-1 max-w-full overflow-hidden flex flex-col gap-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

@@ -297,7 +297,7 @@ const Relatorios = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-foreground mb-2 animate-fade-in">
             Relatórios

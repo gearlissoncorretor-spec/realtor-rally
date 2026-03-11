@@ -655,7 +655,7 @@ const Corretores = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 max-w-7xl">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>

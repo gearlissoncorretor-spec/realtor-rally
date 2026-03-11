@@ -49,7 +49,7 @@ const TarefasKanban = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <Navigation />
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 flex-1 overflow-hidden flex flex-col">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 flex-1 overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div className="w-full text-center sm:text-left">

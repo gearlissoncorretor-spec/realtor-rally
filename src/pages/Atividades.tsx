@@ -313,7 +313,7 @@ const Atividades = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-emerald-950/20">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="space-y-6">
           {/* Header with Week Selector */}
            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

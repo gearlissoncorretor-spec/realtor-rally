@@ -50,7 +50,7 @@ const Instalar = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center space-y-2">
             <Smartphone className="w-16 h-16 text-primary mx-auto" />
