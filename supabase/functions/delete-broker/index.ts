@@ -37,18 +37,26 @@ serve(async (req) => {
     const { broker_id } = await req.json()
     if (!broker_id) throw new Error('broker_id é obrigatório')
 
-    // Get broker info (user_id)
+    // Get broker info (user_id, team_id)
     const { data: broker, error: brokerError } = await supabaseClient
       .from('brokers')
-      .select('id, user_id, created_by')
+      .select('id, user_id, created_by, team_id')
       .eq('id', broker_id)
       .single()
 
     if (brokerError || !broker) throw new Error('Corretor não encontrado')
 
-    // Gerentes can only delete brokers they created
-    if (isGerente && !isAdmin && !isDiretor && broker.created_by !== user.id) {
-      throw new Error('Gerentes só podem excluir corretores que criaram')
+    // Gerentes can only delete brokers in their own team
+    if (isGerente && !isAdmin && !isDiretor) {
+      const { data: managerProfile } = await supabaseClient
+        .from('profiles')
+        .select('team_id')
+        .eq('id', user.id)
+        .single()
+
+      if (!managerProfile?.team_id || managerProfile.team_id !== broker.team_id) {
+        throw new Error('Gerentes só podem excluir corretores da própria equipe')
+      }
     }
 
     const userId = broker.user_id
