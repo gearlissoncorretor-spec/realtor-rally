@@ -85,7 +85,7 @@ const Navigation = () => {
     if (isAdmin() || userRole === 'diretor') return true;
     if (item.screen === 'instalar') return true;
     const ROLE_SCREENS: Record<string, string[]> = {
-      gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda'],
+      gerente: ['dashboard', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'gestao-usuarios'],
       corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'tarefas-kanban', 'comissoes', 'configuracoes', 'agenda'],
     };
     const roleScreens = ROLE_SCREENS[userRole] || [];

@@ -34,14 +34,15 @@ const PATH_TO_SCREEN: Record<string, string> = {
   '/agenda': 'agenda',
   '/instalar': 'instalar',
   '/gestao-usuarios': 'gestao-usuarios',
+  '/comissoes': 'comissoes',
 };
 
 const ROLE_SCREENS: Record<string, string[]> = {
   diretor: ['*'],
   admin: ['*'],
   super_admin: ['*'],
-  gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
-  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'instalar'],
+  gerente: ['dashboard', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
+  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'comissoes', 'configuracoes', 'agenda', 'instalar'],
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
