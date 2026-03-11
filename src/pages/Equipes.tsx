@@ -92,14 +92,19 @@ const Equipes = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        manager_id: formData.manager_id || null
+      };
       if (selectedTeam) {
-        await updateTeam(selectedTeam.id, formData);
+        await updateTeam(selectedTeam.id, payload);
         setIsEditDialogOpen(false);
       } else {
-        await createTeam(formData);
+        await createTeam(payload);
         setIsCreateDialogOpen(false);
       }
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', manager_id: '' });
       setSelectedTeam(null);
     } catch (error) {
       console.error('Error submitting team:', error);
@@ -108,7 +113,7 @@ const Equipes = () => {
 
   const handleEdit = (team: any) => {
     setSelectedTeam(team);
-    setFormData({ name: team.name, description: team.description || '' });
+    setFormData({ name: team.name, description: team.description || '', manager_id: team.manager_id || '' });
     setIsEditDialogOpen(true);
   };
 
