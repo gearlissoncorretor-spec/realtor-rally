@@ -2,6 +2,7 @@ import Navigation from "@/components/Navigation";
 import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
+import CommissionDialog from "@/components/commissions/CommissionDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,11 @@ const Vendas = () => {
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
+  const [commissionSaleData, setCommissionSaleData] = useState<{
+    saleId: string; brokerId: string; brokerName: string; clientName: string;
+    propertyValue: number; vgc: number; commissionRate: number;
+  } | null>(null);
   
   const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
@@ -175,8 +181,22 @@ const Vendas = () => {
                           await updateSale(selectedSale.id, saleData);
                           toast({ title: "Venda atualizada", description: "A venda foi atualizada com sucesso." });
                         } else {
-                          await createSale(saleData);
+                          const createdSale = await createSale(saleData);
                           toast({ title: "Venda criada", description: "A nova venda foi criada com sucesso." });
+                          // Show commission dialog
+                          if (createdSale) {
+                            const broker = brokers.find(b => b.id === saleData.broker_id);
+                            setCommissionSaleData({
+                              saleId: createdSale.id,
+                              brokerId: saleData.broker_id || '',
+                              brokerName: broker?.name || 'Corretor',
+                              clientName: saleData.client_name,
+                              propertyValue: Number(saleData.property_value || 0),
+                              vgc: Number(saleData.vgc || saleData.property_value || 0),
+                              commissionRate: Number(broker?.commission_rate || 5),
+                            });
+                            setCommissionDialogOpen(true);
+                          }
                         }
                         setIsFormOpen(false);
                         setSelectedSale(null);
@@ -418,6 +438,12 @@ const Vendas = () => {
         sale={selectedSale}
         isOpen={isDetailsOpen}
         onClose={() => { setIsDetailsOpen(false); setSelectedSale(null); }}
+      />
+
+      <CommissionDialog
+        isOpen={commissionDialogOpen}
+        onClose={() => { setCommissionDialogOpen(false); setCommissionSaleData(null); }}
+        saleData={commissionSaleData}
       />
     </div>
   );

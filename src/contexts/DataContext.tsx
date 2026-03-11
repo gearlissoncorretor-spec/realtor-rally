@@ -40,7 +40,7 @@ interface DataContextType {
   updateBroker: (id: string, broker: Partial<Broker>) => Promise<void>;
   deleteBroker: (id: string) => Promise<void>;
   
-  createSale: (sale: SaleInsert) => Promise<void>;
+  createSale: (sale: SaleInsert) => Promise<any>;
   updateSale: (id: string, sale: Partial<Sale>) => Promise<void>;
   deleteSale: (id: string) => Promise<void>;
   
@@ -605,7 +605,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await deleteBrokerMutation.mutateAsync(id);
     },
     createSale: async (sale: SaleInsert) => {
-      await createSaleMutation.mutateAsync(sale);
+      return await createSaleMutation.mutateAsync(sale);
     },
     updateSale: async (id: string, sale: Partial<Sale>) => {
       await updateSaleMutation.mutateAsync({ id, sale });

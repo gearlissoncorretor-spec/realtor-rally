@@ -34,6 +34,7 @@ const GestaoUsuarios = lazy(() => import("@/pages/GestaoUsuarios"));
 const SuperAdmin = lazy(() => import("@/pages/SuperAdmin"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const Comissoes = lazy(() => import("@/pages/Comissoes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -130,6 +131,9 @@ const App = () => (
               } />
               <Route path="/agenda" element={
                 <ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>
+              } />
+              <Route path="/comissoes" element={
+                <ProtectedRoute><LazyPage><Comissoes /></LazyPage></ProtectedRoute>
               } />
               <Route path="/instalar" element={
                 <ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>
