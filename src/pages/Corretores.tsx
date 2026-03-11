@@ -383,7 +383,7 @@ const Corretores = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [teamFilter, setTeamFilter] = useState<string>("all");
   const [performanceFilter, setPerformanceFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("name");
+  const [sortBy, setSortBy] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
   
   const { brokers, loading: brokersLoading, createBroker, updateBroker, deleteBroker } = useBrokers();
