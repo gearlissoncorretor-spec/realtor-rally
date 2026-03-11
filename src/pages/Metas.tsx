@@ -108,8 +108,10 @@ const Metas = () => {
     if (!selectedBrokerId) return [];
     const selectedBrokerData = accessibleBrokers.find(b => b.id === selectedBrokerId);
     return goals.filter(goal => {
+      // Match broker-specific, team-wide, or company-wide goals
       const matchesBroker = goal.broker_id === selectedBrokerId || 
-        (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id);
+        (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id) ||
+        (!goal.broker_id && !goal.team_id); // company-wide goals
       const monthStart = startOfMonth(selectedMonth);
       const monthEnd = endOfMonth(selectedMonth);
       const goalStart = new Date(goal.start_date);
