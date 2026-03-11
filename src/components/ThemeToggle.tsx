@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/ThemeProvider';
 
 export const ThemeToggle: React.FC = () => {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -20,6 +20,14 @@ export const ThemeToggle: React.FC = () => {
     );
   }
 
+  // Resolve the effective theme
+  const resolvedTheme =
+    theme === 'system'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
+      : theme;
+
   const isDark = resolvedTheme === 'dark';
 
   return (
@@ -27,7 +35,7 @@ export const ThemeToggle: React.FC = () => {
       variant="outline"
       size="icon"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="relative"
+      className="relative shadow-sm"
       title={isDark ? 'Modo Claro' : 'Modo Escuro'}
     >
       <Sun className={`h-[1.2rem] w-[1.2rem] transition-all ${isDark ? 'rotate-90 scale-0' : 'rotate-0 scale-100'}`} />
