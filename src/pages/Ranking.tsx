@@ -1893,6 +1893,7 @@ const Ranking = () => {
                 {headerInfo.title}
                 <Sparkles className="w-5 h-5 text-warning" />
               </h1>
+              <p className="text-sm font-bold text-primary">{periodLabel}</p>
               <p className="text-xs text-muted-foreground">{headerInfo.subtitle}</p>
             </div>
           </div>
