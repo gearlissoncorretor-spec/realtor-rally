@@ -1829,6 +1829,7 @@ const Ranking = () => {
     return `${monthNames[month - 1]} ${year}`;
   }, [quickPeriod, selectedMonth, selectedYear]);
 
+  const openTVMode = () => {
     setIsTVMode(true);
     document.documentElement.requestFullscreen?.().catch(() => {});
   };
