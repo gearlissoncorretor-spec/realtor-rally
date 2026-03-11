@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -51,10 +52,15 @@ const StatCard = ({ icon, value, label, color }: { icon: React.ReactNode; value:
 const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: BrokerDetailsModalProps) => {
   const { toast } = useToast();
   const [isEditingGoal, setIsEditingGoal] = useState(false);
-  const [newGoal, setNewGoal] = useState('');
+  const [newGoalValue, setNewGoalValue] = useState(0);
+  const [newGoalSalesCount, setNewGoalSalesCount] = useState('');
 
   useEffect(() => {
-    if (broker) setNewGoal(String(broker.meta_monthly || 0));
+    if (broker) {
+      setNewGoalValue(Number(broker.meta_monthly || 0));
+      // Sales count goal could be stored elsewhere; for now derive from meta or default 0
+      setNewGoalSalesCount('');
+    }
   }, [broker]);
 
   const stats = useMemo(() => {
@@ -101,7 +107,7 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
 
   const handleSaveGoal = async () => {
     try {
-      await onUpdateBroker(broker.id, { meta_monthly: Number(newGoal) || 0 });
+      await onUpdateBroker(broker.id, { meta_monthly: newGoalValue || 0 });
       setIsEditingGoal(false);
       toast({ title: "Meta atualizada", description: "Meta mensal atualizada com sucesso." });
     } catch {
@@ -184,14 +190,16 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
                     <Badge className={goalBadge.color}>{goalBadge.text}</Badge>
                   </div>
                   <div className="space-y-4">
+                    {/* Meta em R$ */}
                     <div className="flex items-center gap-4">
-                      <Label className="text-sm font-medium min-w-[80px]">Meta:</Label>
+                      <Label className="text-sm font-medium min-w-[80px]">Meta (R$):</Label>
                       {isEditingGoal ? (
-                        <div className="flex items-center gap-2 flex-1">
-                          <Input type="number" value={newGoal} onChange={(e) => setNewGoal(e.target.value)} className="flex-1 h-9" />
-                          <Button size="sm" onClick={handleSaveGoal}><Save className="w-3.5 h-3.5" /></Button>
-                          <Button size="sm" variant="outline" onClick={() => setIsEditingGoal(false)}><X className="w-3.5 h-3.5" /></Button>
-                        </div>
+                        <CurrencyInput 
+                          value={newGoalValue} 
+                          onChange={(val) => setNewGoalValue(val)} 
+                          className="flex-1 h-9" 
+                          autoFocus
+                        />
                       ) : (
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-bold">{formatCurrency(Number(broker.meta_monthly || 0))}</span>
@@ -199,6 +207,30 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
                         </div>
                       )}
                     </div>
+
+                    {/* Meta em número de vendas */}
+                    {isEditingGoal && (
+                      <div className="flex items-center gap-4">
+                        <Label className="text-sm font-medium min-w-[80px]">Vendas:</Label>
+                        <Input 
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={newGoalSalesCount} 
+                          onChange={(e) => setNewGoalSalesCount(e.target.value.replace(/\D/g, ''))} 
+                          placeholder="Ex: 10 vendas"
+                          className="flex-1 h-9 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                        />
+                      </div>
+                    )}
+
+                    {isEditingGoal && (
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" onClick={handleSaveGoal}><Save className="w-3.5 h-3.5 mr-1" /> Salvar</Button>
+                        <Button size="sm" variant="outline" onClick={() => setIsEditingGoal(false)}><X className="w-3.5 h-3.5" /></Button>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-4">
                       <Label className="text-sm font-medium min-w-[80px]">Alcançado:</Label>
                       <span className="text-lg font-bold text-emerald-400">{formatCurrency(stats.monthlyRevenue)}</span>
