@@ -1536,6 +1536,19 @@ const Ranking = () => {
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
 
+  // Fetch manager user_ids to exclude from ranking
+  const { data: managerUserIds = [] } = useQuery({
+    queryKey: ['manager-user-ids'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['gerente', 'diretor', 'admin']);
+      return (data || []).map(r => r.user_id);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Role-based header
   const headerInfo = useMemo(() => {
     const role = getUserRole();
