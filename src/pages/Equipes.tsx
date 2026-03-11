@@ -197,6 +197,23 @@ const Equipes = () => {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="manager">Gerente da Equipe</Label>
+                  <Select
+                    value={formData.manager_id}
+                    onValueChange={(value) => setFormData({ ...formData, manager_id: value === 'none' ? '' : value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o gerente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem gerente</SelectItem>
+                      {managers.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label htmlFor="description">Descrição (Opcional)</Label>
                   <Textarea
                     id="description"
