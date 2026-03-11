@@ -214,45 +214,30 @@ const SpotlightBrokerSidebar = ({
               </div>
             </div>
 
-            <p className="font-bold text-foreground text-base mb-0.5">{broker.name}</p>
-            {level && (
-              <Badge variant="outline" className={cn("text-[10px] mb-2", level.color)}>
-                Nv.{level.level} {level.title}
-              </Badge>
-            )}
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-2 w-full mb-3">
-              <div className="bg-background/50 rounded-lg p-2">
-                <p className="text-lg font-black text-foreground">{broker.sales ?? 0}</p>
-                <p className="text-[10px] text-muted-foreground">Vendas</p>
-              </div>
-              <div className="bg-background/50 rounded-lg p-2">
-                <p className="text-sm font-black text-foreground">{formatCurrencyCompact(broker.revenue ?? 0)}</p>
-                <p className="text-[10px] text-muted-foreground">VGV</p>
-              </div>
+            <p className="font-bold text-foreground text-lg mb-1">{broker.name}</p>
+            
+            {/* Celebration label */}
+            <div className="flex items-center gap-1.5 mb-3">
+              <Trophy className="w-4 h-4 text-warning" />
+              <span className="text-xs font-semibold text-warning">Destaque do Mês</span>
+              <Trophy className="w-4 h-4 text-warning" />
             </div>
 
-            {/* Achievements */}
-            {achievements.length > 0 && (
-              <div className="flex flex-wrap gap-1 justify-center mb-3">
-                {achievements.slice(0, 3).map((badge, i) => (
-                  <span key={i} className={cn(
-                    "text-[9px] px-1.5 py-0.5 rounded-full border bg-gradient-to-r font-medium",
-                    badge.color
-                  )}>
-                    {badge.icon} {badge.label}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Position badge */}
-            {broker.position && (
-              <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">
-                #{broker.position} no Ranking
-              </Badge>
-            )}
+            {/* Celebration particles */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+              {[...Array(6)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-1.5 h-1.5 rounded-full bg-warning/60"
+                  style={{
+                    left: `${15 + i * 14}%`,
+                    top: `${20 + (i % 3) * 20}%`,
+                    animation: `float-particle ${2 + i * 0.5}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.3}s`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <div className="text-center py-6">
@@ -1568,7 +1553,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-white text-base">{spotlightBroker.name}</p>
-                  <p className="text-xs text-yellow-300/60">{spotlightBroker.sales ?? 0} vendas · {formatCurrencyCompact(spotlightBroker.revenue ?? 0)}</p>
+                  <p className="text-xs text-yellow-300/60">Destaque do Mês ✨</p>
                 </div>
                 <Star className="w-5 h-5 text-yellow-400/50 shrink-0" />
               </div>
