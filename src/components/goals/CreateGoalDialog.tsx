@@ -74,6 +74,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     team_id: '',
     broker_id: preSelectedBrokerId,
     scope: 'broker' as string,
+    show_in_ranking: false,
+    show_in_tv: false,
   });
 
   React.useEffect(() => {
