@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 serve(async (req) => {
@@ -35,14 +35,17 @@ serve(async (req) => {
       );
     }
 
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single();
+    // Check if user has admin or diretor role using has_role function
+    const { data: isAdmin, error: adminError } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'admin' });
 
-    if (profileError || !profile?.is_admin) {
+    const { data: isDiretor, error: diretorError } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'diretor' });
+
+    const { data: isSuperAdmin, error: superAdminError } = await supabaseClient
+      .rpc('is_super_admin', { _user_id: user.id });
+
+    if (!isAdmin && !isDiretor && !isSuperAdmin) {
       return new Response(
         JSON.stringify({ error: 'Forbidden - Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -83,7 +86,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error updating password:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
