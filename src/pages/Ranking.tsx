@@ -61,12 +61,18 @@ type TVRankingMode = 'alternate' | 'vendas' | 'captacao';
 const getAchievements = (broker: BrokerRanking, allBrokers: BrokerRanking[]) => {
   const badges: { icon: string; label: string; color: string }[] = [];
   if (broker.position === 1) badges.push({ icon: "🏆", label: "Campeão", color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400" });
-  if (broker.sales >= 10) badges.push({ icon: "🚀", label: "10+ Vendas", color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-blue-400" });
-  if (broker.sales >= 5) badges.push({ icon: "🔥", label: "5+ Vendas", color: "from-orange-500/20 to-red-500/10 border-orange-500/30 text-orange-400" });
-  if (broker.revenue >= 1000000) badges.push({ icon: "💰", label: "1M+ VGV", color: "from-emerald-500/20 to-green-500/10 border-emerald-500/30 text-emerald-400" });
+  if (broker.position <= 3 && broker.position > 1) badges.push({ icon: "🥇", label: `Top ${broker.position}`, color: "from-amber-500/20 to-yellow-500/10 border-amber-500/30 text-amber-400" });
+  if (broker.sales >= 20) badges.push({ icon: "💎", label: "20+ Vendas", color: "from-violet-500/20 to-purple-500/10 border-violet-500/30 text-violet-400" });
+  else if (broker.sales >= 10) badges.push({ icon: "🚀", label: "10+ Vendas", color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-blue-400" });
+  else if (broker.sales >= 5) badges.push({ icon: "🔥", label: "5+ Vendas", color: "from-orange-500/20 to-red-500/10 border-orange-500/30 text-orange-400" });
+  if (broker.revenue >= 5000000) badges.push({ icon: "👑", label: "5M+ VGV", color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400" });
+  else if (broker.revenue >= 1000000) badges.push({ icon: "💰", label: "1M+ VGV", color: "from-emerald-500/20 to-green-500/10 border-emerald-500/30 text-emerald-400" });
   const maxRevenue = Math.max(...allBrokers.map(b => b.revenue));
   if (broker.revenue === maxRevenue && maxRevenue > 0) badges.push({ icon: "⚡", label: "Maior VGV", color: "from-purple-500/20 to-violet-500/10 border-purple-500/30 text-purple-400" });
-  if (broker.growth && broker.growth > 50) badges.push({ icon: "📈", label: "Crescimento 50%+", color: "from-teal-500/20 to-cyan-500/10 border-teal-500/30 text-teal-400" });
+  if (broker.growth && broker.growth > 100) badges.push({ icon: "🌟", label: "Meteórico", color: "from-rose-500/20 to-pink-500/10 border-rose-500/30 text-rose-400" });
+  else if (broker.growth && broker.growth > 50) badges.push({ icon: "📈", label: "Crescimento 50%+", color: "from-teal-500/20 to-cyan-500/10 border-teal-500/30 text-teal-400" });
+  // Streak badge for consecutive top positions
+  if (broker.sales > 0 && broker.position <= 5) badges.push({ icon: "🎯", label: "Top 5", color: "from-indigo-500/20 to-blue-500/10 border-indigo-500/30 text-indigo-400" });
   return badges;
 };
 
