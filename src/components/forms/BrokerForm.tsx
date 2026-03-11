@@ -95,6 +95,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
 
   const handleSubmit = async (data: BrokerFormData) => {
     setSubmitting(true);
+    setFormError(null);
     try {
       const submitData = {
         ...data,
@@ -107,8 +108,15 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       form.reset();
       setAvatarUrl(null);
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting broker form:', error);
+      const errorMessage = error?.message || 'Erro desconhecido ao salvar corretor.';
+      setFormError(errorMessage);
+      toast({
+        title: "❌ Erro ao salvar corretor",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
