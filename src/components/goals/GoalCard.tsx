@@ -21,7 +21,9 @@ const TYPE_LABELS: Record<string, string> = {
   contratacao: 'Contratação',
   revenue: 'Receita',
   vgv: 'VGV',
+  vgc: 'VGC',
   commission: 'Comissão',
+  atendimentos: 'Atendimentos',
 };
 
 const PERIOD_LABELS: Record<string, string> = {
