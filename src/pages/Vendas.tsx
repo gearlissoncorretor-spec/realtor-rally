@@ -181,8 +181,22 @@ const Vendas = () => {
                           await updateSale(selectedSale.id, saleData);
                           toast({ title: "Venda atualizada", description: "A venda foi atualizada com sucesso." });
                         } else {
-                          await createSale(saleData);
+                          const createdSale = await createSale(saleData);
                           toast({ title: "Venda criada", description: "A nova venda foi criada com sucesso." });
+                          // Show commission dialog
+                          if (createdSale) {
+                            const broker = brokers.find(b => b.id === saleData.broker_id);
+                            setCommissionSaleData({
+                              saleId: createdSale.id,
+                              brokerId: saleData.broker_id || '',
+                              brokerName: broker?.name || 'Corretor',
+                              clientName: saleData.client_name,
+                              propertyValue: Number(saleData.property_value || 0),
+                              vgc: Number(saleData.vgc || saleData.property_value || 0),
+                              commissionRate: Number(broker?.commission_rate || 5),
+                            });
+                            setCommissionDialogOpen(true);
+                          }
                         }
                         setIsFormOpen(false);
                         setSelectedSale(null);
