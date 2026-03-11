@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { 
@@ -15,13 +16,20 @@ import {
   Trash2,
   Target,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  UserCheck
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useTeams } from "@/hooks/useTeams";
 import { useSales } from "@/hooks/useSales";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ManagerOption {
+  id: string;
+  full_name: string;
+}
 
 const Equipes = () => {
   const { toast } = useToast();
@@ -29,10 +37,32 @@ const Equipes = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', manager_id: '' });
+  const [managers, setManagers] = useState<ManagerOption[]>([]);
   
   const { teams, teamMembers, loading, createTeam, updateTeam, deleteTeam } = useTeams();
   const { sales } = useSales();
+
+  useEffect(() => {
+    const fetchManagers = async () => {
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['gerente', 'diretor']);
+      
+      if (!rolesData?.length) return;
+      
+      const userIds = rolesData.map(r => r.user_id);
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds)
+        .order('full_name');
+      
+      setManagers(profiles || []);
+    };
+    fetchManagers();
+  }, []);
 
   // Only directors can access this page
   if (!isDiretor()) {
@@ -62,14 +92,19 @@ const Equipes = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        manager_id: formData.manager_id || null
+      };
       if (selectedTeam) {
-        await updateTeam(selectedTeam.id, formData);
+        await updateTeam(selectedTeam.id, payload);
         setIsEditDialogOpen(false);
       } else {
-        await createTeam(formData);
+        await createTeam(payload);
         setIsCreateDialogOpen(false);
       }
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', manager_id: '' });
       setSelectedTeam(null);
     } catch (error) {
       console.error('Error submitting team:', error);
@@ -78,7 +113,7 @@ const Equipes = () => {
 
   const handleEdit = (team: any) => {
     setSelectedTeam(team);
-    setFormData({ name: team.name, description: team.description || '' });
+    setFormData({ name: team.name, description: team.description || '', manager_id: team.manager_id || '' });
     setIsEditDialogOpen(true);
   };
 
@@ -162,6 +197,23 @@ const Equipes = () => {
                   />
                 </div>
                 <div>
+                  <Label htmlFor="manager">Gerente da Equipe</Label>
+                  <Select
+                    value={formData.manager_id}
+                    onValueChange={(value) => setFormData({ ...formData, manager_id: value === 'none' ? '' : value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o gerente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem gerente</SelectItem>
+                      {managers.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label htmlFor="description">Descrição (Opcional)</Label>
                   <Textarea
                     id="description"
@@ -221,11 +273,17 @@ const Equipes = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4 mt-4">
+                      <div className="flex items-center gap-4 mt-4 flex-wrap">
                         <Badge variant="secondary" className="gap-1">
                           <Users className="w-3 h-3" />
                           {memberCount} {memberCount === 1 ? 'membro' : 'membros'}
                         </Badge>
+                        {team.manager_id && (
+                          <Badge variant="outline" className="gap-1">
+                            <UserCheck className="w-3 h-3" />
+                            {managers.find(m => m.id === team.manager_id)?.full_name || 'Gerente'}
+                          </Badge>
+                        )}
                         <p className="text-sm text-muted-foreground">
                           📅 Criada em {new Date(team.created_at).toLocaleDateString('pt-BR')}
                         </p>
@@ -327,6 +385,23 @@ const Equipes = () => {
                 placeholder="Digite o nome da equipe"
                 required
               />
+            </div>
+            <div>
+              <Label htmlFor="edit-manager">Gerente da Equipe</Label>
+              <Select
+                value={formData.manager_id || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, manager_id: value === 'none' ? '' : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o gerente" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem gerente</SelectItem>
+                  {managers.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="edit-description">Descrição (Opcional)</Label>

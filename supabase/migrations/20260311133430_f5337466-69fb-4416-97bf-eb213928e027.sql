@@ -1,0 +1,1 @@
+ALTER TABLE public.teams ADD COLUMN manager_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;

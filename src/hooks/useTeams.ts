@@ -6,13 +6,15 @@ import { z } from 'zod';
 // Validation schemas
 const teamSchema = z.object({
   name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
-  description: z.string().trim().max(500, 'Descrição muito longa').optional()
+  description: z.string().trim().max(500, 'Descrição muito longa').optional(),
+  manager_id: z.string().uuid().nullable().optional()
 });
 
 export interface Team {
   id: string;
   name: string;
   description?: string;
+  manager_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -110,7 +112,7 @@ export const useTeams = () => {
     }
   };
 
-  const createTeam = async (teamData: { name: string; description?: string }) => {
+  const createTeam = async (teamData: { name: string; description?: string; manager_id?: string | null }) => {
     try {
       const validatedData = teamSchema.parse(teamData);
 
@@ -118,7 +120,8 @@ export const useTeams = () => {
         .from('teams')
         .insert([{
           name: validatedData.name,
-          description: validatedData.description || null
+          description: validatedData.description || null,
+          manager_id: validatedData.manager_id || null
         }])
         .select()
         .single();
@@ -147,7 +150,7 @@ export const useTeams = () => {
     }
   };
 
-  const updateTeam = async (id: string, teamData: { name: string; description?: string }) => {
+  const updateTeam = async (id: string, teamData: { name: string; description?: string; manager_id?: string | null }) => {
     try {
       const validatedData = teamSchema.parse(teamData);
 
@@ -155,7 +158,8 @@ export const useTeams = () => {
         .from('teams')
         .update({
           name: validatedData.name,
-          description: validatedData.description || null
+          description: validatedData.description || null,
+          manager_id: validatedData.manager_id || null
         })
         .eq('id', id)
         .select()
