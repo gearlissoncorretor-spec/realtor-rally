@@ -376,9 +376,9 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
   if (podiumOrder.length === 0) return null;
 
   const podiumConfig = [
-    { height: "h-32 md:h-40", avatarSize: "w-18 h-18 md:w-22 md:h-22", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl" },
-    { height: "h-40 md:h-52", avatarSize: "w-22 h-22 md:w-28 md:h-28", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl" },
-    { height: "h-24 md:h-32", avatarSize: "w-14 h-14 md:w-18 md:h-18", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl" },
+    { height: "h-32 md:h-40", avatarSize: "w-18 h-18 md:w-22 md:h-22", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
+    { height: "h-40 md:h-52", avatarSize: "w-22 h-22 md:w-28 md:h-28", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
+    { height: "h-24 md:h-32", avatarSize: "w-14 h-14 md:w-18 md:h-18", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
   ];
 
   return (
@@ -392,11 +392,13 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
           const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
           const xp = calculateXP(broker);
           const level = getLevel(xp);
+          const xpProgress = getXPProgress(xp);
+          const achievements = getAchievements(broker, brokers);
 
           return (
             <div
               key={broker.id}
-              className="flex flex-col items-center animate-fade-in"
+              className="flex flex-col items-center animate-fade-in group"
               style={{ animationDelay: `${isFirst ? 0.4 : index === 0 ? 0.2 : 0.6}s` }}
             >
               {isFirst && (
@@ -405,13 +407,22 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 </div>
               )}
 
+              {/* Avatar with glow ring */}
               <div className="relative mb-2">
                 {isFirst && (
-                  <div className="absolute -inset-3 rounded-full bg-yellow-400/15 blur-xl animate-pulse" />
+                  <div className="absolute -inset-4 rounded-full blur-2xl animate-pulse" style={{ background: `radial-gradient(circle, ${config.glowColor}, transparent 70%)` }} />
                 )}
+                <div className="absolute -inset-1 rounded-full animate-[spin_8s_linear_infinite] opacity-60" style={{
+                  background: isFirst
+                    ? 'conic-gradient(from 0deg, rgba(250,204,21,0.6), rgba(245,158,11,0.4), rgba(250,204,21,0.1), rgba(250,204,21,0.6))'
+                    : broker.position === 2
+                    ? 'conic-gradient(from 0deg, rgba(148,163,184,0.4), rgba(148,163,184,0.1), rgba(148,163,184,0.4))'
+                    : 'conic-gradient(from 0deg, rgba(251,146,60,0.4), rgba(251,146,60,0.1), rgba(251,146,60,0.4))',
+                  borderRadius: '50%',
+                }} />
                 <Avatar className={cn(
                   config.avatarSize,
-                  "ring-4 shadow-2xl transition-all relative z-10",
+                  "ring-4 shadow-2xl transition-all relative z-10 group-hover:scale-105",
                   config.ring,
                   isCurrentUser && "ring-primary ring-offset-2 ring-offset-background"
                 )}>
@@ -436,9 +447,31 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 {broker.name.split(' ').slice(0, 2).join(' ')}
               </p>
               <p className="text-xs text-muted-foreground mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
-              <Badge variant="outline" className={cn("text-[10px] mb-1", level.color)}>
-                Nv.{level.level} {level.title}
-              </Badge>
+              
+              {/* Level badge with XP bar */}
+              <div className="flex flex-col items-center mb-1 gap-0.5">
+                <Badge variant="outline" className={cn("text-[10px]", level.color)}>
+                  {level.icon} Nv.{level.level} {level.title}
+                </Badge>
+                <div className="w-16 h-1 bg-muted/50 rounded-full overflow-hidden">
+                  <div className={cn("h-full rounded-full transition-all duration-1000", 
+                    level.level >= 8 ? "bg-gradient-to-r from-purple-500 to-pink-500" :
+                    level.level >= 5 ? "bg-gradient-to-r from-blue-500 to-cyan-500" :
+                    "bg-gradient-to-r from-green-500 to-emerald-500"
+                  )} style={{ width: `${xpProgress}%` }} />
+                </div>
+                <span className="text-[9px] text-muted-foreground">{xp.toLocaleString()} XP</span>
+              </div>
+
+              {/* Achievement badges */}
+              {achievements.length > 0 && (
+                <div className="flex gap-0.5 mb-1">
+                  {achievements.slice(0, 2).map((badge, i) => (
+                    <span key={i} className="text-sm" title={badge.label}>{badge.icon}</span>
+                  ))}
+                </div>
+              )}
+
               <p className={cn(
                 "font-black mb-2",
                 config.valueSize,
@@ -447,12 +480,15 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 {formatCurrencyCompact(broker.revenue)}
               </p>
 
+              {/* Podium base with 3D perspective */}
               <div className={cn(
-                "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden",
+                "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden transition-all group-hover:scale-[1.02]",
                 config.height,
                 `bg-gradient-to-t ${config.gradient}`,
                 config.border
-              )}>
+              )} style={{
+                boxShadow: `0 8px 32px -4px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+              }}>
                 {isFirst && (
                   <div className="absolute inset-0 shimmer-effect" />
                 )}
