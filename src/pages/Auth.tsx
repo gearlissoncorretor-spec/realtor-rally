@@ -239,9 +239,9 @@ const Auth = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-muted-foreground text-xs font-medium">
-            © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
+        <div className="text-center mt-8 space-y-1">
+          <p className="text-white/30 text-xs font-medium">
+            Versão 1.0 &nbsp;|&nbsp; © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
           </p>
         </div>
       </div>
