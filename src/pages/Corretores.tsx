@@ -148,11 +148,7 @@ const BrokerCardView = ({
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-foreground truncate">{broker.name}</h3>
-              {rank <= 3 && rank > 0 && (
-                <span className="text-amber-400 text-xs font-bold">#{rank}</span>
-              )}
             </div>
             <p className="text-xs text-muted-foreground truncate">{broker.email}</p>
             <div className="flex items-center gap-2 mt-1">
