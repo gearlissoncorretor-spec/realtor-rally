@@ -17,6 +17,7 @@ import {
   Monitor,
   ChevronDown,
   ChevronRight,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
