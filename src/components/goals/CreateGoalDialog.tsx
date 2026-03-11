@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
 import { CalendarIcon } from 'lucide-react';
 import { format, addDays, addWeeks, addMonths, addYears } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -24,13 +25,15 @@ interface CreateGoalDialogProps {
 }
 
 const GOAL_TYPES = [
-  { value: 'sales_count', label: 'Meta de Vendas' },
-  { value: 'captacao', label: 'Meta de Captação' },
-  { value: 'contratacao', label: 'Meta de Contratação de Corretores' },
+  { value: 'sales_count', label: 'Número de Vendas' },
+  { value: 'vgv', label: 'VGV (Valor Geral de Vendas)' },
+  { value: 'vgc', label: 'VGC (Valor Geral de Comissão)' },
   { value: 'revenue', label: 'Receita' },
-  { value: 'vgv', label: 'VGV' },
-  { value: 'commission', label: 'Comissão' },
-  { value: 'custom', label: 'Meta Personalizada' },
+  { value: 'commission', label: 'Comissão Individual' },
+  { value: 'atendimentos', label: 'Número de Atendimentos' },
+  { value: 'captacao', label: 'Captação de Imóveis' },
+  { value: 'contratacao', label: 'Contratação de Corretores' },
+  { value: 'custom', label: 'Criar Novo Tipo de Meta' },
 ];
 
 const PERIOD_TYPES = [
@@ -72,6 +75,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     team_id: '',
     broker_id: preSelectedBrokerId,
     scope: 'broker' as string,
+    show_in_ranking: false,
+    show_in_tv: false,
   });
 
   React.useEffect(() => {
@@ -139,6 +144,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
         assigned_to: formData.assigned_to || undefined,
         team_id: (formData.scope === 'team' && formData.team_id && formData.team_id !== 'all') ? formData.team_id : undefined,
         broker_id: formData.scope === 'broker' ? formData.broker_id : undefined,
+        show_in_ranking: formData.show_in_ranking,
+        show_in_tv: formData.show_in_tv,
       });
 
       setFormData({
@@ -146,6 +153,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
         target_type: 'sales_count', custom_target_type: '',
         period_type: 'monthly', start_date: new Date(), end_date: new Date(),
         assigned_to: '', team_id: '', broker_id: '', scope: 'broker',
+        show_in_ranking: false, show_in_tv: false,
       });
       onOpenChange(false);
     } catch (error) {
@@ -404,6 +412,30 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                 )}
               </div>
             )}
+          </div>
+
+          {/* Visibility Toggles */}
+          <div className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-muted/50 border border-border">
+            <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
+              <Label htmlFor="show_ranking" className="text-sm font-medium cursor-pointer">
+                Exibir no Ranking
+              </Label>
+              <Switch
+                id="show_ranking"
+                checked={formData.show_in_ranking}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_in_ranking: checked }))}
+              />
+            </div>
+            <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
+              <Label htmlFor="show_tv" className="text-sm font-medium cursor-pointer">
+                Exibir no Modo TV
+              </Label>
+              <Switch
+                id="show_tv"
+                checked={formData.show_in_tv}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_in_tv: checked }))}
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-2">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
+import { Pause, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGoals, Goal } from '@/hooks/useGoals';
 import { useAllGoalTasks } from '@/hooks/useAllGoalTasks';
@@ -107,8 +108,10 @@ const Metas = () => {
     if (!selectedBrokerId) return [];
     const selectedBrokerData = accessibleBrokers.find(b => b.id === selectedBrokerId);
     return goals.filter(goal => {
+      // Match broker-specific, team-wide, or company-wide goals
       const matchesBroker = goal.broker_id === selectedBrokerId || 
-        (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id);
+        (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id) ||
+        (!goal.broker_id && !goal.team_id); // company-wide goals
       const monthStart = startOfMonth(selectedMonth);
       const monthEnd = endOfMonth(selectedMonth);
       const goalStart = new Date(goal.start_date);
@@ -144,29 +147,28 @@ const Metas = () => {
 
   const formatValue = (value: number, type: string) => {
     switch (type) {
-      case 'revenue': case 'vgv': case 'commission': return formatCurrency(value);
-      case 'sales_count': return formatNumber(value);
+      case 'revenue': case 'vgv': case 'vgc': case 'commission': return formatCurrency(value);
+      case 'sales_count': case 'atendimentos': case 'captacao': case 'contratacao': return formatNumber(value);
       default: return value.toString();
     }
   };
 
   const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'sales_count': return 'Vendas';
-      case 'revenue': return 'Receita';
-      case 'vgv': return 'VGV';
-      case 'commission': return 'Comissão';
-      default: return type;
-    }
+    const labels: Record<string, string> = {
+      sales_count: 'Vendas', captacao: 'Captação', contratacao: 'Contratação',
+      revenue: 'Receita', vgv: 'VGV', vgc: 'VGC', commission: 'Comissão',
+      atendimentos: 'Atendimentos',
+    };
+    return labels[type] || type;
   };
 
   const getPeriodLabel = (period: string) => {
-    switch (period) {
-      case 'monthly': return 'Mensal';
-      case 'quarterly': return 'Trimestral';
-      case 'yearly': return 'Anual';
-      default: return period;
-    }
+    const labels: Record<string, string> = {
+      daily: 'Diária', weekly: 'Semanal', monthly: 'Mensal',
+      quarterly: 'Trimestral', semester: 'Semestral', yearly: 'Anual',
+      custom: 'Personalizado',
+    };
+    return labels[period] || period;
   };
 
   const getProgress = (goal: Goal) => {
@@ -361,6 +363,7 @@ const Metas = () => {
                                     <TableHead>Tipo</TableHead>
                                     <TableHead className="min-w-[200px]">Progresso</TableHead>
                                     <TableHead className="text-right">Atual / Alvo</TableHead>
+                                    <TableHead className="text-right">Faltam</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Prazo</TableHead>
                                     {canManageGoals && <TableHead className="text-right w-[100px]">Ações</TableHead>}
@@ -410,6 +413,16 @@ const Metas = () => {
                                             <span className="text-muted-foreground"> / {formatValue(goal.target_value, goal.target_type)}</span>
                                           </div>
                                         </TableCell>
+                                        <TableCell className="text-right">
+                                          <span className={cn(
+                                            "text-sm font-medium",
+                                            goal.target_value - goal.current_value <= 0 ? "text-success" : "text-muted-foreground"
+                                          )}>
+                                            {goal.target_value - goal.current_value > 0
+                                              ? formatValue(goal.target_value - goal.current_value, goal.target_type)
+                                              : '✅ Atingida'}
+                                          </span>
+                                        </TableCell>
                                         <TableCell>
                                           <Badge variant={statusInfo.variant} className={cn("text-xs", statusInfo.className)}>
                                             {statusInfo.label}
@@ -423,6 +436,19 @@ const Metas = () => {
                                         {(canEditGoal(goal) || canDeleteGoal(goal)) && (
                                           <TableCell className="text-right">
                                             <div className="flex justify-end gap-0.5" onClick={e => e.stopPropagation()}>
+                                              {canEditGoal(goal) && (
+                                                <Button 
+                                                  size="icon" variant="ghost" 
+                                                  onClick={() => {
+                                                    const newStatus = goal.status === 'active' ? 'paused' : 'active';
+                                                    updateGoal(goal.id, { status: newStatus });
+                                                  }} 
+                                                  className="h-8 w-8"
+                                                  title={goal.status === 'active' ? 'Pausar meta' : 'Reativar meta'}
+                                                >
+                                                  {goal.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                                                </Button>
+                                              )}
                                               {canEditGoal(goal) && (
                                                 <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-8 w-8">
                                                   <Pencil className="w-3.5 h-3.5" />

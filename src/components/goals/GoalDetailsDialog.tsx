@@ -45,9 +45,13 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
     switch (goal.target_type) {
       case 'revenue':
       case 'vgv':
+      case 'vgc':
       case 'commission':
         return formatCurrency(value);
       case 'sales_count':
+      case 'captacao':
+      case 'contratacao':
+      case 'atendimentos':
         return formatNumber(value);
       default:
         return value.toString();
@@ -55,18 +59,12 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
   };
 
   const getTypeLabel = () => {
-    switch (goal.target_type) {
-      case 'sales_count':
-        return 'Vendas';
-      case 'revenue':
-        return 'Receita';
-      case 'vgv':
-        return 'VGV';
-      case 'commission':
-        return 'Comissão';
-      default:
-        return goal.target_type;
-    }
+    const labels: Record<string, string> = {
+      sales_count: 'Vendas', captacao: 'Captação', contratacao: 'Contratação',
+      revenue: 'Receita', vgv: 'VGV', vgc: 'VGC', commission: 'Comissão',
+      atendimentos: 'Atendimentos',
+    };
+    return labels[goal.target_type] || goal.target_type;
   };
 
   return (

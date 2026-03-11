@@ -987,12 +987,15 @@ export type Database = {
           end_date: string
           id: string
           period_type: string
+          show_in_ranking: boolean
+          show_in_tv: boolean
           start_date: string
           status: string
           target_type: string
           target_value: number
           team_id: string | null
           title: string
+          unit_label: string | null
           updated_at: string
         }
         Insert: {
@@ -1006,12 +1009,15 @@ export type Database = {
           end_date: string
           id?: string
           period_type?: string
+          show_in_ranking?: boolean
+          show_in_tv?: boolean
           start_date: string
           status?: string
           target_type: string
           target_value?: number
           team_id?: string | null
           title: string
+          unit_label?: string | null
           updated_at?: string
         }
         Update: {
@@ -1025,12 +1031,15 @@ export type Database = {
           end_date?: string
           id?: string
           period_type?: string
+          show_in_ranking?: boolean
+          show_in_tv?: boolean
           start_date?: string
           status?: string
           target_type?: string
           target_value?: number
           team_id?: string | null
           title?: string
+          unit_label?: string | null
           updated_at?: string
         }
         Relationships: [
