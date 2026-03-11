@@ -128,7 +128,7 @@ const Equipes = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="flex justify-between items-center mb-8">
           <div className="w-full text-center sm:text-left">
             <h1 className="text-3xl font-bold text-foreground mb-2 animate-fade-in">

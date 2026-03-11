@@ -158,7 +158,7 @@ const GestaoUsuarios = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
