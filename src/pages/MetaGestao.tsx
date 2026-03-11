@@ -292,7 +292,7 @@ const MetaGestao = () => {
     <>
       <Navigation />
       <div className="min-h-screen bg-background lg:ml-72">
-        <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6">
+        <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
           
           {/* Header */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
