@@ -1,4 +1,6 @@
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { RankingSkeleton } from "@/components/skeletons/RankingSkeleton";
 import PeriodFilter from "@/components/PeriodFilter";
 import { Card } from "@/components/ui/card";
