@@ -13,15 +13,19 @@ const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChar
 const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"));
 
 import { useData } from "@/contexts/DataContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTeams } from "@/hooks/useTeams";
 import { formatCurrency } from "@/utils/formatting";
-import { Home, TrendingUp, DollarSign, Users, Target, BarChart3 } from "lucide-react";
+import { Home, TrendingUp, DollarSign, Users, Target, BarChart3, Filter, UserMinus } from "lucide-react";
 import heroImage from "@/assets/dashboard-hero.jpg";
 import { useContextualIdentity } from "@/hooks/useContextualIdentity";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Hook para centralizar cálculos de métricas do dashboard
  */
-function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number) {
+function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null) {
   // Filtro de vendas baseado no período - EXCLUI DISTRATOS dos cálculos
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
@@ -37,15 +41,32 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
       if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
       if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
 
+      // Filter by team if specified
+      if (teamFilter && teamFilter !== 'all') {
+        const broker = brokers.find(b => b.id === sale.broker_id);
+        if (!broker || broker.team_id !== teamFilter) return false;
+      }
+
       return true;
     });
-  }, [sales, selectedMonth, selectedYear]);
+  }, [sales, selectedMonth, selectedYear, teamFilter, brokers]);
+
+  // Brokers filtered by team
+  const filteredBrokers = useMemo(() => {
+    if (teamFilter && teamFilter !== 'all') {
+      return brokers.filter(b => b.team_id === teamFilter);
+    }
+    return brokers;
+  }, [brokers, teamFilter]);
 
   // Métricas principais
   const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
   const totalVGC = filteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
   const totalSales = filteredSales.length;
-  const activeBrokers = brokers.filter(b => b.status === "ativo").length;
+  const activeBrokers = filteredBrokers.filter(b => b.status === "ativo").length;
+  const inactiveBrokers = filteredBrokers.filter(b => b.status === "inativo").length;
+  const totalBrokersForTurnover = activeBrokers + inactiveBrokers;
+  const turnoverRate = totalBrokersForTurnover > 0 ? (inactiveBrokers / totalBrokersForTurnover) * 100 : 0;
   const vgcPercentage = totalVGV > 0 ? (totalVGC / totalVGV) * 100 : 0;
 
   // Taxa de conversão
@@ -58,14 +79,12 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     let prevMonth = selectedMonth > 0 ? selectedMonth - 1 : 0;
     let prevYear = selectedYear > 0 ? selectedYear : new Date().getFullYear();
     
-    // Se o mês anterior for 0 (estava em janeiro), volta para dezembro do ano anterior
     if (selectedMonth === 1) {
       prevMonth = 12;
       prevYear = prevYear - 1;
     } else if (selectedMonth === 0) {
-      // Se não há filtro de mês, usa o mês anterior ao atual
       const now = new Date();
-      prevMonth = now.getMonth(); // getMonth retorna 0-11
+      prevMonth = now.getMonth();
       if (prevMonth === 0) {
         prevMonth = 12;
         prevYear = prevYear - 1;
@@ -82,6 +101,11 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
       if (prevYear > 0 && saleDate.getFullYear() !== prevYear) return false;
       if (prevMonth > 0 && saleDate.getMonth() + 1 !== prevMonth) return false;
 
+      if (teamFilter && teamFilter !== 'all') {
+        const broker = brokers.find(b => b.id === sale.broker_id);
+        if (!broker || broker.team_id !== teamFilter) return false;
+      }
+
       return true;
     });
 
@@ -91,15 +115,13 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     const prevVGCPercentage = prevVGV > 0 ? (prevVGC / prevVGV) * 100 : 0;
 
     return { prevVGV, prevVGC, prevSalesCount, prevVGCPercentage };
-  }, [sales, selectedMonth, selectedYear]);
+  }, [sales, selectedMonth, selectedYear, teamFilter, brokers]);
 
-  // Função auxiliar para calcular mudança percentual
   const calculateChange = (current: number, previous: number): number => {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   };
 
-  // Função auxiliar para determinar trend
   const getTrend = (change: number): "up" | "down" | "neutral" => {
     if (change > 0) return "up";
     if (change < 0) return "down";
@@ -111,7 +133,6 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     const monthlyData: Record<string, { vgv: number, vgc: number, sales: number }> = {};
     const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
-    // Inicializa últimos 12 meses
     for (let i = 11; i >= 0; i--) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
@@ -140,7 +161,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
   // Ranking de corretores
   const brokerRankings = useMemo(() => {
-    return brokers.map(broker => {
+    return filteredBrokers.map(broker => {
       const brokerSales = filteredSales.filter(s => s.broker_id === broker.id);
       const revenue = brokerSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
       return {
@@ -154,9 +175,9 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     .sort((a, b) => b.revenue - a.revenue)
     .map((broker, idx) => ({ ...broker, position: idx + 1 }))
     .slice(0, 7);
-  }, [filteredSales, brokers]);
+  }, [filteredSales, filteredBrokers]);
 
-  // KPIs principais com comparação do mês anterior
+  // KPIs
   const vgvChange = calculateChange(totalVGV, previousPeriodMetrics.prevVGV);
   const vgcChange = calculateChange(totalVGC, previousPeriodMetrics.prevVGC);
   const salesChange = calculateChange(totalSales, previousPeriodMetrics.prevSalesCount);
@@ -196,11 +217,12 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
   // Estatísticas rápidas
   const quickStats = {
     activeBrokers,
-    pending: filteredSales.filter(s => s.status === "pendente").length,
-    total: sales.length
+    totalSales,
+    turnoverRate: turnoverRate.toFixed(1),
+    inactiveBrokers,
   };
 
-  // Meta do mês (mock, mas pode vir do banco)
+  // Meta do mês
   const monthlyGoal = {
     percent: "78%",
     trend: "up" as const,
@@ -220,11 +242,15 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 const Index = () => {
   const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
   const { displayName, subtitle } = useContextualIdentity();
+  const { isDiretor, isAdmin } = useAuth();
+  const { teams } = useTeams();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
+  const [selectedTeam, setSelectedTeam] = useState<string>('all');
   const [showNegotiationAlert, setShowNegotiationAlert] = useState(true);
 
-  // Mostrar alerta apenas uma vez por sessão
+  const isDirectorView = isDiretor() || isAdmin();
+
   useEffect(() => {
     const alertDismissed = sessionStorage.getItem('negotiationAlertDismissed');
     if (alertDismissed) {
@@ -244,12 +270,45 @@ const Index = () => {
     brokerRankings,
     quickStats,
     monthlyGoal
-  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear);
+  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null);
+
+  // Per-team breakdown for directors
+  const teamBreakdown = useMemo(() => {
+    if (!isDirectorView || teams.length === 0) return [];
+
+    return teams.map(team => {
+      const teamBrokers = brokers.filter(b => b.team_id === team.id);
+      const active = teamBrokers.filter(b => b.status === 'ativo').length;
+      const inactive = teamBrokers.filter(b => b.status === 'inativo').length;
+      const total = active + inactive;
+      const turnover = total > 0 ? (inactive / total) * 100 : 0;
+      
+      const teamSales = sales.filter(sale => {
+        if (sale.status === 'distrato') return false;
+        const broker = brokers.find(b => b.id === sale.broker_id);
+        if (!broker || broker.team_id !== team.id) return false;
+        const rawDate = sale.sale_date || sale.created_at;
+        if (!rawDate) return false;
+        const saleDate = new Date(rawDate);
+        if (isNaN(saleDate.getTime())) return false;
+        if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
+        if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
+        return true;
+      });
+
+      return {
+        id: team.id,
+        name: team.name,
+        activeBrokers: active,
+        totalSales: teamSales.length,
+        turnoverRate: turnover.toFixed(1),
+      };
+    }).filter(t => t.activeBrokers > 0 || t.totalSales > 0);
+  }, [isDirectorView, teams, brokers, sales, selectedMonth, selectedYear]);
 
   const isInitialLoading = (brokersLoading || salesLoading) && brokers.length === 0 && sales.length === 0;
   const hasError = brokersError || salesError;
 
-  // Mostrar erro se houver problema ao carregar dados
   if (hasError && !isInitialLoading) {
     const errorMessage = brokersError?.message || salesError?.message || 'Erro ao carregar dados';
     return (
@@ -289,20 +348,16 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      {/* Main Content */}
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 min-h-screen">
         
-        {/* Hero Section - Axis Branding (Compact & Clean) */}
+        {/* Hero Section */}
         <div className="relative h-[100px] sm:h-[120px] rounded-2xl mb-8 overflow-hidden bg-gradient-to-r from-primary/90 via-primary/80 to-primary/60 flex items-center justify-center">
-          
-          {/* Subtle grid pattern */}
           <div className="absolute inset-0 opacity-[0.04]">
             <div className="absolute inset-0" style={{
               backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px)',
               backgroundSize: '40px 40px'
             }} />
           </div>
-          
           <div className="relative z-10 px-8 sm:px-10 text-center">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
               {displayName}
@@ -320,13 +375,33 @@ const Index = () => {
           </div>
         )}
 
-        {/* Filtros de Período */}
-        <PeriodFilter
-          selectedMonth={selectedMonth}
-          selectedYear={selectedYear}
-          onMonthChange={setSelectedMonth}
-          onYearChange={setSelectedYear}
-        />
+        {/* Filtros de Período + Team Filter for Directors */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+          <div className="flex-1">
+            <PeriodFilter
+              selectedMonth={selectedMonth}
+              selectedYear={selectedYear}
+              onMonthChange={setSelectedMonth}
+              onYearChange={setSelectedYear}
+            />
+          </div>
+          {isDirectorView && teams.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                <SelectTrigger className="w-[200px] bg-card border-border/50">
+                  <SelectValue placeholder="Filtrar por equipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Equipes</SelectItem>
+                  {teams.map(team => (
+                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-8">
@@ -368,7 +443,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Charts Adicionais */}
+        {/* Charts Adicionais + Quick Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 mb-8">
           <LazyComponentLoader fallback={<ChartSkeleton height={300} />}>
             <PropertyTypeChart
@@ -384,19 +459,69 @@ const Index = () => {
                 <Users className="w-4.5 h-4.5 text-primary" />
               </div>
               <h3 className="font-semibold text-foreground">Estatísticas Rápidas</h3>
+              {isDirectorView && selectedTeam !== 'all' && (
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {teams.find(t => t.id === selectedTeam)?.name}
+                </Badge>
+              )}
             </div>
-            <div className="space-y-5">
-              {[
-                { label: "Corretores Ativos", value: quickStats.activeBrokers },
-                { label: "Imóveis Pendentes", value: quickStats.pending },
-                { label: "Total de Vendas", value: quickStats.total },
-              ].map((stat) => (
-                <div key={stat.label} className="flex justify-between items-center py-1">
-                  <span className="text-sm text-muted-foreground">{stat.label}</span>
-                  <span className="text-xl font-bold text-foreground tabular-nums">{stat.value}</span>
+            
+            {/* Main quick stats */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center py-2 border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Corretores Ativos</span>
                 </div>
-              ))}
+                <span className="text-xl font-bold text-foreground tabular-nums">{quickStats.activeBrokers}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <Home className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Total de Vendas</span>
+                </div>
+                <span className="text-xl font-bold text-foreground tabular-nums">{quickStats.totalSales}</span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <div className="flex items-center gap-2">
+                  <UserMinus className="w-4 h-4 text-destructive" />
+                  <span className="text-sm text-muted-foreground">Turnover</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-xl font-bold tabular-nums ${Number(quickStats.turnoverRate) > 20 ? 'text-destructive' : Number(quickStats.turnoverRate) > 10 ? 'text-warning' : 'text-success'}`}>
+                    {quickStats.turnoverRate}%
+                  </span>
+                  <span className="text-xs text-muted-foreground">({quickStats.inactiveBrokers} inativos)</span>
+                </div>
+              </div>
             </div>
+
+            {/* Per-team breakdown for directors */}
+            {isDirectorView && selectedTeam === 'all' && teamBreakdown.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-border/50">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Por Equipe</h4>
+                <div className="space-y-2.5 max-h-[200px] overflow-y-auto pr-1">
+                  {teamBreakdown.map(team => (
+                    <button
+                      key={team.id}
+                      onClick={() => setSelectedTeam(team.id)}
+                      className="w-full flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors text-left group"
+                    >
+                      <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                        {team.name}
+                      </span>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                        <span>{team.activeBrokers} <span className="hidden sm:inline">ativos</span></span>
+                        <span className="text-primary font-semibold">{team.totalSales} vendas</span>
+                        <span className={`${Number(team.turnoverRate) > 20 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                          {team.turnoverRate}%
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
