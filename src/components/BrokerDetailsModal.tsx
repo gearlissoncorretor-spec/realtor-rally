@@ -107,7 +107,7 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
 
   const handleSaveGoal = async () => {
     try {
-      await onUpdateBroker(broker.id, { meta_monthly: Number(newGoal) || 0 });
+      await onUpdateBroker(broker.id, { meta_monthly: newGoalValue || 0 });
       setIsEditingGoal(false);
       toast({ title: "Meta atualizada", description: "Meta mensal atualizada com sucesso." });
     } catch {
