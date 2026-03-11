@@ -95,9 +95,12 @@ const Auth = () => {
               </span>
             </div>
           )}
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-foreground tracking-tight">{orgName}</h1>
-          <p className="text-primary/90 text-lg sm:text-xl font-semibold tracking-wide leading-relaxed max-w-xs mx-auto">
-            {tagline}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">{orgName}</h1>
+          <p className="text-blue-400 text-base sm:text-lg font-semibold tracking-wide leading-relaxed max-w-sm mx-auto">
+            Plataforma profissional para gestão de vendas imobiliárias
+          </p>
+          <p className="text-white/50 text-sm max-w-md mx-auto">
+            💡 Organize clientes, negociações e resultados em <strong className="text-white/70">um único sistema</strong>.
           </p>
         </div>
 
@@ -224,21 +227,21 @@ const Auth = () => {
                 className="w-full h-13 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-base rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_6px_30px_rgba(59,130,246,0.6)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] gap-2 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700" 
                 disabled={isSubmitting}
               >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
-                {isSubmitting ? "Entrando..." : "Entrar"}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>🚀</span>}
+                {isSubmitting ? "Entrando..." : "Entrar no Sistema"}
               </Button>
 
-              <p className="text-center text-white/40 text-xs mt-4">
-                Acesso restrito. Solicite suas credenciais ao seu gestor.
+              <p className="text-center text-white/40 text-xs mt-4 italic">
+                Grandes vendas começam com organização.
               </p>
             </form>
           )}
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-muted-foreground text-xs font-medium">
-            © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
+        <div className="text-center mt-8 space-y-1">
+          <p className="text-white/30 text-xs font-medium">
+            Versão 1.0 &nbsp;|&nbsp; © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
           </p>
         </div>
       </div>
