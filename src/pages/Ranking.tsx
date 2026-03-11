@@ -1,4 +1,6 @@
 import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { RankingSkeleton } from "@/components/skeletons/RankingSkeleton";
 import PeriodFilter from "@/components/PeriodFilter";
 import { Card } from "@/components/ui/card";
@@ -1534,6 +1536,19 @@ const Ranking = () => {
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
 
+  // Fetch manager user_ids to exclude from ranking
+  const { data: managerUserIds = [] } = useQuery({
+    queryKey: ['manager-user-ids'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['gerente', 'diretor', 'admin']);
+      return (data || []).map(r => r.user_id);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Role-based header
   const headerInfo = useMemo(() => {
     const role = getUserRole();
@@ -1593,6 +1608,7 @@ const Ranking = () => {
 
     return filteredBrokers
       .filter(broker => broker.status === 'ativo')
+      .filter(broker => !broker.user_id || !managerUserIds.includes(broker.user_id))
       .map(broker => {
         const brokerSales = filteredSales.filter(sale => 
           sale.broker_id === broker.id && 
@@ -1615,7 +1631,7 @@ const Ranking = () => {
       })
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [brokers, filteredSales, sales, selectedTeam]);
+  }, [brokers, filteredSales, sales, selectedTeam, managerUserIds]);
 
   // Captação rankings - based on captador field
   const captacaoRankings: BrokerRanking[] = useMemo(() => {
