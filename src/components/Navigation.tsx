@@ -113,7 +113,7 @@ const Navigation = () => {
     },
     {
       label: "Gestão",
-      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios'].includes(i.screen)),
+      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios', 'comissoes'].includes(i.screen)),
     },
     {
       label: "Sistema",
