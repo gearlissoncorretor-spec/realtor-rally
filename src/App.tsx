@@ -34,6 +34,7 @@ const GestaoUsuarios = lazy(() => import("@/pages/GestaoUsuarios"));
 const SuperAdmin = lazy(() => import("@/pages/SuperAdmin"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const Comissoes = lazy(() => import("@/pages/Comissoes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
