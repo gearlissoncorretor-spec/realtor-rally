@@ -302,14 +302,24 @@ const BrokerTableRow = ({
       {teamName || <span className="text-muted-foreground/40">—</span>}
     </TableCell>
 
-    {/* Vendas */}
+    {/* Vendas Mês */}
     <TableCell className="text-center">
       <span className="text-sm font-bold text-foreground">{stats.salesCount}</span>
     </TableCell>
 
-    {/* VGV */}
+    {/* Vendas Total */}
+    <TableCell className="text-center">
+      <span className="text-sm text-muted-foreground">{allTimeStats.salesCount}</span>
+    </TableCell>
+
+    {/* VGV Mês */}
     <TableCell className="text-right">
       <span className="text-sm font-semibold text-foreground">{formatCurrency(stats.totalRevenue)}</span>
+    </TableCell>
+
+    {/* VGV Total */}
+    <TableCell className="text-right hidden lg:table-cell">
+      <span className="text-sm text-muted-foreground">{formatCurrency(allTimeStats.totalRevenue)}</span>
     </TableCell>
 
     {/* Meta */}
