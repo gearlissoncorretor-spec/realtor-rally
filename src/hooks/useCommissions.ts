@@ -13,6 +13,7 @@ export interface Commission {
   commission_type: string;
   status: string;
   payment_date: string | null;
+  due_date: string | null;
   payment_method: string | null;
   installments: number;
   paid_installments: number;
@@ -31,6 +32,7 @@ export interface CommissionInsert {
   commission_type?: string;
   status?: string;
   payment_date?: string | null;
+  due_date?: string | null;
   payment_method?: string | null;
   installments?: number;
   paid_installments?: number;
