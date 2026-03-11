@@ -24,13 +24,15 @@ interface CreateGoalDialogProps {
 }
 
 const GOAL_TYPES = [
-  { value: 'sales_count', label: 'Meta de Vendas' },
-  { value: 'captacao', label: 'Meta de Captação' },
-  { value: 'contratacao', label: 'Meta de Contratação de Corretores' },
+  { value: 'sales_count', label: 'Número de Vendas' },
+  { value: 'vgv', label: 'VGV (Valor Geral de Vendas)' },
+  { value: 'vgc', label: 'VGC (Valor Geral de Comissão)' },
   { value: 'revenue', label: 'Receita' },
-  { value: 'vgv', label: 'VGV' },
-  { value: 'commission', label: 'Comissão' },
-  { value: 'custom', label: 'Meta Personalizada' },
+  { value: 'commission', label: 'Comissão Individual' },
+  { value: 'atendimentos', label: 'Número de Atendimentos' },
+  { value: 'captacao', label: 'Captação de Imóveis' },
+  { value: 'contratacao', label: 'Contratação de Corretores' },
+  { value: 'custom', label: 'Criar Novo Tipo de Meta' },
 ];
 
 const PERIOD_TYPES = [

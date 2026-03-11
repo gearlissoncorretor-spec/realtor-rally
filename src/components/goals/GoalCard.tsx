@@ -82,11 +82,13 @@ export const GoalCard: React.FC<GoalCardProps> = ({ goal, onClick, canEdit }) =>
     switch (goal.target_type) {
       case 'revenue':
       case 'vgv':
+      case 'vgc':
       case 'commission':
         return formatCurrency(value);
       case 'sales_count':
       case 'captacao':
       case 'contratacao':
+      case 'atendimentos':
         return formatNumber(value);
       default:
         return value.toString();

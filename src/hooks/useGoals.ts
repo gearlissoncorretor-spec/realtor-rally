@@ -20,8 +20,45 @@ export interface Goal {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  show_in_ranking?: boolean;
+  show_in_tv?: boolean;
+  unit_label?: string;
   tasks?: GoalTask[];
 }
+
+// Shared constants for goal types and labels
+export const GOAL_TYPE_LABELS: Record<string, string> = {
+  sales_count: 'Vendas',
+  captacao: 'Captação',
+  contratacao: 'Contratação',
+  revenue: 'Receita',
+  vgv: 'VGV',
+  vgc: 'VGC',
+  commission: 'Comissão',
+  atendimentos: 'Atendimentos',
+};
+
+export const GOAL_PERIOD_LABELS: Record<string, string> = {
+  daily: 'Diária',
+  weekly: 'Semanal',
+  monthly: 'Mensal',
+  quarterly: 'Trimestral',
+  semester: 'Semestral',
+  yearly: 'Anual',
+  custom: 'Personalizado',
+};
+
+export const getGoalTypeLabel = (type: string): string => GOAL_TYPE_LABELS[type] || type;
+export const getGoalPeriodLabel = (period: string): string => GOAL_PERIOD_LABELS[period] || period;
+
+export const formatGoalValue = (value: number, type: string): string => {
+  switch (type) {
+    case 'revenue': case 'vgv': case 'vgc': case 'commission':
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    default:
+      return value.toLocaleString('pt-BR');
+  }
+};
 
 export interface GoalTask {
   id: string;
