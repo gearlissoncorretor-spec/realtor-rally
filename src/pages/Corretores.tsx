@@ -1,3 +1,4 @@
+// Corretores - Lista de corretores ordenada por data de criação
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
