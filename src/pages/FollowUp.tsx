@@ -393,6 +393,7 @@ const FollowUpPage = () => {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           {/* Stats Cards */}
