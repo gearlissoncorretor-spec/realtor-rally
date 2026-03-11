@@ -54,7 +54,7 @@ interface TeamRanking {
   position: number;
 }
 
-type RankingType = 'vendas' | 'captacao';
+type RankingType = 'vendas' | 'captacao' | 'equipes';
 type TVRankingMode = 'alternate' | 'vendas' | 'captacao';
 
 // ===== MEDALS & ACHIEVEMENTS =====
