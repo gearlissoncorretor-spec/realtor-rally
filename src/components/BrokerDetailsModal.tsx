@@ -26,7 +26,7 @@ import {
   Briefcase,
   Clock
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/utils/formatting";
 import type { Broker, Sale } from "@/contexts/DataContext";
