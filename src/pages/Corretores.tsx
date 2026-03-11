@@ -194,12 +194,20 @@ const BrokerCardView = ({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-muted/30 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Vendas</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Vendas Mês</p>
             <p className="text-lg font-bold text-foreground">{stats.salesCount}</p>
           </div>
           <div className="bg-muted/30 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGV</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Vendas Total</p>
+            <p className="text-lg font-bold text-foreground">{allTimeStats.salesCount}</p>
+          </div>
+          <div className="bg-muted/30 rounded-lg p-2.5 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGV Mês</p>
             <p className="text-sm font-bold text-foreground">{formatCurrency(stats.totalRevenue)}</p>
+          </div>
+          <div className="bg-muted/30 rounded-lg p-2.5 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGV Total</p>
+            <p className="text-sm font-bold text-muted-foreground">{formatCurrency(allTimeStats.totalRevenue)}</p>
           </div>
         </div>
 
