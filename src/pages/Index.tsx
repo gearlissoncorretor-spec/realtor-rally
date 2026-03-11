@@ -7,6 +7,8 @@ import NegotiationAlert from "@/components/NegotiationAlert";
 import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import React, { useState, useMemo, useEffect } from "react";
+import GerenteDashboard from "@/components/dashboards/GerenteDashboard";
+import CorretorDashboard from "@/components/dashboards/CorretorDashboard";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
@@ -239,7 +241,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
   };
 }
 
-const Index = () => {
+const DiretorDashboardPage = () => {
   const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
   const { displayName, subtitle } = useContextualIdentity();
   const { isDiretor, isAdmin } = useAuth();
@@ -527,6 +529,21 @@ const Index = () => {
       </div>
     </div>
   );
+};
+
+
+const Index = () => {
+  const { getUserRole } = useAuth();
+  const role = getUserRole();
+
+  switch (role) {
+    case 'gerente':
+      return <GerenteDashboard />;
+    case 'corretor':
+      return <CorretorDashboard />;
+    default:
+      return <DiretorDashboardPage />;
+  }
 };
 
 export default Index;

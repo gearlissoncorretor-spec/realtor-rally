@@ -1,9 +1,8 @@
 import React from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import DiretorDashboard from '@/components/dashboards/DiretorDashboard';
+import Index from '@/pages/Index';
 import GerenteDashboard from '@/components/dashboards/GerenteDashboard';
 import CorretorDashboard from '@/components/dashboards/CorretorDashboard';
 
@@ -34,17 +33,16 @@ const Home = () => {
 
   const role = getUserRole();
 
-  // Render dashboard based on user role
   switch (role) {
     case 'diretor':
     case 'admin':
-      return <DiretorDashboard />;
+      return <Index />;
     case 'gerente':
       return <GerenteDashboard />;
     case 'corretor':
       return <CorretorDashboard />;
     default:
-      return <CorretorDashboard />; // Default to corretor dashboard
+      return <CorretorDashboard />;
   }
 };
 
