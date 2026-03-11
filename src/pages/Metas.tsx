@@ -435,6 +435,19 @@ const Metas = () => {
                                           <TableCell className="text-right">
                                             <div className="flex justify-end gap-0.5" onClick={e => e.stopPropagation()}>
                                               {canEditGoal(goal) && (
+                                                <Button 
+                                                  size="icon" variant="ghost" 
+                                                  onClick={() => {
+                                                    const newStatus = goal.status === 'active' ? 'paused' : 'active';
+                                                    updateGoal(goal.id, { status: newStatus });
+                                                  }} 
+                                                  className="h-8 w-8"
+                                                  title={goal.status === 'active' ? 'Pausar meta' : 'Reativar meta'}
+                                                >
+                                                  {goal.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                                                </Button>
+                                              )}
+                                              {canEditGoal(goal) && (
                                                 <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-8 w-8">
                                                   <Pencil className="w-3.5 h-3.5" />
                                                 </Button>
