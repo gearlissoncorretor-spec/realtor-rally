@@ -241,7 +241,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
   };
 }
 
-const Index = () => {
+const DiretorDashboardPage = () => {
   const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
   const { displayName, subtitle } = useContextualIdentity();
   const { isDiretor, isAdmin } = useAuth();
