@@ -101,7 +101,7 @@ const Navigation = () => {
     {
       label: "Comercial",
       defaultOpen: true,
-      items: navItems.filter(i => ['vendas', 'negociacoes', 'follow-up', 'acompanhamento'].includes(i.screen)),
+      items: navItems.filter(i => ['vendas', 'negociacoes', 'follow-up', 'acompanhamento', 'comissoes'].includes(i.screen)),
     },
     {
       label: "Produtividade",
