@@ -609,8 +609,7 @@ const Corretores = () => {
     const stats = getBrokerStats(broker.id);
     const allTimeStats = getAllTimeBrokerStats(broker.id);
     const metaProgress = getMetaProgress(broker, currentMonthStats[broker.id]?.monthlyRevenue || 0);
-    const rank = brokerRanks[broker.id] || 0;
-    const badges = getPerformanceBadges(stats.salesCount, metaProgress, stats.totalRevenue, rank);
+    const badges = getPerformanceBadges(stats.salesCount, metaProgress, stats.totalRevenue);
     const lastLogin = broker.user_id ? profilesMap[broker.user_id]?.last_login_at : null;
     const teamName = broker.team_id ? teamsMap[broker.team_id] : undefined;
     
