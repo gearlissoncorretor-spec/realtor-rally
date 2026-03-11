@@ -1608,6 +1608,7 @@ const Ranking = () => {
 
     return filteredBrokers
       .filter(broker => broker.status === 'ativo')
+      .filter(broker => !broker.user_id || !managerUserIds.includes(broker.user_id))
       .map(broker => {
         const brokerSales = filteredSales.filter(sale => 
           sale.broker_id === broker.id && 
