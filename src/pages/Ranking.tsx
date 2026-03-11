@@ -1631,7 +1631,7 @@ const Ranking = () => {
       })
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [brokers, filteredSales, sales, selectedTeam]);
+  }, [brokers, filteredSales, sales, selectedTeam, managerUserIds]);
 
   // Captação rankings - based on captador field
   const captacaoRankings: BrokerRanking[] = useMemo(() => {
