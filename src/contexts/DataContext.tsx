@@ -40,7 +40,7 @@ interface DataContextType {
   updateBroker: (id: string, broker: Partial<Broker>) => Promise<void>;
   deleteBroker: (id: string) => Promise<void>;
   
-  createSale: (sale: SaleInsert) => Promise<void>;
+  createSale: (sale: SaleInsert) => Promise<any>;
   updateSale: (id: string, sale: Partial<Sale>) => Promise<void>;
   deleteSale: (id: string) => Promise<void>;
   
