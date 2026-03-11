@@ -26,7 +26,7 @@ import {
   Briefcase,
   Clock
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/utils/formatting";
 import type { Broker, Sale } from "@/contexts/DataContext";
@@ -53,12 +53,19 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
   const { toast } = useToast();
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [newGoalValue, setNewGoalValue] = useState(0);
+  const goalValueRef = useRef(0);
   const [newGoalSalesCount, setNewGoalSalesCount] = useState('');
+
+  const handleGoalValueChange = (val: number) => {
+    setNewGoalValue(val);
+    goalValueRef.current = val;
+  };
 
   useEffect(() => {
     if (broker) {
-      setNewGoalValue(Number(broker.meta_monthly || 0));
-      // Sales count goal could be stored elsewhere; for now derive from meta or default 0
+      const v = Number(broker.meta_monthly || 0);
+      setNewGoalValue(v);
+      goalValueRef.current = v;
       setNewGoalSalesCount('');
     }
   }, [broker]);
@@ -107,7 +114,7 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
 
   const handleSaveGoal = async () => {
     try {
-      await onUpdateBroker(broker.id, { meta_monthly: newGoalValue || 0 });
+      await onUpdateBroker(broker.id, { meta_monthly: goalValueRef.current || 0 });
       setIsEditingGoal(false);
       toast({ title: "Meta atualizada", description: "Meta mensal atualizada com sucesso." });
     } catch {
@@ -198,7 +205,7 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
                         {isEditingGoal ? (
                           <CurrencyInput 
                             value={newGoalValue} 
-                            onChange={(val) => setNewGoalValue(val)} 
+                            onChange={handleGoalValueChange} 
                             className="h-9" 
                             autoFocus
                           />
