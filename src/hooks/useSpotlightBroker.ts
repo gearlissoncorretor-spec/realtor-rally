@@ -26,14 +26,18 @@ export const useSpotlightBroker = () => {
         .select('id')
         .maybeSingle();
 
-      if (!existing?.id) throw new Error('Settings not found');
-
-      const { error } = await supabase
-        .from('organization_settings')
-        .update({ spotlight_broker_id: brokerId } as any)
-        .eq('id', existing.id);
-
-      if (error) throw error;
+      if (existing?.id) {
+        const { error } = await supabase
+          .from('organization_settings')
+          .update({ spotlight_broker_id: brokerId } as any)
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('organization_settings')
+          .insert({ spotlight_broker_id: brokerId, organization_name: 'Minha Organização' } as any);
+        if (error) throw error;
+      }
     },
     onMutate: async (brokerId) => {
       await queryClient.cancelQueries({ queryKey: ['spotlight-broker'] });
