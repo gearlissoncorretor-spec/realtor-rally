@@ -52,7 +52,7 @@ export interface UpdateNegotiationInput {
 }
 
 export const useNegotiations = () => {
-  const { user, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy } = useAuth();
+  const { user, profile, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { brokers } = useBrokers();
@@ -163,6 +163,7 @@ export const useNegotiations = () => {
         .insert({
           ...input,
           created_by: user?.id,
+          company_id: profile?.company_id || undefined,
         })
         .select()
         .single();
