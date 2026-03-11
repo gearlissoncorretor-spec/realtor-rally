@@ -1069,7 +1069,7 @@ const RecentSalesTicker = ({ sales, brokers }: { sales: any[]; brokers: BrokerRa
 };
 
 // ===== TV MODE =====
-const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode: initialTvRankingMode }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode }) => {
+const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode: initialTvRankingMode, periodLabel, spotlightBroker }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode; periodLabel: string; spotlightBroker: { id: string; name: string; avatar?: string; sales?: number; revenue?: number; position?: number } | null }) => {
   const { settings } = useOrganizationSettings();
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
@@ -1361,7 +1361,8 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
               <h1 className="text-3xl lg:text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent drop-shadow-sm">
                 {activeRankingType === 'captacao' ? 'RANKING DE CAPTAÇÃO' : 'RANKING DE VENDAS'}
               </h1>
-              <p className="text-sm text-cyan-300/70 font-medium tracking-[0.3em] uppercase">{orgName}</p>
+              <p className="text-lg font-bold text-amber-300/90 tracking-wide">{periodLabel}</p>
+              <p className="text-xs text-cyan-300/50 font-medium tracking-[0.3em] uppercase">{orgName}</p>
             </div>
           </div>
           <div className="h-[3px] max-w-3xl mx-auto rounded-full overflow-hidden">
@@ -1544,6 +1545,33 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Spotlight broker in full mode */}
+          {viewMode === 'full' && spotlightBroker && phase === 'complete' && (
+            <div className="max-w-5xl mx-auto w-full mt-4 animate-fade-in">
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-yellow-500/[0.08] via-amber-500/[0.05] to-yellow-500/[0.08] border border-yellow-500/20 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs font-bold text-yellow-300/80 uppercase tracking-wider">Destaque do Mês</span>
+                </div>
+                <div className="relative shrink-0">
+                  <div className="absolute -inset-1 rounded-full bg-yellow-400/20 blur-md" />
+                  <Avatar className="h-12 w-12 ring-2 ring-yellow-400/50 relative z-10">
+                    <AvatarImage src={spotlightBroker.avatar} />
+                    <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-sm font-black">
+                      {spotlightBroker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Crown className="absolute -top-1.5 -right-1.5 w-4 h-4 text-yellow-400 z-20" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white text-base">{spotlightBroker.name}</p>
+                  <p className="text-xs text-yellow-300/60">{spotlightBroker.sales ?? 0} vendas · {formatCurrencyCompact(spotlightBroker.revenue ?? 0)}</p>
+                </div>
+                <Star className="w-5 h-5 text-yellow-400/50 shrink-0" />
+              </div>
             </div>
           )}
 
@@ -1789,6 +1817,18 @@ const Ranking = () => {
     };
   }, [spotlightBrokerId, brokerRankings, brokers]);
 
+  const periodLabel = useMemo(() => {
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const now = new Date();
+    if (quickPeriod === 'today') return `Hoje — ${now.toLocaleDateString('pt-BR')}`;
+    if (quickPeriod === 'week') return 'Última Semana';
+    if (quickPeriod === 'year') return `Ano ${now.getFullYear()}`;
+    if (quickPeriod === 'all') return 'Todos os Períodos';
+    const month = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
+    const year = selectedYear > 0 ? selectedYear : now.getFullYear();
+    return `${monthNames[month - 1]} ${year}`;
+  }, [quickPeriod, selectedMonth, selectedYear]);
+
   const openTVMode = () => {
     setIsTVMode(true);
     document.documentElement.requestFullscreen?.().catch(() => {});
@@ -1828,7 +1868,7 @@ const Ranking = () => {
   }
 
   if (isTVMode) {
-    return <RankingTVMode brokerRankings={brokerRankings} captacaoRankings={captacaoRankings} onClose={closeTVMode} sales={sales} tvRankingMode={tvRankingMode} />;
+    return <RankingTVMode brokerRankings={brokerRankings} captacaoRankings={captacaoRankings} onClose={closeTVMode} sales={sales} tvRankingMode={tvRankingMode} periodLabel={periodLabel} spotlightBroker={spotlightBroker} />;
   }
 
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
@@ -1853,6 +1893,7 @@ const Ranking = () => {
                 {headerInfo.title}
                 <Sparkles className="w-5 h-5 text-warning" />
               </h1>
+              <p className="text-sm font-bold text-primary">{periodLabel}</p>
               <p className="text-xs text-muted-foreground">{headerInfo.subtitle}</p>
             </div>
           </div>
