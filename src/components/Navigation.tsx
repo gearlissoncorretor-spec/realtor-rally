@@ -101,7 +101,7 @@ const Navigation = () => {
     {
       label: "Comercial",
       defaultOpen: true,
-      items: navItems.filter(i => ['vendas', 'negociacoes', 'follow-up', 'acompanhamento', 'comissoes'].includes(i.screen)),
+      items: navItems.filter(i => ['vendas', 'negociacoes', 'follow-up', 'acompanhamento'].includes(i.screen)),
     },
     {
       label: "Produtividade",
@@ -113,7 +113,7 @@ const Navigation = () => {
     },
     {
       label: "Gestão",
-      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios'].includes(i.screen)),
+      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios', 'comissoes'].includes(i.screen)),
     },
     {
       label: "Sistema",
