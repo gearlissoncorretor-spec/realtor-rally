@@ -998,7 +998,7 @@ const RecentSalesTicker = ({ sales, brokers }: { sales: any[]; brokers: BrokerRa
 };
 
 // ===== TV MODE =====
-const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode }) => {
+const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode: initialTvRankingMode }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode }) => {
   const { settings } = useOrganizationSettings();
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
@@ -1006,8 +1006,10 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
   const [viewMode, setViewMode] = useState<'full' | 'podium'>('full');
   const [celebratingSale, setCelebratingSale] = useState<{ clientName: string; value: number; brokerId: string | null } | null>(null);
-  const [activeRankingType, setActiveRankingType] = useState<RankingType>(tvRankingMode === 'captacao' ? 'captacao' : 'vendas');
+  const [tvRankingMode, setTvRankingMode] = useState<TVRankingMode>(initialTvRankingMode);
+  const [activeRankingType, setActiveRankingType] = useState<RankingType>(initialTvRankingMode === 'captacao' ? 'captacao' : 'vendas');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showRankingMenu, setShowRankingMenu] = useState(false);
   const lastSaleCountRef = useRef(sales.length);
 
   const currentRankings = activeRankingType === 'captacao' ? captacaoRankings : brokerRankings;
