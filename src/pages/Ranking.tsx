@@ -562,6 +562,7 @@ const LeaderboardCard = ({
   const isCurrentUser = broker.userId === currentUserId;
   const xp = calculateXP(broker);
   const level = getLevel(xp);
+  const xpProgress = getXPProgress(xp);
   const achievements = getAchievements(broker, allBrokers);
   const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
 
@@ -574,12 +575,14 @@ const LeaderboardCard = ({
       "flex flex-col gap-2 p-3 md:p-4 rounded-xl border transition-all group",
       isCurrentUser
         ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
+        : broker.position <= 3
+        ? "bg-card/80 border-border/60 hover:border-primary/30 hover:shadow-md"
         : "bg-card/50 border-border/50 hover:border-primary/20 hover:bg-card/80"
     )}>
       <div className="flex items-center gap-3">
         <PositionBadge position={broker.position} />
 
-        <Avatar className="h-10 w-10 ring-2 ring-border/50">
+        <Avatar className="h-10 w-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
           <AvatarImage src={broker.avatar} className="object-cover" />
           <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
         </Avatar>
@@ -594,8 +597,19 @@ const LeaderboardCard = ({
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</span>
             <Badge variant="outline" className={cn("text-[9px] px-1 py-0", level.color)}>
-              Nv.{level.level}
+              {level.icon} Nv.{level.level}
             </Badge>
+            {/* XP mini bar */}
+            <div className="hidden md:flex items-center gap-1">
+              <div className="w-12 h-1 bg-muted/50 rounded-full overflow-hidden">
+                <div className={cn("h-full rounded-full transition-all duration-700",
+                  level.level >= 8 ? "bg-gradient-to-r from-purple-500 to-pink-500" :
+                  level.level >= 5 ? "bg-gradient-to-r from-blue-500 to-cyan-500" :
+                  "bg-gradient-to-r from-green-500 to-emerald-500"
+                )} style={{ width: `${xpProgress}%` }} />
+              </div>
+              <span className="text-[8px] text-muted-foreground">{xp.toLocaleString()}</span>
+            </div>
           </div>
         </div>
 
@@ -616,9 +630,10 @@ const LeaderboardCard = ({
         </div>
       </div>
 
+      {/* Achievement badges row */}
       {achievements.length > 0 && (
         <div className="flex flex-wrap gap-1 ml-[52px]">
-          {achievements.slice(0, 3).map((badge, i) => (
+          {achievements.slice(0, 4).map((badge, i) => (
             <span key={i} className={cn(
               "text-[10px] px-1.5 py-0.5 rounded-full border bg-gradient-to-r font-medium",
               badge.color
