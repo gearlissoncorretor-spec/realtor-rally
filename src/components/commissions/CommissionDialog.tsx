@@ -50,6 +50,7 @@ const CommissionDialog = ({ isOpen, onClose, saleData }: CommissionDialogProps) 
         commission_percentage: percentage,
         commission_value: commissionValue,
         base_value: baseValue,
+        commission_type: commissionType,
         payment_method: paymentMethod || null,
         installments,
         observations: observations || null,
