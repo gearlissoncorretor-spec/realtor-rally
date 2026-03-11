@@ -243,10 +243,10 @@ const BrokerCardView = ({
 
 // ─── Broker Table Row (Professional Table) ───────────────────
 const BrokerTableRow = ({ 
-  broker, stats, metaProgress, rank, badges, canDelete, lastLogin, teamName,
+  broker, stats, allTimeStats, metaProgress, rank, badges, canDelete, lastLogin, teamName,
   onEdit, onDelete, onDeleteDenied, onClick
 }: { 
-  broker: Broker; stats: { salesCount: number; totalRevenue: number }; metaProgress: number; rank: number;
+  broker: Broker; stats: { salesCount: number; totalRevenue: number }; allTimeStats: { salesCount: number; totalRevenue: number }; metaProgress: number; rank: number;
   badges: { icon: React.ReactNode; label: string; color: string }[];
   canDelete: boolean; lastLogin?: string | null; teamName?: string;
   onEdit: (broker: Broker) => void; onDelete: (broker: Broker) => void;
