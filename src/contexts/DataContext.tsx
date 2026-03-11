@@ -238,11 +238,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (!token) throw new Error('Usuário não autenticado');
 
-      // Generate secure random password
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
-      const randomPassword = Array.from(crypto.getRandomValues(new Uint8Array(12)))
-        .map(b => chars[b % chars.length])
-        .join('');
+      // Generate secure random password (guaranteed to have letters + numbers)
+      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
+      const digits = '23456789';
+      const all = letters + digits + '!@#$%';
+      const rng = crypto.getRandomValues(new Uint8Array(12));
+      // First 2 chars: guaranteed letter + digit, rest random
+      const randomPassword = [
+        letters[rng[0] % letters.length],
+        digits[rng[1] % digits.length],
+        ...Array.from(rng.slice(2)).map(b => all[b % all.length]),
+      ].sort(() => Math.random() - 0.5).join('');
 
       const response = await fetch(
         'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/create-user',

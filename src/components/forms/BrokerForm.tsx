@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -48,8 +49,10 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
 }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(broker?.avatar_url || null);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const { teams, loading: teamsLoading } = useTeams();
   const { profile, isGerente, isDiretor } = useAuth();
+  const { toast } = useToast();
   
   const availableTeams = useMemo(() => {
     if (isGerente() && profile?.team_id) {
@@ -92,6 +95,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
 
   const handleSubmit = async (data: BrokerFormData) => {
     setSubmitting(true);
+    setFormError(null);
     try {
       const submitData = {
         ...data,
@@ -104,8 +108,15 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       form.reset();
       setAvatarUrl(null);
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting broker form:', error);
+      const errorMessage = error?.message || 'Erro desconhecido ao salvar corretor.';
+      setFormError(errorMessage);
+      toast({
+        title: "❌ Erro ao salvar corretor",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -129,6 +140,12 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
         <ScrollArea className="flex-1 px-6 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              {formError && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">{formError}</AlertDescription>
+                </Alert>
+              )}
               {/* Upload de Foto */}
               <div className="flex justify-center py-2">
                 <ImageUpload
