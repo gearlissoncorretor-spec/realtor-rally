@@ -571,6 +571,7 @@ export type Database = {
           company_id: string | null
           created_at: string
           created_by: string | null
+          due_date: string | null
           id: string
           installments: number | null
           observations: string | null
@@ -590,6 +591,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          due_date?: string | null
           id?: string
           installments?: number | null
           observations?: string | null
@@ -609,6 +611,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          due_date?: string | null
           id?: string
           installments?: number | null
           observations?: string | null
