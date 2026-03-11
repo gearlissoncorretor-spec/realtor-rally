@@ -231,8 +231,8 @@ const Auth = () => {
                 {isSubmitting ? "Entrando..." : "Entrar no Sistema"}
               </Button>
 
-              <p className="text-center text-white/40 text-xs mt-4">
-                Acesso restrito. Solicite suas credenciais ao seu gestor.
+              <p className="text-center text-white/40 text-xs mt-4 italic">
+                Grandes vendas começam com organização.
               </p>
             </form>
           )}
