@@ -360,6 +360,7 @@ const Metas = () => {
                                     <TableHead>Tipo</TableHead>
                                     <TableHead className="min-w-[200px]">Progresso</TableHead>
                                     <TableHead className="text-right">Atual / Alvo</TableHead>
+                                    <TableHead className="text-right">Faltam</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Prazo</TableHead>
                                     {canManageGoals && <TableHead className="text-right w-[100px]">Ações</TableHead>}
