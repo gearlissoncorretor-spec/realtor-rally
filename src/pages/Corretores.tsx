@@ -430,6 +430,12 @@ const Corretores = () => {
     return { salesCount: confirmedSales.length, totalRevenue };
   }, [sales]);
 
+  const getAllTimeBrokerStats = useCallback((brokerId: string) => {
+    const brokerSales = sales.filter(sale => sale.broker_id === brokerId);
+    const confirmedSales = brokerSales.filter(sale => sale.status !== 'cancelada' && sale.status !== 'distrato');
+    const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+    return { salesCount: confirmedSales.length, totalRevenue };
+
   const getMetaProgress = useCallback((broker: Broker, revenue: number) => {
     if (!broker.meta_monthly || Number(broker.meta_monthly) <= 0) return 0;
     return Math.min((revenue / Number(broker.meta_monthly)) * 100, 100);
