@@ -112,7 +112,7 @@ export const useTeams = () => {
     }
   };
 
-  const createTeam = async (teamData: { name: string; description?: string }) => {
+  const createTeam = async (teamData: { name: string; description?: string; manager_id?: string | null }) => {
     try {
       const validatedData = teamSchema.parse(teamData);
 
@@ -120,7 +120,8 @@ export const useTeams = () => {
         .from('teams')
         .insert([{
           name: validatedData.name,
-          description: validatedData.description || null
+          description: validatedData.description || null,
+          manager_id: validatedData.manager_id || null
         }])
         .select()
         .single();
