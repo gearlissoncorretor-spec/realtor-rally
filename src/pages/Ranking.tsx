@@ -54,7 +54,7 @@ interface TeamRanking {
   position: number;
 }
 
-type RankingType = 'vendas' | 'captacao';
+type RankingType = 'vendas' | 'captacao' | 'equipes';
 type TVRankingMode = 'alternate' | 'vendas' | 'captacao';
 
 // ===== MEDALS & ACHIEVEMENTS =====
@@ -1806,6 +1806,17 @@ const Ranking = () => {
               >
                 Captação
               </Button>
+              {(isDiretor() || isAdmin()) && (
+                <Button
+                  variant={rankingType === 'equipes' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setRankingType('equipes')}
+                  className="text-xs h-7 px-3 rounded-md"
+                >
+                  <Building2 className="w-3.5 h-3.5 mr-1" />
+                  Equipes
+                </Button>
+              )}
             </div>
             <Button
               variant="ghost"
@@ -1865,63 +1876,169 @@ const Ranking = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left: Main ranking */}
           <div className="flex-1 min-w-0">
-            {/* Team ranking for directors (only in vendas mode) */}
-            {rankingType === 'vendas' && (isDiretor() || isAdmin()) && teamRankings.length > 0 && selectedTeam === 'all' && (
-              <TeamRankingSection teamRankings={teamRankings} />
-            )}
+            {rankingType === 'equipes' ? (
+              /* ===== TEAM PODIUM VIEW ===== */
+              <>
+                {teamRankings.length > 0 ? (
+                  <>
+                    {/* Team Podium */}
+                    <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
+                      <div className="relative mb-6">
+                        <ParticleEffect />
+                        <div className="flex items-end justify-center gap-4 md:gap-8 pt-8">
+                          {(() => {
+                            const top3Teams = teamRankings.slice(0, 3);
+                            const podiumTeams = [
+                              top3Teams.find(t => t.position === 2),
+                              top3Teams.find(t => t.position === 1),
+                              top3Teams.find(t => t.position === 3),
+                            ].filter(Boolean) as TeamRanking[];
 
-            {/* Podium */}
-            {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length >= 1 && (
-              <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
-                <AnimatedPodium brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} currentUserId={user?.id} />
-              </Card>
-            )}
+                            const podiumConfigs = [
+                              { height: "h-32 md:h-40", avatarSize: "w-16 h-16 md:w-20 md:h-20", gradient: "from-slate-400/25 via-slate-400/15 to-transparent", border: "border-slate-300/40", ring: "ring-slate-300/60", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl" },
+                              { height: "h-40 md:h-52", avatarSize: "w-20 h-20 md:w-28 md:h-28", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", ring: "ring-yellow-400/70", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl" },
+                              { height: "h-24 md:h-32", avatarSize: "w-14 h-14 md:w-16 md:h-16", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", ring: "ring-orange-400/50", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl" },
+                            ];
 
-            {/* Leaderboard */}
-            <Card className="overflow-hidden border-border/50">
-              <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
-                <Flame className="w-5 h-5 text-warning" />
-                <h2 className="font-semibold text-foreground text-sm">
-                  {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
-                </h2>
-                <Badge variant="secondary" className="ml-auto text-xs">
-                  {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
-                </Badge>
-              </div>
-              <div className="p-3 space-y-2">
-                {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).map((broker) => (
-                  <LeaderboardCard
-                    key={broker.id}
-                    broker={broker}
-                    allBrokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings}
-                    currentUserId={user?.id}
-                    showProgressBar={broker.position > 1}
-                  />
-                ))}
-                {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length === 0 && (
-                  <div className="text-center py-12">
-                    <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground font-medium">
-                      {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
-                    </p>
+                            return podiumTeams.map((team, index) => {
+                              const config = podiumConfigs[index];
+                              const isFirst = team.position === 1;
+                              const initials = team.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+
+                              return (
+                                <div key={team.id} className="flex flex-col items-center animate-fade-in">
+                                  {isFirst && (
+                                    <div className="mb-1 animate-bounce" style={{ animationDuration: '2.5s' }}>
+                                      <Crown className="w-8 h-8 md:w-10 md:h-10 text-warning drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
+                                    </div>
+                                  )}
+
+                                  <div className="relative mb-2">
+                                    {isFirst && <div className="absolute -inset-3 rounded-full bg-warning/15 blur-xl animate-pulse" />}
+                                    <div className={cn(
+                                      config.avatarSize,
+                                      "rounded-full ring-4 shadow-2xl relative z-10 flex items-center justify-center",
+                                      config.ring,
+                                      isFirst
+                                        ? "bg-gradient-to-br from-yellow-600 to-amber-800"
+                                        : team.position === 2
+                                        ? "bg-gradient-to-br from-slate-500 to-slate-700"
+                                        : "bg-gradient-to-br from-orange-600 to-orange-800"
+                                    )}>
+                                      <Building2 className={cn(
+                                        "text-white/80",
+                                        isFirst ? "w-8 h-8 md:w-10 md:h-10" : team.position === 2 ? "w-6 h-6 md:w-8 md:h-8" : "w-5 h-5 md:w-6 md:h-6"
+                                      )} />
+                                    </div>
+                                  </div>
+
+                                  <p className={cn(
+                                    "font-bold text-center leading-tight text-foreground",
+                                    isFirst ? "text-base md:text-lg" : "text-sm md:text-base"
+                                  )}>
+                                    {team.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground mb-0.5">{team.totalSales} vendas · {team.brokerCount} corretores</p>
+                                  <p className={cn(
+                                    "font-black mb-2",
+                                    isFirst ? "text-lg md:text-xl text-warning" : "text-base md:text-lg text-foreground"
+                                  )}>
+                                    {formatCurrencyCompact(team.totalVGV)}
+                                  </p>
+
+                                  <div className={cn(
+                                    "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden",
+                                    config.height,
+                                    `bg-gradient-to-t ${config.gradient} ${config.border}`
+                                  )}>
+                                    {isFirst && <div className="absolute inset-0 shimmer-effect" />}
+                                    <span className={cn("font-black relative z-10", config.numSize, config.numColor)}>
+                                      {team.position}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    </Card>
+
+                    {/* Full team leaderboard */}
+                    <TeamRankingSection teamRankings={teamRankings} />
+                  </>
+                ) : (
+                  <Card className="p-12 border-border/50 text-center">
+                    <Building2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-muted-foreground font-medium">Nenhuma equipe encontrada no período</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
-                  </div>
+                  </Card>
                 )}
-              </div>
-            </Card>
+              </>
+            ) : (
+              /* ===== BROKER RANKING VIEW ===== */
+              <>
+                {/* Team ranking for directors (only in vendas mode) */}
+                {rankingType === 'vendas' && (isDiretor() || isAdmin()) && teamRankings.length > 0 && selectedTeam === 'all' && (
+                  <TeamRankingSection teamRankings={teamRankings} />
+                )}
+
+                {/* Podium */}
+                {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length >= 1 && (
+                  <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
+                    <AnimatedPodium brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} currentUserId={user?.id} />
+                  </Card>
+                )}
+
+                {/* Leaderboard */}
+                <Card className="overflow-hidden border-border/50">
+                  <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-warning" />
+                    <h2 className="font-semibold text-foreground text-sm">
+                      {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
+                    </h2>
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
+                    </Badge>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).map((broker) => (
+                      <LeaderboardCard
+                        key={broker.id}
+                        broker={broker}
+                        allBrokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings}
+                        currentUserId={user?.id}
+                        showProgressBar={broker.position > 1}
+                      />
+                    ))}
+                    {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length === 0 && (
+                      <div className="text-center py-12">
+                        <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-muted-foreground font-medium">
+                          {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
+                        </p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </>
+            )}
           </div>
 
           {/* Right: Spotlight sidebar */}
-          <div className="w-full lg:w-72 shrink-0">
-            <SpotlightBrokerSidebar
-              broker={spotlightBroker}
-              allBrokers={brokerRankings}
-              canManage={canManageSpotlight}
-              availableBrokers={allBrokersForSpotlight}
-              onChangeBroker={setSpotlightBroker}
-              isUpdating={spotlightUpdating}
-            />
-          </div>
+          {rankingType !== 'equipes' && (
+            <div className="w-full lg:w-72 shrink-0">
+              <SpotlightBrokerSidebar
+                broker={spotlightBroker}
+                allBrokers={brokerRankings}
+                canManage={canManageSpotlight}
+                availableBrokers={allBrokersForSpotlight}
+                onChangeBroker={setSpotlightBroker}
+                isUpdating={spotlightUpdating}
+              />
+            </div>
+          )}
         </div>
       </div>
 
