@@ -10,6 +10,7 @@ export interface Commission {
   commission_percentage: number;
   commission_value: number;
   base_value: number;
+  commission_type: string;
   status: string;
   payment_date: string | null;
   payment_method: string | null;
@@ -27,6 +28,7 @@ export interface CommissionInsert {
   commission_percentage: number;
   commission_value: number;
   base_value: number;
+  commission_type?: string;
   status?: string;
   payment_date?: string | null;
   payment_method?: string | null;

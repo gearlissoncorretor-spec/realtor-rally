@@ -566,6 +566,7 @@ export type Database = {
           base_value: number
           broker_id: string
           commission_percentage: number
+          commission_type: string
           commission_value: number
           company_id: string | null
           created_at: string
@@ -584,6 +585,7 @@ export type Database = {
           base_value?: number
           broker_id: string
           commission_percentage?: number
+          commission_type?: string
           commission_value?: number
           company_id?: string | null
           created_at?: string
@@ -602,6 +604,7 @@ export type Database = {
           base_value?: number
           broker_id?: string
           commission_percentage?: number
+          commission_type?: string
           commission_value?: number
           company_id?: string | null
           created_at?: string

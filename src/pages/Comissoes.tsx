@@ -36,6 +36,11 @@ const paymentMethodLabels: Record<string, string> = {
   cheque: "Cheque", dinheiro: "Dinheiro", outro: "Outro",
 };
 
+const commissionTypeLabels: Record<string, { label: string; color: string }> = {
+  venda: { label: "Venda", color: "bg-primary/10 text-primary border-primary/20" },
+  captacao: { label: "Captação", color: "bg-accent/10 text-accent-foreground border-accent/20" },
+};
+
 const Comissoes = () => {
   const { commissions, loading, updateCommission } = useCommissions();
   const { brokers } = useBrokers();
@@ -221,8 +226,12 @@ const Comissoes = () => {
                           {config.label}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                         <span>{sale?.client_name || 'Cliente'}</span>
+                        <span>·</span>
+                        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", (commissionTypeLabels[c.commission_type] || commissionTypeLabels.venda).color)}>
+                          {(commissionTypeLabels[c.commission_type] || commissionTypeLabels.venda).label}
+                        </Badge>
                         <span>·</span>
                         <span>{c.commission_percentage}%</span>
                         <span>·</span>

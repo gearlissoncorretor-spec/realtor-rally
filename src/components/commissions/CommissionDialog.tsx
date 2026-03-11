@@ -32,6 +32,7 @@ const CommissionDialog = ({ isOpen, onClose, saleData }: CommissionDialogProps) 
 
   const [percentage, setPercentage] = useState<number>(saleData?.commissionRate || 5);
   const [baseValue, setBaseValue] = useState<number>(saleData?.vgc || saleData?.propertyValue || 0);
+  const [commissionType, setCommissionType] = useState<string>('venda');
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [installments, setInstallments] = useState<number>(1);
   const [observations, setObservations] = useState('');
@@ -49,6 +50,7 @@ const CommissionDialog = ({ isOpen, onClose, saleData }: CommissionDialogProps) 
         commission_percentage: percentage,
         commission_value: commissionValue,
         base_value: baseValue,
+        commission_type: commissionType,
         payment_method: paymentMethod || null,
         installments,
         observations: observations || null,
@@ -90,6 +92,20 @@ const CommissionDialog = ({ isOpen, onClose, saleData }: CommissionDialogProps) 
               <span className="text-xs text-muted-foreground">Valor do Imóvel</span>
               <span className="text-sm font-bold text-foreground">{formatCurrency(saleData.propertyValue)}</span>
             </div>
+          </div>
+
+          {/* Commission type */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Origem da Comissão</Label>
+            <Select value={commissionType} onValueChange={setCommissionType}>
+              <SelectTrigger className="text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="venda">Venda</SelectItem>
+                <SelectItem value="captacao">Captação</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Commission config */}
