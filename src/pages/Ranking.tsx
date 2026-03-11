@@ -1069,7 +1069,7 @@ const RecentSalesTicker = ({ sales, brokers }: { sales: any[]; brokers: BrokerRa
 };
 
 // ===== TV MODE =====
-const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode: initialTvRankingMode }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode }) => {
+const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRankingMode: initialTvRankingMode, periodLabel, spotlightBroker }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode; periodLabel: string; spotlightBroker: { id: string; name: string; avatar?: string; sales?: number; revenue?: number; position?: number } | null }) => {
   const { settings } = useOrganizationSettings();
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
