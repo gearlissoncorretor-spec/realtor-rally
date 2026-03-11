@@ -17,6 +17,7 @@ import {
   Monitor,
   ChevronDown,
   ChevronRight,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -29,6 +30,7 @@ import { NotificationCenter } from "@/components/NotificationCenter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
+import TeamLogoSettings from "@/components/TeamLogoSettings";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -47,6 +49,7 @@ const Configuracoes = () => {
     branding: false,
     preferences: false,
     notifications: false,
+    teamLogo: false,
     teams: false,
     teamMembers: false,
     screenAccess: false,
@@ -150,6 +153,19 @@ const Configuracoes = () => {
             >
               <NotificationCenter />
             </CollapsibleSection>
+
+            {/* Logo da Equipe — Gerentes */}
+            {isGerente() && (
+              <CollapsibleSection
+                title="Logo da Equipe"
+                icon={<ImageIcon className="h-5 w-5 text-primary" />}
+                description="Personalize a logo da sua equipe"
+                isOpen={openSections.teamLogo}
+                onToggle={() => toggleSection('teamLogo')}
+              >
+                <TeamLogoSettings />
+              </CollapsibleSection>
+            )}
 
             {/* Identidade Visual & Som — Admin or Director */}
             {(isAdmin() || isDiretor()) && (
