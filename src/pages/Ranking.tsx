@@ -1361,7 +1361,8 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
               <h1 className="text-3xl lg:text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-200 via-pink-200 to-cyan-200 bg-clip-text text-transparent drop-shadow-sm">
                 {activeRankingType === 'captacao' ? 'RANKING DE CAPTAÇÃO' : 'RANKING DE VENDAS'}
               </h1>
-              <p className="text-sm text-cyan-300/70 font-medium tracking-[0.3em] uppercase">{orgName}</p>
+              <p className="text-lg font-bold text-amber-300/90 tracking-wide">{periodLabel}</p>
+              <p className="text-xs text-cyan-300/50 font-medium tracking-[0.3em] uppercase">{orgName}</p>
             </div>
           </div>
           <div className="h-[3px] max-w-3xl mx-auto rounded-full overflow-hidden">
