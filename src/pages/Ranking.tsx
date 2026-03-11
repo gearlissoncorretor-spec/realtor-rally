@@ -1553,7 +1553,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-white text-base">{spotlightBroker.name}</p>
-                  <p className="text-xs text-yellow-300/60">{spotlightBroker.sales ?? 0} vendas · {formatCurrencyCompact(spotlightBroker.revenue ?? 0)}</p>
+                  <p className="text-xs text-yellow-300/60">Destaque do Mês ✨</p>
                 </div>
                 <Star className="w-5 h-5 text-yellow-400/50 shrink-0" />
               </div>
