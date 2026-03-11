@@ -36,6 +36,11 @@ const paymentMethodLabels: Record<string, string> = {
   cheque: "Cheque", dinheiro: "Dinheiro", outro: "Outro",
 };
 
+const commissionTypeLabels: Record<string, { label: string; color: string }> = {
+  venda: { label: "Venda", color: "bg-primary/10 text-primary border-primary/20" },
+  captacao: { label: "Captação", color: "bg-accent/10 text-accent-foreground border-accent/20" },
+};
+
 const Comissoes = () => {
   const { commissions, loading, updateCommission } = useCommissions();
   const { brokers } = useBrokers();
