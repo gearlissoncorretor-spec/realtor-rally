@@ -53,7 +53,6 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
   const { teams, loading: teamsLoading } = useTeams();
   const { profile, isGerente, isDiretor } = useAuth();
   const { toast } = useToast();
-  const { profile, isGerente, isDiretor } = useAuth();
   
   const availableTeams = useMemo(() => {
     if (isGerente() && profile?.team_id) {
