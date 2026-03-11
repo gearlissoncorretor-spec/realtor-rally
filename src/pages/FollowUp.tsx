@@ -664,6 +664,11 @@ const FollowUpPage = () => {
         onOpenChange={setContactDialogOpen}
         onConfirm={handleConfirmContact}
       />
+
+      <FollowUpStatusManagerDialog
+        open={statusManagerOpen}
+        onOpenChange={setStatusManagerOpen}
+      />
     </div>
   );
 };
