@@ -132,6 +132,9 @@ const App = () => (
               <Route path="/agenda" element={
                 <ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>
               } />
+              <Route path="/comissoes" element={
+                <ProtectedRoute><LazyPage><Comissoes /></LazyPage></ProtectedRoute>
+              } />
               <Route path="/instalar" element={
                 <ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>
               } />
