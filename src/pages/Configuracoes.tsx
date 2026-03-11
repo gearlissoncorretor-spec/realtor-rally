@@ -153,6 +153,19 @@ const Configuracoes = () => {
               <NotificationCenter />
             </CollapsibleSection>
 
+            {/* Logo da Equipe — Gerentes */}
+            {isGerente() && (
+              <CollapsibleSection
+                title="Logo da Equipe"
+                icon={<Image className="h-5 w-5 text-primary" />}
+                description="Personalize a logo da sua equipe"
+                isOpen={openSections.teamLogo}
+                onToggle={() => toggleSection('teamLogo')}
+              >
+                <TeamLogoSettings />
+              </CollapsibleSection>
+            )}
+
             {/* Identidade Visual & Som — Admin or Director */}
             {(isAdmin() || isDiretor()) && (
               <CollapsibleSection
