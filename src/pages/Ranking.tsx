@@ -1170,19 +1170,73 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
       {/* Top bar: controls + clock */}
       <div className="relative z-50 flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
-          {/* Ranking type indicator pill */}
-          {tvRankingMode === 'alternate' && (
-            <div className="flex items-center gap-1 bg-white/[0.06] backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/[0.08]">
-              <div className={cn(
-                "w-2 h-2 rounded-full transition-colors duration-500",
-                activeRankingType === 'vendas' ? "bg-blue-400" : "bg-emerald-400"
-              )} />
-              <span className="text-xs text-white/60 font-medium">
-                {activeRankingType === 'vendas' ? 'Vendas' : 'Captação'}
-              </span>
+          {/* Ranking mode selector */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowRankingMenu(!showRankingMenu)}
+              className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-8 px-2.5 gap-1.5"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="text-xs hidden sm:inline">Exibição</span>
+            </Button>
+            {showRankingMenu && (
+              <div className="absolute top-full left-0 mt-2 bg-white/[0.1] backdrop-blur-xl rounded-xl border border-white/[0.12] p-1.5 min-w-[180px] shadow-2xl z-[100]">
+                {[
+                  { value: 'vendas' as TVRankingMode, label: 'Vendas', icon: '💰', desc: 'Ranking por VGV' },
+                  { value: 'captacao' as TVRankingMode, label: 'Captação', icon: '🏠', desc: 'Ranking por captação' },
+                  { value: 'alternate' as TVRankingMode, label: 'Alternar', icon: '🔄', desc: 'Alterna automaticamente' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      setTvRankingMode(opt.value);
+                      if (opt.value !== 'alternate') {
+                        setIsTransitioning(true);
+                        setTimeout(() => {
+                          setActiveRankingType(opt.value === 'captacao' ? 'captacao' : 'vendas');
+                          setPhase('intro');
+                          setRevealedCount(0);
+                          setTimeout(() => setIsTransitioning(false), 300);
+                        }, 300);
+                      }
+                      setShowRankingMenu(false);
+                    }}
+                    className={cn(
+                      "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors",
+                      tvRankingMode === opt.value
+                        ? "bg-white/15 text-white"
+                        : "text-white/60 hover:bg-white/[0.08] hover:text-white"
+                    )}
+                  >
+                    <span className="text-sm">{opt.icon}</span>
+                    <div>
+                      <p className="text-xs font-medium">{opt.label}</p>
+                      <p className="text-[10px] text-white/40">{opt.desc}</p>
+                    </div>
+                    {tvRankingMode === opt.value && (
+                      <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Active indicator pill */}
+          <div className="flex items-center gap-1 bg-white/[0.06] backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/[0.08]">
+            <div className={cn(
+              "w-2 h-2 rounded-full transition-colors duration-500",
+              activeRankingType === 'vendas' ? "bg-blue-400" : "bg-emerald-400"
+            )} />
+            <span className="text-xs text-white/60 font-medium">
+              {activeRankingType === 'vendas' ? 'Vendas' : 'Captação'}
+            </span>
+            {tvRankingMode === 'alternate' && (
               <span className="text-[10px] text-white/25 ml-1">auto</span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
