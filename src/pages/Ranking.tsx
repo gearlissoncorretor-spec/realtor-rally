@@ -1817,7 +1817,18 @@ const Ranking = () => {
     };
   }, [spotlightBrokerId, brokerRankings, brokers]);
 
-  const openTVMode = () => {
+  const periodLabel = useMemo(() => {
+    const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const now = new Date();
+    if (quickPeriod === 'today') return `Hoje — ${now.toLocaleDateString('pt-BR')}`;
+    if (quickPeriod === 'week') return 'Última Semana';
+    if (quickPeriod === 'year') return `Ano ${now.getFullYear()}`;
+    if (quickPeriod === 'all') return 'Todos os Períodos';
+    const month = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
+    const year = selectedYear > 0 ? selectedYear : now.getFullYear();
+    return `${monthNames[month - 1]} ${year}`;
+  }, [quickPeriod, selectedMonth, selectedYear]);
+
     setIsTVMode(true);
     document.documentElement.requestFullscreen?.().catch(() => {});
   };
