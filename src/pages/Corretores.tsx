@@ -620,7 +620,7 @@ const Corretores = () => {
   };
 
   const handleDeleteDenied = () => {
-    toast({ title: "Sem permissão", description: "Você só pode excluir corretores que você criou.", variant: "destructive" });
+    toast({ title: "Sem permissão", description: "Você não tem permissão para excluir este corretor.", variant: "destructive" });
   };
 
   const hasActiveFilters = statusFilter !== 'all' || teamFilter !== 'all' || performanceFilter !== 'all' || searchTerm;
