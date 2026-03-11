@@ -776,8 +776,10 @@ const Corretores = () => {
                   <TableHead>Corretor</TableHead>
                   <TableHead className="w-[90px]">Status</TableHead>
                   <TableHead className="w-[130px]">Equipe</TableHead>
-                  <TableHead className="w-[80px] text-center">Vendas</TableHead>
-                  <TableHead className="w-[130px] text-right">VGV</TableHead>
+                  <TableHead className="w-[80px] text-center">Vendas Mês</TableHead>
+                  <TableHead className="w-[80px] text-center">Vendas Total</TableHead>
+                  <TableHead className="w-[130px] text-right">VGV Mês</TableHead>
+                  <TableHead className="w-[130px] text-right hidden lg:table-cell">VGV Total</TableHead>
                   <TableHead className="w-[160px]">Meta</TableHead>
                   <TableHead className="hidden xl:table-cell w-[160px]">Badges</TableHead>
                   <TableHead className="w-[120px] text-right">Ações</TableHead>
