@@ -34,6 +34,7 @@ const PATH_TO_SCREEN: Record<string, string> = {
   '/agenda': 'agenda',
   '/instalar': 'instalar',
   '/gestao-usuarios': 'gestao-usuarios',
+  '/comissoes': 'comissoes',
 };
 
 const ROLE_SCREENS: Record<string, string[]> = {
