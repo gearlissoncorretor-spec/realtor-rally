@@ -53,12 +53,19 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
   const { toast } = useToast();
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [newGoalValue, setNewGoalValue] = useState(0);
+  const goalValueRef = useRef(0);
   const [newGoalSalesCount, setNewGoalSalesCount] = useState('');
+
+  const handleGoalValueChange = (val: number) => {
+    setNewGoalValue(val);
+    goalValueRef.current = val;
+  };
 
   useEffect(() => {
     if (broker) {
-      setNewGoalValue(Number(broker.meta_monthly || 0));
-      // Sales count goal could be stored elsewhere; for now derive from meta or default 0
+      const v = Number(broker.meta_monthly || 0);
+      setNewGoalValue(v);
+      goalValueRef.current = v;
       setNewGoalSalesCount('');
     }
   }, [broker]);
