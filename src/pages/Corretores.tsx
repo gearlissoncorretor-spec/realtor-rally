@@ -614,7 +614,7 @@ const Corretores = () => {
     const teamName = broker.team_id ? teamsMap[broker.team_id] : undefined;
     
     const commonProps = {
-      broker, stats, allTimeStats, metaProgress, rank, badges, lastLogin, teamName,
+      broker, stats, allTimeStats, metaProgress, rank: 0, badges, lastLogin, teamName,
       canDelete: canDeleteBroker(broker),
       onEdit: handleEditBroker,
       onDelete: setDeleteConfirmBroker,
