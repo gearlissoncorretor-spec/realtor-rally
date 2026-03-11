@@ -758,7 +758,6 @@ const Corretores = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="w-[50px] text-center">#</TableHead>
                   <TableHead>Corretor</TableHead>
                   <TableHead className="w-[90px]">Status</TableHead>
                   <TableHead className="w-[130px]">Equipe</TableHead>
