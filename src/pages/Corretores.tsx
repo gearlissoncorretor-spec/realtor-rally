@@ -118,10 +118,10 @@ const SmartAlerts = ({ alerts }: { alerts: { message: string; type: 'warning' | 
 
 // ─── Broker Card (Cards View) ─────────────────────────────────
 const BrokerCardView = ({ 
-  broker, stats, metaProgress, rank, badges, canDelete, lastLogin, teamName,
+  broker, stats, allTimeStats, metaProgress, rank, badges, canDelete, lastLogin, teamName,
   onEdit, onDelete, onDeleteDenied, onClick
 }: { 
-  broker: Broker; stats: { salesCount: number; totalRevenue: number }; metaProgress: number; rank: number;
+  broker: Broker; stats: { salesCount: number; totalRevenue: number }; allTimeStats: { salesCount: number; totalRevenue: number }; metaProgress: number; rank: number;
   badges: { icon: React.ReactNode; label: string; color: string }[];
   canDelete: boolean; lastLogin?: string | null; teamName?: string;
   onEdit: (broker: Broker) => void; onDelete: (broker: Broker) => void;
@@ -194,12 +194,20 @@ const BrokerCardView = ({
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div className="bg-muted/30 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Vendas</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Vendas Mês</p>
             <p className="text-lg font-bold text-foreground">{stats.salesCount}</p>
           </div>
           <div className="bg-muted/30 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGV</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Vendas Total</p>
+            <p className="text-lg font-bold text-foreground">{allTimeStats.salesCount}</p>
+          </div>
+          <div className="bg-muted/30 rounded-lg p-2.5 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGV Mês</p>
             <p className="text-sm font-bold text-foreground">{formatCurrency(stats.totalRevenue)}</p>
+          </div>
+          <div className="bg-muted/30 rounded-lg p-2.5 text-center">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGV Total</p>
+            <p className="text-sm font-bold text-muted-foreground">{formatCurrency(allTimeStats.totalRevenue)}</p>
           </div>
         </div>
 
@@ -243,10 +251,10 @@ const BrokerCardView = ({
 
 // ─── Broker Table Row (Professional Table) ───────────────────
 const BrokerTableRow = ({ 
-  broker, stats, metaProgress, rank, badges, canDelete, lastLogin, teamName,
+  broker, stats, allTimeStats, metaProgress, rank, badges, canDelete, lastLogin, teamName,
   onEdit, onDelete, onDeleteDenied, onClick
 }: { 
-  broker: Broker; stats: { salesCount: number; totalRevenue: number }; metaProgress: number; rank: number;
+  broker: Broker; stats: { salesCount: number; totalRevenue: number }; allTimeStats: { salesCount: number; totalRevenue: number }; metaProgress: number; rank: number;
   badges: { icon: React.ReactNode; label: string; color: string }[];
   canDelete: boolean; lastLogin?: string | null; teamName?: string;
   onEdit: (broker: Broker) => void; onDelete: (broker: Broker) => void;
@@ -302,14 +310,24 @@ const BrokerTableRow = ({
       {teamName || <span className="text-muted-foreground/40">—</span>}
     </TableCell>
 
-    {/* Vendas */}
+    {/* Vendas Mês */}
     <TableCell className="text-center">
       <span className="text-sm font-bold text-foreground">{stats.salesCount}</span>
     </TableCell>
 
-    {/* VGV */}
+    {/* Vendas Total */}
+    <TableCell className="text-center">
+      <span className="text-sm text-muted-foreground">{allTimeStats.salesCount}</span>
+    </TableCell>
+
+    {/* VGV Mês */}
     <TableCell className="text-right">
       <span className="text-sm font-semibold text-foreground">{formatCurrency(stats.totalRevenue)}</span>
+    </TableCell>
+
+    {/* VGV Total */}
+    <TableCell className="text-right hidden lg:table-cell">
+      <span className="text-sm text-muted-foreground">{formatCurrency(allTimeStats.totalRevenue)}</span>
     </TableCell>
 
     {/* Meta */}
@@ -416,6 +434,13 @@ const Corretores = () => {
       const d = new Date(sale.sale_date || sale.created_at || '');
       return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
     });
+    const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+    return { salesCount: confirmedSales.length, totalRevenue };
+  }, [sales]);
+
+  const getAllTimeBrokerStats = useCallback((brokerId: string) => {
+    const brokerSales = sales.filter(sale => sale.broker_id === brokerId);
+    const confirmedSales = brokerSales.filter(sale => sale.status !== 'cancelada' && sale.status !== 'distrato');
     const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
     return { salesCount: confirmedSales.length, totalRevenue };
   }, [sales]);
@@ -605,6 +630,7 @@ const Corretores = () => {
 
   const renderBrokerItem = (broker: Broker) => {
     const stats = getBrokerStats(broker.id);
+    const allTimeStats = getAllTimeBrokerStats(broker.id);
     const metaProgress = getMetaProgress(broker, currentMonthStats[broker.id]?.monthlyRevenue || 0);
     const rank = brokerRanks[broker.id] || 0;
     const badges = getPerformanceBadges(stats.salesCount, metaProgress, stats.totalRevenue, rank);
@@ -612,7 +638,7 @@ const Corretores = () => {
     const teamName = broker.team_id ? teamsMap[broker.team_id] : undefined;
     
     const commonProps = {
-      broker, stats, metaProgress, rank, badges, lastLogin, teamName,
+      broker, stats, allTimeStats, metaProgress, rank, badges, lastLogin, teamName,
       canDelete: canDeleteBroker(broker),
       onEdit: handleEditBroker,
       onDelete: setDeleteConfirmBroker,
@@ -758,8 +784,10 @@ const Corretores = () => {
                   <TableHead>Corretor</TableHead>
                   <TableHead className="w-[90px]">Status</TableHead>
                   <TableHead className="w-[130px]">Equipe</TableHead>
-                  <TableHead className="w-[80px] text-center">Vendas</TableHead>
-                  <TableHead className="w-[130px] text-right">VGV</TableHead>
+                  <TableHead className="w-[80px] text-center">Vendas Mês</TableHead>
+                  <TableHead className="w-[80px] text-center">Vendas Total</TableHead>
+                  <TableHead className="w-[130px] text-right">VGV Mês</TableHead>
+                  <TableHead className="w-[130px] text-right hidden lg:table-cell">VGV Total</TableHead>
                   <TableHead className="w-[160px]">Meta</TableHead>
                   <TableHead className="hidden xl:table-cell w-[160px]">Badges</TableHead>
                   <TableHead className="w-[120px] text-right">Ações</TableHead>
