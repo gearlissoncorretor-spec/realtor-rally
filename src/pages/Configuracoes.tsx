@@ -48,6 +48,7 @@ const Configuracoes = () => {
     branding: false,
     preferences: false,
     notifications: false,
+    teamLogo: false,
     teams: false,
     teamMembers: false,
     screenAccess: false,
