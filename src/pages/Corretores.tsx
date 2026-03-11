@@ -606,16 +606,12 @@ const Corretores = () => {
   };
 
   const handleBrokerSubmit = async (data: any) => {
-    try {
-      if (selectedBroker) {
-        await updateBroker(selectedBroker.id, data);
-      } else {
-        await createBroker(data);
-      }
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('Erro ao salvar corretor:', error);
+    if (selectedBroker) {
+      await updateBroker(selectedBroker.id, data);
+    } else {
+      await createBroker(data);
     }
+    setIsFormOpen(false);
   };
 
   const handleDeleteDenied = () => {
