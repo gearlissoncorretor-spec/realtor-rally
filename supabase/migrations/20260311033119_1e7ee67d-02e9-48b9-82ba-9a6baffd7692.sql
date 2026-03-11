@@ -1,0 +1,1 @@
+ALTER TABLE public.commissions ADD COLUMN commission_type text NOT NULL DEFAULT 'venda';
