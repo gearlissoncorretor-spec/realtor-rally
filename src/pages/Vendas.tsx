@@ -439,6 +439,12 @@ const Vendas = () => {
         isOpen={isDetailsOpen}
         onClose={() => { setIsDetailsOpen(false); setSelectedSale(null); }}
       />
+
+      <CommissionDialog
+        isOpen={commissionDialogOpen}
+        onClose={() => { setCommissionDialogOpen(false); setCommissionSaleData(null); }}
+        saleData={commissionSaleData}
+      />
     </div>
   );
 };
