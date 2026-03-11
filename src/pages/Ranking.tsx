@@ -16,7 +16,7 @@ import {
 import {
   Trophy, TrendingUp, TrendingDown, Tv, Flame, Medal, Star, X,
   Volume2, VolumeX, Crown, Zap, Target, DollarSign, Users,
-  ChevronUp, ChevronDown, Sparkles, Award, Building2
+  ChevronUp, ChevronDown, Sparkles, Award, Building2, Settings
 } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
