@@ -60,9 +60,8 @@ import { CorretoresSkeleton } from "@/components/skeletons/CorretoresSkeleton";
 import { formatCurrency } from "@/utils/formatting";
 
 // ─── Performance Badges ──────────────────────────────────────
-const getPerformanceBadges = (salesCount: number, metaProgress: number, totalRevenue: number, rank: number) => {
+const getPerformanceBadges = (salesCount: number, metaProgress: number, totalRevenue: number) => {
   const badges: { icon: React.ReactNode; label: string; color: string }[] = [];
-  if (rank === 1) badges.push({ icon: <Trophy className="w-3 h-3" />, label: "Top Vendedor", color: "bg-amber-500/15 text-amber-400 border-amber-500/20" });
   if (salesCount >= 3) badges.push({ icon: <Star className="w-3 h-3" />, label: `${salesCount} vendas`, color: "bg-primary/15 text-primary border-primary/20" });
   if (metaProgress >= 70) badges.push({ icon: <Flame className="w-3 h-3" />, label: "Em alta", color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" });
   if (metaProgress > 0 && metaProgress < 30) badges.push({ icon: <AlertTriangle className="w-3 h-3" />, label: "Abaixo da meta", color: "bg-destructive/15 text-destructive border-destructive/20" });
@@ -149,12 +148,7 @@ const BrokerCardView = ({
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-foreground truncate">{broker.name}</h3>
-              {rank <= 3 && rank > 0 && (
-                <span className="text-amber-400 text-xs font-bold">#{rank}</span>
-              )}
-            </div>
+            <h3 className="text-base font-semibold text-foreground truncate">{broker.name}</h3>
             <p className="text-xs text-muted-foreground truncate">{broker.email}</p>
             <div className="flex items-center gap-2 mt-1">
               <Badge variant={broker.status === 'ativo' ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0 h-4">
@@ -264,18 +258,6 @@ const BrokerTableRow = ({
     className="cursor-pointer hover:bg-muted/30 transition-colors group"
     onClick={() => onClick(broker)}
   >
-    {/* Rank */}
-    <TableCell className="w-[50px] text-center font-bold text-muted-foreground">
-      {rank <= 3 && rank > 0 ? (
-        <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-          rank === 1 ? 'bg-amber-500/15 text-amber-400' : rank === 2 ? 'bg-muted text-muted-foreground' : 'bg-orange-500/10 text-orange-400'
-        }`}>
-          #{rank}
-        </span>
-      ) : rank > 0 ? (
-        <span className="text-xs text-muted-foreground/60">#{rank}</span>
-      ) : null}
-    </TableCell>
 
     {/* Corretor */}
     <TableCell>
@@ -400,7 +382,7 @@ const Corretores = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [teamFilter, setTeamFilter] = useState<string>("all");
   const [performanceFilter, setPerformanceFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<string>("name");
+  const [sortBy, setSortBy] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
   
   const { brokers, loading: brokersLoading, createBroker, updateBroker, deleteBroker } = useBrokers();
@@ -627,13 +609,12 @@ const Corretores = () => {
     const stats = getBrokerStats(broker.id);
     const allTimeStats = getAllTimeBrokerStats(broker.id);
     const metaProgress = getMetaProgress(broker, currentMonthStats[broker.id]?.monthlyRevenue || 0);
-    const rank = brokerRanks[broker.id] || 0;
-    const badges = getPerformanceBadges(stats.salesCount, metaProgress, stats.totalRevenue, rank);
+    const badges = getPerformanceBadges(stats.salesCount, metaProgress, stats.totalRevenue);
     const lastLogin = broker.user_id ? profilesMap[broker.user_id]?.last_login_at : null;
     const teamName = broker.team_id ? teamsMap[broker.team_id] : undefined;
     
     const commonProps = {
-      broker, stats, allTimeStats, metaProgress, rank, badges, lastLogin, teamName,
+      broker, stats, allTimeStats, metaProgress, rank: 0, badges, lastLogin, teamName,
       canDelete: canDeleteBroker(broker),
       onEdit: handleEditBroker,
       onDelete: setDeleteConfirmBroker,
@@ -775,7 +756,6 @@ const Corretores = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead className="w-[50px] text-center">#</TableHead>
                   <TableHead>Corretor</TableHead>
                   <TableHead className="w-[90px]">Status</TableHead>
                   <TableHead className="w-[130px]">Equipe</TableHead>
