@@ -69,6 +69,7 @@ const Navigation = () => {
     { href: "/meta-gestao", label: "Meta Gestão", icon: PieChart, screen: "meta-gestao" },
     { href: "/tarefas-kanban", label: "Tarefas & Atividades", icon: Columns3, screen: "tarefas-kanban" },
     { href: "/acompanhamento", label: "Status Vendas", icon: DollarSign, screen: "acompanhamento" },
+    { href: "/comissoes", label: "Comissões", icon: DollarSign, screen: "comissoes" },
     { href: "/relatorios", label: "Relatórios", icon: TrendingUp, screen: "relatorios" },
     { href: "/corretores", label: "Corretores", icon: Users, screen: "corretores" },
     { href: "/equipes", label: "Equipes", icon: Users, screen: "equipes" },
