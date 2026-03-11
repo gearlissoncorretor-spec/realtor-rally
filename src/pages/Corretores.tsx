@@ -583,12 +583,7 @@ const Corretores = () => {
   const handleNewBroker = () => { setSelectedBroker(null); setIsFormOpen(true); };
   const handleEditBroker = (broker: Broker) => { setSelectedBroker(broker); setIsFormOpen(true); };
   const canDeleteBroker = (broker: Broker): boolean => {
-    const adminCheck = isAdmin();
-    const diretorCheck = isDiretor();
-    const gerenteCheck = isGerente();
-    console.log('[canDeleteBroker] broker:', broker.name, 'isAdmin:', adminCheck, 'isDiretor:', diretorCheck, 'isGerente:', gerenteCheck, 'userRole from auth:', user?.id);
-    if (adminCheck || diretorCheck) return true;
-    if (gerenteCheck) return true;
+    if (isAdmin() || isDiretor() || isGerente()) return true;
     return false;
   };
 

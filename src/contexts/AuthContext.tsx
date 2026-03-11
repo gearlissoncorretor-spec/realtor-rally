@@ -104,6 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setProfile(profileData);
       
       const resolvedRole = (!roleResult.error && roleResult.data) ? roleResult.data.role : 'corretor';
+      console.log('[AuthContext] Role resolved for user:', userId, '→', resolvedRole, 'roleResult:', roleResult.data, 'error:', roleResult.error);
       setUserRole(resolvedRole);
 
       // Parallelize company and hierarchy queries (depend on profile data)
