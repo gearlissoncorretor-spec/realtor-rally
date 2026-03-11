@@ -205,7 +205,7 @@ const BrokerDetailsModal = ({ isOpen, onClose, broker, sales, onUpdateBroker }: 
                         {isEditingGoal ? (
                           <CurrencyInput 
                             value={newGoalValue} 
-                            onChange={(val) => setNewGoalValue(val)} 
+                            onChange={handleGoalValueChange} 
                             className="h-9" 
                             autoFocus
                           />
