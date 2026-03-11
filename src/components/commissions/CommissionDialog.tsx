@@ -94,6 +94,20 @@ const CommissionDialog = ({ isOpen, onClose, saleData }: CommissionDialogProps) 
             </div>
           </div>
 
+          {/* Commission type */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Origem da Comissão</Label>
+            <Select value={commissionType} onValueChange={setCommissionType}>
+              <SelectTrigger className="text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="venda">Venda</SelectItem>
+                <SelectItem value="captacao">Captação</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Commission config */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
