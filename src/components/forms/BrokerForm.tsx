@@ -133,11 +133,24 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
+        <DialogHeader className="px-6 pt-6 pb-2 flex flex-row items-center justify-between gap-2">
           <DialogTitle>{title}</DialogTitle>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={handleClose} disabled={submitting}>
+              Cancelar
+            </Button>
+            <Button size="sm" disabled={submitting || availableTeams.length === 0} onClick={form.handleSubmit(handleSubmit)}>
+              {submitting ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  Salvando...
+                </>
+              ) : 'Salvar'}
+            </Button>
+          </div>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 px-6 pb-6">
+        <ScrollArea className="flex-1 px-6 pb-6 overflow-y-auto">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               {formError && (
@@ -343,20 +356,6 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                   </FormItem>
                 )}
               />
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" size="sm" onClick={handleClose} disabled={submitting}>
-                  Cancelar
-                </Button>
-                <Button type="submit" size="sm" disabled={submitting || availableTeams.length === 0}>
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : 'Salvar'}
-                </Button>
-              </div>
             </form>
           </Form>
         </ScrollArea>
