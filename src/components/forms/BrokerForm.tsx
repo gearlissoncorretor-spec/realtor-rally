@@ -49,7 +49,10 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
 }) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(broker?.avatar_url || null);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const { teams, loading: teamsLoading } = useTeams();
+  const { profile, isGerente, isDiretor } = useAuth();
+  const { toast } = useToast();
   const { profile, isGerente, isDiretor } = useAuth();
   
   const availableTeams = useMemo(() => {
