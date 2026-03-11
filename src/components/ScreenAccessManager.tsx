@@ -38,6 +38,9 @@ const AVAILABLE_SCREENS = [
   { id: 'equipes', label: 'Equipes', description: 'Gestão de equipes' },
   { id: 'dashboard-equipes', label: 'Dashboard Equipes', description: 'Dashboard por equipes' },
   { id: 'corretores', label: 'Corretores', description: 'Cadastro de corretores' },
+  { id: 'agenda', label: 'Agenda', description: 'Agenda comercial' },
+  { id: 'comissoes', label: 'Comissões', description: 'Gestão de comissões' },
+  { id: 'gestao-usuarios', label: 'Gestão Usuários', description: 'Gerenciar usuários' },
   { id: 'relatorios', label: 'Relatórios', description: 'Relatórios e análises' },
   { id: 'configuracoes', label: 'Configurações', description: 'Configurações do sistema' },
 ];
