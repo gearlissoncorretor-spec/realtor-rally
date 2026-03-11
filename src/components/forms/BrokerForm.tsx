@@ -140,6 +140,12 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
         <ScrollArea className="flex-1 px-6 pb-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              {formError && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">{formError}</AlertDescription>
+                </Alert>
+              )}
               {/* Upload de Foto */}
               <div className="flex justify-center py-2">
                 <ImageUpload
