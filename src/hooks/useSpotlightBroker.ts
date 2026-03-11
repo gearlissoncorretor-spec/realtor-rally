@@ -35,11 +35,20 @@ export const useSpotlightBroker = () => {
 
       if (error) throw error;
     },
+    onMutate: async (brokerId) => {
+      await queryClient.cancelQueries({ queryKey: ['spotlight-broker'] });
+      const previous = queryClient.getQueryData(['spotlight-broker']);
+      queryClient.setQueryData(['spotlight-broker'], brokerId);
+      return { previous };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['spotlight-broker'] });
       toast({ title: 'Corretor destaque atualizado' });
     },
-    onError: (err: any) => {
+    onError: (err: any, _v, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(['spotlight-broker'], context.previous);
+      }
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     },
   });
