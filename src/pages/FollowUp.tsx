@@ -77,6 +77,7 @@ const FollowUpPage = () => {
   // Add contact dialog
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [selectedForContact, setSelectedForContact] = useState<FollowUpType | null>(null);
+  const [statusManagerOpen, setStatusManagerOpen] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<CreateFollowUpInput>({
