@@ -1806,6 +1806,17 @@ const Ranking = () => {
               >
                 Captação
               </Button>
+              {(isDiretor() || isAdmin()) && (
+                <Button
+                  variant={rankingType === 'equipes' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setRankingType('equipes')}
+                  className="text-xs h-7 px-3 rounded-md"
+                >
+                  <Building2 className="w-3.5 h-3.5 mr-1" />
+                  Equipes
+                </Button>
+              )}
             </div>
             <Button
               variant="ghost"
