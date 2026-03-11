@@ -1548,6 +1548,33 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
             </div>
           )}
 
+          {/* Spotlight broker in full mode */}
+          {viewMode === 'full' && spotlightBroker && phase === 'complete' && (
+            <div className="max-w-5xl mx-auto w-full mt-4 animate-fade-in">
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-yellow-500/[0.08] via-amber-500/[0.05] to-yellow-500/[0.08] border border-yellow-500/20 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xs font-bold text-yellow-300/80 uppercase tracking-wider">Destaque do Mês</span>
+                </div>
+                <div className="relative shrink-0">
+                  <div className="absolute -inset-1 rounded-full bg-yellow-400/20 blur-md" />
+                  <Avatar className="h-12 w-12 ring-2 ring-yellow-400/50 relative z-10">
+                    <AvatarImage src={spotlightBroker.avatar} />
+                    <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-sm font-black">
+                      {spotlightBroker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Crown className="absolute -top-1.5 -right-1.5 w-4 h-4 text-yellow-400 z-20" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white text-base">{spotlightBroker.name}</p>
+                  <p className="text-xs text-yellow-300/60">{spotlightBroker.sales ?? 0} vendas · {formatCurrencyCompact(spotlightBroker.revenue ?? 0)}</p>
+                </div>
+                <Star className="w-5 h-5 text-yellow-400/50 shrink-0" />
+              </div>
+            </div>
+          )}
+
           {currentRankings.length === 0 && (
             <div className="text-center py-20">
               <Star className="w-16 h-16 text-white/10 mx-auto mb-4" />
