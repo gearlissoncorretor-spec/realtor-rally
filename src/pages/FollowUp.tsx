@@ -44,7 +44,9 @@ import { AddContactDialog } from "@/components/followup/AddContactDialog";
 import { ResponsiveStatCard } from "@/components/negotiations/ResponsiveStatCard";
 import { ExpandableCell } from "@/components/ExpandableCell";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatusManagerDialog";
 import { cn } from "@/lib/utils";
+import { Settings } from "lucide-react";
 
 const FollowUpPage = () => {
   const { user, isCorretor } = useAuth();
