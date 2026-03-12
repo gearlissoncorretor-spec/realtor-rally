@@ -1934,6 +1934,7 @@ export type Database = {
     }
     Functions: {
       get_current_user_admin_status: { Args: never; Returns: boolean }
+      get_manager_user_ids: { Args: never; Returns: string[] }
       get_team_hierarchy: {
         Args: { user_id: string }
         Returns: {
