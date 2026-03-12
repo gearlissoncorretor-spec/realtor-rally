@@ -80,10 +80,24 @@ const GerenteDashboard = () => {
   const todayEvents = events || [];
 
   // Team goals
-  const teamGoals = useMemo(() =>
-    (goals || []).filter(g => g.status === 'active' && (g.team_id === teamHierarchy?.team_id || g.assigned_to === user?.id)),
-    [goals, teamHierarchy, user?.id]);
-  const primaryGoal = teamGoals[0];
+  const teamGoals = useMemo(() => {
+    const now = new Date();
+    const nowStr = format(now, 'yyyy-MM-dd');
+    return (goals || []).filter(g => {
+      if (g.status !== 'active') return false;
+      // Must belong to this team or be assigned to the manager
+      if (g.team_id !== teamHierarchy?.team_id && g.assigned_to !== user?.id) return false;
+      // Must be within the goal's date range
+      if (g.start_date > nowStr || g.end_date < nowStr) return false;
+      return true;
+    });
+  }, [goals, teamHierarchy, user?.id]);
+
+  // Prefer VGV goal, then any team goal
+  const primaryGoal = useMemo(() => {
+    const vgvGoal = teamGoals.find(g => g.target_type === 'vgv');
+    return vgvGoal || teamGoals[0] || null;
+  }, [teamGoals]);
   const goalProgress = primaryGoal ? Math.min((primaryGoal.current_value / primaryGoal.target_value) * 100, 100) : 0;
 
   // Broker performance ranking
