@@ -1144,34 +1144,81 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
         />
       )}
 
-      {/* Animated BG - Ultra vibrant */}
+      {/* Animated BG - Vibrant & Premium */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-15%] left-[-5%] w-[700px] h-[700px] rounded-full bg-blue-600/20 blur-[150px]" style={{ animation: 'orb-float 12s ease-in-out infinite' }} />
-        <div className="absolute bottom-[-15%] right-[-5%] w-[700px] h-[700px] rounded-full bg-amber-500/20 blur-[150px]" style={{ animation: 'orb-float 10s ease-in-out infinite', animationDelay: '2s' }} />
-        <div className="absolute top-[20%] right-[10%] w-[600px] h-[600px] rounded-full bg-purple-600/18 blur-[130px]" style={{ animation: 'orb-float 14s ease-in-out infinite', animationDelay: '4s' }} />
-        <div className="absolute bottom-[15%] left-[10%] w-[550px] h-[550px] rounded-full bg-emerald-500/18 blur-[130px]" style={{ animation: 'orb-float 11s ease-in-out infinite', animationDelay: '1s' }} />
-        <div className="absolute top-[5%] left-[35%] w-[500px] h-[500px] rounded-full bg-pink-500/15 blur-[120px]" style={{ animation: 'orb-float 13s ease-in-out infinite', animationDelay: '3s' }} />
-        <div className="absolute bottom-[5%] right-[25%] w-[450px] h-[450px] rounded-full bg-cyan-400/15 blur-[110px]" style={{ animation: 'orb-float 9s ease-in-out infinite', animationDelay: '5s' }} />
-        <div className="absolute top-[45%] left-[50%] w-[400px] h-[400px] rounded-full bg-rose-500/12 blur-[100px]" style={{ animation: 'orb-float 15s ease-in-out infinite', animationDelay: '6s' }} />
-
-        <div className="absolute inset-0 opacity-[0.08]" style={{
-          background: 'linear-gradient(135deg, rgba(59,130,246,0.4) 0%, rgba(168,85,247,0.3) 20%, rgba(236,72,153,0.3) 40%, rgba(251,191,36,0.4) 60%, rgba(16,185,129,0.3) 80%, rgba(6,182,212,0.3) 100%)',
-          backgroundSize: '600% 600%',
-          animation: 'gradient-shift 10s ease-in-out infinite',
+        {/* Base gradient overlay */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(135deg, #050b1f 0%, #0c1445 20%, #1a0a3e 40%, #0d1f5c 60%, #061233 80%, #030712 100%)',
         }} />
 
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)',
+        {/* Animated shifting gradient */}
+        <div className="absolute inset-0 opacity-40" style={{
+          background: 'linear-gradient(135deg, rgba(59,130,246,0.35) 0%, rgba(124,58,237,0.3) 25%, rgba(99,102,241,0.25) 50%, rgba(251,191,36,0.15) 75%, rgba(6,182,212,0.2) 100%)',
+          backgroundSize: '400% 400%',
+          animation: 'gradient-shift 15s ease-in-out infinite',
+        }} />
+
+        {/* Large orbs - deep blue/purple/gold */}
+        <div className="absolute top-[-10%] left-[-5%] w-[800px] h-[800px] rounded-full blur-[180px]" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.25) 0%, transparent 70%)', animation: 'orb-float 14s ease-in-out infinite' }} />
+        <div className="absolute top-[10%] right-[-10%] w-[750px] h-[750px] rounded-full blur-[170px]" style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%)', animation: 'orb-float 12s ease-in-out infinite', animationDelay: '3s' }} />
+        <div className="absolute bottom-[-15%] left-[20%] w-[700px] h-[700px] rounded-full blur-[160px]" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)', animation: 'orb-float 16s ease-in-out infinite', animationDelay: '6s' }} />
+        <div className="absolute bottom-[-5%] right-[5%] w-[600px] h-[600px] rounded-full blur-[150px]" style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.18) 0%, transparent 70%)', animation: 'orb-float 11s ease-in-out infinite', animationDelay: '2s' }} />
+        <div className="absolute top-[40%] left-[50%] w-[500px] h-[500px] rounded-full blur-[140px] -translate-x-1/2" style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 70%)', animation: 'orb-float 13s ease-in-out infinite', animationDelay: '5s' }} />
+
+        {/* Podium glows - positioned behind center */}
+        <div className="absolute top-[30%] left-[50%] -translate-x-1/2 w-[350px] h-[350px] rounded-full blur-[120px]" style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.2) 0%, transparent 70%)', animation: 'orb-float 8s ease-in-out infinite' }} />
+        <div className="absolute top-[35%] left-[30%] w-[250px] h-[250px] rounded-full blur-[100px]" style={{ background: 'radial-gradient(circle, rgba(147,197,253,0.18) 0%, transparent 70%)', animation: 'orb-float 9s ease-in-out infinite', animationDelay: '1s' }} />
+        <div className="absolute top-[35%] right-[25%] w-[250px] h-[250px] rounded-full blur-[100px]" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.15) 0%, transparent 70%)', animation: 'orb-float 10s ease-in-out infinite', animationDelay: '2s' }} />
+
+        {/* Abstract wave shapes */}
+        <svg className="absolute bottom-0 left-0 w-full h-[40%] opacity-[0.06]" viewBox="0 0 1440 400" preserveAspectRatio="none">
+          <path d="M0,200 C360,300 720,100 1080,200 C1260,250 1380,180 1440,220 L1440,400 L0,400 Z" fill="url(#wave1)" />
+          <path d="M0,280 C240,200 480,350 720,280 C960,210 1200,320 1440,260 L1440,400 L0,400 Z" fill="url(#wave2)" />
+          <path d="M0,320 C300,280 600,360 900,300 C1100,260 1300,340 1440,310 L1440,400 L0,400 Z" fill="url(#wave3)" />
+          <defs>
+            <linearGradient id="wave1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(99,102,241,0.5)" />
+              <stop offset="50%" stopColor="rgba(124,58,237,0.4)" />
+              <stop offset="100%" stopColor="rgba(6,182,212,0.5)" />
+            </linearGradient>
+            <linearGradient id="wave2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(59,130,246,0.4)" />
+              <stop offset="100%" stopColor="rgba(168,85,247,0.3)" />
+            </linearGradient>
+            <linearGradient id="wave3" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(6,182,212,0.3)" />
+              <stop offset="50%" stopColor="rgba(99,102,241,0.25)" />
+              <stop offset="100%" stopColor="rgba(251,191,36,0.2)" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {/* Top abstract curves */}
+        <svg className="absolute top-0 left-0 w-full h-[30%] opacity-[0.05]" viewBox="0 0 1440 300" preserveAspectRatio="none">
+          <path d="M0,100 C480,0 960,200 1440,80 L1440,0 L0,0 Z" fill="url(#topWave)" />
+          <defs>
+            <linearGradient id="topWave" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(124,58,237,0.6)" />
+              <stop offset="50%" stopColor="rgba(251,191,36,0.3)" />
+              <stop offset="100%" stopColor="rgba(59,130,246,0.5)" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)',
           backgroundSize: '80px 80px',
         }} />
 
-        {Array.from({ length: 70 }).map((_, i) => {
+        {/* Particles - blue, purple, gold dust */}
+        {Array.from({ length: 80 }).map((_, i) => {
           const colors = [
-            'bg-yellow-400/50', 'bg-blue-400/45', 'bg-purple-400/40', 'bg-emerald-400/45',
-            'bg-pink-400/40', 'bg-cyan-400/40', 'bg-rose-400/35', 'bg-amber-400/45',
-            'bg-indigo-400/35', 'bg-teal-400/40',
+            'bg-blue-400/40', 'bg-blue-300/35', 'bg-indigo-400/35', 'bg-purple-400/40',
+            'bg-violet-400/35', 'bg-amber-400/45', 'bg-yellow-300/40', 'bg-cyan-400/35',
+            'bg-sky-300/30', 'bg-fuchsia-400/25',
           ];
-          const sizes = ['w-2 h-2', 'w-1.5 h-1.5', 'w-1 h-1', 'w-0.5 h-0.5'];
+          const sizes = ['w-2 h-2', 'w-1.5 h-1.5', 'w-1 h-1', 'w-0.5 h-0.5', 'w-[3px] h-[3px]'];
           return (
             <div key={i} className={cn(
               "absolute rounded-full",
@@ -1179,19 +1226,20 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
               sizes[i % sizes.length]
             )} style={{
               left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`,
-              animation: `float-particle ${4 + Math.random() * 10}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 6}s`,
+              animation: `float-particle ${5 + Math.random() * 12}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 8}s`,
             }} />
           );
         })}
 
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={`star-${i}`} className="absolute w-[2px] h-[80px] rounded-full" style={{
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.6), rgba(255,255,255,0))',
-            left: `${20 + i * 15}%`,
-            top: '-80px',
-            animation: `shooting-star ${3 + i * 1.5}s linear infinite`,
-            animationDelay: `${i * 2.5}s`,
+        {/* Shooting stars */}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={`star-${i}`} className="absolute w-[2px] h-[100px] rounded-full" style={{
+            background: `linear-gradient(to bottom, rgba(255,255,255,0), ${i % 2 === 0 ? 'rgba(147,197,253,0.7)' : 'rgba(196,181,253,0.6)'}, rgba(255,255,255,0))`,
+            left: `${10 + i * 16}%`,
+            top: '-100px',
+            animation: `shooting-star ${3 + i * 1.2}s linear infinite`,
+            animationDelay: `${i * 3}s`,
             transform: 'rotate(35deg)',
           }} />
         ))}
