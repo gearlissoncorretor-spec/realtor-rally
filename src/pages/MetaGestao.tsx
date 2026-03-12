@@ -239,11 +239,11 @@ const MetaGestao = () => {
     const value = editableMonthlyGoals[monthIndex];
     if (value === undefined) return;
     try {
-      const existingTarget = targets.find(t => t.year === selectedYear && t.month === monthIndex && t.team_id === teamFilter);
+      const existingTarget = targets.find(t => t.year === selectedYear && t.month === monthIndex && (t as any).team_id === teamFilter);
       if (existingTarget) {
         await updateTarget(existingTarget.id, { target_value: value });
       } else {
-        await createTarget({ year: selectedYear, month: monthIndex, target_value: value, team_id: teamFilter });
+        await createTarget({ year: selectedYear, month: monthIndex, target_value: value, team_id: teamFilter } as any);
       }
       toast.success(`Meta de ${format(new Date(selectedYear, monthIndex - 1), 'MMMM', { locale: ptBR })} salva!`);
     } catch (error) {
@@ -257,13 +257,13 @@ const MetaGestao = () => {
       const progression = calculateMonthlyProgression(annualGoal);
       for (let month = 1; month <= 12; month++) {
         const monthlyValue = progression[month - 1];
-        const existingTarget = targets.find(t => t.year === selectedYear && t.month === month && t.team_id === teamFilter);
+        const existingTarget = targets.find(t => t.year === selectedYear && t.month === month && (t as any).team_id === teamFilter);
         if (existingTarget) {
           if (Math.abs(existingTarget.target_value - monthlyValue) > 0.01) {
             await updateTarget(existingTarget.id, { target_value: monthlyValue });
           }
         } else if (monthlyValue > 0) {
-          await createTarget({ year: selectedYear, month: month, target_value: monthlyValue, team_id: teamFilter });
+          await createTarget({ year: selectedYear, month: month, target_value: monthlyValue, team_id: teamFilter } as any);
         }
       }
       toast.success('Metas salvas com sucesso!');
