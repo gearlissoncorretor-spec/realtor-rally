@@ -1581,10 +1581,12 @@ export type Database = {
           broker_id: string | null
           company_id: string | null
           created_at: string | null
+          created_by: string | null
           id: string
           month: number
           target_sales_count: number | null
           target_value: number
+          team_id: string | null
           updated_at: string | null
           year: number
         }
@@ -1594,10 +1596,12 @@ export type Database = {
           broker_id?: string | null
           company_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           month: number
           target_sales_count?: number | null
           target_value?: number
+          team_id?: string | null
           updated_at?: string | null
           year: number
         }
@@ -1607,10 +1611,12 @@ export type Database = {
           broker_id?: string | null
           company_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           id?: string
           month?: number
           target_sales_count?: number | null
           target_value?: number
+          team_id?: string | null
           updated_at?: string | null
           year?: number
         }
@@ -1627,6 +1633,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "targets_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]

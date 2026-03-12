@@ -65,6 +65,12 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     if (!teamFilter) return null;
     return brokers.filter(b => b.team_id === teamFilter).map(b => b.id);
   }, [brokers, teamFilter]);
+
+  // Filter targets by team_id when applicable
+  const filteredTargets = useMemo(() => {
+    if (!teamFilter) return targets;
+    return targets.filter(t => (t as any).team_id === teamFilter);
+  }, [targets, teamFilter]);
   
   const yearlyData = useMemo(() => {
     const yearStart = startOfYear(new Date(year, 0, 1));
@@ -81,11 +87,11 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
     const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
     const totalSales = yearSales.length;
-    const yearTargets = targets.filter(t => t.year === year);
+    const yearTargets = filteredTargets.filter(t => t.year === year);
     const annualTarget = yearTargets.reduce((sum, t) => sum + t.target_value, 0);
     
     return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
-  }, [sales, targets, year, filteredBrokerIds]);
+  }, [sales, filteredTargets, year, filteredBrokerIds]);
   
   const monthlyGoals = useMemo((): MonthlyGoal[] => {
     const yearStart = startOfYear(new Date(year, 0, 1));
@@ -96,7 +102,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
       const monthStart = startOfMonth(month);
       const monthEnd = endOfMonth(month);
       const monthIndex = month.getMonth() + 1;
-      const monthTarget = targets.find(t => t.year === year && t.month === monthIndex);
+      const monthTarget = filteredTargets.find(t => t.year === year && t.month === monthIndex);
       const target = monthTarget?.target_value || 0;
       const monthSales = sales.filter(sale => {
         const saleDate = new Date(sale.sale_date || sale.created_at || '');
@@ -110,7 +116,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
         percentAchieved: target > 0 ? (achieved / target) * 100 : 0
       };
     });
-  }, [sales, targets, year]);
+  }, [sales, filteredTargets, year]);
   
   const brokerStats = useMemo(() => {
     let filteredBrokers = brokers;
@@ -233,11 +239,11 @@ const MetaGestao = () => {
     const value = editableMonthlyGoals[monthIndex];
     if (value === undefined) return;
     try {
-      const existingTarget = targets.find(t => t.year === selectedYear && t.month === monthIndex);
+      const existingTarget = targets.find(t => t.year === selectedYear && t.month === monthIndex && (t as any).team_id === teamFilter);
       if (existingTarget) {
         await updateTarget(existingTarget.id, { target_value: value });
       } else {
-        await createTarget({ year: selectedYear, month: monthIndex, target_value: value });
+        await createTarget({ year: selectedYear, month: monthIndex, target_value: value, team_id: teamFilter } as any);
       }
       toast.success(`Meta de ${format(new Date(selectedYear, monthIndex - 1), 'MMMM', { locale: ptBR })} salva!`);
     } catch (error) {
@@ -251,13 +257,13 @@ const MetaGestao = () => {
       const progression = calculateMonthlyProgression(annualGoal);
       for (let month = 1; month <= 12; month++) {
         const monthlyValue = progression[month - 1];
-        const existingTarget = targets.find(t => t.year === selectedYear && t.month === month);
+        const existingTarget = targets.find(t => t.year === selectedYear && t.month === month && (t as any).team_id === teamFilter);
         if (existingTarget) {
           if (Math.abs(existingTarget.target_value - monthlyValue) > 0.01) {
             await updateTarget(existingTarget.id, { target_value: monthlyValue });
           }
         } else if (monthlyValue > 0) {
-          await createTarget({ year: selectedYear, month: month, target_value: monthlyValue });
+          await createTarget({ year: selectedYear, month: month, target_value: monthlyValue, team_id: teamFilter } as any);
         }
       }
       toast.success('Metas salvas com sucesso!');
