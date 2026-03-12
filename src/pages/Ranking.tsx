@@ -568,20 +568,7 @@ const LeaderboardCard = ({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</span>
-            <Badge variant="outline" className={cn("text-[9px] px-1 py-0", level.color)}>
-              {level.icon} Nv.{level.level}
-            </Badge>
-            {/* XP mini bar */}
-            <div className="hidden md:flex items-center gap-1">
-              <div className="w-12 h-1 bg-muted/50 rounded-full overflow-hidden">
-                <div className={cn("h-full rounded-full transition-all duration-700",
-                  level.level >= 8 ? "bg-gradient-to-r from-purple-500 to-pink-500" :
-                  level.level >= 5 ? "bg-gradient-to-r from-blue-500 to-cyan-500" :
-                  "bg-gradient-to-r from-green-500 to-emerald-500"
-                )} style={{ width: `${xpProgress}%` }} />
-              </div>
-              <span className="text-[8px] text-muted-foreground">{xp.toLocaleString()}</span>
-            </div>
+            {/* XP/Level hidden for now */}
           </div>
         </div>
 
