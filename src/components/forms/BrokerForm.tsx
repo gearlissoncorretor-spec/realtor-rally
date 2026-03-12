@@ -86,7 +86,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       phone: broker?.phone || '',
       cpf: broker?.cpf || '',
       creci: broker?.creci || '',
-      birthday: (broker as any)?.birthday || '',
+      birthday: broker?.birthday || '',
       status: broker?.status || 'ativo',
       team_id: broker?.team_id || defaultTeamId,
       observations: broker?.observations || '',
