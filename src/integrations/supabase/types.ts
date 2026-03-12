@@ -304,6 +304,7 @@ export type Database = {
       brokers: {
         Row: {
           avatar_url: string | null
+          birthday: string | null
           commission_rate: number | null
           company_id: string | null
           cpf: string | null
@@ -325,6 +326,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          birthday?: string | null
           commission_rate?: number | null
           company_id?: string | null
           cpf?: string | null
@@ -346,6 +348,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          birthday?: string | null
           commission_rate?: number | null
           company_id?: string | null
           cpf?: string | null
