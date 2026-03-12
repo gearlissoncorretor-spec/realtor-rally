@@ -1534,7 +1534,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
           )}
 
           {/* Spotlight broker in full mode */}
-          {viewMode === 'full' && spotlightBroker && phase === 'complete' && (
+          {spotlightBroker && phase === 'complete' && (
             <div className="max-w-5xl mx-auto w-full mt-4 animate-fade-in">
               <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-yellow-500/[0.08] via-amber-500/[0.05] to-yellow-500/[0.08] border border-yellow-500/20 backdrop-blur-sm">
                 <div className="flex items-center gap-1.5 shrink-0">
