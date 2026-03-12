@@ -26,6 +26,7 @@ interface Team {
 
 const AVAILABLE_SCREENS = [
   { id: 'dashboard', label: 'Dashboard', description: 'Painel principal com métricas' },
+  { id: 'central-gestor', label: 'Central do Gestor', description: 'Visão operacional para gestores' },
   { id: 'ranking', label: 'Ranking', description: 'Ranking de corretores' },
   { id: 'vendas', label: 'Vendas', description: 'Gestão de vendas' },
   { id: 'acompanhamento', label: 'Status de Vendas', description: 'Kanban de acompanhamento' },

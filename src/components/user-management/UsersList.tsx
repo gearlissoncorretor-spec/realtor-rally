@@ -41,6 +41,7 @@ interface UsersListProps {
 
 const AVAILABLE_SCREENS = [
   { id: 'dashboard', label: 'Dashboard' },
+  { id: 'central-gestor', label: 'Central do Gestor' },
   { id: 'vendas', label: 'Vendas' },
   { id: 'ranking', label: 'Ranking' },
   { id: 'acompanhamento', label: 'Acompanhamento' },

@@ -163,7 +163,7 @@ const SuperAdmin = () => {
           password: userFormData.password,
           role: 'diretor',
           company_id: selectedCompany.id,
-          allowed_screens: ['dashboard', 'vendas', 'corretores', 'ranking', 'acompanhamento', 'relatorios', 'configuracoes', 'equipes', 'metas', 'negociacoes', 'follow-up', 'atividades', 'tarefas-kanban', 'meta-gestao', 'x1', 'dashboard-equipes', 'agenda', 'gestao-usuarios'],
+          allowed_screens: ['dashboard', 'central-gestor', 'vendas', 'corretores', 'ranking', 'acompanhamento', 'relatorios', 'configuracoes', 'equipes', 'metas', 'negociacoes', 'follow-up', 'atividades', 'tarefas-kanban', 'meta-gestao', 'x1', 'dashboard-equipes', 'agenda', 'gestao-usuarios'],
         },
       });
 
