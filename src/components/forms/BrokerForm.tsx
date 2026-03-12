@@ -286,73 +286,51 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                 )}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="team_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Equipe *</FormLabel>
-                      {teamsLoading ? (
-                        <div className="flex items-center gap-2 h-9 px-3 text-sm text-muted-foreground">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Carregando...
-                        </div>
-                      ) : availableTeams.length === 0 ? (
-                        <Alert className="py-2">
-                          <AlertCircle className="h-3 w-3" />
-                          <AlertDescription className="text-xs">
-                            {isGerente() ? 'Você precisa estar associado a uma equipe.' : 'Crie uma equipe primeiro.'}
-                          </AlertDescription>
-                        </Alert>
-                      ) : (
-                        <>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Selecione" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {availableTeams.map((team) => (
-                                <SelectItem key={team.id} value={team.id}>
-                                  {team.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {isGerente() && (
-                            <p className="text-[10px] text-muted-foreground">
-                              Atribuição restrita à sua equipe
-                            </p>
-                          )}
-                        </>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="meta_monthly"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Meta Mensal (R$)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="50000" 
-                          {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                          className="h-9"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="team_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Equipe *</FormLabel>
+                    {teamsLoading ? (
+                      <div className="flex items-center gap-2 h-9 px-3 text-sm text-muted-foreground">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Carregando...
+                      </div>
+                    ) : availableTeams.length === 0 ? (
+                      <Alert className="py-2">
+                        <AlertCircle className="h-3 w-3" />
+                        <AlertDescription className="text-xs">
+                          {isGerente() ? 'Você precisa estar associado a uma equipe.' : 'Crie uma equipe primeiro.'}
+                        </AlertDescription>
+                      </Alert>
+                    ) : (
+                      <>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {availableTeams.map((team) => (
+                              <SelectItem key={team.id} value={team.id}>
+                                {team.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {isGerente() && (
+                          <p className="text-[10px] text-muted-foreground">
+                            Atribuição restrita à sua equipe
+                          </p>
+                        )}
+                      </>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
