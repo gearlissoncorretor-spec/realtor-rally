@@ -19,6 +19,7 @@ interface Profile {
 
 const AVAILABLE_SCREENS = [
   { id: 'dashboard', label: 'Dashboard' },
+  { id: 'central-gestor', label: 'Central do Gestor' },
   { id: 'ranking', label: 'Ranking' },
   { id: 'vendas', label: 'Vendas' },
   { id: 'acompanhamento', label: 'Acompanhamento' },

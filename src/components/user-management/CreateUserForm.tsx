@@ -21,6 +21,7 @@ const ROLES = [
 
 const AVAILABLE_SCREENS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart },
+  { id: 'central-gestor', label: 'Central do Gestor', icon: Users },
   { id: 'vendas', label: 'Vendas', icon: TrendingUp },
   { id: 'negociacoes', label: 'Negociações', icon: TrendingUp },
   { id: 'follow-up', label: 'Follow-Up', icon: Eye },
@@ -42,8 +43,8 @@ const AVAILABLE_SCREENS = [
 ];
 
 const DEFAULT_PERMISSIONS: Record<string, string[]> = {
-  diretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'dashboard-equipes', 'relatorios', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
-  gerente: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
+  diretor: ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'dashboard-equipes', 'relatorios', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
+  gerente: ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
   corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'comissoes']
 };
 

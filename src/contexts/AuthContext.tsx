@@ -280,7 +280,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const hasAccess = (screen: string): boolean => {
-    return profile?.allowed_screens?.includes(screen) ?? false;
+    const allowedScreens = profile?.allowed_screens ?? [];
+
+    if (allowedScreens.includes(screen)) return true;
+
+    // Backward compatibility: existing manager/director/admin profiles
+    // may not yet contain this new permission in allowed_screens
+    if (screen === 'central-gestor' && ['gerente', 'diretor', 'admin'].includes(userRole ?? '')) {
+      return true;
+    }
+
+    return false;
   };
 
   const isSuperAdmin = (): boolean => {
@@ -316,6 +326,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const screens = profile?.allowed_screens || [];
     const screenToRoute: Record<string, string> = {
       'dashboard': '/',
+      'central-gestor': '/central-gestor',
       'vendas': '/vendas',
       'negociacoes': '/negociacoes',
       'follow-up': '/follow-up',
@@ -331,7 +342,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       'agenda': '/agenda',
     };
     
-    const priority = ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades'];
+    const priority = ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'metas', 'atividades'];
     for (const screen of priority) {
       if (screens.includes(screen)) {
         return screenToRoute[screen] || '/';

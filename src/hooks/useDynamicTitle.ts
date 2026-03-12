@@ -4,6 +4,7 @@ import { useOrganizationSettings } from './useOrganizationSettings';
 
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
+  '/central-gestor': 'Central do Gestor',
   '/vendas': 'Vendas',
   '/ranking': 'Ranking',
   '/corretores': 'Corretores',

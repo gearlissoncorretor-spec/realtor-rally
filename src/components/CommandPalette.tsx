@@ -22,6 +22,7 @@ interface CommandPaletteProps {
 
 const screens = [
   { label: "Dashboard", href: "/", icon: LayoutGrid, group: "Principal" },
+  { label: "Central do Gestor", href: "/central-gestor", icon: TrendingUp, group: "Principal" },
   { label: "Dashboard Equipes", href: "/dashboard-equipes", icon: Building2, group: "Principal" },
   { label: "Ranking", href: "/ranking", icon: Trophy, group: "Principal" },
   { label: "Vendas", href: "/vendas", icon: Home, group: "Comercial" },
