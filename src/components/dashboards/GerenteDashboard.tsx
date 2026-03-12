@@ -224,39 +224,27 @@ const GerenteDashboard = () => {
             </div>
           )}
 
-          {/* Alert: Brokers without sales this month */}
-          {sections.includes('alerts') && brokersWithoutSalesOnly.length > 0 && brokersWithoutSalesOnly.length !== brokersWithoutSales.length && (
-            <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                <DollarSign className="w-4 h-4 text-amber-400" /> Atenção — Corretores sem vendas no mês
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {brokersWithoutSalesOnly
-                  .filter(b => b.negotiations > 0)
-                  .map(b => (
+          {/* Alert: Brokers with negotiations but no sales this month */}
+          {sections.includes('alerts') && (() => {
+            const activeBrokersNoSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations > 0);
+            return activeBrokersNoSales.length > 0 ? (
+              <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+                  <DollarSign className="w-4 h-4 text-amber-400" /> Atenção — Corretores sem vendas no mês
+                </h2>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Estes corretores possuem negociações ativas mas ainda não fecharam vendas este mês.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {activeBrokersNoSales.map(b => (
                     <Badge key={b.id} variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/10 py-1 px-3">
-                      {b.name.split(' ')[0]} — 0 vendas, {b.negotiations} negociação(ões)
+                      {b.name.split(' ')[0]} — {b.negotiations} negociação(ões)
                     </Badge>
                   ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Show combined alert when all without-sales also have no negotiations */}
-          {sections.includes('alerts') && brokersWithoutSalesOnly.length > 0 && brokersWithoutSalesOnly.length === brokersWithoutSales.length && brokersWithoutSales.length === 0 && (
-            <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                <DollarSign className="w-4 h-4 text-amber-400" /> Corretores sem vendas no mês
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {brokersWithoutSalesOnly.map(b => (
-                  <Badge key={b.id} variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/10 py-1 px-3">
-                    {b.name.split(' ')[0]}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
+            ) : null;
+          })()}
 
           <div className={cn("grid gap-4", sections.includes('negotiations') && sections.includes('agenda') ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
 
