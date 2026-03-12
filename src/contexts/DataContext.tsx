@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from './AuthContext';
-import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import type { Database } from '@/integrations/supabase/types';
 
 // Use Supabase types directly
