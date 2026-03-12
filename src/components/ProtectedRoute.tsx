@@ -42,7 +42,7 @@ const ROLE_SCREENS: Record<string, string[]> = {
   diretor: ['*'],
   admin: ['*'],
   super_admin: ['*'],
-  gerente: ['dashboard', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
+  gerente: ['dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
   corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'comissoes', 'configuracoes', 'agenda', 'instalar'],
 };
 

@@ -109,6 +109,9 @@ const App = () => (
               <Route path="/x1" element={
                 <ProtectedRoute><LazyPage><X1 /></LazyPage></ProtectedRoute>
               } />
+              <Route path="/central-gestor" element={
+                <ProtectedRoute><LazyPage><CentralGestor /></LazyPage></ProtectedRoute>
+              } />
               <Route path="/dashboard-equipes" element={
                 <ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>
               } />
