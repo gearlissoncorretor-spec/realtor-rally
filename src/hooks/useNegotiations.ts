@@ -137,26 +137,24 @@ export const useNegotiations = () => {
   const lostNegotiations = useMemo(() => {
     if (!allLostNegotiations) return [];
 
-    // Directors and admins see all lost negotiations
     if (isDiretor() || isAdmin()) {
       return allLostNegotiations;
     }
 
-    // Managers see only their team's lost negotiations
     if (isGerente() && teamHierarchy?.team_id) {
+      if (brokersLoading) return [];
       const teamBrokerIds = brokers
         ?.filter(b => b.team_id === teamHierarchy.team_id)
         .map(b => b.id) || [];
       return allLostNegotiations.filter(n => teamBrokerIds.includes(n.broker_id));
     }
 
-    // Brokers see only their own lost negotiations
     if (isCorretor() && currentBroker) {
       return allLostNegotiations.filter(n => n.broker_id === currentBroker.id);
     }
 
     return [];
-  }, [allLostNegotiations, brokers, currentBroker, teamHierarchy, isCorretor, isGerente, isDiretor, isAdmin]);
+  }, [allLostNegotiations, brokers, brokersLoading, currentBroker, teamHierarchy, isCorretor, isGerente, isDiretor, isAdmin]);
 
   const createNegotiationMutation = useMutation({
     mutationFn: async (input: CreateNegotiationInput) => {
