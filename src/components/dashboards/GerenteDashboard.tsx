@@ -296,9 +296,9 @@ const GerenteDashboard = () => {
                   <p className="text-sm text-muted-foreground text-center py-6">Nenhuma negociação ativa</p>
                 ) : (
                   <div className="space-y-2">
-                    {hotNegotiations.map((neg, idx) => {
+                    {hotNegotiations.map((neg) => {
                       const broker = teamBrokers.find(b => b.id === neg.broker_id);
-                      const chance = Math.max(90 - idx * 12, 25);
+                      const chance = neg.closingProbability;
                       return (
                         <div key={neg.id} className="p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all cursor-pointer" onClick={() => navigate('/negociacoes')}>
                           <div className="flex items-start justify-between">
@@ -310,12 +310,12 @@ const GerenteDashboard = () => {
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="text-xs font-semibold text-foreground">{formatCurrency(neg.negotiated_value)}</span>
-                              <Badge variant="outline" className="text-[10px] border-orange-500/30 text-orange-400 bg-orange-500/10">
+                              <Badge variant="outline" className={`text-[10px] ${getProbabilityColor(chance)}`}>
                                 {chance}%
                               </Badge>
                             </div>
                           </div>
-                          <Progress value={chance} className="h-1.5 mt-2" />
+                          <Progress value={chance} className={`h-1.5 mt-2 ${getProbabilityProgressColor(chance)}`} />
                         </div>
                       );
                     })}

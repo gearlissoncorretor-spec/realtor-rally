@@ -277,8 +277,8 @@ const CorretorDashboard = () => {
                   <p className="text-sm text-muted-foreground text-center py-6">Nenhuma negociação ativa</p>
                 ) : (
                   <div className="space-y-2">
-                    {hotNegotiations.map((neg, idx) => {
-                      const chance = Math.max(90 - idx * 15, 30);
+                    {hotNegotiations.map((neg) => {
+                      const chance = neg.closingProbability;
                       return (
                         <div key={neg.id} className="p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all cursor-pointer" onClick={() => navigate('/negociacoes')}>
                           <div className="flex items-start justify-between">
@@ -286,12 +286,12 @@ const CorretorDashboard = () => {
                               <p className="text-sm font-medium text-foreground truncate">{neg.client_name}</p>
                               <p className="text-xs text-muted-foreground truncate">{neg.property_address}</p>
                             </div>
-                            <Badge variant="outline" className="shrink-0 text-[10px] border-orange-500/30 text-orange-400 bg-orange-500/10">
+                            <Badge variant="outline" className={`shrink-0 text-[10px] ${getProbabilityColor(chance)}`}>
                               {chance}%
                             </Badge>
                           </div>
                           <div className="mt-2">
-                            <Progress value={chance} className="h-1.5" />
+                            <Progress value={chance} className={`h-1.5 ${getProbabilityProgressColor(chance)}`} />
                           </div>
                         </div>
                       );
