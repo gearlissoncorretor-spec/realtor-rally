@@ -102,7 +102,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
       const monthStart = startOfMonth(month);
       const monthEnd = endOfMonth(month);
       const monthIndex = month.getMonth() + 1;
-      const monthTarget = targets.find(t => t.year === year && t.month === monthIndex);
+      const monthTarget = filteredTargets.find(t => t.year === year && t.month === monthIndex);
       const target = monthTarget?.target_value || 0;
       const monthSales = sales.filter(sale => {
         const saleDate = new Date(sale.sale_date || sale.created_at || '');
