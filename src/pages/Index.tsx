@@ -532,6 +532,7 @@ const DiretorDashboardPage = () => {
 };
 
 
+// Dashboard principal - acessível por todos os perfis
 const Index = () => {
   return <DiretorDashboardPage />;
 };
