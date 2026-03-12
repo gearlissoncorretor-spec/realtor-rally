@@ -30,7 +30,7 @@ const saleSchema = z.object({
   origem: z.string().min(1, 'Origem é obrigatória'),
   estilo: z.string().min(1, 'Estilo é obrigatório'),
   produto: z.string().min(1, 'Produto é obrigatório'),
-  captador: z.string().min(1, 'Captador é obrigatório'),
+  captador: z.string().optional().default(''),
   gerente: z.string().min(1, 'Gerente é obrigatório'),
   pagos: z.number().min(0, 'Pagos deve ser maior ou igual a 0'),
   ano: z.number().min(2020, 'Ano deve ser válido').max(new Date().getFullYear() + 1),
