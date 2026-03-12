@@ -498,20 +498,22 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="captador"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Captador *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do captador" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className={`grid ${watchSaleType === 'lancamento' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+              {watchSaleType !== 'lancamento' && (
+                <FormField
+                  control={form.control}
+                  name="captador"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Captador *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do captador" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               
               <FormField
                 control={form.control}
