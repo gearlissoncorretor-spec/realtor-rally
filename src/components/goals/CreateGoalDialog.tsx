@@ -389,7 +389,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                 />
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" type="button" disabled={!isCustomPeriod}>
+                    <Button variant="outline" size="icon" type="button">
                       <CalendarIcon className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
