@@ -1384,7 +1384,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
         {/* KPI Stats Bar */}
         {phase === 'complete' && (
           <div className="animate-fade-in">
-            <TVStatsBar brokers={currentRankings} />
+            <TVStatsBar brokers={activeRankingType === 'captacao' ? captacaoRankings : (allBrokerRankings || brokerRankings)} />
           </div>
         )}
 
