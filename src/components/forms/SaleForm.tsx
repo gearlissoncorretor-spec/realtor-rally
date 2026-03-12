@@ -30,12 +30,20 @@ const saleSchema = z.object({
   origem: z.string().min(1, 'Origem é obrigatória'),
   estilo: z.string().min(1, 'Estilo é obrigatório'),
   produto: z.string().min(1, 'Produto é obrigatório'),
-  captador: z.string().min(1, 'Captador é obrigatório'),
+  captador: z.string().optional().default(''),
   gerente: z.string().min(1, 'Gerente é obrigatório'),
   pagos: z.number().min(0, 'Pagos deve ser maior ou igual a 0'),
   ano: z.number().min(2020, 'Ano deve ser válido').max(new Date().getFullYear() + 1),
   mes: z.number().min(1, 'Mês deve ser entre 1 e 12').max(12),
   latitude: z.string().min(1, 'Latitude é obrigatória'),
+}).superRefine((data, ctx) => {
+  if (data.sale_type === 'revenda' && (!data.captador || data.captador.trim() === '')) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Captador é obrigatório para Revenda',
+      path: ['captador'],
+    });
+  }
 });
 
 type SaleFormData = z.infer<typeof saleSchema>;
@@ -56,7 +64,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   title,
 }) => {
   const { brokers } = useData();
-  
+
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
@@ -83,6 +91,15 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       latitude: '',
     },
   });
+
+  const watchSaleType = form.watch('sale_type');
+
+  // Clear captador when switching to lancamento
+  React.useEffect(() => {
+    if (watchSaleType === 'lancamento') {
+      form.setValue('captador', '');
+    }
+  }, [watchSaleType, form]);
 
   // Reset form when sale data changes
   React.useEffect(() => {
@@ -481,20 +498,22 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="captador"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Captador *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do captador" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className={`grid ${watchSaleType === 'lancamento' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+              {watchSaleType !== 'lancamento' && (
+                <FormField
+                  control={form.control}
+                  name="captador"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Captador *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do captador" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               
               <FormField
                 control={form.control}
