@@ -283,7 +283,7 @@ export const useNegotiations = () => {
   return {
     negotiations,
     lostNegotiations,
-    loading: loadingActive || loadingLost,
+    loading: loadingActive || loadingLost || brokersLoading,
     error: errorActive || errorLost,
     createNegotiation: createNegotiationMutation.mutateAsync,
     updateNegotiation: updateNegotiationMutation.mutateAsync,
