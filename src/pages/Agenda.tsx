@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,18 +7,20 @@ import {
 } from 'lucide-react';
 import {
   format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays,
-  startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek, parseISO,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCalendarEvents, CalendarEvent as CalEvent, CreateEventData } from '@/hooks/useCalendarEvents';
 import { useBrokerBirthdays } from '@/hooks/useBrokerBirthdays';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import CreateEventDialog from '@/components/calendar/CreateEventDialog';
 import CalendarMonthView from '@/components/calendar/CalendarMonthView';
 import CalendarWeekView from '@/components/calendar/CalendarWeekView';
 import AgendaDayView from '@/components/calendar/AgendaDayView';
 import AgendaSummaryCards from '@/components/calendar/AgendaSummaryCards';
 import AgendaActivitiesPanel from '@/components/calendar/AgendaActivitiesPanel';
+import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'month' | 'week' | 'day';
