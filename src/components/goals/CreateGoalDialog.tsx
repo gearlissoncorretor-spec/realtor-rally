@@ -384,12 +384,12 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                       setDateError(false);
                     }
                   }}
-                  disabled={!isCustomPeriod}
+                  
                   className={cn("flex-1", dateError && "border-destructive ring-destructive")}
                 />
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" type="button" disabled={!isCustomPeriod}>
+                    <Button variant="outline" size="icon" type="button">
                       <CalendarIcon className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -410,9 +410,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   </PopoverContent>
                 </Popover>
               </div>
-              {!isCustomPeriod && (
-                <p className="text-xs text-muted-foreground mt-1">Calculada automaticamente pelo período</p>
-              )}
+              
               {dateError && (
                 <p className="text-sm text-destructive mt-1">Data de término deve ser após a data de início</p>
               )}
