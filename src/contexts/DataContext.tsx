@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from './AuthContext';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import type { Database } from '@/integrations/supabase/types';
 
 // Use Supabase types directly
@@ -60,6 +61,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, teamHierarchy, getUserRole } = useAuth();
+  const { syncData } = useRealtimeSync();
 
   // Stable query key - use primitive values only
   const teamId = teamHierarchy?.team_id ?? null;
