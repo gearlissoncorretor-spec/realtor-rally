@@ -5,7 +5,8 @@ import { useSales } from '@/hooks/useSales';
 import { useBrokers } from '@/hooks/useBrokers';
 import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
-import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useCalendarEvents, CalendarEvent as CalEvent } from '@/hooks/useCalendarEvents';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import { useGoals } from '@/hooks/useGoals';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
@@ -37,6 +38,7 @@ const GerenteDashboard = () => {
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
+  const { googleEvents, isConnected } = useGoogleCalendar(today, today);
 
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -76,8 +78,35 @@ const GerenteDashboard = () => {
     (followUps || []).filter(f => teamBrokerIds.has(f.broker_id)), [followUps, teamBrokerIds]);
   const pendingFollowUps = teamFollowUps.filter(f => f.status !== 'convertido' && f.status !== 'perdido');
 
-  // Today events
-  const todayEvents = events || [];
+  // Today events - merge internal + Google Calendar
+  const todayEvents: CalEvent[] = useMemo(() => {
+    const internal = events || [];
+    const mappedGoogle: CalEvent[] = googleEvents.map((ge) => {
+      const startDate = ge.start.includes('T') ? ge.start.substring(0, 10) : ge.start;
+      const startTime = ge.start.includes('T') ? ge.start.substring(11, 16) : null;
+      const endTime = ge.end.includes('T') ? ge.end.substring(11, 16) : null;
+      return {
+        id: `google-${ge.id}`,
+        user_id: '',
+        company_id: null,
+        title: `📅 ${ge.summary}`,
+        description: ge.description || null,
+        event_date: startDate,
+        start_time: startTime,
+        end_time: endTime,
+        event_type: 'outro',
+        responsible_id: null,
+        client_name: ge.location || null,
+        property_reference: null,
+        is_private: false,
+        is_all_day: !ge.start.includes('T'),
+        color: '#4285F4',
+        created_at: '',
+        updated_at: '',
+      };
+    });
+    return [...internal, ...mappedGoogle].sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+  }, [events, googleEvents]);
 
   // Team goals - filter active goals belonging to this team
   const teamGoals = useMemo(() => {
