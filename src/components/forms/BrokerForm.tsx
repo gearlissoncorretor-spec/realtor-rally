@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Cake, Loader2 } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { Broker } from '@/contexts/DataContext';
 import { useTeams } from '@/hooks/useTeams';
