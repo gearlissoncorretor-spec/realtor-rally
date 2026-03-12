@@ -60,6 +60,7 @@ const Navigation = () => {
 
   const allNavItems: NavItem[] = [
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
+    { href: "/central-gestor", label: "Central do Gestor", icon: Building2, screen: "central-gestor" },
     { href: "/dashboard-equipes", label: "Dashboard Equipes", icon: Building2, screen: "dashboard-equipes" },
     { href: "/ranking", label: "Ranking", icon: Trophy, screen: "ranking" },
     { href: "/vendas", label: "Vendas", icon: Home, screen: "vendas" },
