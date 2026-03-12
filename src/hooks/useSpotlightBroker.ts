@@ -50,10 +50,11 @@ export const useSpotlightBroker = () => {
       toast({ title: 'Corretor destaque atualizado' });
     },
     onError: (err: any, _v, context) => {
+      console.error('[useSpotlightBroker] Error:', err);
       if (context?.previous !== undefined) {
         queryClient.setQueryData(['spotlight-broker'], context.previous);
       }
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+      toast({ title: 'Erro ao definir destaque', description: err.message || 'Verifique suas permissões.', variant: 'destructive' });
     },
   });
 
