@@ -65,6 +65,12 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     if (!teamFilter) return null;
     return brokers.filter(b => b.team_id === teamFilter).map(b => b.id);
   }, [brokers, teamFilter]);
+
+  // Filter targets by team_id when applicable
+  const filteredTargets = useMemo(() => {
+    if (!teamFilter) return targets;
+    return targets.filter(t => t.team_id === teamFilter);
+  }, [targets, teamFilter]);
   
   const yearlyData = useMemo(() => {
     const yearStart = startOfYear(new Date(year, 0, 1));
