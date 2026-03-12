@@ -108,6 +108,7 @@ const GerenteDashboard = () => {
 
   // Alerts: brokers with no activity
   const brokersWithoutSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations === 0);
+  const brokersWithoutSalesOnly = brokerPerformance.filter(b => b.salesCount === 0);
 
   // Funnel data (team-wide)
   const funnelData = [
