@@ -8,6 +8,7 @@ interface NotificationConfig {
   overdueFollowUps: boolean;
   goalDeadlines: boolean;
   newSales: boolean;
+  brokerBirthdays: boolean;
 }
 
 const STORAGE_KEY = 'axis_notification_config';
