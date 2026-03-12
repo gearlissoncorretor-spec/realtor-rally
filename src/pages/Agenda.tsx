@@ -12,6 +12,7 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCalendarEvents, CalendarEvent as CalEvent, CreateEventData } from '@/hooks/useCalendarEvents';
+import { useBrokerBirthdays } from '@/hooks/useBrokerBirthdays';
 import CreateEventDialog from '@/components/calendar/CreateEventDialog';
 import CalendarMonthView from '@/components/calendar/CalendarMonthView';
 import CalendarWeekView from '@/components/calendar/CalendarWeekView';
