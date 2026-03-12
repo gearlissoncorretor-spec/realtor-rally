@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { AppUpdateManager } from "@/components/AppUpdateManager";
+import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 import "./App.css";
 
 // Lazy-loaded pages
