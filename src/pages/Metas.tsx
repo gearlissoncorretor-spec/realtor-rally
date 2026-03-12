@@ -24,13 +24,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Flame,
+  Trophy,
+  Zap
 } from 'lucide-react';
 import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
 import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
 import { MetasSkeleton } from '@/components/skeletons/MetasSkeleton';
-import { formatCurrency, formatNumber } from '@/utils/formatting';
+import { formatCurrency, formatCurrencyCompact, formatNumber } from '@/utils/formatting';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -44,14 +47,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 
 const Metas = () => {
   const { getUserRole, profile, user, isCorretor, isGerente, isDiretor, isAdmin } = useAuth();
@@ -108,10 +103,9 @@ const Metas = () => {
     if (!selectedBrokerId) return [];
     const selectedBrokerData = accessibleBrokers.find(b => b.id === selectedBrokerId);
     return goals.filter(goal => {
-      // Match broker-specific, team-wide, or company-wide goals
       const matchesBroker = goal.broker_id === selectedBrokerId || 
         (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id) ||
-        (!goal.broker_id && !goal.team_id); // company-wide goals
+        (!goal.broker_id && !goal.team_id);
       const monthStart = startOfMonth(selectedMonth);
       const monthEnd = endOfMonth(selectedMonth);
       const goalStart = new Date(goal.start_date);
@@ -147,9 +141,21 @@ const Metas = () => {
 
   const formatValue = (value: number, type: string) => {
     switch (type) {
-      case 'revenue': case 'vgv': case 'vgc': case 'commission': return formatCurrency(value);
-      case 'sales_count': case 'atendimentos': case 'captacao': case 'contratacao': return formatNumber(value);
-      default: return value.toString();
+      case 'revenue': case 'vgv': case 'vgc': case 'commission': 
+      case 'VGV (Valor Geral de Vendas)': case 'VGC (Valor Geral de Comissão)':
+      case 'Receita': case 'Comissão Individual':
+        return formatCurrency(value);
+      default: return formatNumber(value);
+    }
+  };
+
+  const formatValueCompact = (value: number, type: string) => {
+    switch (type) {
+      case 'revenue': case 'vgv': case 'vgc': case 'commission':
+      case 'VGV (Valor Geral de Vendas)': case 'VGC (Valor Geral de Comissão)':
+      case 'Receita': case 'Comissão Individual':
+        return formatCurrencyCompact(value);
+      default: return formatNumber(value);
     }
   };
 
@@ -181,11 +187,21 @@ const Metas = () => {
     const isOverdue = new Date(goal.end_date) < new Date() && goal.status === 'active';
     const daysLeft = differenceInDays(new Date(goal.end_date), new Date());
     
-    if (goal.status === 'completed') return { label: 'Concluída', variant: 'default' as const, className: 'bg-success text-success-foreground' };
+    if (goal.status === 'paused') return { label: 'Pausada', variant: 'secondary' as const, className: 'bg-muted text-muted-foreground' };
+    if (goal.status === 'completed') return { label: 'Concluída', variant: 'default' as const, className: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30 dark:text-emerald-400' };
     if (isOverdue) return { label: 'Vencida', variant: 'destructive' as const, className: '' };
-    if (progress >= 90) return { label: 'Quase lá!', variant: 'default' as const, className: 'bg-success text-success-foreground' };
-    if (progress >= 50) return { label: 'Em progresso', variant: 'secondary' as const, className: 'bg-warning/15 text-warning border-warning/30' };
+    if (progress >= 90) return { label: 'Quase lá!', variant: 'default' as const, className: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30 dark:text-emerald-400' };
+    if (progress >= 50) return { label: 'Em progresso', variant: 'secondary' as const, className: 'bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400' };
     return { label: `${daysLeft}d restantes`, variant: 'outline' as const, className: '' };
+  };
+
+  const getDailyNeeded = (goal: Goal) => {
+    if (goal.status !== 'active') return null;
+    const remaining = goal.target_value - goal.current_value;
+    if (remaining <= 0) return null;
+    const daysLeft = differenceInDays(new Date(goal.end_date), new Date());
+    if (daysLeft <= 0) return null;
+    return remaining / daysLeft;
   };
 
   if (goalsLoading || brokersLoading || teamsLoading) {
@@ -201,6 +217,14 @@ const Metas = () => {
     );
   }
 
+  const kpiCards = [
+    { label: 'Total', value: stats.total, icon: Target, gradient: 'from-primary/20 to-primary/5', iconColor: 'text-primary', borderColor: 'border-primary/20' },
+    { label: 'Ativas', value: stats.active, icon: Zap, gradient: 'from-blue-500/20 to-blue-500/5', iconColor: 'text-blue-500', borderColor: 'border-blue-500/20' },
+    { label: 'Concluídas', value: stats.completed, icon: Trophy, gradient: 'from-emerald-500/20 to-emerald-500/5', iconColor: 'text-emerald-500', borderColor: 'border-emerald-500/20' },
+    { label: 'Vencidas', value: stats.overdue, icon: Flame, gradient: 'from-red-500/20 to-red-500/5', iconColor: 'text-red-500', borderColor: 'border-red-500/20' },
+    { label: 'Progresso', value: `${stats.avgProgress.toFixed(0)}%`, icon: TrendingUp, gradient: 'from-violet-500/20 to-violet-500/5', iconColor: 'text-violet-500', borderColor: 'border-violet-500/20' },
+  ];
+
   return (
     <>
       <Navigation />
@@ -208,13 +232,13 @@ const Metas = () => {
         <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
           
           {/* Header */}
-           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3 w-full justify-center sm:justify-start">
-              <div className="p-2.5 bg-primary/10 rounded-xl">
+              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl border border-primary/20">
                 <Target className="w-7 h-7 text-primary" />
               </div>
               <div className="text-center sm:text-left">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
                   Gestão de Metas
                 </h1>
                 <p className="text-sm text-muted-foreground">
@@ -225,7 +249,7 @@ const Metas = () => {
             
             {/* Month Selector */}
             <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
-              <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9">
+              <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
@@ -234,7 +258,7 @@ const Metas = () => {
                   {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
                 </span>
               </div>
-              <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9">
+              <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg">
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
@@ -279,24 +303,20 @@ const Metas = () => {
                   {accessibleBrokers.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
                       
-                      {/* KPI Strip */}
+                      {/* KPI Cards */}
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                        {[
-                          { label: 'Total', value: stats.total, icon: Target, color: 'text-primary' },
-                          { label: 'Ativas', value: stats.active, icon: Clock, color: 'text-info' },
-                          { label: 'Concluídas', value: stats.completed, icon: CheckCircle2, color: 'text-success' },
-                          { label: 'Vencidas', value: stats.overdue, icon: AlertTriangle, color: 'text-destructive' },
-                          { label: 'Progresso', value: `${stats.avgProgress.toFixed(0)}%`, icon: TrendingUp, color: 'text-primary' },
-                        ].map((kpi, i) => (
-                          <Card key={i} className="border-border/50 bg-card">
-                            <CardContent className="p-3 sm:p-4">
-                              <div className="flex items-center gap-2.5">
-                                <div className="p-1.5 bg-muted rounded-lg shrink-0">
-                                  <kpi.icon className={cn("w-4 h-4", kpi.color)} />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-lg sm:text-xl font-bold text-foreground leading-tight">{kpi.value}</p>
-                                  <p className="text-[10px] sm:text-xs text-muted-foreground">{kpi.label}</p>
+                        {kpiCards.map((kpi, i) => (
+                          <Card key={i} className={cn("border overflow-hidden transition-all hover:shadow-md", kpi.borderColor)}>
+                            <CardContent className="p-0">
+                              <div className={cn("bg-gradient-to-br p-3 sm:p-4", kpi.gradient)}>
+                                <div className="flex items-center gap-2.5">
+                                  <div className="p-2 bg-background/80 backdrop-blur-sm rounded-lg shrink-0 shadow-sm">
+                                    <kpi.icon className={cn("w-4 h-4", kpi.iconColor)} />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xl sm:text-2xl font-bold text-foreground leading-tight">{kpi.value}</p>
+                                    <p className="text-[10px] sm:text-xs text-muted-foreground font-medium">{kpi.label}</p>
+                                  </div>
                                 </div>
                               </div>
                             </CardContent>
@@ -304,170 +324,269 @@ const Metas = () => {
                         ))}
                       </div>
 
-                      {/* Circular Progress Gauge */}
+                      {/* Circular Progress + Action */}
                       {stats.total > 0 && (
-                        <div className="flex justify-center">
-                          <div className="relative w-28 h-28">
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-4">
+                          <div className="relative w-32 h-32">
                             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                              <circle cx="50" cy="50" r="42" fill="none" strokeWidth="8" className="stroke-muted/30" />
+                              <circle cx="50" cy="50" r="42" fill="none" strokeWidth="7" className="stroke-muted/20" />
                               <circle 
-                                cx="50" cy="50" r="42" fill="none" strokeWidth="8"
+                                cx="50" cy="50" r="42" fill="none" strokeWidth="7"
                                 strokeLinecap="round"
-                                className="stroke-primary transition-all duration-700"
+                                className={cn(
+                                  "transition-all duration-1000 ease-out",
+                                  stats.avgProgress >= 90 ? "stroke-emerald-500" :
+                                  stats.avgProgress >= 50 ? "stroke-amber-500" : "stroke-red-500"
+                                )}
                                 strokeDasharray={`${Math.min(stats.avgProgress, 100) * 2.64} 264`}
                               />
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                              <span className="text-2xl font-bold text-foreground">{stats.avgProgress.toFixed(0)}%</span>
-                              <span className="text-[10px] text-muted-foreground">média</span>
+                              <span className="text-3xl font-bold text-foreground">{stats.avgProgress.toFixed(0)}%</span>
+                              <span className="text-xs text-muted-foreground font-medium">média geral</span>
                             </div>
+                          </div>
+                          <div className="text-center sm:text-left space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                              <span className="font-semibold text-foreground">{stats.completed}</span> de <span className="font-semibold text-foreground">{stats.total}</span> metas concluídas
+                            </p>
+                            {stats.overdue > 0 && (
+                              <p className="text-sm text-red-500 flex items-center gap-1.5 justify-center sm:justify-start">
+                                <AlertTriangle className="w-3.5 h-3.5" />
+                                {stats.overdue} meta{stats.overdue > 1 ? 's' : ''} vencida{stats.overdue > 1 ? 's' : ''}
+                              </p>
+                            )}
                           </div>
                         </div>
                       )}
 
-                      {/* Goals Table */}
-                      <Card className="border-border/50 bg-card shadow-sm">
-                        <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      {/* Goals Cards (Mobile) + Table (Desktop) */}
+                      <Card className="border-border/50 bg-card shadow-sm overflow-hidden">
+                        <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-muted/30 to-transparent">
                           <CardTitle className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                             <Target className="w-5 h-5 text-primary" />
                             Metas de {broker.name}
                           </CardTitle>
                           {canManageGoals && (
-                            <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="w-full sm:w-auto">
+                            <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="w-full sm:w-auto shadow-sm">
                               <Plus className="w-4 h-4 mr-1.5" />
                               Nova Meta
                             </Button>
                           )}
                         </CardHeader>
-                        <CardContent className="p-0 sm:p-6 sm:pt-0">
+                        <CardContent className="p-0">
                           {filteredGoals.length === 0 ? (
-                            <div className="text-center py-16">
-                              <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                                <Target className="w-8 h-8 text-muted-foreground/40" />
+                            <div className="text-center py-16 px-4">
+                              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center mx-auto mb-4 border border-border/50">
+                                <Target className="w-10 h-10 text-muted-foreground/30" />
                               </div>
-                              <p className="text-muted-foreground font-medium">Nenhuma meta neste período</p>
-                              <p className="text-sm text-muted-foreground/70 mt-1">Crie uma meta para começar a acompanhar</p>
+                              <p className="text-muted-foreground font-medium text-lg">Nenhuma meta neste período</p>
+                              <p className="text-sm text-muted-foreground/70 mt-1.5 max-w-xs mx-auto">
+                                Crie uma meta para começar a acompanhar o desempenho de {broker.name.split(' ')[0]}
+                              </p>
                               {canManageGoals && (
-                                <Button onClick={() => setCreateDialogOpen(true)} variant="outline" size="sm" className="mt-4">
+                                <Button onClick={() => setCreateDialogOpen(true)} variant="outline" size="sm" className="mt-5">
                                   <Plus className="w-4 h-4 mr-1.5" />
                                   Criar meta
                                 </Button>
                               )}
                             </div>
                           ) : (
-                            <div className="overflow-x-auto">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="min-w-[180px]">Meta</TableHead>
-                                    <TableHead>Tipo</TableHead>
-                                    <TableHead className="min-w-[200px]">Progresso</TableHead>
-                                    <TableHead className="text-right">Atual / Alvo</TableHead>
-                                    <TableHead className="text-right">Faltam</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Prazo</TableHead>
-                                    {canManageGoals && <TableHead className="text-right w-[100px]">Ações</TableHead>}
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {filteredGoals.map(goal => {
-                                    const progress = getProgress(goal);
-                                    const statusInfo = getStatusInfo(goal);
-                                    
-                                    return (
-                                      <TableRow 
-                                        key={goal.id} 
-                                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                                        onClick={() => setSelectedGoalId(goal.id)}
-                                      >
-                                        <TableCell>
-                                          <div>
-                                            <p className="font-medium text-foreground">{goal.title}</p>
-                                            {goal.description && (
-                                              <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{goal.description}</p>
-                                            )}
+                            <>
+                              {/* Mobile: Goal Cards */}
+                              <div className="sm:hidden divide-y divide-border">
+                                {filteredGoals.map(goal => {
+                                  const progress = getProgress(goal);
+                                  const statusInfo = getStatusInfo(goal);
+                                  const dailyNeeded = getDailyNeeded(goal);
+                                  
+                                  return (
+                                    <div 
+                                      key={goal.id} 
+                                      className="p-4 cursor-pointer hover:bg-muted/30 transition-colors active:bg-muted/50"
+                                      onClick={() => setSelectedGoalId(goal.id)}
+                                    >
+                                      <div className="flex items-start justify-between gap-3 mb-3">
+                                        <div className="min-w-0 flex-1">
+                                          <p className="font-semibold text-foreground truncate">{goal.title}</p>
+                                          <div className="flex items-center gap-2 mt-1">
+                                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                              {getTypeLabel(goal.target_type)}
+                                            </Badge>
+                                            <Badge variant={statusInfo.variant} className={cn("text-[10px] px-1.5 py-0", statusInfo.className)}>
+                                              {statusInfo.label}
+                                            </Badge>
                                           </div>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Badge variant="secondary" className="text-xs font-medium">
-                                            {getTypeLabel(goal.target_type)}
-                                          </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                          <div className="space-y-1.5">
-                                            <div className="flex justify-between text-xs">
-                                              <span className="text-muted-foreground">{getPeriodLabel(goal.period_type)}</span>
-                                              <span className={cn(
-                                                "font-bold",
-                                                progress >= 90 ? "text-success" : progress >= 50 ? "text-warning" : "text-destructive"
-                                              )}>
-                                                {progress}%
-                                              </span>
+                                        </div>
+                                        <span className={cn(
+                                          "text-xl font-bold tabular-nums shrink-0",
+                                          progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-red-500"
+                                        )}>
+                                          {progress}%
+                                        </span>
+                                      </div>
+                                      
+                                      <Progress value={progress} className="h-2 mb-2" />
+                                      
+                                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <span>{formatValueCompact(goal.current_value, goal.target_type)} / {formatValueCompact(goal.target_value, goal.target_type)}</span>
+                                        <span>{format(new Date(goal.end_date), 'dd/MM', { locale: ptBR })}</span>
+                                      </div>
+
+                                      {dailyNeeded && (
+                                        <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
+                                          <TrendingUp className="w-3 h-3" />
+                                          Necessário: {formatValueCompact(dailyNeeded, goal.target_type)}/dia
+                                        </p>
+                                      )}
+
+                                      {(canEditGoal(goal) || canDeleteGoal(goal)) && (
+                                        <div className="flex justify-end gap-1 mt-2" onClick={e => e.stopPropagation()}>
+                                          {canEditGoal(goal) && (
+                                            <Button 
+                                              size="icon" variant="ghost" 
+                                              onClick={() => updateGoal(goal.id, { status: goal.status === 'active' ? 'paused' : 'active' })}
+                                              className="h-7 w-7"
+                                            >
+                                              {goal.status === 'active' ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                                            </Button>
+                                          )}
+                                          {canEditGoal(goal) && (
+                                            <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-7 w-7">
+                                              <Pencil className="w-3 h-3" />
+                                            </Button>
+                                          )}
+                                          {canDeleteGoal(goal) && (
+                                            <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-7 w-7 text-destructive hover:text-destructive">
+                                              <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Desktop: Table */}
+                              <div className="hidden sm:block overflow-x-auto">
+                                <table className="w-full">
+                                  <thead>
+                                    <tr className="border-b border-border bg-muted/30">
+                                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4 min-w-[180px]">Meta</th>
+                                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">Tipo</th>
+                                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4 min-w-[200px]">Progresso</th>
+                                      <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">Atual / Alvo</th>
+                                      <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">Faltam</th>
+                                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">Status</th>
+                                      <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4">Prazo</th>
+                                      {canManageGoals && <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 px-4 w-[120px]">Ações</th>}
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border/50">
+                                    {filteredGoals.map(goal => {
+                                      const progress = getProgress(goal);
+                                      const statusInfo = getStatusInfo(goal);
+                                      const dailyNeeded = getDailyNeeded(goal);
+                                      
+                                      return (
+                                        <tr 
+                                          key={goal.id} 
+                                          className="cursor-pointer hover:bg-muted/40 transition-colors group"
+                                          onClick={() => setSelectedGoalId(goal.id)}
+                                        >
+                                          <td className="py-3.5 px-4">
+                                            <div>
+                                              <p className="font-medium text-foreground group-hover:text-primary transition-colors">{goal.title}</p>
+                                              {goal.description && (
+                                                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{goal.description}</p>
+                                              )}
                                             </div>
-                                            <Progress value={progress} className="h-2" />
-                                          </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                          <div className="text-sm">
-                                            <span className="font-semibold text-foreground">{formatValue(goal.current_value, goal.target_type)}</span>
-                                            <span className="text-muted-foreground"> / {formatValue(goal.target_value, goal.target_type)}</span>
-                                          </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                          <span className={cn(
-                                            "text-sm font-medium",
-                                            goal.target_value - goal.current_value <= 0 ? "text-success" : "text-muted-foreground"
-                                          )}>
-                                            {goal.target_value - goal.current_value > 0
-                                              ? formatValue(goal.target_value - goal.current_value, goal.target_type)
-                                              : '✅ Atingida'}
-                                          </span>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Badge variant={statusInfo.variant} className={cn("text-xs", statusInfo.className)}>
-                                            {statusInfo.label}
-                                          </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                          <span className="text-sm text-muted-foreground">
-                                            {format(new Date(goal.end_date), 'dd/MM/yy', { locale: ptBR })}
-                                          </span>
-                                        </TableCell>
-                                        {(canEditGoal(goal) || canDeleteGoal(goal)) && (
-                                          <TableCell className="text-right">
-                                            <div className="flex justify-end gap-0.5" onClick={e => e.stopPropagation()}>
-                                              {canEditGoal(goal) && (
-                                                <Button 
-                                                  size="icon" variant="ghost" 
-                                                  onClick={() => {
-                                                    const newStatus = goal.status === 'active' ? 'paused' : 'active';
-                                                    updateGoal(goal.id, { status: newStatus });
-                                                  }} 
-                                                  className="h-8 w-8"
-                                                  title={goal.status === 'active' ? 'Pausar meta' : 'Reativar meta'}
-                                                >
-                                                  {goal.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                                                </Button>
-                                              )}
-                                              {canEditGoal(goal) && (
-                                                <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-8 w-8">
-                                                  <Pencil className="w-3.5 h-3.5" />
-                                                </Button>
-                                              )}
-                                              {canDeleteGoal(goal) && (
-                                                <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-8 w-8 text-destructive hover:text-destructive">
-                                                  <Trash2 className="w-3.5 h-3.5" />
-                                                </Button>
+                                          </td>
+                                          <td className="py-3.5 px-4">
+                                            <Badge variant="secondary" className="text-xs font-medium">
+                                              {getTypeLabel(goal.target_type)}
+                                            </Badge>
+                                          </td>
+                                          <td className="py-3.5 px-4">
+                                            <div className="space-y-1.5">
+                                              <div className="flex justify-between text-xs">
+                                                <span className="text-muted-foreground">{getPeriodLabel(goal.period_type)}</span>
+                                                <span className={cn(
+                                                  "font-bold tabular-nums",
+                                                  progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-red-500"
+                                                )}>
+                                                  {progress}%
+                                                </span>
+                                              </div>
+                                              <Progress value={progress} className="h-2" />
+                                              {dailyNeeded && (
+                                                <p className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
+                                                  <TrendingUp className="w-2.5 h-2.5" />
+                                                  {formatValueCompact(dailyNeeded, goal.target_type)}/dia necessário
+                                                </p>
                                               )}
                                             </div>
-                                          </TableCell>
-                                        )}
-                                      </TableRow>
-                                    );
-                                  })}
-                                </TableBody>
-                              </Table>
-                            </div>
+                                          </td>
+                                          <td className="py-3.5 px-4 text-right">
+                                            <div className="text-sm">
+                                              <span className="font-semibold text-foreground">{formatValue(goal.current_value, goal.target_type)}</span>
+                                              <span className="text-muted-foreground"> / {formatValue(goal.target_value, goal.target_type)}</span>
+                                            </div>
+                                          </td>
+                                          <td className="py-3.5 px-4 text-right">
+                                            <span className={cn(
+                                              "text-sm font-medium",
+                                              goal.target_value - goal.current_value <= 0 ? "text-emerald-500" : "text-muted-foreground"
+                                            )}>
+                                              {goal.target_value - goal.current_value > 0
+                                                ? formatValue(goal.target_value - goal.current_value, goal.target_type)
+                                                : '✅ Atingida'}
+                                            </span>
+                                          </td>
+                                          <td className="py-3.5 px-4">
+                                            <Badge variant={statusInfo.variant} className={cn("text-xs", statusInfo.className)}>
+                                              {statusInfo.label}
+                                            </Badge>
+                                          </td>
+                                          <td className="py-3.5 px-4">
+                                            <span className="text-sm text-muted-foreground">
+                                              {format(new Date(goal.end_date), 'dd/MM/yy', { locale: ptBR })}
+                                            </span>
+                                          </td>
+                                          {canManageGoals && (
+                                            <td className="py-3.5 px-4 text-right">
+                                              <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                                                {canEditGoal(goal) && (
+                                                  <Button 
+                                                    size="icon" variant="ghost" 
+                                                    onClick={() => updateGoal(goal.id, { status: goal.status === 'active' ? 'paused' : 'active' })}
+                                                    className="h-8 w-8"
+                                                    title={goal.status === 'active' ? 'Pausar meta' : 'Reativar meta'}
+                                                  >
+                                                    {goal.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                                                  </Button>
+                                                )}
+                                                {canEditGoal(goal) && (
+                                                  <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-8 w-8">
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                  </Button>
+                                                )}
+                                                {canDeleteGoal(goal) && (
+                                                  <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-8 w-8 text-destructive hover:text-destructive">
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                  </Button>
+                                                )}
+                                              </div>
+                                            </td>
+                                          )}
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </>
                           )}
                         </CardContent>
                       </Card>
