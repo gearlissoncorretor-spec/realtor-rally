@@ -416,6 +416,9 @@ const GerenteDashboard = () => {
                     <div className="text-center space-y-3">
                       <p className="text-3xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
                       <p className="text-xs text-muted-foreground">VGV da equipe no mês • {monthSales.length} vendas</p>
+                      <Button variant="outline" size="sm" className="text-xs gap-1.5 border-primary/30 text-primary" onClick={() => navigate('/meta-gestao')}>
+                        <Target className="w-3 h-3" /> Cadastrar meta em Meta Gestão
+                      </Button>
                     </div>
                   )}
                 </div>
