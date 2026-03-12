@@ -9,6 +9,7 @@ import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useGoals } from '@/hooks/useGoals';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
+import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
