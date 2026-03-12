@@ -12,6 +12,7 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCalendarEvents, CalendarEvent as CalEvent, CreateEventData } from '@/hooks/useCalendarEvents';
+import { useBrokerBirthdays } from '@/hooks/useBrokerBirthdays';
 import CreateEventDialog from '@/components/calendar/CreateEventDialog';
 import CalendarMonthView from '@/components/calendar/CalendarMonthView';
 import CalendarWeekView from '@/components/calendar/CalendarWeekView';
@@ -48,7 +49,14 @@ const Agenda = () => {
   };
 
   const { start, end } = getDateRange();
-  const { events, isLoading, createEvent, updateEvent, deleteEvent } = useCalendarEvents(start, end);
+  const { events: calendarEvents, isLoading, createEvent, updateEvent, deleteEvent } = useCalendarEvents(start, end);
+  const { getBirthdayEvents } = useBrokerBirthdays();
+
+  // Merge calendar events with birthday events
+  const events = React.useMemo(() => {
+    const birthdays = getBirthdayEvents(start, end);
+    return [...calendarEvents, ...birthdays];
+  }, [calendarEvents, getBirthdayEvents, start, end]);
 
   const navigate = (direction: 'prev' | 'next') => {
     const fn = direction === 'next'

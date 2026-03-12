@@ -8,6 +8,7 @@ interface NotificationConfig {
   overdueFollowUps: boolean;
   goalDeadlines: boolean;
   newSales: boolean;
+  brokerBirthdays: boolean;
 }
 
 const STORAGE_KEY = 'axis_notification_config';
@@ -17,6 +18,7 @@ const defaultConfig: NotificationConfig = {
   overdueFollowUps: true,
   goalDeadlines: true,
   newSales: true,
+  brokerBirthdays: true,
 };
 
 export const useNotificationSystem = () => {
@@ -129,14 +131,46 @@ export const useNotificationSystem = () => {
     }
   }, [user, config.goalDeadlines, sendNotification]);
 
+  const checkBrokerBirthdays = useCallback(async () => {
+    if (!user || !config.brokerBirthdays) return;
+    const today = new Date();
+    const todayMonth = today.getMonth() + 1;
+    const todayDay = today.getDate();
+
+    const { data, error } = await supabase
+      .from('brokers')
+      .select('id, name, birthday')
+      .not('birthday', 'is', null)
+      .eq('status', 'ativo');
+
+    if (!error && data) {
+      const birthdayBrokers = data.filter((b: any) => {
+        if (!b.birthday) return false;
+        const parts = b.birthday.split('-');
+        return parseInt(parts[1]) === todayMonth && parseInt(parts[2]) === todayDay;
+      });
+
+      if (birthdayBrokers.length > 0) {
+        const names = birthdayBrokers.map((b: any) => b.name).join(', ');
+        sendNotification(
+          `🎂 Aniversário hoje!`,
+          `Parabéns para: ${names}`,
+          'broker-birthdays'
+        );
+        toast.info(`🎂 Aniversariante(s) de hoje: ${names}`);
+      }
+    }
+  }, [user, config.brokerBirthdays, sendNotification]);
+
   const runAllChecks = useCallback(async () => {
     if (permission !== 'granted') return;
     await Promise.all([
       checkStaleNegotiations(),
       checkOverdueFollowUps(),
       checkGoalDeadlines(),
+      checkBrokerBirthdays(),
     ]);
-  }, [permission, checkStaleNegotiations, checkOverdueFollowUps, checkGoalDeadlines]);
+  }, [permission, checkStaleNegotiations, checkOverdueFollowUps, checkGoalDeadlines, checkBrokerBirthdays]);
 
   // Run checks on mount and every 15 minutes
   useEffect(() => {

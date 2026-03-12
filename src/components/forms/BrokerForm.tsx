@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Cake, Loader2 } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 import { Broker } from '@/contexts/DataContext';
 import { useTeams } from '@/hooks/useTeams';
@@ -23,6 +23,7 @@ const brokerSchema = z.object({
   phone: z.string().optional(),
   cpf: z.string().optional(),
   creci: z.string().optional(),
+  birthday: z.string().optional(),
   status: z.enum(['ativo', 'inativo', 'ferias']),
   team_id: z.string().min(1, 'Equipe é obrigatória'),
   observations: z.string().max(200, 'Observação deve ter no máximo 200 caracteres').optional(),
@@ -85,6 +86,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       phone: broker?.phone || '',
       cpf: broker?.cpf || '',
       creci: broker?.creci || '',
+      birthday: (broker as any)?.birthday || '',
       status: broker?.status || 'ativo',
       team_id: broker?.team_id || defaultTeamId,
       observations: broker?.observations || '',
@@ -102,6 +104,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
         cpf: data.cpf?.trim() || null,
         phone: data.phone?.trim() || null,
         creci: data.creci?.trim() || null,
+        birthday: data.birthday?.trim() || null,
         avatar_url: avatarUrl || null,
       };
       await onSubmit(submitData);
@@ -266,6 +269,22 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="birthday"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs flex items-center gap-1">
+                      <Cake className="w-3 h-3" /> Data de Aniversário
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} className="h-9" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField
