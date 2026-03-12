@@ -116,7 +116,9 @@ export const useNegotiations = () => {
     }
 
     // Managers see only their team's negotiations
+    // Wait for brokers to load before filtering
     if (isGerente() && teamHierarchy?.team_id) {
+      if (brokersLoading) return []; // Still loading, don't filter yet
       const teamBrokerIds = brokers
         ?.filter(b => b.team_id === teamHierarchy.team_id)
         .map(b => b.id) || [];
@@ -129,7 +131,7 @@ export const useNegotiations = () => {
     }
 
     return [];
-  }, [allNegotiations, brokers, currentBroker, teamHierarchy, isCorretor, isGerente, isDiretor, isAdmin]);
+  }, [allNegotiations, brokers, brokersLoading, currentBroker, teamHierarchy, isCorretor, isGerente, isDiretor, isAdmin]);
 
   // Filter lost negotiations based on user role
   const lostNegotiations = useMemo(() => {
