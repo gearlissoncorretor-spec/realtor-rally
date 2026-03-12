@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
+import { AppUpdateManager } from "@/components/AppUpdateManager";
 import "./App.css";
 
 // Lazy-loaded pages
