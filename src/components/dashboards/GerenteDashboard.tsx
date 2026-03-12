@@ -68,9 +68,7 @@ const GerenteDashboard = () => {
   const teamNegotiations = useMemo(() =>
     (negotiations || []).filter(n => teamBrokerIds.has(n.broker_id)), [negotiations, teamBrokerIds]);
   const activeNegotiations = teamNegotiations.filter(n => !['perdida', 'cancelada', 'ganha'].includes(n.status));
-  const hotNegotiations = activeNegotiations
-    .sort((a, b) => (b.negotiated_value || 0) - (a.negotiated_value || 0))
-    .slice(0, 5);
+  const hotNegotiations = getHotNegotiations(activeNegotiations, 5);
 
   // Team follow-ups
   const teamFollowUps = useMemo(() =>

@@ -57,7 +57,7 @@ const CorretorDashboard = () => {
   const brokerNegotiations = useMemo(() =>
     (negotiations || []).filter(n => n.broker_id === brokerId), [negotiations, brokerId]);
   const activeNegotiations = brokerNegotiations.filter(n => !['perdida', 'cancelada', 'ganha'].includes(n.status));
-  const hotNegotiations = activeNegotiations.slice(0, 4);
+  const hotNegotiations = getHotNegotiations(activeNegotiations, 4);
 
   // Follow-ups
   const brokerFollowUps = useMemo(() =>
