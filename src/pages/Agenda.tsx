@@ -176,6 +176,7 @@ const Agenda = () => {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <GoogleCalendarConnect startDate={start} endDate={end} />
               {!isMobile && quickActions.map((action) => (
                 <Button
                   key={action.label}
