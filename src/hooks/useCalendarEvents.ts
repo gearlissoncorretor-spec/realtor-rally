@@ -49,6 +49,7 @@ export const EVENT_TYPES = [
   { value: 'venda', label: 'Venda', color: '#06b6d4' },
   { value: 'lancamento', label: 'Lançamento', color: '#f97316' },
   { value: 'lembrete', label: 'Lembrete', color: '#6b7280' },
+  { value: 'aniversario', label: 'Aniversário', color: '#ec4899' },
   { value: 'outro', label: 'Outro', color: '#64748b' },
 ];
 
