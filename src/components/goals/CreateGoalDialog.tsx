@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,14 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { CalendarIcon } from 'lucide-react';
-import { format, addDays, addWeeks, addMonths, addYears } from 'date-fns';
+import { format, addWeeks, addMonths, addYears } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Goal } from '@/hooks/useGoals';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeams } from '@/hooks/useTeams';
+import { useGoalTypes } from '@/hooks/useGoalTypes';
 
 interface CreateGoalDialogProps {
   open: boolean;
@@ -23,18 +25,6 @@ interface CreateGoalDialogProps {
   onCreate: (goal: Partial<Goal>) => Promise<Goal>;
   preSelectedBrokerId?: string;
 }
-
-const GOAL_TYPES = [
-  { value: 'sales_count', label: 'Número de Vendas' },
-  { value: 'vgv', label: 'VGV (Valor Geral de Vendas)' },
-  { value: 'vgc', label: 'VGC (Valor Geral de Comissão)' },
-  { value: 'revenue', label: 'Receita' },
-  { value: 'commission', label: 'Comissão Individual' },
-  { value: 'atendimentos', label: 'Número de Atendimentos' },
-  { value: 'captacao', label: 'Captação de Imóveis' },
-  { value: 'contratacao', label: 'Contratação de Corretores' },
-  { value: 'custom', label: 'Criar Novo Tipo de Meta' },
-];
 
 const PERIOD_TYPES = [
   { value: 'daily', label: 'Diária' },
@@ -61,12 +51,13 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
   const { brokers } = useData();
   const { teams } = useTeams();
   const { getUserRole } = useAuth();
+  const { goalTypes } = useGoalTypes();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    target_value: '',
-    target_type: 'sales_count' as string,
+    target_value: 0,
+    target_type_id: '',
     custom_target_type: '',
     period_type: 'monthly' as string,
     start_date: new Date(),
@@ -85,13 +76,35 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     }
   }, [preSelectedBrokerId, open]);
 
+  // Set default type when goalTypes load
+  React.useEffect(() => {
+    if (goalTypes.length > 0 && !formData.target_type_id) {
+      setFormData(prev => ({ ...prev, target_type_id: goalTypes[0].id }));
+    }
+  }, [goalTypes]);
+
   const userRole = getUserRole();
   const isDirector = userRole === 'diretor' || userRole === 'admin' || userRole === 'super_admin';
 
   const [brokerError, setBrokerError] = useState(false);
   const [dateError, setDateError] = useState(false);
 
-  // Auto-calculate end_date based on period
+  const selectedGoalType = useMemo(() => {
+    return goalTypes.find(t => t.id === formData.target_type_id);
+  }, [goalTypes, formData.target_type_id]);
+
+  const valueFormat = selectedGoalType?.value_format || 'integer';
+
+  const valueHint = useMemo(() => {
+    if (!selectedGoalType) return '';
+    switch (selectedGoalType.value_format) {
+      case 'currency': return 'Ex: R$ 500.000,00';
+      case 'percentage': return 'Ex: 75%';
+      case 'integer': return `Ex: 10 ${selectedGoalType.name.toLowerCase().includes('venda') ? 'vendas' : 'unidades'}`;
+      default: return '';
+    }
+  }, [selectedGoalType]);
+
   const handlePeriodChange = (value: string) => {
     const start = formData.start_date;
     let end = start;
@@ -102,7 +115,6 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
       case 'quarterly': end = addMonths(start, 3); break;
       case 'semester': end = addMonths(start, 6); break;
       case 'yearly': end = addYears(start, 1); break;
-      // custom: keep current end_date
       default: end = formData.end_date; break;
     }
     setFormData(prev => ({ ...prev, period_type: value, end_date: end }));
@@ -115,7 +127,6 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
     if (!formData.title || !formData.target_value) return;
 
-    // Validate scope-specific fields
     if (formData.scope === 'broker' && (!formData.broker_id || formData.broker_id === 'all')) {
       setBrokerError(true);
       return;
@@ -128,16 +139,14 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
     setLoading(true);
     try {
-      const effectiveTargetType = formData.target_type === 'custom'
-        ? formData.custom_target_type
-        : formData.target_type;
+      const targetTypeName = selectedGoalType?.name || formData.custom_target_type || 'custom';
 
       await onCreate({
         title: formData.title,
         description: formData.description || undefined,
-        target_value: parseFloat(formData.target_value),
+        target_value: formData.target_value,
         current_value: 0,
-        target_type: effectiveTargetType as Goal['target_type'],
+        target_type: targetTypeName as Goal['target_type'],
         period_type: formData.period_type as Goal['period_type'],
         start_date: formData.start_date.toISOString().split('T')[0],
         end_date: formData.end_date.toISOString().split('T')[0],
@@ -149,8 +158,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
       });
 
       setFormData({
-        title: '', description: '', target_value: '',
-        target_type: 'sales_count', custom_target_type: '',
+        title: '', description: '', target_value: 0,
+        target_type_id: goalTypes[0]?.id || '', custom_target_type: '',
         period_type: 'monthly', start_date: new Date(), end_date: new Date(),
         assigned_to: '', team_id: '', broker_id: '', scope: 'broker',
         show_in_ranking: false, show_in_tv: false,
@@ -202,25 +211,36 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               />
             </div>
 
-            {/* Goal Type */}
+            {/* Goal Type - Dynamic from DB */}
             <div>
-              <Label htmlFor="target_type">Tipo de Meta *</Label>
+              <Label>Tipo de Meta *</Label>
               <Select
-                value={formData.target_type}
-                onValueChange={(value) =>
-                  setFormData(prev => ({ ...prev, target_type: value, custom_target_type: '' }))
-                }
+                value={formData.target_type_id}
+                onValueChange={(value) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    target_type_id: value,
+                    custom_target_type: '',
+                    target_value: 0,
+                  }));
+                }}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {GOAL_TYPES.map(t => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  {goalTypes.map(t => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        ({t.value_format === 'currency' ? 'R$' : t.value_format === 'percentage' ? '%' : 'Nº'})
+                      </span>
+                    </SelectItem>
                   ))}
+                  <SelectItem value="custom">+ Criar Novo Tipo</SelectItem>
                 </SelectContent>
               </Select>
-              {formData.target_type === 'custom' && (
+              {formData.target_type_id === 'custom' && (
                 <Input
                   className="mt-2"
                   value={formData.custom_target_type}
@@ -231,23 +251,47 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               )}
             </div>
 
-            {/* Target Value */}
+            {/* Target Value - Smart formatting */}
             <div>
               <Label htmlFor="target_value">Valor da Meta *</Label>
-              <Input
-                id="target_value"
-                type="number"
-                step="0.01"
-                value={formData.target_value}
-                onChange={(e) => setFormData(prev => ({ ...prev, target_value: e.target.value }))}
-                placeholder="Ex: 10 vendas, R$ 500.000..."
-                required
-              />
+              {valueFormat === 'currency' ? (
+                <CurrencyInput
+                  value={formData.target_value}
+                  onChange={(value) => setFormData(prev => ({ ...prev, target_value: value }))}
+                  placeholder="0,00"
+                />
+              ) : valueFormat === 'percentage' ? (
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={formData.target_value || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, target_value: parseFloat(e.target.value) || 0 }))}
+                    placeholder="0"
+                    className="pr-8"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">%</span>
+                </div>
+              ) : (
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.target_value || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, target_value: parseInt(e.target.value) || 0 }))}
+                  placeholder="0"
+                />
+              )}
+              {valueHint && (
+                <p className="text-xs text-muted-foreground mt-1">{valueHint}</p>
+              )}
             </div>
 
             {/* Period Type */}
             <div>
-              <Label htmlFor="period_type">Período da Meta *</Label>
+              <Label>Período da Meta *</Label>
               <Select
                 value={formData.period_type}
                 onValueChange={handlePeriodChange}
@@ -374,10 +418,10 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               )}
             </div>
 
-            {/* Team selector (for team scope or director filtering brokers) */}
+            {/* Team selector */}
             {(formData.scope === 'team' || (formData.scope === 'broker' && isDirector)) && (
               <div>
-                <Label htmlFor="team_id">Equipe {formData.scope === 'team' ? '*' : ''}</Label>
+                <Label>Equipe {formData.scope === 'team' ? '*' : ''}</Label>
                 <Select
                   value={formData.team_id}
                   onValueChange={(value) =>
@@ -397,10 +441,10 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               </div>
             )}
 
-            {/* Broker selector (for broker scope) */}
+            {/* Broker selector */}
             {formData.scope === 'broker' && (
               <div>
-                <Label htmlFor="broker_id">Corretor *</Label>
+                <Label>Corretor *</Label>
                 <Select
                   value={formData.broker_id}
                   onValueChange={(value) => {
@@ -451,12 +495,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Cancelar
             </Button>
             <Button type="submit" disabled={loading}>
