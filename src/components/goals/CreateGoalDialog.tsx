@@ -410,9 +410,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   </PopoverContent>
                 </Popover>
               </div>
-              {!isCustomPeriod && (
-                <p className="text-xs text-muted-foreground mt-1">Calculada automaticamente pelo período</p>
-              )}
+              
               {dateError && (
                 <p className="text-sm text-destructive mt-1">Data de término deve ser após a data de início</p>
               )}
