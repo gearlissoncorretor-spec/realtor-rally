@@ -402,65 +402,99 @@ const GerenteDashboard = () => {
             </div>
           )}
 
-          {/* Goal + Funnel Row */}
-          {!focusMode && (
+          {/* Goal Row - Monthly + Annual */}
+          {!focusMode && sections.includes('goal') && (
             <div className="grid lg:grid-cols-2 gap-4">
-              {/* Meta da Equipe */}
-              {sections.includes('goal') && (
-                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5">
-                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <Target className="w-4 h-4 text-primary" /> Meta da Equipe
-                  </h2>
-                  {primaryGoal ? (
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">{primaryGoal.title}</p>
-                        <p className="text-3xl font-bold text-foreground">{formatCurrency(primaryGoal.current_value)}</p>
-                        <p className="text-xs text-muted-foreground">de {formatCurrency(primaryGoal.target_value)}</p>
-                      </div>
-                      <Progress value={goalProgress} className="h-3" />
-                      <div className="flex justify-between text-xs">
-                        <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
-                        <span className="text-muted-foreground">
-                          Faltam: {formatCurrency(Math.max(primaryGoal.target_value - primaryGoal.current_value, 0))}
-                        </span>
-                      </div>
+              {/* Meta Mensal */}
+              <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5">
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
+                  <Target className="w-4 h-4 text-primary" /> Meta Mensal
+                </h2>
+                {primaryGoal ? (
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{primaryGoal.title}</p>
+                      <p className="text-3xl font-bold text-foreground">{formatCurrency(primaryGoal.current_value)}</p>
+                      <p className="text-xs text-muted-foreground">de {formatCurrency(primaryGoal.target_value)}</p>
                     </div>
-                  ) : (
-                    <div className="text-center space-y-3">
-                      <p className="text-3xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
-                      <p className="text-xs text-muted-foreground">VGV da equipe no mês • {monthSales.length} vendas</p>
-                      <Button variant="outline" size="sm" className="text-xs gap-1.5 border-primary/30 text-primary" onClick={() => navigate('/meta-gestao')}>
-                        <Target className="w-3 h-3" /> Cadastrar meta em Meta Gestão
-                      </Button>
+                    <Progress value={goalProgress} className="h-3" />
+                    <div className="flex justify-between text-xs">
+                      <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
+                      <span className="text-muted-foreground">
+                        Faltam: {formatCurrency(Math.max(primaryGoal.target_value - primaryGoal.current_value, 0))}
+                      </span>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Funil da Equipe */}
-              {sections.includes('funnel') && (
-                <div className="rounded-xl border border-border bg-card/50 p-5">
-                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas da Equipe
-                  </h2>
-                  <div className="space-y-3">
-                    {funnelData.map(item => (
-                      <div key={item.label} className="flex items-center gap-3">
-                        <span className="text-xs text-muted-foreground w-24 text-right">{item.label}</span>
-                        <div className="flex-1 bg-muted/30 rounded-full h-6 overflow-hidden">
-                          <div
-                            className={`h-full ${item.color} rounded-full flex items-center justify-end pr-2 transition-all`}
-                            style={{ width: `${Math.max((item.value / maxFunnel) * 100, 8)}%` }}
-                          >
-                            <span className="text-[10px] font-bold text-white">{item.value}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center space-y-3">
+                    <p className="text-3xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
+                    <p className="text-xs text-muted-foreground">VGV da equipe no mês • {monthSales.length} vendas</p>
+                    <Button variant="outline" size="sm" className="text-xs gap-1.5 border-primary/30 text-primary" onClick={() => navigate('/meta-gestao')}>
+                      <Target className="w-3 h-3" /> Cadastrar meta em Meta Gestão
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Meta Anual */}
+              <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent p-5">
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Meta Anual
+                </h2>
+                {annualGoal ? (
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground mb-1">{annualGoal.title}</p>
+                      <p className="text-3xl font-bold text-foreground">{formatCurrency(annualGoal.current_value)}</p>
+                      <p className="text-xs text-muted-foreground">de {formatCurrency(annualGoal.target_value)}</p>
+                    </div>
+                    <Progress value={annualProgress} className="h-3" />
+                    <div className="flex justify-between text-xs">
+                      <span className="text-emerald-400 font-semibold">{Math.round(annualProgress)}% concluído</span>
+                      <span className="text-muted-foreground">
+                        Faltam: {formatCurrency(Math.max(annualGoal.target_value - annualGoal.current_value, 0))}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-3">
+                    <p className="text-3xl font-bold text-foreground">
+                      {formatCurrency(teamSales.filter(s => {
+                        const d = new Date(s.sale_date || s.created_at || '');
+                        return d.getFullYear() === currentYear;
+                      }).reduce((sum, s) => sum + (s.vgv || 0), 0))}
+                    </p>
+                    <p className="text-xs text-muted-foreground">VGV acumulado em {currentYear}</p>
+                    <Button variant="outline" size="sm" className="text-xs gap-1.5 border-emerald-500/30 text-emerald-400" onClick={() => navigate('/meta-gestao')}>
+                      <TrendingUp className="w-3 h-3" /> Cadastrar meta anual
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Funil da Equipe */}
+          {!focusMode && sections.includes('funnel') && (
+            <div className="rounded-xl border border-border bg-card/50 p-5">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
+                <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas da Equipe
+              </h2>
+              <div className="space-y-3">
+                {funnelData.map(item => (
+                  <div key={item.label} className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground w-24 text-right">{item.label}</span>
+                    <div className="flex-1 bg-muted/30 rounded-full h-6 overflow-hidden">
+                      <div
+                        className={`h-full ${item.color} rounded-full flex items-center justify-end pr-2 transition-all`}
+                        style={{ width: `${Math.max((item.value / maxFunnel) * 100, 8)}%` }}
+                      >
+                        <span className="text-[10px] font-bold text-white">{item.value}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
