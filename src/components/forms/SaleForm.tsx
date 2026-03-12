@@ -36,6 +36,14 @@ const saleSchema = z.object({
   ano: z.number().min(2020, 'Ano deve ser válido').max(new Date().getFullYear() + 1),
   mes: z.number().min(1, 'Mês deve ser entre 1 e 12').max(12),
   latitude: z.string().min(1, 'Latitude é obrigatória'),
+}).superRefine((data, ctx) => {
+  if (data.sale_type === 'revenda' && (!data.captador || data.captador.trim() === '')) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Captador é obrigatório para Revenda',
+      path: ['captador'],
+    });
+  }
 });
 
 type SaleFormData = z.infer<typeof saleSchema>;
