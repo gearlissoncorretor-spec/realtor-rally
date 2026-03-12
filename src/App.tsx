@@ -8,6 +8,8 @@ import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
+import { AppUpdateManager } from "@/components/AppUpdateManager";
+import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 import "./App.css";
 
 // Lazy-loaded pages
@@ -63,6 +65,7 @@ const AuthenticatedLayout = () => {
   
   return (
     <DataProvider>
+      <RealtimeSyncProvider />
       <Outlet />
     </DataProvider>
   );
@@ -73,6 +76,7 @@ const App = () => (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
         <Toaster />
+        <AppUpdateManager />
         <Router future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true

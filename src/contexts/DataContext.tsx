@@ -60,7 +60,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, teamHierarchy, getUserRole } = useAuth();
-
   // Stable query key - use primitive values only
   const teamId = teamHierarchy?.team_id ?? null;
   
@@ -535,61 +534,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
   });
 
-  // Set up real-time subscriptions para todas as tabelas
-  useEffect(() => {
-    if (!user) return;
-
-    const salesChannel = supabase
-      .channel('sales_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'sales'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['sales'] });
-        }
-      )
-      .subscribe();
-
-    const brokersChannel = supabase
-      .channel('brokers_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'brokers'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['brokers'] });
-        }
-      )
-      .subscribe();
-
-    const targetsChannel = supabase
-      .channel('targets_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'targets'
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['targets'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(salesChannel);
-      supabase.removeChannel(brokersChannel);
-      supabase.removeChannel(targetsChannel);
-    };
-  }, [queryClient, user]);
+  // Real-time subscriptions are now handled by useRealtimeSync in App.tsx
 
   const value: DataContextType = {
     brokers,
