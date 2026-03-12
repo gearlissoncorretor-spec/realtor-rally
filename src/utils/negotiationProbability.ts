@@ -73,13 +73,22 @@ export function calculateClosingProbability(neg: Negotiation): number {
   const ageScore = getAgeDurationScore(neg.start_date);
   const completenessScore = getCompletenessScore(neg);
 
-  // Pesos: status 40%, recência 25%, tempo 15%, completude 10%, base 10%
+  // Para status avançados (>=75), reduzimos o impacto negativo de tempo/recência
+  // pois negociações avançadas são naturalmente mais prováveis de fechar
+  const isAdvancedStatus = statusScore >= 75;
+
+  const statusWeight = isAdvancedStatus ? 0.55 : 0.40;
+  const recencyWeight = isAdvancedStatus ? 0.15 : 0.25;
+  const ageWeight = isAdvancedStatus ? 0.05 : 0.15;
+  const completenessWeight = 0.10;
+  const baseScore = isAdvancedStatus ? 15 : 10;
+
   const weighted =
-    statusScore * 0.40 +
-    recencyScore * 0.25 +
-    ageScore * 0.15 +
-    completenessScore * 0.10 +
-    10; // base de 10%
+    statusScore * statusWeight +
+    recencyScore * recencyWeight +
+    ageScore * ageWeight +
+    completenessScore * completenessWeight +
+    baseScore;
 
   return Math.min(Math.max(Math.round(weighted), 5), 99);
 }
