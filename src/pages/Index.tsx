@@ -533,17 +533,7 @@ const DiretorDashboardPage = () => {
 
 
 const Index = () => {
-  const { getUserRole } = useAuth();
-  const role = getUserRole();
-
-  switch (role) {
-    case 'gerente':
-      return <GerenteDashboard />;
-    case 'corretor':
-      return <CorretorDashboard />;
-    default:
-      return <DiretorDashboardPage />;
-  }
+  return <DiretorDashboardPage />;
 };
 
 export default Index;
