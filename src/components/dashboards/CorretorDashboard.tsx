@@ -9,6 +9,7 @@ import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useGoals } from '@/hooks/useGoals';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
+import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
@@ -57,7 +58,7 @@ const CorretorDashboard = () => {
   const brokerNegotiations = useMemo(() =>
     (negotiations || []).filter(n => n.broker_id === brokerId), [negotiations, brokerId]);
   const activeNegotiations = brokerNegotiations.filter(n => !['perdida', 'cancelada', 'ganha'].includes(n.status));
-  const hotNegotiations = activeNegotiations.slice(0, 4);
+  const hotNegotiations = getHotNegotiations(activeNegotiations, 4);
 
   // Follow-ups
   const brokerFollowUps = useMemo(() =>
@@ -276,8 +277,8 @@ const CorretorDashboard = () => {
                   <p className="text-sm text-muted-foreground text-center py-6">Nenhuma negociação ativa</p>
                 ) : (
                   <div className="space-y-2">
-                    {hotNegotiations.map((neg, idx) => {
-                      const chance = Math.max(90 - idx * 15, 30);
+                    {hotNegotiations.map((neg) => {
+                      const chance = neg.closingProbability;
                       return (
                         <div key={neg.id} className="p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all cursor-pointer" onClick={() => navigate('/negociacoes')}>
                           <div className="flex items-start justify-between">
@@ -285,12 +286,12 @@ const CorretorDashboard = () => {
                               <p className="text-sm font-medium text-foreground truncate">{neg.client_name}</p>
                               <p className="text-xs text-muted-foreground truncate">{neg.property_address}</p>
                             </div>
-                            <Badge variant="outline" className="shrink-0 text-[10px] border-orange-500/30 text-orange-400 bg-orange-500/10">
+                            <Badge variant="outline" className={`shrink-0 text-[10px] ${getProbabilityColor(chance)}`}>
                               {chance}%
                             </Badge>
                           </div>
                           <div className="mt-2">
-                            <Progress value={chance} className="h-1.5" />
+                            <Progress value={chance} className={`h-1.5 ${getProbabilityProgressColor(chance)}`} />
                           </div>
                         </div>
                       );
