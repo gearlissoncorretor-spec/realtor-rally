@@ -104,6 +104,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
         cpf: data.cpf?.trim() || null,
         phone: data.phone?.trim() || null,
         creci: data.creci?.trim() || null,
+        birthday: data.birthday?.trim() || null,
         avatar_url: avatarUrl || null,
       };
       await onSubmit(submitData);
