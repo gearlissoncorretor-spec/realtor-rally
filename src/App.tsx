@@ -76,6 +76,7 @@ const App = () => (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
         <Toaster />
+        <AppUpdateManager />
         <Router future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true
