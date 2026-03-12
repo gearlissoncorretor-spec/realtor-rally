@@ -10,6 +10,7 @@ import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { AppUpdateManager } from "@/components/AppUpdateManager";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
+import InstallPrompt from "@/components/InstallPrompt";
 import "./App.css";
 
 // Lazy-loaded pages
@@ -77,6 +78,7 @@ const App = () => (
       <AuthProvider>
         <Toaster />
         <AppUpdateManager />
+        <InstallPrompt />
         <Router future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true
