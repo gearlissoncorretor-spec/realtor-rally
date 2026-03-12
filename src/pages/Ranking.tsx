@@ -361,9 +361,9 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
   if (podiumOrder.length === 0) return null;
 
   const podiumConfig = [
-    { height: "h-32 md:h-40", avatarSize: "w-16 h-16 md:w-20 md:h-20", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
-    { height: "h-40 md:h-52", avatarSize: "w-20 h-20 md:w-28 md:h-28", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
-    { height: "h-24 md:h-32", avatarSize: "w-14 h-14 md:w-16 md:h-16", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
+    { height: "h-32 md:h-40", avatarSize: "w-14 h-14 md:w-16 md:h-16", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
+    { height: "h-40 md:h-52", avatarSize: "w-16 h-16 md:w-20 md:h-20", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
+    { height: "h-24 md:h-32", avatarSize: "w-12 h-12 md:w-14 md:h-14", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
   ];
 
   return (
