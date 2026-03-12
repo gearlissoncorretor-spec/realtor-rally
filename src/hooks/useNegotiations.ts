@@ -55,7 +55,7 @@ export const useNegotiations = () => {
   const { user, profile, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { brokers } = useBrokers();
+  const { brokers, loading: brokersLoading } = useBrokers();
 
   // Get current user's broker for corretores
   const currentBroker = useMemo(() => {
