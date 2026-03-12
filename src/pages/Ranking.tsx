@@ -1993,7 +1993,7 @@ const Ranking = () => {
         )}
 
         {/* Stats */}
-        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} />
+        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : allBrokerRankings} />
 
         {/* Main content: Ranking + Spotlight sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
