@@ -35,7 +35,7 @@ const GestaoUsuarios = () => {
   const [resetUser, setResetUser] = useState<UserData | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
 
-  const canManage = isAdmin() || isDiretor();
+  const canManage = isAdmin() || isDiretor() || isGerente();
   const currentRole = getUserRole();
 
   const fetchData = useCallback(async () => {
