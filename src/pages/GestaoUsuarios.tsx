@@ -87,6 +87,8 @@ const GestaoUsuarios = () => {
 
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
+      // Gerentes só veem membros da própria equipe + a si mesmos
+      if (isGerente() && profile?.team_id && u.team_id !== profile.team_id && u.id !== user?.id) return false;
       if (search && !u.full_name.toLowerCase().includes(search.toLowerCase()) && 
           !(u.nickname?.toLowerCase().includes(search.toLowerCase()))) return false;
       if (roleFilter !== 'all' && u.role !== roleFilter) return false;
@@ -95,7 +97,7 @@ const GestaoUsuarios = () => {
       if (statusFilter !== 'all' && u.status !== statusFilter) return false;
       return true;
     });
-  }, [users, search, roleFilter, teamFilter, statusFilter]);
+  }, [users, search, roleFilter, teamFilter, statusFilter, isGerente, profile, user]);
 
   const handleToggleStatus = async (u: UserData) => {
     const newStatus = u.status === 'ativo' ? 'inativo' : 'ativo';
