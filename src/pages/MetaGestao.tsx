@@ -116,7 +116,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
         percentAchieved: target > 0 ? (achieved / target) * 100 : 0
       };
     });
-  }, [sales, targets, year]);
+  }, [sales, filteredTargets, year]);
   
   const brokerStats = useMemo(() => {
     let filteredBrokers = brokers;
