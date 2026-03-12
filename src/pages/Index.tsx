@@ -352,22 +352,16 @@ const DiretorDashboardPage = () => {
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 min-h-screen">
         
-        {/* Hero Section */}
-        <div className="relative h-[100px] sm:h-[120px] rounded-2xl mb-8 overflow-hidden bg-gradient-to-r from-primary/90 via-primary/80 to-primary/60 flex items-center justify-center">
-          <div className="absolute inset-0 opacity-[0.04]">
-            <div className="absolute inset-0" style={{
-              backgroundImage: 'radial-gradient(circle at 25% 25%, white 1px, transparent 1px)',
-              backgroundSize: '40px 40px'
-            }} />
-          </div>
-          <div className="relative z-10 px-8 sm:px-10 text-center">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
-              {displayName}
-            </h1>
-            <p className="text-xs sm:text-sm text-white/50 font-medium tracking-wide mt-0.5">
-              {subtitle || 'A evolução da gestão imobiliária'}
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-xl font-semibold text-foreground/95 tracking-tight">
+            {displayName}
+          </h1>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {subtitle}
             </p>
-          </div>
+          )}
         </div>
 
         {/* Alerta de Negociações */}
