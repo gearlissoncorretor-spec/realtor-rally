@@ -12,7 +12,7 @@ import EditUserDialog from '@/components/gestao-usuarios/EditUserDialog';
 import TransferTeamDialog from '@/components/gestao-usuarios/TransferTeamDialog';
 
 const GestaoUsuarios = () => {
-  const { user, isAdmin, isDiretor, isGerente, getUserRole } = useAuth();
+  const { user, profile, isAdmin, isDiretor, isGerente, getUserRole } = useAuth();
   const { toast } = useToast();
 
   const [users, setUsers] = useState<UserData[]>([]);
