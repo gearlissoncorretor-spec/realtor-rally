@@ -18,6 +18,7 @@ const defaultConfig: NotificationConfig = {
   overdueFollowUps: true,
   goalDeadlines: true,
   newSales: true,
+  brokerBirthdays: true,
 };
 
 export const useNotificationSystem = () => {
