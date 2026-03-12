@@ -23,6 +23,7 @@ const brokerSchema = z.object({
   phone: z.string().optional(),
   cpf: z.string().optional(),
   creci: z.string().optional(),
+  birthday: z.string().optional(),
   status: z.enum(['ativo', 'inativo', 'ferias']),
   team_id: z.string().min(1, 'Equipe é obrigatória'),
   observations: z.string().max(200, 'Observação deve ter no máximo 200 caracteres').optional(),
