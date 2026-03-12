@@ -60,6 +60,7 @@ const Navigation = () => {
 
   const allNavItems: NavItem[] = [
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
+    { href: "/central-gestor", label: "Central do Gestor", icon: TrendingUp, screen: "central-gestor" },
     { href: "/dashboard-equipes", label: "Dashboard Equipes", icon: Building2, screen: "dashboard-equipes" },
     { href: "/ranking", label: "Ranking", icon: Trophy, screen: "ranking" },
     { href: "/vendas", label: "Vendas", icon: Home, screen: "vendas" },
@@ -85,7 +86,7 @@ const Navigation = () => {
     if (isAdmin() || userRole === 'diretor') return true;
     if (item.screen === 'instalar') return true;
     const ROLE_SCREENS: Record<string, string[]> = {
-      gerente: ['dashboard', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'gestao-usuarios'],
+      gerente: ['dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'gestao-usuarios'],
       corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'tarefas-kanban', 'comissoes', 'configuracoes', 'agenda'],
     };
     const roleScreens = ROLE_SCREENS[userRole] || [];
@@ -96,7 +97,7 @@ const Navigation = () => {
     {
       label: "Principal",
       defaultOpen: true,
-      items: navItems.filter(i => ['dashboard', 'dashboard-equipes', 'ranking'].includes(i.screen)),
+      items: navItems.filter(i => ['dashboard', 'central-gestor', 'dashboard-equipes', 'ranking'].includes(i.screen)),
     },
     {
       label: "Comercial",

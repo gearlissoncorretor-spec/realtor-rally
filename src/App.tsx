@@ -32,6 +32,7 @@ const Agenda = lazy(() => import("@/pages/Agenda"));
 const Instalar = lazy(() => import("@/pages/Instalar"));
 const GestaoUsuarios = lazy(() => import("@/pages/GestaoUsuarios"));
 const SuperAdmin = lazy(() => import("@/pages/SuperAdmin"));
+const CentralGestor = lazy(() => import("@/pages/CentralGestor"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Comissoes = lazy(() => import("@/pages/Comissoes"));
@@ -107,6 +108,9 @@ const App = () => (
               } />
               <Route path="/x1" element={
                 <ProtectedRoute><LazyPage><X1 /></LazyPage></ProtectedRoute>
+              } />
+              <Route path="/central-gestor" element={
+                <ProtectedRoute><LazyPage><CentralGestor /></LazyPage></ProtectedRoute>
               } />
               <Route path="/dashboard-equipes" element={
                 <ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>

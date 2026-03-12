@@ -25,6 +25,7 @@ const PATH_TO_SCREEN: Record<string, string> = {
   '/relatorios': 'relatorios',
   '/x1': 'x1',
   '/dashboard-equipes': 'dashboard-equipes',
+  '/central-gestor': 'central-gestor',
   '/tarefas-kanban': 'tarefas-kanban',
   '/atividades': 'atividades',
   '/negociacoes': 'negociacoes',
@@ -41,7 +42,7 @@ const ROLE_SCREENS: Record<string, string[]> = {
   diretor: ['*'],
   admin: ['*'],
   super_admin: ['*'],
-  gerente: ['dashboard', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
+  gerente: ['dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
   corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'comissoes', 'configuracoes', 'agenda', 'instalar'],
 };
 
