@@ -92,6 +92,15 @@ export const SaleForm: React.FC<SaleFormProps> = ({
     },
   });
 
+  const watchSaleType = form.watch('sale_type');
+
+  // Clear captador when switching to lancamento
+  React.useEffect(() => {
+    if (watchSaleType === 'lancamento') {
+      form.setValue('captador', '');
+    }
+  }, [watchSaleType, form]);
+
   // Reset form when sale data changes
   React.useEffect(() => {
     if (isOpen) {
