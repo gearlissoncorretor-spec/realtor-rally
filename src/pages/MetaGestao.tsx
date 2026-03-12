@@ -69,7 +69,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
   // Filter targets by team_id when applicable
   const filteredTargets = useMemo(() => {
     if (!teamFilter) return targets;
-    return targets.filter(t => t.team_id === teamFilter);
+    return targets.filter(t => (t as any).team_id === teamFilter);
   }, [targets, teamFilter]);
   
   const yearlyData = useMemo(() => {
