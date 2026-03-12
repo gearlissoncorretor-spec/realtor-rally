@@ -1618,15 +1618,16 @@ const Ranking = () => {
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
 
-  // Fetch manager user_ids to exclude from ranking
+  // Fetch manager user_ids to exclude from ranking (using security definer function)
   const { data: managerUserIds = [] } = useQuery({
     queryKey: ['manager-user-ids'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('role', ['gerente', 'diretor', 'admin']);
-      return (data || []).map(r => r.user_id);
+      const { data, error } = await supabase.rpc('get_manager_user_ids');
+      if (error) {
+        console.error('Error fetching manager ids:', error);
+        return [];
+      }
+      return (data as string[]) || [];
     },
     staleTime: 5 * 60 * 1000,
   });
