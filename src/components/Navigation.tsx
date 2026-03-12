@@ -97,7 +97,7 @@ const Navigation = () => {
     {
       label: "Principal",
       defaultOpen: true,
-      items: navItems.filter(i => ['dashboard', 'dashboard-equipes', 'ranking'].includes(i.screen)),
+      items: navItems.filter(i => ['dashboard', 'central-gestor', 'dashboard-equipes', 'ranking'].includes(i.screen)),
     },
     {
       label: "Comercial",
