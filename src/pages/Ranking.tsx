@@ -433,20 +433,7 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
               </p>
               <p className="text-xs text-muted-foreground mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
               
-              {/* Level badge with XP bar */}
-              <div className="flex flex-col items-center mb-1 gap-0.5">
-                <Badge variant="outline" className={cn("text-[10px]", level.color)}>
-                  {level.icon} Nv.{level.level} {level.title}
-                </Badge>
-                <div className="w-16 h-1 bg-muted/50 rounded-full overflow-hidden">
-                  <div className={cn("h-full rounded-full transition-all duration-1000", 
-                    level.level >= 8 ? "bg-gradient-to-r from-purple-500 to-pink-500" :
-                    level.level >= 5 ? "bg-gradient-to-r from-blue-500 to-cyan-500" :
-                    "bg-gradient-to-r from-green-500 to-emerald-500"
-                  )} style={{ width: `${xpProgress}%` }} />
-                </div>
-                <span className="text-[9px] text-muted-foreground">{xp.toLocaleString()} XP</span>
-              </div>
+              {/* Level badge with XP bar - hidden for now */}
 
               {/* Achievement badges */}
               {achievements.length > 0 && (
