@@ -270,6 +270,22 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                 />
               </div>
 
+              <FormField
+                control={form.control}
+                name="birthday"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs flex items-center gap-1">
+                      <Cake className="w-3 h-3" /> Data de Aniversário
+                    </FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} className="h-9" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
