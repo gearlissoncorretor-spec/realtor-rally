@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,18 +7,20 @@ import {
 } from 'lucide-react';
 import {
   format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays,
-  startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek, parseISO,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCalendarEvents, CalendarEvent as CalEvent, CreateEventData } from '@/hooks/useCalendarEvents';
 import { useBrokerBirthdays } from '@/hooks/useBrokerBirthdays';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import CreateEventDialog from '@/components/calendar/CreateEventDialog';
 import CalendarMonthView from '@/components/calendar/CalendarMonthView';
 import CalendarWeekView from '@/components/calendar/CalendarWeekView';
 import AgendaDayView from '@/components/calendar/AgendaDayView';
 import AgendaSummaryCards from '@/components/calendar/AgendaSummaryCards';
 import AgendaActivitiesPanel from '@/components/calendar/AgendaActivitiesPanel';
+import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -51,12 +53,49 @@ const Agenda = () => {
   const { start, end } = getDateRange();
   const { events: calendarEvents, isLoading, createEvent, updateEvent, deleteEvent } = useCalendarEvents(start, end);
   const { getBirthdayEvents } = useBrokerBirthdays();
+  const { googleEvents, isConnected, exchangeCode } = useGoogleCalendar(start, end);
 
-  // Merge calendar events with birthday events
+  // Handle OAuth callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      exchangeCode(code);
+    }
+  }, [exchangeCode]);
+
+  // Convert Google events to CalEvent format and merge
   const events = React.useMemo(() => {
     const birthdays = getBirthdayEvents(start, end);
-    return [...calendarEvents, ...birthdays];
-  }, [calendarEvents, getBirthdayEvents, start, end]);
+
+    const mappedGoogle: CalEvent[] = googleEvents.map((ge) => {
+      const startDate = ge.start.includes('T') ? ge.start.substring(0, 10) : ge.start;
+      const startTime = ge.start.includes('T') ? ge.start.substring(11, 16) : null;
+      const endTime = ge.end.includes('T') ? ge.end.substring(11, 16) : null;
+
+      return {
+        id: `google-${ge.id}`,
+        user_id: '',
+        company_id: null,
+        title: `📅 ${ge.summary}`,
+        description: ge.description || null,
+        event_date: startDate,
+        start_time: startTime,
+        end_time: endTime,
+        event_type: 'outro',
+        responsible_id: null,
+        client_name: ge.location || null,
+        property_reference: null,
+        is_private: false,
+        is_all_day: !ge.start.includes('T'),
+        color: '#4285F4',
+        created_at: '',
+        updated_at: '',
+      };
+    });
+
+    return [...calendarEvents, ...birthdays, ...mappedGoogle];
+  }, [calendarEvents, getBirthdayEvents, googleEvents, start, end]);
 
   const navigate = (direction: 'prev' | 'next') => {
     const fn = direction === 'next'
@@ -137,6 +176,7 @@ const Agenda = () => {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <GoogleCalendarConnect startDate={start} endDate={end} />
               {!isMobile && quickActions.map((action) => (
                 <Button
                   key={action.label}
