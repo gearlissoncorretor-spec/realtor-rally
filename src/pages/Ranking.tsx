@@ -1407,9 +1407,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, onClose, sales, tvRan
                     {broker.name.split(' ').slice(0, 2).join(' ')}
                   </p>
                   <p className="text-xs text-blue-200/60 mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
-                  <Badge variant="outline" className={cn("text-[10px] mb-1 border-white/20", level.color)}>
-                    Nv.{level.level} {level.title}
-                  </Badge>
+                  {/* Level badge hidden for now */}
                   <p className={cn(
                     "font-black mb-2",
                     viewMode === 'podium' ? "text-lg lg:text-xl" : "text-base lg:text-lg",
