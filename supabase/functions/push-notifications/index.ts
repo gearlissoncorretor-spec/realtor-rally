@@ -111,11 +111,10 @@ async function authenticateUser(req: Request, supabaseUrl: string): Promise<stri
     global: { headers: { Authorization: authHeader } }
   })
 
-  const token = authHeader.replace('Bearer ', '')
-  const { data, error } = await userClient.auth.getClaims(token)
-  if (error || !data?.claims) return null
+  const { data: { user }, error } = await userClient.auth.getUser()
+  if (error || !user) return null
 
-  return data.claims.sub as string
+  return user.id
 }
 
 async function getOrCreateVapidKeys(supabase: any) {
