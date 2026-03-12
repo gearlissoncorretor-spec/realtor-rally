@@ -4,16 +4,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-const WATCHED_TABLES = [
-  { table: 'sales', label: 'Vendas', queryKey: 'sales' },
-  { table: 'brokers', label: 'Corretores', queryKey: 'brokers' },
-  { table: 'negotiations', label: 'Negociações', queryKey: 'negotiations' },
-  { table: 'goals', label: 'Metas', queryKey: 'goals' },
-  { table: 'follow_ups', label: 'Follow-ups', queryKey: 'follow-ups' },
-  { table: 'targets', label: 'Metas mensais', queryKey: 'targets' },
-  { table: 'broker_tasks', label: 'Tarefas', queryKey: 'broker-tasks' },
-  { table: 'commissions', label: 'Comissões', queryKey: 'commissions' },
-] as const;
+type WatchedTable = {
+  table: string;
+  label: string;
+  queryKey: readonly string[];
+  showToast?: boolean;
+};
+
+const WATCHED_TABLES: WatchedTable[] = [
+  { table: 'sales', label: 'Vendas', queryKey: ['sales'] },
+  { table: 'brokers', label: 'Corretores', queryKey: ['brokers'] },
+  { table: 'negotiations', label: 'Negociações', queryKey: ['negotiations'] },
+  { table: 'goals', label: 'Metas', queryKey: ['goals'] },
+  { table: 'follow_ups', label: 'Follow-ups', queryKey: ['follow-ups'] },
+  { table: 'targets', label: 'Metas mensais', queryKey: ['targets'] },
+  { table: 'broker_tasks', label: 'Tarefas', queryKey: ['broker-tasks'] },
+  { table: 'commissions', label: 'Comissões', queryKey: ['commissions'] },
+  { table: 'calendar_events', label: 'Agenda', queryKey: ['calendar-events'] },
+  { table: 'calendar_event_shares', label: 'Compartilhamentos da agenda', queryKey: ['calendar-events'], showToast: false },
+];
 
 export const useRealtimeSync = () => {
   const { user } = useAuth();
@@ -23,27 +32,26 @@ export const useRealtimeSync = () => {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('global-data-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, (payload) => handleChange('sales', 'Vendas', payload))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'brokers' }, (payload) => handleChange('brokers', 'Corretores', payload))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'negotiations' }, (payload) => handleChange('negotiations', 'Negociações', payload))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'goals' }, (payload) => handleChange('goals', 'Metas', payload))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'follow_ups' }, (payload) => handleChange('follow-ups', 'Follow-ups', payload))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'targets' }, (payload) => handleChange('targets', 'Metas mensais', payload))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'broker_tasks' }, (payload) => handleChange('broker-tasks', 'Tarefas', payload))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions' }, (payload) => handleChange('commissions', 'Comissões', payload))
-      .subscribe();
+    const channel = supabase.channel('global-data-sync');
 
-    function handleChange(queryKey: string, label: string, payload: any) {
-      // Invalidate cache to force refetch
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+    WATCHED_TABLES.forEach(({ table, label, queryKey, showToast = true }) => {
+      channel.on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
+        handleChange(queryKey, label, payload, showToast);
+      });
+    });
 
-      // Throttle toasts per table (max 1 every 10s)
+    channel.subscribe();
+
+    function handleChange(queryKey: readonly string[], label: string, payload: any, showToast: boolean) {
+      queryClient.invalidateQueries({ queryKey: [...queryKey] });
+
+      if (!showToast) return;
+
+      const throttleKey = queryKey.join(':');
       const now = Date.now();
-      const lastToast = toastThrottle.current[queryKey] || 0;
+      const lastToast = toastThrottle.current[throttleKey] || 0;
       if (now - lastToast < 10000) return;
-      toastThrottle.current[queryKey] = now;
+      toastThrottle.current[throttleKey] = now;
 
       const eventLabels: Record<string, string> = {
         INSERT: 'adicionado(a)',
