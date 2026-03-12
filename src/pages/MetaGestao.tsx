@@ -87,11 +87,11 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
     const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
     const totalSales = yearSales.length;
-    const yearTargets = targets.filter(t => t.year === year);
+    const yearTargets = filteredTargets.filter(t => t.year === year);
     const annualTarget = yearTargets.reduce((sum, t) => sum + t.target_value, 0);
     
     return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
-  }, [sales, targets, year, filteredBrokerIds]);
+  }, [sales, filteredTargets, year, filteredBrokerIds]);
   
   const monthlyGoals = useMemo((): MonthlyGoal[] => {
     const yearStart = startOfYear(new Date(year, 0, 1));
