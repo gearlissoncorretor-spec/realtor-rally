@@ -384,7 +384,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                       setDateError(false);
                     }
                   }}
-                  disabled={!isCustomPeriod}
+                  
                   className={cn("flex-1", dateError && "border-destructive ring-destructive")}
                 />
                 <Popover>
