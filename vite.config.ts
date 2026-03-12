@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt'],
       manifest: {
-        name: 'Axis - Gestão Imobiliária',
-        short_name: 'Axis',
+        name: 'Gestão Imobiliária',
+        short_name: 'Gestão Imob.',
         description: 'Sistema premium de gestão imobiliária com dashboard inteligente',
         theme_color: '#0ea5e9',
         background_color: '#09090b',
