@@ -1703,7 +1703,8 @@ const Ranking = () => {
     });
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
 
-  const brokerRankings: BrokerRanking[] = useMemo(() => {
+  // All brokers including managers - used for summary stats
+  const allBrokerRankings: BrokerRanking[] = useMemo(() => {
     let filteredBrokers = brokers;
     if (selectedTeam !== 'all') {
       filteredBrokers = brokers.filter(b => b.team_id === selectedTeam);
@@ -1711,7 +1712,6 @@ const Ranking = () => {
 
     return filteredBrokers
       .filter(broker => broker.status === 'ativo')
-      .filter(broker => !broker.user_id || !managerUserIds.includes(broker.user_id))
       .map(broker => {
         const brokerSales = filteredSales.filter(sale => 
           sale.broker_id === broker.id && 
@@ -1734,7 +1734,14 @@ const Ranking = () => {
       })
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [brokers, filteredSales, sales, selectedTeam, managerUserIds]);
+  }, [brokers, filteredSales, sales, selectedTeam]);
+
+  // Brokers excluding managers - used for podium and leaderboard
+  const brokerRankings: BrokerRanking[] = useMemo(() => {
+    return allBrokerRankings
+      .filter(broker => !broker.userId || !managerUserIds.includes(broker.userId))
+      .map((b, i) => ({ ...b, position: i + 1 }));
+  }, [allBrokerRankings, managerUserIds]);
 
   // Captação rankings - based on captador field
   const captacaoRankings: BrokerRanking[] = useMemo(() => {
@@ -1986,7 +1993,7 @@ const Ranking = () => {
         )}
 
         {/* Stats */}
-        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings} />
+        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : allBrokerRankings} />
 
         {/* Main content: Ranking + Spotlight sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
