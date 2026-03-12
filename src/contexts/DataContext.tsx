@@ -60,8 +60,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, teamHierarchy, getUserRole } = useAuth();
-  const { syncData } = useRealtimeSync();
-
   // Stable query key - use primitive values only
   const teamId = teamHierarchy?.team_id ?? null;
   
