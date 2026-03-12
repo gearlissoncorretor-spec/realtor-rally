@@ -25,6 +25,7 @@ const PATH_TO_SCREEN: Record<string, string> = {
   '/relatorios': 'relatorios',
   '/x1': 'x1',
   '/dashboard-equipes': 'dashboard-equipes',
+  '/central-gestor': 'central-gestor',
   '/tarefas-kanban': 'tarefas-kanban',
   '/atividades': 'atividades',
   '/negociacoes': 'negociacoes',
