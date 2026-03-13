@@ -46,6 +46,7 @@ import { format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachMonthOfIn
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import MonthlyGoalDashboard from '@/components/goals/MonthlyGoalDashboard';
 
 interface MonthlyGoal {
   month: Date;
@@ -504,6 +505,20 @@ const MetaGestao = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Monthly Goal Dashboard */}
+          {(() => {
+            const currentMonth = new Date().getMonth() + 1;
+            const currentMonthGoal = monthlyGoals.find(g => g.monthIndex === currentMonth);
+            const currentMonthTarget = getMonthlyGoal(currentMonth);
+            const currentMonthAchieved = currentMonthGoal?.achieved || 0;
+            return (
+              <MonthlyGoalDashboard
+                targetValue={currentMonthTarget}
+                achievedValue={currentMonthAchieved}
+              />
+            );
+          })()}
           
           {/* Monthly Goals Table */}
           <Card className="border-border/50 bg-card shadow-sm">
