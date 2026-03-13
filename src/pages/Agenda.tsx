@@ -53,6 +53,12 @@ const Agenda = () => {
 
   const { start, end } = getDateRange();
   const { events: calendarEvents, isLoading, createEvent, updateEvent, deleteEvent } = useCalendarEvents(start, end);
+  
+  // Fetch overdue events from the last 30 days
+  const overdueStart = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+  const overdueEnd = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+  const { events: pastEvents, deleteEvent: deleteOverdueEvent } = useCalendarEvents(overdueStart, overdueEnd);
+  
   const { getBirthdayEvents } = useBrokerBirthdays();
   const { googleEvents, isConnected, exchangeCode } = useGoogleCalendar(start, end);
 
