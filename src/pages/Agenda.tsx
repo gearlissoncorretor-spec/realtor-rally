@@ -21,6 +21,7 @@ import AgendaDayView from '@/components/calendar/AgendaDayView';
 import AgendaSummaryCards from '@/components/calendar/AgendaSummaryCards';
 import AgendaActivitiesPanel from '@/components/calendar/AgendaActivitiesPanel';
 import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
+import OverdueEventsAlert from '@/components/calendar/OverdueEventsAlert';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'month' | 'week' | 'day';
