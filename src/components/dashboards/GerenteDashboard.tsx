@@ -440,18 +440,18 @@ const GerenteDashboard = () => {
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
                   <Target className="w-4 h-4 text-primary" /> Meta Mensal
                 </h2>
-                {primaryGoal ? (
+                {monthlyTargetValue > 0 ? (
                   <div className="space-y-4">
                     <div className="text-center">
-                      <p className="text-xs text-muted-foreground mb-1">{primaryGoal.title}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Meta VGV — {format(new Date(), 'MMMM yyyy', { locale: ptBR })}</p>
                       <p className="text-3xl font-bold text-foreground">{formatCurrency(monthlyAchieved)}</p>
-                      <p className="text-xs text-muted-foreground">de {formatCurrency(primaryGoal.target_value)}</p>
+                      <p className="text-xs text-muted-foreground">de {formatCurrency(monthlyTargetValue)}</p>
                     </div>
                     <Progress value={goalProgress} className="h-3" />
                     <div className="flex justify-between text-xs">
                       <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
                       <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(primaryGoal.target_value - monthlyAchieved, 0))}
+                        Faltam: {formatCurrency(Math.max(monthlyTargetValue - monthlyAchieved, 0))}
                       </span>
                     </div>
                   </div>
@@ -470,18 +470,18 @@ const GerenteDashboard = () => {
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
                   <TrendingUp className="w-4 h-4 text-emerald-400" /> Meta Anual
                 </h2>
-                {annualGoal ? (
+                {annualTargetValue > 0 ? (
                   <div className="space-y-4">
                     <div className="text-center">
-                      <p className="text-xs text-muted-foreground mb-1">{annualGoal.title}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Meta VGV — {currentYear}</p>
                       <p className="text-3xl font-bold text-foreground">{formatCurrency(annualAchieved)}</p>
-                      <p className="text-xs text-muted-foreground">de {formatCurrency(annualGoal.target_value)}</p>
+                      <p className="text-xs text-muted-foreground">de {formatCurrency(annualTargetValue)}</p>
                     </div>
                     <Progress value={annualProgress} className="h-3" />
                     <div className="flex justify-between text-xs">
                       <span className="text-emerald-400 font-semibold">{Math.round(annualProgress)}% concluído</span>
                       <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(annualGoal.target_value - annualAchieved, 0))}
+                        Faltam: {formatCurrency(Math.max(annualTargetValue - annualAchieved, 0))}
                       </span>
                     </div>
                   </div>
