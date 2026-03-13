@@ -9,6 +9,7 @@ import { useCalendarEvents, CalendarEvent as CalEvent } from '@/hooks/useCalenda
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import { useData } from '@/contexts/DataContext';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
