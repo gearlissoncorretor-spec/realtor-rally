@@ -114,7 +114,7 @@ const getXPProgress = (xp: number) => {
 // ===== PARTICLE EFFECTS =====
 const ParticleEffect = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {Array.from({ length: 30 }).map((_, i) => (
+    {Array.from({ length: 15 }).map((_, i) => (
       <div
         key={i}
         className={cn(
@@ -132,7 +132,7 @@ const ParticleEffect = () => (
         }}
       />
     ))}
-    {Array.from({ length: 12 }).map((_, i) => (
+    {Array.from({ length: 6 }).map((_, i) => (
       <div
         key={`glow-${i}`}
         className={cn(
@@ -1028,7 +1028,7 @@ const RecentSalesTicker = ({ sales, brokers }: { sales: any[]; brokers: BrokerRa
 };
 
 // ===== TV MODE =====
-const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, onClose, sales, tvRankingMode: initialTvRankingMode, periodLabel, spotlightBroker }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; allBrokerRankings?: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode; periodLabel: string; spotlightBroker: { id: string; name: string; avatar?: string; sales?: number; revenue?: number; position?: number } | null }) => {
+const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, onClose, sales, tvRankingMode: initialTvRankingMode, periodLabel, spotlightBroker, slideInterval = 20 }: { brokerRankings: BrokerRanking[]; captacaoRankings: BrokerRanking[]; allBrokerRankings?: BrokerRanking[]; onClose: () => void; sales: any[]; tvRankingMode: TVRankingMode; periodLabel: string; spotlightBroker: { id: string; name: string; avatar?: string; sales?: number; revenue?: number; position?: number } | null; slideInterval?: number }) => {
   const { settings } = useOrganizationSettings();
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled, stopCustomSound } = useRankingSounds();
   const [revealedCount, setRevealedCount] = useState(0);
@@ -1051,6 +1051,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
   // Auto-alternate rankings with smooth transition
   useEffect(() => {
     if (tvRankingMode !== 'alternate') return;
+    const ms = (slideInterval || 20) * 1000;
     const interval = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
@@ -1059,9 +1060,9 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
         setRevealedCount(0);
         setTimeout(() => setIsTransitioning(false), 300);
       }, 500);
-    }, 20000);
+    }, ms);
     return () => clearInterval(interval);
-  }, [tvRankingMode]);
+  }, [tvRankingMode, slideInterval]);
 
   // Detect new sales in real-time
   useEffect(() => {
@@ -1212,7 +1213,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
         }} />
 
         {/* Particles - blue, purple, gold dust */}
-        {Array.from({ length: 80 }).map((_, i) => {
+        {Array.from({ length: 30 }).map((_, i) => {
           const colors = [
             'bg-blue-400/40', 'bg-blue-300/35', 'bg-indigo-400/35', 'bg-purple-400/40',
             'bg-violet-400/35', 'bg-amber-400/45', 'bg-yellow-300/40', 'bg-cyan-400/35',
@@ -1233,7 +1234,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
         })}
 
         {/* Shooting stars */}
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={`star-${i}`} className="absolute w-[2px] h-[100px] rounded-full" style={{
             background: `linear-gradient(to bottom, rgba(255,255,255,0), ${i % 2 === 0 ? 'rgba(147,197,253,0.7)' : 'rgba(196,181,253,0.6)'}, rgba(255,255,255,0))`,
             left: `${10 + i * 16}%`,
@@ -1634,6 +1635,15 @@ const Ranking = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [rankingType, setRankingType] = useState<RankingType>('vendas');
   const [tvRankingMode, setTVRankingMode] = useState<TVRankingMode>('alternate');
+  const [tvSlideInterval, setTVSlideInterval] = useState<number>(() => {
+    const saved = localStorage.getItem('tv-slide-interval');
+    return saved ? Number(saved) : 20;
+  });
+  const handleSlideIntervalChange = (val: string) => {
+    const num = Number(val);
+    setTVSlideInterval(num);
+    localStorage.setItem('tv-slide-interval', String(num));
+  };
   const { soundEnabled, setSoundEnabled, playVictory, stopCustomSound } = useRankingSounds();
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
@@ -1881,7 +1891,7 @@ const Ranking = () => {
   }
 
   if (isTVMode) {
-    return <RankingTVMode brokerRankings={brokerRankings} captacaoRankings={captacaoRankings} allBrokerRankings={allBrokerRankings} onClose={closeTVMode} sales={sales} tvRankingMode={tvRankingMode} periodLabel={periodLabel} spotlightBroker={spotlightBroker} />;
+    return <RankingTVMode brokerRankings={brokerRankings} captacaoRankings={captacaoRankings} allBrokerRankings={allBrokerRankings} onClose={closeTVMode} sales={sales} tvRankingMode={tvRankingMode} periodLabel={periodLabel} spotlightBroker={spotlightBroker} slideInterval={tvSlideInterval} />;
   }
 
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
@@ -1960,6 +1970,19 @@ const Ranking = () => {
                   <SelectItem value="alternate">Alternar rankings</SelectItem>
                   <SelectItem value="vendas">Só Vendas</SelectItem>
                   <SelectItem value="captacao">Só Captação</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={String(tvSlideInterval)} onValueChange={handleSlideIntervalChange}>
+                <SelectTrigger className="h-9 w-[90px] text-xs border-border/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10s</SelectItem>
+                  <SelectItem value="15">15s</SelectItem>
+                  <SelectItem value="20">20s</SelectItem>
+                  <SelectItem value="30">30s</SelectItem>
+                  <SelectItem value="45">45s</SelectItem>
+                  <SelectItem value="60">60s</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={openTVMode} className="gap-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 shadow-lg text-sm h-9">
