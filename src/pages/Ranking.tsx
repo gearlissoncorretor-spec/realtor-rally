@@ -114,7 +114,7 @@ const getXPProgress = (xp: number) => {
 // ===== PARTICLE EFFECTS =====
 const ParticleEffect = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {Array.from({ length: 30 }).map((_, i) => (
+    {Array.from({ length: 15 }).map((_, i) => (
       <div
         key={i}
         className={cn(
