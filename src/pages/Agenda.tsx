@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import {
   format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays,
-  startOfMonth, endOfMonth, startOfWeek, endOfWeek, parseISO,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek, parseISO, subDays as subDaysFn,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +21,7 @@ import AgendaDayView from '@/components/calendar/AgendaDayView';
 import AgendaSummaryCards from '@/components/calendar/AgendaSummaryCards';
 import AgendaActivitiesPanel from '@/components/calendar/AgendaActivitiesPanel';
 import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
+import OverdueEventsAlert from '@/components/calendar/OverdueEventsAlert';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -52,6 +53,12 @@ const Agenda = () => {
 
   const { start, end } = getDateRange();
   const { events: calendarEvents, isLoading, createEvent, updateEvent, deleteEvent } = useCalendarEvents(start, end);
+  
+  // Fetch overdue events from the last 30 days
+  const overdueStart = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+  const overdueEnd = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+  const { events: pastEvents, deleteEvent: deleteOverdueEvent } = useCalendarEvents(overdueStart, overdueEnd);
+  
   const { getBirthdayEvents } = useBrokerBirthdays();
   const { googleEvents, isConnected, exchangeCode } = useGoogleCalendar(start, end);
 
@@ -152,6 +159,15 @@ const Agenda = () => {
     setEditingEvent(null);
   };
 
+  const handleConfirmOverdueEvent = (event: CalEvent) => {
+    // Mark as done by deleting it (completed)
+    deleteEvent.mutate(event.id);
+  };
+
+  const handleDeleteOverdueEvent = (eventId: string) => {
+    deleteOverdueEvent.mutate(eventId);
+  };
+
   const quickActions = [
     { label: 'Nova Ligação', icon: Phone, type: 'lembrete', className: 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/20' },
     { label: 'Novo Cliente', icon: UserPlus, type: 'visita', className: 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20' },
@@ -202,6 +218,13 @@ const Agenda = () => {
 
           {/* Summary Cards */}
           <AgendaSummaryCards events={events} currentDate={currentDate} />
+
+          {/* Overdue Events Alert */}
+          <OverdueEventsAlert
+            events={pastEvents}
+            onConfirmEvent={handleConfirmOverdueEvent}
+            onDeleteEvent={handleDeleteOverdueEvent}
+          />
 
           {/* Filter + View Controls */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
