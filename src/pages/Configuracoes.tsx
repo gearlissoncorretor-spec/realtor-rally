@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Image as ImageIcon,
+  MessageSquare,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -31,6 +32,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
+import SlackSettings from "@/components/SlackSettings";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -54,6 +56,7 @@ const Configuracoes = () => {
     teamMembers: false,
     screenAccess: false,
     userManagement: false,
+    slack: false,
   });
 
   const toggleSection = (section: string) => {
@@ -153,6 +156,19 @@ const Configuracoes = () => {
             >
               <NotificationCenter />
             </CollapsibleSection>
+
+            {/* Slack */}
+            {(isAdmin() || isDiretor()) && (
+              <CollapsibleSection
+                title="Integração Slack"
+                icon={<MessageSquare className="h-5 w-5 text-primary" />}
+                description="Notificações automáticas no Slack"
+                isOpen={openSections.slack}
+                onToggle={() => toggleSection('slack')}
+              >
+                <SlackSettings />
+              </CollapsibleSection>
+            )}
 
             {/* Logo da Equipe — Gerentes */}
             {isGerente() && (

@@ -381,11 +381,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       toast({
         title: "Venda criada",
         description: "Venda adicionada com sucesso.",
+      });
+      // Send Slack notification (fire and forget)
+      import('@/hooks/useSlackNotify').then(({ sendSlackNotification }) => {
+        sendSlackNotification({
+          event_type: 'nova_venda',
+          data: {
+            broker_name: data?.broker?.name || 'N/A',
+            client_name: data?.client_name,
+            property_address: data?.property_address,
+            property_type: data?.property_type,
+            property_value: data?.property_value,
+            vgv: data?.vgv,
+            sale_date: data?.sale_date,
+          },
+        }).catch(console.error);
       });
     },
     onError: () => {
