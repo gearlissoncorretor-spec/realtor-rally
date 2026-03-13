@@ -8,15 +8,9 @@ export const formatCurrency = (value: number): string => {
   });
 };
 
-// Formatação para valores grandes (M, K)
+// Formatação completa sem abreviação (K, M) — padrão brasileiro
 export const formatCurrencyCompact = (value: number): string => {
-  if (value >= 1000000) {
-    return `R$ ${(value / 1000000).toFixed(1).replace('.', ',')}M`;
-  } else if (value >= 1000) {
-    return `R$ ${(value / 1000).toFixed(0)}K`;
-  } else {
-    return formatCurrency(value);
-  }
+  return formatCurrency(value);
 };
 
 // Formatação de números com separadores brasileiros
