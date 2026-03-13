@@ -1213,7 +1213,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
         }} />
 
         {/* Particles - blue, purple, gold dust */}
-        {Array.from({ length: 80 }).map((_, i) => {
+        {Array.from({ length: 30 }).map((_, i) => {
           const colors = [
             'bg-blue-400/40', 'bg-blue-300/35', 'bg-indigo-400/35', 'bg-purple-400/40',
             'bg-violet-400/35', 'bg-amber-400/45', 'bg-yellow-300/40', 'bg-cyan-400/35',
