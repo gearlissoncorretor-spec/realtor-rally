@@ -1972,6 +1972,19 @@ const Ranking = () => {
                   <SelectItem value="captacao">Só Captação</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={String(tvSlideInterval)} onValueChange={handleSlideIntervalChange}>
+                <SelectTrigger className="h-9 w-[90px] text-xs border-border/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10s</SelectItem>
+                  <SelectItem value="15">15s</SelectItem>
+                  <SelectItem value="20">20s</SelectItem>
+                  <SelectItem value="30">30s</SelectItem>
+                  <SelectItem value="45">45s</SelectItem>
+                  <SelectItem value="60">60s</SelectItem>
+                </SelectContent>
+              </Select>
               <Button onClick={openTVMode} className="gap-2 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 shadow-lg text-sm h-9">
                 <Tv className="w-4 h-4" />
                 Modo TV
