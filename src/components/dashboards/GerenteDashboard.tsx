@@ -31,7 +31,7 @@ const GerenteDashboard = () => {
   const { brokers } = useBrokers();
   const { negotiations } = useNegotiations();
   const { followUps } = useFollowUps();
-  const { goals } = useGoals();
+  const { targets } = useData();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
