@@ -132,7 +132,7 @@ const ParticleEffect = () => (
         }}
       />
     ))}
-    {Array.from({ length: 12 }).map((_, i) => (
+    {Array.from({ length: 6 }).map((_, i) => (
       <div
         key={`glow-${i}`}
         className={cn(
