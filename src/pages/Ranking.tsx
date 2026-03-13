@@ -1634,6 +1634,15 @@ const Ranking = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [rankingType, setRankingType] = useState<RankingType>('vendas');
   const [tvRankingMode, setTVRankingMode] = useState<TVRankingMode>('alternate');
+  const [tvSlideInterval, setTVSlideInterval] = useState<number>(() => {
+    const saved = localStorage.getItem('tv-slide-interval');
+    return saved ? Number(saved) : 20;
+  });
+  const handleSlideIntervalChange = (val: string) => {
+    const num = Number(val);
+    setTVSlideInterval(num);
+    localStorage.setItem('tv-slide-interval', String(num));
+  };
   const { soundEnabled, setSoundEnabled, playVictory, stopCustomSound } = useRankingSounds();
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
