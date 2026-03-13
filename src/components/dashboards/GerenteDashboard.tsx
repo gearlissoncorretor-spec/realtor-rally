@@ -140,8 +140,20 @@ const GerenteDashboard = () => {
 
   // Fallback: if no monthly/annual split, use any goal as primary
   const primaryGoal = monthlyGoal || teamGoals.find(g => g.target_type === 'vgv') || teamGoals[0] || null;
-  const goalProgress = primaryGoal ? Math.min((primaryGoal.current_value / primaryGoal.target_value) * 100, 100) : 0;
-  const annualProgress = annualGoal ? Math.min((annualGoal.current_value / annualGoal.target_value) * 100, 100) : 0;
+  
+  // Calculate actual progress from sales data, not from goal's current_value
+  const monthlyAchieved = monthVGV;
+  const goalProgress = primaryGoal ? Math.min((monthlyAchieved / primaryGoal.target_value) * 100, 100) : 0;
+  
+  const yearVGV = useMemo(() => 
+    teamSales.filter(s => {
+      const d = new Date(s.sale_date || s.created_at || '');
+      return d.getFullYear() === currentYear;
+    }).reduce((sum, s) => sum + (s.vgv || 0), 0),
+    [teamSales, currentYear]
+  );
+  const annualAchieved = yearVGV;
+  const annualProgress = annualGoal ? Math.min((annualAchieved / annualGoal.target_value) * 100, 100) : 0;
 
   // Broker performance ranking
   const brokerPerformance = useMemo(() => {
