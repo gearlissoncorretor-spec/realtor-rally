@@ -108,42 +108,31 @@ const GerenteDashboard = () => {
     return [...internal, ...mappedGoogle].sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   }, [events, googleEvents]);
 
-  // Team goals - filter active goals belonging to this team
-  const teamGoals = useMemo(() => {
-    const nowStr = format(new Date(), 'yyyy-MM-dd');
-    console.log('[GerenteDashboard] All goals:', goals?.length, 'teamId:', teamHierarchy?.team_id, 'userId:', user?.id);
-    const filtered = (goals || []).filter(g => {
-      if (g.status !== 'active') return false;
-      // Must belong to this team OR be assigned to the manager OR created by the manager
-      const belongsToTeam = g.team_id && g.team_id === teamHierarchy?.team_id;
-      const assignedToManager = g.assigned_to === user?.id;
-      const createdByManager = g.created_by === user?.id;
-      if (!belongsToTeam && !assignedToManager && !createdByManager) return false;
-      // Must be within the goal's date range
-      if (g.start_date > nowStr || g.end_date < nowStr) return false;
-      return true;
-    });
-    console.log('[GerenteDashboard] Filtered goals:', filtered.map(g => ({ id: g.id, title: g.title, team_id: g.team_id, start: g.start_date, end: g.end_date, type: g.target_type, period: g.period_type })));
-    return filtered;
-  }, [goals, teamHierarchy, user?.id]);
+  // Team targets from the targets table (used in Meta Gestão)
+  const monthlyTarget = useMemo(() => {
+    return (targets || []).find(t => 
+      t.month === currentMonth && 
+      t.year === currentYear &&
+      (t.team_id === teamHierarchy?.team_id || (!t.team_id && !t.broker_id))
+    );
+  }, [targets, currentMonth, currentYear, teamHierarchy?.team_id]);
 
-  // Separate monthly and annual goals
-  const monthlyGoal = useMemo(() => {
-    const monthly = teamGoals.filter(g => g.period_type === 'monthly');
-    return monthly.find(g => g.target_type === 'vgv') || monthly[0] || null;
-  }, [teamGoals]);
+  const annualTargets = useMemo(() => {
+    return (targets || []).filter(t => 
+      t.year === currentYear &&
+      (t.team_id === teamHierarchy?.team_id || (!t.team_id && !t.broker_id))
+    );
+  }, [targets, currentYear, teamHierarchy?.team_id]);
 
-  const annualGoal = useMemo(() => {
-    const annual = teamGoals.filter(g => g.period_type === 'yearly');
-    return annual.find(g => g.target_type === 'vgv') || annual[0] || null;
-  }, [teamGoals]);
+  const annualTargetValue = useMemo(() => 
+    annualTargets.reduce((sum, t) => sum + (t.target_value || 0), 0),
+    [annualTargets]
+  );
 
-  // Fallback: if no monthly/annual split, use any goal as primary
-  const primaryGoal = monthlyGoal || teamGoals.find(g => g.target_type === 'vgv') || teamGoals[0] || null;
-  
-  // Calculate actual progress from sales data, not from goal's current_value
+  // Calculate actual progress from sales data
   const monthlyAchieved = monthVGV;
-  const goalProgress = primaryGoal ? Math.min((monthlyAchieved / primaryGoal.target_value) * 100, 100) : 0;
+  const monthlyTargetValue = monthlyTarget?.target_value || 0;
+  const goalProgress = monthlyTargetValue > 0 ? Math.min((monthlyAchieved / monthlyTargetValue) * 100, 100) : 0;
   
   const yearVGV = useMemo(() => 
     teamSales.filter(s => {
@@ -153,7 +142,7 @@ const GerenteDashboard = () => {
     [teamSales, currentYear]
   );
   const annualAchieved = yearVGV;
-  const annualProgress = annualGoal ? Math.min((annualAchieved / annualGoal.target_value) * 100, 100) : 0;
+  const annualProgress = annualTargetValue > 0 ? Math.min((annualAchieved / annualTargetValue) * 100, 100) : 0;
 
   // Broker performance ranking
   const brokerPerformance = useMemo(() => {
