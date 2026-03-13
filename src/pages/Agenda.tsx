@@ -219,6 +219,13 @@ const Agenda = () => {
           {/* Summary Cards */}
           <AgendaSummaryCards events={events} currentDate={currentDate} />
 
+          {/* Overdue Events Alert */}
+          <OverdueEventsAlert
+            events={pastEvents}
+            onConfirmEvent={handleConfirmOverdueEvent}
+            onDeleteEvent={handleDeleteOverdueEvent}
+          />
+
           {/* Filter + View Controls */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-wrap">
