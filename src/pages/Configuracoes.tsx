@@ -157,6 +157,19 @@ const Configuracoes = () => {
               <NotificationCenter />
             </CollapsibleSection>
 
+            {/* Slack */}
+            {(isAdmin() || isDiretor()) && (
+              <CollapsibleSection
+                title="Integração Slack"
+                icon={<MessageSquare className="h-5 w-5 text-primary" />}
+                description="Notificações automáticas no Slack"
+                isOpen={openSections.slack}
+                onToggle={() => toggleSection('slack')}
+              >
+                <SlackSettings />
+              </CollapsibleSection>
+            )}
+
             {/* Logo da Equipe — Gerentes */}
             {isGerente() && (
               <CollapsibleSection
