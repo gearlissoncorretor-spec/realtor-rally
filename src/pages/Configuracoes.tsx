@@ -32,6 +32,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
+import SlackSettings from "@/components/SlackSettings";
 
 const Configuracoes = () => {
   const { toast } = useToast();
