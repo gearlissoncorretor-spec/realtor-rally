@@ -17,6 +17,8 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
+import MonthlyGoalPanel from '@/components/goals/MonthlyGoalPanel';
+import AnnualGoalPanel from '@/components/goals/AnnualGoalPanel';
 import {
   Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
   CheckSquare, Square, ChevronRight, Calendar, MapPin,
