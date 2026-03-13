@@ -55,7 +55,7 @@ const GerenteDashboard = () => {
   const teamBrokerIds = useMemo(() => new Set(teamBrokers.map(b => b.id)), [teamBrokers]);
 
   const teamSales = useMemo(() =>
-    (sales || []).filter(s => teamBrokerIds.has(s.broker_id || '') && s.status !== 'distrato'),
+    (sales || []).filter(s => teamBrokerIds.has(s.broker_id || '') && s.status !== 'distrato' && s.status !== 'cancelada'),
     [sales, teamBrokerIds]);
 
   const monthSales = useMemo(() =>
