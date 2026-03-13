@@ -1,0 +1,1 @@
+UPDATE brokers SET avatar_url = NULL WHERE id IN ('4c1599a2-7339-4be9-a466-41fc1c97c40b', '6ce4d2f1-3236-4eeb-a232-6643f7189a6e');
