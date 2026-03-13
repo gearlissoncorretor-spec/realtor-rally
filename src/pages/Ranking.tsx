@@ -1051,6 +1051,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
   // Auto-alternate rankings with smooth transition
   useEffect(() => {
     if (tvRankingMode !== 'alternate') return;
+    const ms = (slideInterval || 20) * 1000;
     const interval = setInterval(() => {
       setIsTransitioning(true);
       setTimeout(() => {
@@ -1059,9 +1060,9 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
         setRevealedCount(0);
         setTimeout(() => setIsTransitioning(false), 300);
       }, 500);
-    }, 20000);
+    }, ms);
     return () => clearInterval(interval);
-  }, [tvRankingMode]);
+  }, [tvRankingMode, slideInterval]);
 
   // Detect new sales in real-time
   useEffect(() => {
