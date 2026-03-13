@@ -46,6 +46,7 @@ import { format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachMonthOfIn
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import MonthlyGoalDashboard from '@/components/goals/MonthlyGoalDashboard';
 
 interface MonthlyGoal {
   month: Date;
