@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.push-notifications]
 verify_jwt = false
+
+[functions.slack-notify]
+verify_jwt = false
