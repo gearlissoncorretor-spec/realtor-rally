@@ -98,7 +98,7 @@ const Navigation = () => {
     {
       label: "Principal",
       defaultOpen: true,
-      items: navItems.filter(i => ['dashboard', 'central-gestor', 'dashboard-equipes', 'ranking'].includes(i.screen)),
+      items: navItems.filter(i => ['dashboard', 'central-gestor', 'dashboard-equipes', 'ranking', 'agenda'].includes(i.screen)),
     },
     {
       label: "Comercial",
@@ -107,7 +107,7 @@ const Navigation = () => {
     },
     {
       label: "Produtividade",
-      items: navItems.filter(i => ['metas', 'meta-gestao', 'tarefas-kanban', 'x1', 'agenda'].includes(i.screen)),
+      items: navItems.filter(i => ['metas', 'meta-gestao', 'tarefas-kanban', 'x1'].includes(i.screen)),
     },
     {
       label: "Relatórios",
