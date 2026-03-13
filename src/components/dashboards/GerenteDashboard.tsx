@@ -455,21 +455,20 @@ const GerenteDashboard = () => {
                   <div className="space-y-4">
                     <div className="text-center">
                       <p className="text-xs text-muted-foreground mb-1">{primaryGoal.title}</p>
-                      <p className="text-3xl font-bold text-foreground">{formatCurrency(primaryGoal.current_value)}</p>
+                      <p className="text-3xl font-bold text-foreground">{formatCurrency(monthlyAchieved)}</p>
                       <p className="text-xs text-muted-foreground">de {formatCurrency(primaryGoal.target_value)}</p>
                     </div>
                     <Progress value={goalProgress} className="h-3" />
                     <div className="flex justify-between text-xs">
                       <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
                       <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(primaryGoal.target_value - primaryGoal.current_value, 0))}
+                        Faltam: {formatCurrency(Math.max(primaryGoal.target_value - monthlyAchieved, 0))}
                       </span>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center space-y-3">
-                    <p className="text-3xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
-                    <p className="text-xs text-muted-foreground">VGV da equipe no mês • {monthSales.length} vendas</p>
+                    <p className="text-sm text-muted-foreground py-4">Nenhuma meta definida para este período.</p>
                     <Button variant="outline" size="sm" className="text-xs gap-1.5 border-primary/30 text-primary" onClick={() => navigate('/meta-gestao')}>
                       <Target className="w-3 h-3" /> Cadastrar meta em Meta Gestão
                     </Button>
