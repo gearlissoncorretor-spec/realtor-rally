@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import {
   format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays,
-  startOfMonth, endOfMonth, startOfWeek, endOfWeek, parseISO,
+  startOfMonth, endOfMonth, startOfWeek, endOfWeek, parseISO, subDays as subDaysFn,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
