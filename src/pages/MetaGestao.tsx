@@ -505,6 +505,20 @@ const MetaGestao = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Monthly Goal Dashboard */}
+          {(() => {
+            const currentMonth = new Date().getMonth() + 1;
+            const currentMonthGoal = monthlyGoals.find(g => g.monthIndex === currentMonth);
+            const currentMonthTarget = getMonthlyGoal(currentMonth);
+            const currentMonthAchieved = currentMonthGoal?.achieved || 0;
+            return (
+              <MonthlyGoalDashboard
+                targetValue={currentMonthTarget}
+                achievedValue={currentMonthAchieved}
+              />
+            );
+          })()}
           
           {/* Monthly Goals Table */}
           <Card className="border-border/50 bg-card shadow-sm">
