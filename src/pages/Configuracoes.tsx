@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Image as ImageIcon,
+  MessageSquare,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
