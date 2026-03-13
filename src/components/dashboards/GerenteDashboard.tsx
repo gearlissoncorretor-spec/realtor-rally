@@ -17,6 +17,8 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
+import MonthlyGoalPanel from '@/components/goals/MonthlyGoalPanel';
+import AnnualGoalPanel from '@/components/goals/AnnualGoalPanel';
 import {
   Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
   CheckSquare, Square, ChevronRight, Calendar, MapPin,
@@ -436,65 +438,15 @@ const GerenteDashboard = () => {
           {/* Goal Row - Monthly + Annual */}
           {!focusMode && sections.includes('goal') && (
             <div className="grid lg:grid-cols-2 gap-4">
-              {/* Meta Mensal */}
-              <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                  <Target className="w-4 h-4 text-primary" /> Meta Mensal
-                </h2>
-                {monthlyTargetValue > 0 ? (
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Meta VGV — {format(new Date(), 'MMMM yyyy', { locale: ptBR })}</p>
-                      <p className="text-3xl font-bold text-foreground">{formatCurrency(monthlyAchieved)}</p>
-                      <p className="text-xs text-muted-foreground">de {formatCurrency(monthlyTargetValue)}</p>
-                    </div>
-                    <Progress value={goalProgress} className="h-3" />
-                    <div className="flex justify-between text-xs">
-                      <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
-                      <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(monthlyTargetValue - monthlyAchieved, 0))}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-3">
-                    <p className="text-sm text-muted-foreground py-4">Nenhuma meta definida para este período.</p>
-                    <Button variant="outline" size="sm" className="text-xs gap-1.5 border-primary/30 text-primary" onClick={() => navigate('/meta-gestao')}>
-                      <Target className="w-3 h-3" /> Cadastrar meta em Meta Gestão
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Meta Anual */}
-              <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent p-5">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Meta Anual
-                </h2>
-                {annualTargetValue > 0 ? (
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Meta VGV — {currentYear}</p>
-                      <p className="text-3xl font-bold text-foreground">{formatCurrency(annualAchieved)}</p>
-                      <p className="text-xs text-muted-foreground">de {formatCurrency(annualTargetValue)}</p>
-                    </div>
-                    <Progress value={annualProgress} className="h-3" />
-                    <div className="flex justify-between text-xs">
-                      <span className="text-emerald-400 font-semibold">{Math.round(annualProgress)}% concluído</span>
-                      <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(annualTargetValue - annualAchieved, 0))}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-3">
-                    <p className="text-sm text-muted-foreground py-4">Nenhuma meta definida para este período.</p>
-                    <Button variant="outline" size="sm" className="text-xs gap-1.5 border-emerald-500/30 text-emerald-400" onClick={() => navigate('/meta-gestao')}>
-                      <TrendingUp className="w-3 h-3" /> Cadastrar meta anual
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <MonthlyGoalPanel
+                targetValue={monthlyTargetValue}
+                achievedValue={monthlyAchieved}
+              />
+              <AnnualGoalPanel
+                targetValue={annualTargetValue}
+                achievedValue={annualAchieved}
+                year={currentYear}
+              />
             </div>
           )}
 
