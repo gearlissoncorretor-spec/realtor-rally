@@ -485,26 +485,20 @@ const GerenteDashboard = () => {
                   <div className="space-y-4">
                     <div className="text-center">
                       <p className="text-xs text-muted-foreground mb-1">{annualGoal.title}</p>
-                      <p className="text-3xl font-bold text-foreground">{formatCurrency(annualGoal.current_value)}</p>
+                      <p className="text-3xl font-bold text-foreground">{formatCurrency(annualAchieved)}</p>
                       <p className="text-xs text-muted-foreground">de {formatCurrency(annualGoal.target_value)}</p>
                     </div>
                     <Progress value={annualProgress} className="h-3" />
                     <div className="flex justify-between text-xs">
                       <span className="text-emerald-400 font-semibold">{Math.round(annualProgress)}% concluído</span>
                       <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(annualGoal.target_value - annualGoal.current_value, 0))}
+                        Faltam: {formatCurrency(Math.max(annualGoal.target_value - annualAchieved, 0))}
                       </span>
                     </div>
                   </div>
                 ) : (
                   <div className="text-center space-y-3">
-                    <p className="text-3xl font-bold text-foreground">
-                      {formatCurrency(teamSales.filter(s => {
-                        const d = new Date(s.sale_date || s.created_at || '');
-                        return d.getFullYear() === currentYear;
-                      }).reduce((sum, s) => sum + (s.vgv || 0), 0))}
-                    </p>
-                    <p className="text-xs text-muted-foreground">VGV acumulado em {currentYear}</p>
+                    <p className="text-sm text-muted-foreground py-4">Nenhuma meta definida para este período.</p>
                     <Button variant="outline" size="sm" className="text-xs gap-1.5 border-emerald-500/30 text-emerald-400" onClick={() => navigate('/meta-gestao')}>
                       <TrendingUp className="w-3 h-3" /> Cadastrar meta anual
                     </Button>
