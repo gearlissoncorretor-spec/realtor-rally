@@ -7,7 +7,7 @@ import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents, CalendarEvent as CalEvent } from '@/hooks/useCalendarEvents';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
-import { useGoals } from '@/hooks/useGoals';
+import { useData } from '@/contexts/DataContext';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
