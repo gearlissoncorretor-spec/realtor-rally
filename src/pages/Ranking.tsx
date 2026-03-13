@@ -1234,7 +1234,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
         })}
 
         {/* Shooting stars */}
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={`star-${i}`} className="absolute w-[2px] h-[100px] rounded-full" style={{
             background: `linear-gradient(to bottom, rgba(255,255,255,0), ${i % 2 === 0 ? 'rgba(147,197,253,0.7)' : 'rgba(196,181,253,0.6)'}, rgba(255,255,255,0))`,
             left: `${10 + i * 16}%`,
