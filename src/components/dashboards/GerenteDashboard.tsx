@@ -7,8 +7,9 @@ import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents, CalendarEvent as CalEvent } from '@/hooks/useCalendarEvents';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
-import { useGoals } from '@/hooks/useGoals';
+import { useData } from '@/contexts/DataContext';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ const GerenteDashboard = () => {
   const { brokers } = useBrokers();
   const { negotiations } = useNegotiations();
   const { followUps } = useFollowUps();
-  const { goals } = useGoals();
+  const { targets } = useData();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
@@ -108,42 +109,31 @@ const GerenteDashboard = () => {
     return [...internal, ...mappedGoogle].sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   }, [events, googleEvents]);
 
-  // Team goals - filter active goals belonging to this team
-  const teamGoals = useMemo(() => {
-    const nowStr = format(new Date(), 'yyyy-MM-dd');
-    console.log('[GerenteDashboard] All goals:', goals?.length, 'teamId:', teamHierarchy?.team_id, 'userId:', user?.id);
-    const filtered = (goals || []).filter(g => {
-      if (g.status !== 'active') return false;
-      // Must belong to this team OR be assigned to the manager OR created by the manager
-      const belongsToTeam = g.team_id && g.team_id === teamHierarchy?.team_id;
-      const assignedToManager = g.assigned_to === user?.id;
-      const createdByManager = g.created_by === user?.id;
-      if (!belongsToTeam && !assignedToManager && !createdByManager) return false;
-      // Must be within the goal's date range
-      if (g.start_date > nowStr || g.end_date < nowStr) return false;
-      return true;
-    });
-    console.log('[GerenteDashboard] Filtered goals:', filtered.map(g => ({ id: g.id, title: g.title, team_id: g.team_id, start: g.start_date, end: g.end_date, type: g.target_type, period: g.period_type })));
-    return filtered;
-  }, [goals, teamHierarchy, user?.id]);
+  // Team targets from the targets table (used in Meta Gestão)
+  const monthlyTarget = useMemo(() => {
+    return (targets || []).find(t => 
+      t.month === currentMonth && 
+      t.year === currentYear &&
+      (t.team_id === teamHierarchy?.team_id || (!t.team_id && !t.broker_id))
+    );
+  }, [targets, currentMonth, currentYear, teamHierarchy?.team_id]);
 
-  // Separate monthly and annual goals
-  const monthlyGoal = useMemo(() => {
-    const monthly = teamGoals.filter(g => g.period_type === 'monthly');
-    return monthly.find(g => g.target_type === 'vgv') || monthly[0] || null;
-  }, [teamGoals]);
+  const annualTargets = useMemo(() => {
+    return (targets || []).filter(t => 
+      t.year === currentYear &&
+      (t.team_id === teamHierarchy?.team_id || (!t.team_id && !t.broker_id))
+    );
+  }, [targets, currentYear, teamHierarchy?.team_id]);
 
-  const annualGoal = useMemo(() => {
-    const annual = teamGoals.filter(g => g.period_type === 'yearly');
-    return annual.find(g => g.target_type === 'vgv') || annual[0] || null;
-  }, [teamGoals]);
+  const annualTargetValue = useMemo(() => 
+    annualTargets.reduce((sum, t) => sum + (t.target_value || 0), 0),
+    [annualTargets]
+  );
 
-  // Fallback: if no monthly/annual split, use any goal as primary
-  const primaryGoal = monthlyGoal || teamGoals.find(g => g.target_type === 'vgv') || teamGoals[0] || null;
-  
-  // Calculate actual progress from sales data, not from goal's current_value
+  // Calculate actual progress from sales data
   const monthlyAchieved = monthVGV;
-  const goalProgress = primaryGoal ? Math.min((monthlyAchieved / primaryGoal.target_value) * 100, 100) : 0;
+  const monthlyTargetValue = monthlyTarget?.target_value || 0;
+  const goalProgress = monthlyTargetValue > 0 ? Math.min((monthlyAchieved / monthlyTargetValue) * 100, 100) : 0;
   
   const yearVGV = useMemo(() => 
     teamSales.filter(s => {
@@ -153,7 +143,7 @@ const GerenteDashboard = () => {
     [teamSales, currentYear]
   );
   const annualAchieved = yearVGV;
-  const annualProgress = annualGoal ? Math.min((annualAchieved / annualGoal.target_value) * 100, 100) : 0;
+  const annualProgress = annualTargetValue > 0 ? Math.min((annualAchieved / annualTargetValue) * 100, 100) : 0;
 
   // Broker performance ranking
   const brokerPerformance = useMemo(() => {
@@ -451,18 +441,18 @@ const GerenteDashboard = () => {
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
                   <Target className="w-4 h-4 text-primary" /> Meta Mensal
                 </h2>
-                {primaryGoal ? (
+                {monthlyTargetValue > 0 ? (
                   <div className="space-y-4">
                     <div className="text-center">
-                      <p className="text-xs text-muted-foreground mb-1">{primaryGoal.title}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Meta VGV — {format(new Date(), 'MMMM yyyy', { locale: ptBR })}</p>
                       <p className="text-3xl font-bold text-foreground">{formatCurrency(monthlyAchieved)}</p>
-                      <p className="text-xs text-muted-foreground">de {formatCurrency(primaryGoal.target_value)}</p>
+                      <p className="text-xs text-muted-foreground">de {formatCurrency(monthlyTargetValue)}</p>
                     </div>
                     <Progress value={goalProgress} className="h-3" />
                     <div className="flex justify-between text-xs">
                       <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
                       <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(primaryGoal.target_value - monthlyAchieved, 0))}
+                        Faltam: {formatCurrency(Math.max(monthlyTargetValue - monthlyAchieved, 0))}
                       </span>
                     </div>
                   </div>
@@ -481,18 +471,18 @@ const GerenteDashboard = () => {
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
                   <TrendingUp className="w-4 h-4 text-emerald-400" /> Meta Anual
                 </h2>
-                {annualGoal ? (
+                {annualTargetValue > 0 ? (
                   <div className="space-y-4">
                     <div className="text-center">
-                      <p className="text-xs text-muted-foreground mb-1">{annualGoal.title}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Meta VGV — {currentYear}</p>
                       <p className="text-3xl font-bold text-foreground">{formatCurrency(annualAchieved)}</p>
-                      <p className="text-xs text-muted-foreground">de {formatCurrency(annualGoal.target_value)}</p>
+                      <p className="text-xs text-muted-foreground">de {formatCurrency(annualTargetValue)}</p>
                     </div>
                     <Progress value={annualProgress} className="h-3" />
                     <div className="flex justify-between text-xs">
                       <span className="text-emerald-400 font-semibold">{Math.round(annualProgress)}% concluído</span>
                       <span className="text-muted-foreground">
-                        Faltam: {formatCurrency(Math.max(annualGoal.target_value - annualAchieved, 0))}
+                        Faltam: {formatCurrency(Math.max(annualTargetValue - annualAchieved, 0))}
                       </span>
                     </div>
                   </div>
