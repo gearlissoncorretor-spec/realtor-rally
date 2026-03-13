@@ -154,6 +154,11 @@ const Agenda = () => {
     setEditingEvent(null);
   };
 
+  const handleDelete = (id: string) => {
+    deleteEvent.mutate(id);
+    setEditingEvent(null);
+  };
+
   const handleConfirmOverdueEvent = (event: CalEvent) => {
     // Mark as done by deleting it (completed)
     deleteEvent.mutate(event.id);
