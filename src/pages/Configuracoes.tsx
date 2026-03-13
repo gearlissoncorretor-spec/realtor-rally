@@ -56,6 +56,7 @@ const Configuracoes = () => {
     teamMembers: false,
     screenAccess: false,
     userManagement: false,
+    slack: false,
   });
 
   const toggleSection = (section: string) => {
