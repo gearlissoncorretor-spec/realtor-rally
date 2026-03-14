@@ -482,17 +482,18 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
 };
 
 // ===== STATS HEADER =====
-const StatsHeader = ({ brokers }: { brokers: BrokerRanking[] }) => {
+const StatsHeader = ({ brokers, activeBrokerCount }: { brokers: BrokerRanking[]; activeBrokerCount?: number }) => {
   const totalSales = brokers.reduce((sum, b) => sum + b.sales, 0);
   const totalVGV = brokers.reduce((sum, b) => sum + b.revenue, 0);
   const avgTicket = totalSales > 0 ? totalVGV / totalSales : 0;
   const topBroker = brokers[0];
+  const activeCount = activeBrokerCount ?? brokers.length;
 
   const stats = [
-    { icon: Users, label: "Vendas Totais", value: totalSales.toString(), color: "text-primary", bg: "bg-primary/10", glow: "shadow-primary/5" },
+    { icon: Users, label: "Corretores Ativos", value: activeCount.toString(), color: "text-primary", bg: "bg-primary/10", glow: "shadow-primary/5" },
+    { icon: TrendingUp, label: "Vendas Totais", value: totalSales.toString(), color: "text-info", bg: "bg-info/10", glow: "shadow-info/5" },
     { icon: DollarSign, label: "VGV Total", value: formatCurrency(totalVGV), color: "text-success", bg: "bg-success/10", glow: "shadow-success/5" },
-    { icon: Target, label: "Ticket Médio", value: formatCurrency(avgTicket), color: "text-info", bg: "bg-info/10", glow: "shadow-info/5" },
-    { icon: Crown, label: "Líder do Período", value: topBroker?.name.split(' ')[0] || '-', color: "text-warning", bg: "bg-warning/10", glow: "shadow-warning/5" },
+    { icon: Target, label: "Ticket Médio", value: formatCurrency(avgTicket), color: "text-warning", bg: "bg-warning/10", glow: "shadow-warning/5" },
   ];
 
   return (
