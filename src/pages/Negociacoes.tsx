@@ -385,7 +385,6 @@ const Negociacoes = () => {
     });
   }, [negotiations]);
 
-  const [showStalledAlert, setShowStalledAlert] = useState(true);
 
   if (loading) {
     return (
