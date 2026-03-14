@@ -809,7 +809,7 @@ const MetaGestao = () => {
                 {[
                   { 
                     label: 'Melhor Mês', 
-                    value: performanceStats?.bestMonth ? formatCurrencyCompact(performanceStats.bestMonth.achieved) : 'R$ 0',
+                    value: performanceStats?.bestMonth ? formatCurrency(performanceStats.bestMonth.achieved) : 'R$ 0,00',
                     sub: performanceStats?.bestMonth ? format(performanceStats.bestMonth.month, 'MMMM', { locale: ptBR }) : '-',
                     icon: '🏆'
                   },
