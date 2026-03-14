@@ -254,9 +254,8 @@ const MetaGestao = () => {
   const handleSaveTargets = async () => {
     setSavingTargets(true);
     try {
-      const progression = calculateMonthlyProgression(annualGoal);
       for (let month = 1; month <= 12; month++) {
-        const monthlyValue = progression[month - 1];
+        const monthlyValue = getMonthlyGoal(month);
         const existingTarget = targets.find(t => t.year === selectedYear && t.month === month && (t as any).team_id === teamFilter);
         if (existingTarget) {
           if (Math.abs(existingTarget.target_value - monthlyValue) > 0.01) {
