@@ -276,7 +276,39 @@ const MetaGestao = () => {
   };
   
   const annualProgress = annualGoal > 0 ? (yearlyData.totalVGV / annualGoal) * 100 : 0;
+  const isGoalExceeded = yearlyData.totalVGV >= annualGoal && annualGoal > 0;
   const remaining = Math.max(0, annualGoal - yearlyData.totalVGV);
+  const exceededBy = Math.max(0, yearlyData.totalVGV - annualGoal);
+
+  // Smart status label based on progress
+  const getGoalStatus = (progress: number) => {
+    if (progress >= 120) return { label: '🚀 Meta superada', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
+    if (progress >= 100) return { label: '🎉 Meta atingida', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
+    if (progress >= 80) return { label: 'No caminho', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
+    if (progress >= 50) return { label: 'Em atenção', color: 'border-warning/30 text-warning bg-warning/10', icon: AlertTriangle };
+    return { label: 'Abaixo do esperado', color: 'border-destructive/30 text-destructive bg-destructive/10', icon: Clock };
+  };
+
+  const goalStatus = getGoalStatus(annualProgress);
+
+  // Growth calculation with safety for zero
+  const getGrowthDisplay = () => {
+    if (!performanceStats?.avgGrowth && performanceStats?.avgGrowth !== 0) return 'Sem histórico';
+    const validMonths = monthlyGoals.filter(m => m.achieved > 0);
+    if (validMonths.length < 2) return 'Sem histórico';
+    const growth = performanceStats.avgGrowth;
+    if (!isFinite(growth)) return 'Sem histórico';
+    return `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
+  };
+
+  // Meta validation alert
+  const isMetaTooLow = useMemo(() => {
+    if (annualGoal <= 0) return false;
+    const last3Months = monthlyGoals.slice(0, new Date().getMonth()).filter(m => m.achieved > 0);
+    if (last3Months.length === 0) return false;
+    const avgMonthly = last3Months.reduce((s, m) => s + m.achieved, 0) / last3Months.length;
+    return annualGoal < avgMonthly; // annual target less than a single month average
+  }, [annualGoal, monthlyGoals]);
 
   if (isLoading) {
     return (
@@ -448,31 +480,28 @@ const MetaGestao = () => {
                 <div className="lg:col-span-2 space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Progresso Anual</span>
-                    <Badge variant="outline" className={cn(
-                      "text-xs",
-                      annualProgress >= 90 ? "border-success/30 text-success bg-success/10" :
-                      annualProgress >= 50 ? "border-warning/30 text-warning bg-warning/10" :
-                      "border-destructive/30 text-destructive bg-destructive/10"
-                    )}>
-                      {annualProgress >= 90 ? <CheckCircle2 className="w-3 h-3 mr-1" /> :
-                       annualProgress >= 50 ? <AlertTriangle className="w-3 h-3 mr-1" /> :
-                       <Clock className="w-3 h-3 mr-1" />}
-                      {annualProgress >= 90 ? 'No caminho' : annualProgress >= 50 ? 'Atenção' : 'Acelerar'}
+                    <Badge variant="outline" className={cn("text-xs", goalStatus.color)}>
+                      <goalStatus.icon className="w-3 h-3 mr-1" />
+                      {goalStatus.label}
                     </Badge>
                   </div>
                   <Progress value={Math.min(annualProgress, 100)} className="h-4" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Realizado: <strong className="text-foreground">{formatCurrency(yearlyData.totalVGV)}</strong></span>
-                    <span>Faltam: <strong className="text-foreground">{formatCurrencyCompact(remaining)}</strong></span>
+                    {isGoalExceeded ? (
+                      <span>Meta superada em: <strong className="text-success">{formatCurrency(exceededBy)}</strong></span>
+                    ) : (
+                      <span>Faltam: <strong className="text-foreground">{formatCurrency(remaining)}</strong></span>
+                    )}
                   </div>
                   
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border">
                     {[
-                      { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrencyCompact(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0' },
-                      { label: 'VGV/Corretor', value: brokerStats.activeBrokers > 0 ? formatCurrencyCompact(yearlyData.totalVGV / brokerStats.activeBrokers) : 'R$ 0' },
-                      { label: 'VGC Total', value: formatCurrencyCompact(yearlyData.totalVGC) },
-                      { label: 'Crescimento', value: performanceStats?.avgGrowth ? `${performanceStats.avgGrowth > 0 ? '+' : ''}${performanceStats.avgGrowth.toFixed(1)}%` : '0%' },
+                      { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00' },
+                      { label: 'VGV/Corretor', value: brokerStats.activeBrokers > 0 ? formatCurrency(yearlyData.totalVGV / brokerStats.activeBrokers) : 'R$ 0,00' },
+                      { label: 'VGC Total', value: formatCurrency(yearlyData.totalVGC) },
+                      { label: 'Crescimento', value: getGrowthDisplay() },
                     ].map((stat, i) => (
                       <div key={i}>
                         <p className="text-xs text-muted-foreground">{stat.label}</p>
@@ -491,16 +520,36 @@ const MetaGestao = () => {
                         cx="50" cy="50" r="42" fill="none" strokeWidth="10"
                         strokeLinecap="round"
                         className={cn("transition-all duration-700",
-                          annualProgress >= 90 ? "stroke-success" : annualProgress >= 50 ? "stroke-warning" : "stroke-destructive"
+                          annualProgress >= 100 ? "stroke-success" : annualProgress >= 80 ? "stroke-success" : annualProgress >= 50 ? "stroke-warning" : "stroke-destructive"
                         )}
                         strokeDasharray={`${Math.min(annualProgress, 100) * 2.64} 264`}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-bold text-foreground">{Math.round(annualProgress)}%</span>
-                      <span className="text-[10px] text-muted-foreground">atingido</span>
+                      {annualProgress > 999 ? (
+                        <>
+                          <span className="text-lg font-bold text-success">{Math.round(annualProgress)}%</span>
+                          <span className="text-[10px] text-success font-semibold">🚀 superada</span>
+                        </>
+                      ) : annualProgress >= 100 ? (
+                        <>
+                          <span className="text-2xl font-bold text-success">{Math.round(annualProgress)}%</span>
+                          <span className="text-[10px] text-success font-semibold">atingida!</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-2xl font-bold text-foreground">{Math.round(annualProgress)}%</span>
+                          <span className="text-[10px] text-muted-foreground">atingido</span>
+                        </>
+                      )}
                     </div>
                   </div>
+                  {isMetaTooLow && (
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg px-3 py-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Meta abaixo do histórico</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
