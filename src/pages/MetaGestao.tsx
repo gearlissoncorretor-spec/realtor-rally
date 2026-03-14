@@ -449,7 +449,24 @@ const MetaGestao = () => {
   const isMetaTooLow = effectiveAnnualGoal > 0 && recentMonthlyAverage > 0 && effectiveAnnualGoal < recentMonthlyAverage;
 
   const handleSaveAnnualGoal = async () => {
-    const normalizedAnnualGoal = Math.max(0, Number(annualGoal) || 0);
+    let normalizedAnnualGoal = Math.max(0, Number(annualGoal) || 0);
+
+    const looksLikeThousandScaleMismatch =
+      normalizedAnnualGoal > 0 &&
+      normalizedAnnualGoal < 100000 &&
+      recentMonthlyAverage >= 100000 &&
+      normalizedAnnualGoal < recentMonthlyAverage;
+
+    if (looksLikeThousandScaleMismatch) {
+      const shouldConvertScale = window.confirm(
+        `O valor informado (${formatCurrency(normalizedAnnualGoal)}) parece estar em milhares.\n\nDeseja converter automaticamente para ${formatCurrency(normalizedAnnualGoal * 1000)}?`
+      );
+
+      if (shouldConvertScale) {
+        normalizedAnnualGoal = normalizedAnnualGoal * 1000;
+        setAnnualGoal(normalizedAnnualGoal);
+      }
+    }
 
     if (normalizedAnnualGoal > 0 && recentMonthlyAverage > 0 && normalizedAnnualGoal < recentMonthlyAverage) {
       const shouldContinue = window.confirm(
@@ -460,9 +477,19 @@ const MetaGestao = () => {
     }
 
     const distributedGoals = buildLinearMonthlyGoalMap(normalizedAnnualGoal);
+    setAnnualGoal(normalizedAnnualGoal);
     setEditableMonthlyGoals(distributedGoals);
     setEditingAnnualGoal(false);
     await handleSaveTargets(distributedGoals);
+  };
+
+  const handlePrimarySave = async () => {
+    if (editingAnnualGoal) {
+      await handleSaveAnnualGoal();
+      return;
+    }
+
+    await handleSaveTargets();
   };
 
   if (isLoading) {
