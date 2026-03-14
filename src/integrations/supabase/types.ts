@@ -1194,6 +1194,7 @@ export type Database = {
           property_type: string
           start_date: string
           status: string
+          temperature: string
           updated_at: string
         }
         Insert: {
@@ -1212,6 +1213,7 @@ export type Database = {
           property_type?: string
           start_date?: string
           status?: string
+          temperature?: string
           updated_at?: string
         }
         Update: {
@@ -1230,6 +1232,7 @@ export type Database = {
           property_type?: string
           start_date?: string
           status?: string
+          temperature?: string
           updated_at?: string
         }
         Relationships: [

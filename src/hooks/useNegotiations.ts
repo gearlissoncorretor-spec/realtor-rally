@@ -21,6 +21,7 @@ export interface Negotiation {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  temperature: string;
 }
 
 export interface CreateNegotiationInput {
@@ -34,6 +35,7 @@ export interface CreateNegotiationInput {
   status?: string;
   start_date?: string;
   observations?: string;
+  temperature?: string;
 }
 
 export interface UpdateNegotiationInput {
@@ -49,6 +51,7 @@ export interface UpdateNegotiationInput {
   start_date?: string;
   observations?: string;
   loss_reason?: string;
+  temperature?: string;
 }
 
 export const useNegotiations = () => {

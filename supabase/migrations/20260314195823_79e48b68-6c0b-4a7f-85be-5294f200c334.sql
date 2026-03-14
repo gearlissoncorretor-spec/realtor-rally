@@ -1,0 +1,1 @@
+ALTER TABLE public.negotiations ADD COLUMN temperature text NOT NULL DEFAULT 'morna';

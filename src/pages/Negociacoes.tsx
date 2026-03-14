@@ -33,7 +33,9 @@ import {
   Star,
   Clock,
   Ban,
-  Undo2
+  Undo2,
+  Thermometer,
+  AlertTriangle
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
@@ -58,6 +60,12 @@ const PROPERTY_TYPES = [
   { value: 'terreno', label: 'Terreno' },
   { value: 'comercial', label: 'Comercial' },
   { value: 'rural', label: 'Rural' },
+];
+
+const TEMPERATURE_OPTIONS = [
+  { value: 'fria', label: '❄️ Fria', color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/30' },
+  { value: 'morna', label: '🌤️ Morna', color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/30' },
+  { value: 'quente', label: '🔥 Quente', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/30' },
 ];
 
 const Negociacoes = () => {
@@ -90,6 +98,9 @@ const Negociacoes = () => {
   const [celebrationOpen, setCelebrationOpen] = useState(false);
   const [celebrationData, setCelebrationData] = useState<{ brokerName: string; clientName: string; saleValue: number }>({ brokerName: '', clientName: '', saleValue: 0 });
   
+  // Stalled alert state
+  const [showStalledAlert, setShowStalledAlert] = useState(true);
+
   // Return to follow-up state
   const [returnToFollowUpOpen, setReturnToFollowUpOpen] = useState(false);
   const [selectedForFollowUp, setSelectedForFollowUp] = useState<Negotiation | null>(null);
@@ -106,6 +117,7 @@ const Negociacoes = () => {
     status: 'em_contato',
     start_date: new Date().toISOString().split('T')[0],
     observations: '',
+    temperature: 'morna',
   });
 
   // Get current user's broker ID
@@ -222,6 +234,7 @@ const Negociacoes = () => {
       status: negotiation.status,
       start_date: negotiation.start_date,
       observations: negotiation.observations || '',
+      temperature: negotiation.temperature || 'morna',
     });
     setIsFormOpen(true);
   };
@@ -240,6 +253,7 @@ const Negociacoes = () => {
       status: 'em_contato',
       start_date: new Date().toISOString().split('T')[0],
       observations: '',
+      temperature: 'morna',
     });
   };
 
@@ -350,6 +364,27 @@ const Negociacoes = () => {
   const isApproved = (status: string) => {
     return status === 'cliente_aprovado' || status === 'aprovado';
   };
+
+  const getTemperatureBadge = (temperature: string) => {
+    const temp = TEMPERATURE_OPTIONS.find(t => t.value === temperature);
+    if (!temp) return null;
+    return (
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${temp.bg} ${temp.color}`}>
+        {temp.label}
+      </span>
+    );
+  };
+
+  // Stalled negotiations alert
+  const stalledNegotiations = useMemo(() => {
+    const now = new Date();
+    return negotiations.filter(neg => {
+      const lastUpdate = new Date(neg.updated_at);
+      const diffDays = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays >= 3;
+    });
+  }, [negotiations]);
+
 
   if (loading) {
     return (
@@ -564,6 +599,30 @@ const Negociacoes = () => {
                       </div>
                     </div>
 
+                    {/* Temperature selector */}
+                    <div>
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <Thermometer className="w-4 h-4" />
+                        Termômetro da Negociação
+                      </label>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        {TEMPERATURE_OPTIONS.map((temp) => (
+                          <button
+                            key={temp.value}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, temperature: temp.value })}
+                            className={`p-3 rounded-lg border-2 text-center text-sm font-medium transition-all ${
+                              formData.temperature === temp.value
+                                ? `${temp.bg} border-current ${temp.color} scale-105 shadow-md`
+                                : 'border-border bg-background hover:bg-muted'
+                            }`}
+                          >
+                            {temp.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-sm font-medium">Observações</label>
                       <Textarea
@@ -587,6 +646,27 @@ const Negociacoes = () => {
               </Dialog>
             </div>
           </div>
+
+          {/* Stalled Negotiations Alert */}
+          {showStalledAlert && stalledNegotiations.length > 0 && (
+            <Alert className="border-destructive/50 bg-destructive/10">
+              <AlertDescription className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
+                  <span className="font-semibold text-destructive">
+                    ⚠️ {stalledNegotiations.length} negociação(ões) parada(s) há 3+ dias!
+                  </span>
+                  <span className="text-muted-foreground hidden sm:inline">
+                    — Clientes: {stalledNegotiations.slice(0, 3).map(n => n.client_name).join(', ')}
+                    {stalledNegotiations.length > 3 && ` e mais ${stalledNegotiations.length - 3}`}
+                  </span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowStalledAlert(false)} className="h-8 px-2">
+                  ✕
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Important Notice */}
           <Alert className="border-amber-500/50 bg-amber-500/10">
@@ -769,6 +849,9 @@ const Negociacoes = () => {
                                     <p>{format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}</p>
                                   </div>
                                 </div>
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  {getTemperatureBadge(negotiation.temperature)}
+                                </div>
                                 <div className="flex items-center gap-2 pt-1 border-t border-border/30">
                                   <Button size="sm" variant="ghost" onClick={() => handleEdit(negotiation)} className="flex-1 h-9">
                                     <Edit className="w-4 h-4 mr-1" /> Editar
@@ -804,6 +887,7 @@ const Negociacoes = () => {
                               <TableHead>Imóvel</TableHead>
                               <TableHead>Corretor</TableHead>
                               <TableHead>Valor</TableHead>
+                              <TableHead>Termômetro</TableHead>
                               <TableHead>Status</TableHead>
                               <TableHead>Data</TableHead>
                               <TableHead className="text-right">Ações</TableHead>
@@ -832,6 +916,9 @@ const Negociacoes = () => {
                                   <TableCell>{getBrokerName(negotiation.broker_id)}</TableCell>
                                   <TableCell className="font-semibold text-primary">
                                     {formatCurrency(negotiation.negotiated_value)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {getTemperatureBadge(negotiation.temperature)}
                                   </TableCell>
                                   <TableCell>
                                     <NegotiationStatusBadge 
