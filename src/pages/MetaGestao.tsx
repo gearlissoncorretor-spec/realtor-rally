@@ -244,6 +244,7 @@ const MetaGestao = () => {
       .filter((target) => {
         if (target.year !== selectedYear) return false;
         if (target.broker_id !== null) return false;
+        if (target.month === 0) return false; // Skip annual target
         if (teamFilter) return target.team_id === teamFilter;
         return target.team_id === null;
       })
@@ -257,57 +258,50 @@ const MetaGestao = () => {
     return monthMap;
   }, [targets, selectedYear, teamFilter]);
 
-  useEffect(() => {
-    const savedMonthlyGoals: { [month: number]: number } = {};
-    const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => {
-      savedMonthlyGoals[goal.monthIndex] = goal.target;
-      return sum + goal.target;
-    }, 0);
+  // Load annual goal from month=0 target (independent from monthly)
+  const annualTargetRecord = useMemo(() => {
+    const annualTargets = targets.filter((target) => {
+      if (target.year !== selectedYear) return false;
+      if (target.broker_id !== null) return false;
+      if (target.month !== 0) return false;
+      if (teamFilter) return target.team_id === teamFilter;
+      return target.team_id === null;
+    });
+    if (annualTargets.length === 0) return null;
+    return annualTargets.reduce((latest, t) =>
+      getRecordTimestamp(t) >= getRecordTimestamp(latest) ? t : latest
+    , annualTargets[0]);
+  }, [targets, selectedYear, teamFilter]);
 
-    setAnnualGoal(savedAnnualTotal);
+  useEffect(() => {
+    // Load annual goal from dedicated month=0 record
+    setAnnualGoal(annualTargetRecord?.target_value || 0);
+  }, [annualTargetRecord, selectedYear, teamFilter]);
+
+  useEffect(() => {
+    // Load monthly goals independently
+    const savedMonthlyGoals: { [month: number]: number } = {};
+    monthlyGoals.forEach((goal) => {
+      savedMonthlyGoals[goal.monthIndex] = goal.target;
+    });
     setEditableMonthlyGoals(savedMonthlyGoals);
     setDbMonthlyGoals(savedMonthlyGoals);
   }, [monthlyGoals, selectedYear, teamFilter]);
 
-  const buildLinearMonthlyGoalMap = (annualTarget: number): { [month: number]: number } => {
-    const normalizedAnnual = Math.max(0, Number(annualTarget) || 0);
-    if (normalizedAnnual === 0) {
-      return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
-        acc[month] = 0;
-        return acc;
-      }, {} as { [month: number]: number });
-    }
+  // The effective annual goal is the manually defined value, NOT derived from monthly
+  const effectiveAnnualGoal = Math.max(0, annualGoal);
 
-    const base = Math.floor((normalizedAnnual / 12) * 100) / 100;
-    let remainderInCents = Math.round((normalizedAnnual - base * 12) * 100);
-
-    return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
-      const increment = remainderInCents > 0 ? 0.01 : 0;
-      acc[month] = Number((base + increment).toFixed(2));
-      remainderInCents = Math.max(0, remainderInCents - 1);
-      return acc;
-    }, {} as { [month: number]: number });
-  };
-
-  const fallbackMonthlyValue = annualGoal > 0 ? annualGoal / 12 : 0;
+  // Sum of monthly targets (for display in table footer only)
+  const monthlyTargetsTotal = useMemo(
+    () => monthlyGoals.reduce((sum, g) => sum + (editableMonthlyGoals[g.monthIndex] ?? g.target), 0),
+    [monthlyGoals, editableMonthlyGoals]
+  );
 
   const getMonthlyGoal = (monthIndex: number): number => {
     if (editableMonthlyGoals[monthIndex] !== undefined) return editableMonthlyGoals[monthIndex];
     if (dbMonthlyGoals[monthIndex] !== undefined) return dbMonthlyGoals[monthIndex];
-    return fallbackMonthlyValue;
+    return 0;
   };
-
-  const monthlyProgression = useMemo(
-    () => Array.from({ length: 12 }, (_, index) => getMonthlyGoal(index + 1)),
-    [editableMonthlyGoals, dbMonthlyGoals, fallbackMonthlyValue]
-  );
-
-  const recalculatedAnnualGoal = useMemo(
-    () => monthlyProgression.reduce((sum, monthlyValue) => sum + monthlyValue, 0),
-    [monthlyProgression]
-  );
-
-  const effectiveAnnualGoal = Math.max(0, recalculatedAnnualGoal);
 
   const handleMonthlyGoalChange = (monthIndex: number, value: number) => {
     setEditableMonthlyGoals((prev) => ({ ...prev, [monthIndex]: Math.max(0, value || 0) }));
