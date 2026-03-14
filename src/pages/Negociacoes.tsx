@@ -80,6 +80,7 @@ const Negociacoes = () => {
   const [editingNegotiation, setEditingNegotiation] = useState<Negotiation | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterTemperature, setFilterTemperature] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   
@@ -141,11 +142,12 @@ const Negociacoes = () => {
         negotiation.observations?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = filterStatus === 'all' || negotiation.status === filterStatus;
+      const matchesTemperature = filterTemperature === 'all' || negotiation.temperature === filterTemperature;
       const isActive = !terminalStatuses.includes(negotiation.status);
       
-      return matchesSearch && matchesStatus && isActive;
+      return matchesSearch && matchesStatus && matchesTemperature && isActive;
     });
-  }, [negotiations, searchTerm, filterStatus]);
+  }, [negotiations, searchTerm, filterStatus, filterTemperature]);
 
   // Filter lost negotiations
   const filteredLostNegotiations = useMemo(() => {
@@ -384,6 +386,13 @@ const Negociacoes = () => {
       return diffDays >= 3;
     });
   }, [negotiations]);
+
+  const isStalled = (negotiation: Negotiation) => {
+    const now = new Date();
+    const lastUpdate = new Date(negotiation.updated_at);
+    const diffDays = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 3;
+  };
 
 
   if (loading) {
@@ -755,22 +764,42 @@ const Negociacoes = () => {
                   />
                 </div>
                 {activeTab === 'active' && (
-                  <Select value={filterStatus} onValueChange={setFilterStatus}>
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Status</SelectItem>
-                      {flowStatuses.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
+                  <>
+                    <Select value={filterStatus} onValueChange={setFilterStatus}>
+                      <SelectTrigger className="w-full sm:w-48">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os Status</SelectItem>
+                        {flowStatuses.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            <div className="flex items-center gap-2">
+                              <span>{status.icon}</span>
+                              {status.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={filterTemperature} onValueChange={setFilterTemperature}>
+                      <SelectTrigger className="w-full sm:w-44">
+                        <SelectValue placeholder="Termômetro" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
                           <div className="flex items-center gap-2">
-                            <span>{status.icon}</span>
-                            {status.label}
+                            <Thermometer className="w-4 h-4" />
+                            Todas
                           </div>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        {TEMPERATURE_OPTIONS.map((temp) => (
+                          <SelectItem key={temp.value} value={temp.value}>
+                            {temp.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
                 )}
               </div>
             </CardContent>
@@ -815,7 +844,7 @@ const Negociacoes = () => {
                           const statusConfig = getStatusByValue(negotiation.status);
                           const canConvert = isApproved(negotiation.status);
                           return (
-                            <Card key={negotiation.id} className="border border-border/50">
+                            <Card key={negotiation.id} className={`border ${isStalled(negotiation) ? 'border-destructive/50 bg-destructive/5' : 'border-border/50'}`}>
                               <CardContent className="p-4 space-y-3">
                                 <div className="flex items-start justify-between">
                                   <div className="min-w-0 flex-1">
@@ -898,7 +927,7 @@ const Negociacoes = () => {
                               const statusConfig = getStatusByValue(negotiation.status);
                               const canConvert = isApproved(negotiation.status);
                               return (
-                                <TableRow key={negotiation.id}>
+                                <TableRow key={negotiation.id} className={isStalled(negotiation) ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}>
                                   <TableCell>
                                     <div>
                                       <p className="font-medium">{negotiation.client_name}</p>

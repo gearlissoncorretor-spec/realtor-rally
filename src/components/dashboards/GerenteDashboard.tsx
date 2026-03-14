@@ -172,9 +172,19 @@ const GerenteDashboard = () => {
   const brokerPerformance = useMemo(() => {
     return activeTeamBrokers.map(broker => {
       const bSales = monthSales.filter(s => s.broker_id === broker.id);
+      const allBrokerSales = teamSales.filter(s => s.broker_id === broker.id);
       const vgv = bSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
       const bNeg = activeNegotiations.filter(n => n.broker_id === broker.id);
       const bFollowUps = pendingFollowUps.filter(f => f.broker_id === broker.id);
+      
+      // Calculate days since last sale
+      const lastSaleDate = allBrokerSales.length > 0
+        ? Math.max(...allBrokerSales.map(s => new Date(s.sale_date || s.created_at || '').getTime()))
+        : null;
+      const daysSinceLastSale = lastSaleDate
+        ? Math.floor((Date.now() - lastSaleDate) / (1000 * 60 * 60 * 24))
+        : null;
+
       return {
         id: broker.id,
         name: broker.name,
@@ -183,12 +193,18 @@ const GerenteDashboard = () => {
         negotiations: bNeg.length,
         followUps: bFollowUps.length,
         avatar_url: broker.avatar_url,
+        daysSinceLastSale,
       };
     }).sort((a, b) => b.vgv - a.vgv);
-  }, [activeTeamBrokers, monthSales, activeNegotiations, pendingFollowUps]);
+  }, [activeTeamBrokers, monthSales, teamSales, activeNegotiations, pendingFollowUps]);
 
   // Alerts: brokers with no activity
   const brokersWithoutSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations === 0);
+  
+  // Brokers inactive for 5+ days (no sales in 5+ days)
+  const inactiveBrokers = brokerPerformance.filter(b => 
+    b.daysSinceLastSale !== null && b.daysSinceLastSale >= 5
+  );
 
   // Funnel data
   const funnelData = [
@@ -326,6 +342,25 @@ const GerenteDashboard = () => {
               </div>
             ) : null;
           })()}
+
+          {/* Broker Inactivity Alert (5+ days without sales) */}
+          {sections.includes('alerts') && inactiveBrokers.length > 0 && (
+            <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+                <Clock className="w-4 h-4 text-orange-400" /> Alerta de Inatividade — 5+ dias sem vendas
+              </h2>
+              <p className="text-xs text-muted-foreground mb-3">
+                Estes corretores não registram vendas há pelo menos 5 dias.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {inactiveBrokers.map(b => (
+                  <Badge key={b.id} variant="outline" className="border-orange-500/30 text-orange-400 bg-orange-500/10 py-1 px-3">
+                    {b.name.split(' ')[0]} — {b.daysSinceLastSale} dias sem venda
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 3. Goal Panel — Monthly + Annual + Smart Insights */}
           {sections.includes('goal') && (

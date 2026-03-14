@@ -14,6 +14,7 @@ import InstallPrompt from "@/components/InstallPrompt";
 import "./App.css";
 
 // Lazy-loaded pages
+const Home = lazy(() => import("@/pages/Home"));
 const Index = lazy(() => import("@/pages/Index"));
 const Auth = lazy(() => import("@/pages/Auth"));
 const Vendas = lazy(() => import("@/pages/Vendas"));
@@ -27,7 +28,7 @@ const Metas = lazy(() => import("@/pages/Metas"));
 const X1 = lazy(() => import("@/pages/X1"));
 const DashboardEquipes = lazy(() => import("@/pages/DashboardEquipes"));
 const TarefasKanban = lazy(() => import("@/pages/TarefasKanban"));
-const Atividades = lazy(() => import("@/pages/TarefasKanban")); // Redirect to unified page
+const Atividades = lazy(() => import("@/pages/Atividades"));
 const Negociacoes = lazy(() => import("@/pages/Negociacoes"));
 const MetaGestao = lazy(() => import("@/pages/MetaGestao"));
 const FollowUp = lazy(() => import("@/pages/FollowUp"));
@@ -89,7 +90,7 @@ const App = () => (
             <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
             <Route element={<AuthenticatedLayout />}>
               <Route path="/" element={
-                <ProtectedRoute><LazyPage><Index /></LazyPage></ProtectedRoute>
+                <ProtectedRoute><LazyPage><Home /></LazyPage></ProtectedRoute>
               } />
               <Route path="/vendas" element={
                 <ProtectedRoute><LazyPage><Vendas /></LazyPage></ProtectedRoute>
