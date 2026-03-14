@@ -247,8 +247,8 @@ const DiretorDashboardPage = () => {
   const { displayName, subtitle } = useContextualIdentity();
   const { isDiretor, isAdmin } = useAuth();
   const { teams } = useTeams();
-  const [selectedMonth, setSelectedMonth] = useState(0);
-  const [selectedYear, setSelectedYear] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
   const [showNegotiationAlert, setShowNegotiationAlert] = useState(true);
 
