@@ -29,8 +29,7 @@ const Acompanhamento = () => {
   const [newStageColor, setNewStageColor] = useState("#3b82f6");
   const [isAddingStage, setIsAddingStage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  // Period filter removed — pipeline shows all sales
 
   const topScrollRef = useRef<HTMLDivElement>(null);
   const mainScrollRef = useRef<HTMLDivElement>(null);
