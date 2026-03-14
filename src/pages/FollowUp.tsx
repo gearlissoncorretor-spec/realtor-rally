@@ -223,6 +223,11 @@ const FollowUpPage = () => {
     setSelectedForContact(null);
   };
 
+  const handleOpenNotes = (followUp: FollowUpType) => {
+    setSelectedForNotes(followUp);
+    setNotesDialogOpen(true);
+  };
+
   const getBrokerName = (brokerId: string) => {
     const broker = brokers.find(b => b.id === brokerId);
     return broker?.name || 'Não encontrado';
@@ -240,6 +245,15 @@ const FollowUpPage = () => {
     if (isToday(date)) return 'today';
     if (isPast(date)) return 'overdue';
     return 'future';
+  };
+
+  const getDaysLabel = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    const date = parseISO(dateStr);
+    const days = differenceInDays(date, new Date());
+    if (days === 0) return 'Hoje';
+    if (days < 0) return `${Math.abs(days)}d atrás`;
+    return `em ${days}d`;
   };
 
   if (loading) {
