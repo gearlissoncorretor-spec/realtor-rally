@@ -822,7 +822,7 @@ const MetaGestao = () => {
                   { label: 'Vendas no Ano', value: String(yearlyData.totalSales || 0), sub: 'unidades', icon: '🏠' },
                   { 
                     label: 'Distância p/ Meta', 
-                    value: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? 'Atingida!' : formatCurrencyCompact(remaining),
+                    value: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? 'Atingida!' : formatCurrency(remaining),
                     sub: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? '✅' : 'restantes',
                     icon: '🎯'
                   },
