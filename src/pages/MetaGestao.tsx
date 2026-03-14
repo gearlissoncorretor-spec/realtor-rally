@@ -98,7 +98,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     const monthMap = new Map<number, (typeof scopedTargets)[number]>();
 
     scopedTargets
-      .filter((target) => target.year === year)
+      .filter((target) => target.year === year && target.month > 0)
       .forEach((target) => {
         const current = monthMap.get(target.month);
         if (!current || getRecordTimestamp(target) >= getRecordTimestamp(current)) {
@@ -147,10 +147,9 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
     const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
     const totalSales = yearSales.length;
-    const yearTargets = Array.from(latestTargetByMonth.values());
-    const annualTarget = yearTargets.reduce((sum, target) => sum + target.target_value, 0);
+    const monthlyTargetsSum = Array.from(latestTargetByMonth.values()).reduce((sum, target) => sum + target.target_value, 0);
 
-    return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
+    return { totalVGV, totalVGC, totalSales, monthlyTargetsSum, yearSales };
   }, [yearSales, latestTargetByMonth]);
 
   const brokerStats = useMemo(() => {
@@ -192,20 +191,10 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     return { bestMonth, worstMonth, avgGrowth };
   }, [monthlyGoals]);
 
+  // Probability placeholder - will be recalculated in component with independent annual goal
   const probability = useMemo(() => {
-    const { annualTarget, totalVGV } = yearlyData;
-    if (annualTarget === 0) return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
-
-    const yearProgress = (new Date().getMonth() + 1) / 12;
-    const projectedTotal = yearProgress > 0 ? totalVGV / yearProgress : 0;
-    const baseProb = Math.min(100, (projectedTotal / annualTarget) * 100);
-
-    return {
-      current: Math.round(baseProb),
-      withMoreBrokers: Math.round(Math.min(100, baseProb * 1.15)),
-      withHigherTicket: Math.round(Math.min(100, baseProb * 1.2)),
-    };
-  }, [yearlyData]);
+    return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
+  }, []);
 
   return { yearlyData, monthlyGoals, brokerStats, performanceStats, probability };
 };
@@ -254,6 +243,7 @@ const MetaGestao = () => {
       .filter((target) => {
         if (target.year !== selectedYear) return false;
         if (target.broker_id !== null) return false;
+        if (target.month === 0) return false; // Skip annual target
         if (teamFilter) return target.team_id === teamFilter;
         return target.team_id === null;
       })
@@ -267,57 +257,50 @@ const MetaGestao = () => {
     return monthMap;
   }, [targets, selectedYear, teamFilter]);
 
-  useEffect(() => {
-    const savedMonthlyGoals: { [month: number]: number } = {};
-    const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => {
-      savedMonthlyGoals[goal.monthIndex] = goal.target;
-      return sum + goal.target;
-    }, 0);
+  // Load annual goal from month=0 target (independent from monthly)
+  const annualTargetRecord = useMemo(() => {
+    const annualTargets = targets.filter((target) => {
+      if (target.year !== selectedYear) return false;
+      if (target.broker_id !== null) return false;
+      if (target.month !== 0) return false;
+      if (teamFilter) return target.team_id === teamFilter;
+      return target.team_id === null;
+    });
+    if (annualTargets.length === 0) return null;
+    return annualTargets.reduce((latest, t) =>
+      getRecordTimestamp(t) >= getRecordTimestamp(latest) ? t : latest
+    , annualTargets[0]);
+  }, [targets, selectedYear, teamFilter]);
 
-    setAnnualGoal(savedAnnualTotal);
+  useEffect(() => {
+    // Load annual goal from dedicated month=0 record
+    setAnnualGoal(annualTargetRecord?.target_value || 0);
+  }, [annualTargetRecord, selectedYear, teamFilter]);
+
+  useEffect(() => {
+    // Load monthly goals independently
+    const savedMonthlyGoals: { [month: number]: number } = {};
+    monthlyGoals.forEach((goal) => {
+      savedMonthlyGoals[goal.monthIndex] = goal.target;
+    });
     setEditableMonthlyGoals(savedMonthlyGoals);
     setDbMonthlyGoals(savedMonthlyGoals);
   }, [monthlyGoals, selectedYear, teamFilter]);
 
-  const buildLinearMonthlyGoalMap = (annualTarget: number): { [month: number]: number } => {
-    const normalizedAnnual = Math.max(0, Number(annualTarget) || 0);
-    if (normalizedAnnual === 0) {
-      return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
-        acc[month] = 0;
-        return acc;
-      }, {} as { [month: number]: number });
-    }
+  // The effective annual goal is the manually defined value, NOT derived from monthly
+  const effectiveAnnualGoal = Math.max(0, annualGoal);
 
-    const base = Math.floor((normalizedAnnual / 12) * 100) / 100;
-    let remainderInCents = Math.round((normalizedAnnual - base * 12) * 100);
-
-    return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
-      const increment = remainderInCents > 0 ? 0.01 : 0;
-      acc[month] = Number((base + increment).toFixed(2));
-      remainderInCents = Math.max(0, remainderInCents - 1);
-      return acc;
-    }, {} as { [month: number]: number });
-  };
-
-  const fallbackMonthlyValue = annualGoal > 0 ? annualGoal / 12 : 0;
+  // Sum of monthly targets (for display in table footer only)
+  const monthlyTargetsTotal = useMemo(
+    () => monthlyGoals.reduce((sum, g) => sum + (editableMonthlyGoals[g.monthIndex] ?? g.target), 0),
+    [monthlyGoals, editableMonthlyGoals]
+  );
 
   const getMonthlyGoal = (monthIndex: number): number => {
     if (editableMonthlyGoals[monthIndex] !== undefined) return editableMonthlyGoals[monthIndex];
     if (dbMonthlyGoals[monthIndex] !== undefined) return dbMonthlyGoals[monthIndex];
-    return fallbackMonthlyValue;
+    return 0;
   };
-
-  const monthlyProgression = useMemo(
-    () => Array.from({ length: 12 }, (_, index) => getMonthlyGoal(index + 1)),
-    [editableMonthlyGoals, dbMonthlyGoals, fallbackMonthlyValue]
-  );
-
-  const recalculatedAnnualGoal = useMemo(
-    () => monthlyProgression.reduce((sum, monthlyValue) => sum + monthlyValue, 0),
-    [monthlyProgression]
-  );
-
-  const effectiveAnnualGoal = Math.max(0, recalculatedAnnualGoal);
 
   const handleMonthlyGoalChange = (monthIndex: number, value: number) => {
     setEditableMonthlyGoals((prev) => ({ ...prev, [monthIndex]: Math.max(0, value || 0) }));
@@ -398,6 +381,19 @@ const MetaGestao = () => {
   const remaining = Math.max(0, effectiveAnnualGoal - yearlyData.totalVGV);
   const exceededBy = Math.max(0, yearlyData.totalVGV - effectiveAnnualGoal);
 
+  // Probability based on independent annual goal
+  const componentProbability = useMemo(() => {
+    if (effectiveAnnualGoal === 0) return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
+    const yearProgress = (new Date().getMonth() + 1) / 12;
+    const projectedTotal = yearProgress > 0 ? yearlyData.totalVGV / yearProgress : 0;
+    const baseProb = Math.min(100, (projectedTotal / effectiveAnnualGoal) * 100);
+    return {
+      current: Math.round(baseProb),
+      withMoreBrokers: Math.round(Math.min(100, baseProb * 1.15)),
+      withHigherTicket: Math.round(Math.min(100, baseProb * 1.2)),
+    };
+  }, [effectiveAnnualGoal, yearlyData.totalVGV]);
+
   // Smart status label based on progress
   const getGoalStatus = (progress: number) => {
     if (progress >= 120) return { label: '🚀 Meta superada', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
@@ -464,7 +460,6 @@ const MetaGestao = () => {
 
       if (shouldConvertScale) {
         normalizedAnnualGoal = normalizedAnnualGoal * 1000;
-        setAnnualGoal(normalizedAnnualGoal);
       }
     }
 
@@ -476,11 +471,28 @@ const MetaGestao = () => {
       if (!shouldContinue) return;
     }
 
-    const distributedGoals = buildLinearMonthlyGoalMap(normalizedAnnualGoal);
-    setAnnualGoal(normalizedAnnualGoal);
-    setEditableMonthlyGoals(distributedGoals);
-    setEditingAnnualGoal(false);
-    await handleSaveTargets(distributedGoals);
+    // Save annual goal as month=0 target (independent from monthly)
+    try {
+      setSavingTargets(true);
+      if (annualTargetRecord) {
+        await updateTarget(annualTargetRecord.id, { target_value: normalizedAnnualGoal });
+      } else {
+        await createTarget({
+          year: selectedYear,
+          month: 0,
+          target_value: normalizedAnnualGoal,
+          team_id: teamFilter ?? null,
+          broker_id: null,
+        } as any);
+      }
+      setAnnualGoal(normalizedAnnualGoal);
+      setEditingAnnualGoal(false);
+      toast.success('Meta anual salva com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao salvar meta anual');
+    } finally {
+      setSavingTargets(false);
+    }
   };
 
   const handlePrimarySave = async () => {
@@ -594,10 +606,10 @@ const MetaGestao = () => {
             </Card>
             
             <Card className="border-border/50 bg-card relative overflow-hidden">
-              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", probability.current >= 70 ? "bg-gradient-to-r from-success to-success/50" : probability.current >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
+              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", componentProbability.current >= 70 ? "bg-gradient-to-r from-success to-success/50" : componentProbability.current >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Probabilidade</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{probability.current}%</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{componentProbability.current}%</p>
                 <div className="flex items-center gap-1 mt-2">
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs text-muted-foreground">projeção anual</span>
@@ -615,7 +627,7 @@ const MetaGestao = () => {
                   Meta Financeira Anual
                 </CardTitle>
                 {canManage && (
-                  <Button size="sm" onClick={() => void handlePrimarySave()} disabled={savingTargets}>
+                  <Button size="sm" onClick={() => void handleSaveAnnualGoal()} disabled={savingTargets}>
                     {savingTargets ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
                     Salvar
                   </Button>
@@ -653,7 +665,7 @@ const MetaGestao = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Progressão: <strong>{formatCurrency(getMonthlyGoal(1))}</strong> (Jan) → <strong>{formatCurrency(getMonthlyGoal(12))}</strong> (Dez)
+                  Meta definida manualmente pelo gestor — independente das metas mensais.
                 </p>
               </div>
               
@@ -797,7 +809,7 @@ const MetaGestao = () => {
                           <td className="text-center py-3 px-2">
                             {editingMonthlyGoal === monthIndex && canManage ? (
                               <CurrencyInput
-                                value={editableMonthlyGoals[monthIndex] ?? monthlyProgression[idx] ?? 0}
+                                value={editableMonthlyGoals[monthIndex] ?? getMonthlyGoal(monthIndex)}
                                 onChange={(val) => handleMonthlyGoalChange(monthIndex, val)}
                                 onBlur={() => { saveMonthlyGoal(monthIndex); setEditingMonthlyGoal(null); }}
                                 className="h-8 text-sm text-center max-w-[120px] mx-auto"
@@ -861,7 +873,7 @@ const MetaGestao = () => {
                     })}
                     <tr className="bg-muted/50 font-semibold">
                       <td className="py-3 px-2 text-sm text-foreground">Total</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(effectiveAnnualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(monthlyTargetsTotal)}</td>
                       <td className="text-center py-3 px-2 font-mono text-sm">{brokerHiringGoal}</td>
                       <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrency(yearlyData.totalVGV)}</td>
                       <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - effectiveAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
@@ -948,9 +960,9 @@ const MetaGestao = () => {
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: 'Conservador', value: Math.max(0, probability.current - 15), icon: TrendingDown, color: 'text-muted-foreground' },
-                    { label: 'Realista', value: probability.current, icon: Target, color: 'text-primary', highlight: true },
-                    { label: 'Agressivo', value: probability.withHigherTicket, icon: TrendingUp, color: 'text-success' },
+                    { label: 'Conservador', value: Math.max(0, componentProbability.current - 15), icon: TrendingDown, color: 'text-muted-foreground' },
+                    { label: 'Realista', value: componentProbability.current, icon: Target, color: 'text-primary', highlight: true },
+                    { label: 'Agressivo', value: componentProbability.withHigherTicket, icon: TrendingUp, color: 'text-success' },
                   ].map((scenario, i) => (
                     <div key={i} className={cn(
                       "p-3 rounded-xl text-center",
@@ -966,8 +978,8 @@ const MetaGestao = () => {
                 <div className="p-3 rounded-lg bg-info/5 border border-info/20">
                   <p className="text-xs font-medium text-info mb-1.5">Insights</p>
                   <ul className="space-y-1 text-xs text-muted-foreground">
-                    <li>• +3 corretores → <strong className="text-foreground">{probability.withMoreBrokers}%</strong></li>
-                    <li>• +15% ticket → <strong className="text-foreground">{probability.withHigherTicket}%</strong></li>
+                    <li>• +3 corretores → <strong className="text-foreground">{componentProbability.withMoreBrokers}%</strong></li>
+                    <li>• +15% ticket → <strong className="text-foreground">{componentProbability.withHigherTicket}%</strong></li>
                     <li>• Crescimento médio: <strong className="text-foreground">{performanceStats?.avgGrowth?.toFixed(1) || 0}%</strong></li>
                   </ul>
                 </div>
