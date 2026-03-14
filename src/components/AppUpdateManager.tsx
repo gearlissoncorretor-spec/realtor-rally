@@ -1,18 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Download } from 'lucide-react';
+import { useEffect, useCallback } from 'react';
 
 export const AppUpdateManager = () => {
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
-
-  const applyUpdate = useCallback(() => {
-    if (waitingWorker) {
-      waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+  const applyUpdate = useCallback((worker: ServiceWorker | null) => {
+    if (worker) {
+      worker.postMessage({ type: 'SKIP_WAITING' });
     }
     window.location.reload();
-  }, [waitingWorker]);
+  }, []);
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
@@ -27,29 +21,28 @@ export const AppUpdateManager = () => {
       try {
         const registration = await navigator.serviceWorker.ready;
         
-        // Check for waiting worker on load
+        // Auto-apply if there's a waiting worker
         if (registration.waiting) {
-          setWaitingWorker(registration.waiting);
-          setUpdateAvailable(true);
+          applyUpdate(registration.waiting);
+          return;
         }
 
-        // Listen for new updates
+        // Listen for new updates and auto-apply
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           if (!newWorker) return;
 
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              setWaitingWorker(newWorker);
-              setUpdateAvailable(true);
+              applyUpdate(newWorker);
             }
           });
         });
 
-        // Periodic check every 5 minutes
+        // Periodic check every 2 minutes
         const interval = setInterval(() => {
           registration.update().catch(console.error);
-        }, 5 * 60 * 1000);
+        }, 2 * 60 * 1000);
 
         return () => clearInterval(interval);
       } catch (e) {
@@ -62,36 +55,7 @@ export const AppUpdateManager = () => {
     return () => {
       navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
     };
-  }, []);
-
-  useEffect(() => {
-    if (!updateAvailable) return;
-    
-    toast(
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 font-semibold">
-          <Download className="h-4 w-4 text-primary" />
-          Nova versão disponível!
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Uma atualização está pronta. Atualize agora para ter a melhor experiência.
-        </p>
-        <Button 
-          size="sm" 
-          onClick={applyUpdate}
-          className="w-full mt-1"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Atualizar agora
-        </Button>
-      </div>,
-      {
-        duration: Infinity,
-        id: 'app-update',
-        position: 'top-center',
-      }
-    );
-  }, [updateAvailable, applyUpdate]);
+  }, [applyUpdate]);
 
   return null;
 };
