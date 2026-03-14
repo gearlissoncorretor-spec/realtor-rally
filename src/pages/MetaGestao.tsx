@@ -448,6 +448,23 @@ const MetaGestao = () => {
   // Alerta para metas muito abaixo do histórico recente
   const isMetaTooLow = effectiveAnnualGoal > 0 && recentMonthlyAverage > 0 && effectiveAnnualGoal < recentMonthlyAverage;
 
+  const handleSaveAnnualGoal = async () => {
+    const normalizedAnnualGoal = Math.max(0, Number(annualGoal) || 0);
+
+    if (normalizedAnnualGoal > 0 && recentMonthlyAverage > 0 && normalizedAnnualGoal < recentMonthlyAverage) {
+      const shouldContinue = window.confirm(
+        `A meta anual (${formatCurrency(normalizedAnnualGoal)}) está abaixo da média dos últimos 3 meses (${formatCurrency(recentMonthlyAverage)}). Deseja salvar mesmo assim?`
+      );
+
+      if (!shouldContinue) return;
+    }
+
+    const distributedGoals = buildLinearMonthlyGoalMap(normalizedAnnualGoal);
+    setEditableMonthlyGoals(distributedGoals);
+    setEditingAnnualGoal(false);
+    await handleSaveTargets(distributedGoals);
+  };
+
   if (isLoading) {
     return (
       <>
