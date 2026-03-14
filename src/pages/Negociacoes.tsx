@@ -362,6 +362,28 @@ const Negociacoes = () => {
     return status === 'cliente_aprovado' || status === 'aprovado';
   };
 
+  const getTemperatureBadge = (temperature: string) => {
+    const temp = TEMPERATURE_OPTIONS.find(t => t.value === temperature);
+    if (!temp) return null;
+    return (
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${temp.bg} ${temp.color}`}>
+        {temp.label}
+      </span>
+    );
+  };
+
+  // Stalled negotiations alert
+  const stalledNegotiations = useMemo(() => {
+    const now = new Date();
+    return negotiations.filter(neg => {
+      const lastUpdate = new Date(neg.updated_at);
+      const diffDays = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays >= 3;
+    });
+  }, [negotiations]);
+
+  const [showStalledAlert, setShowStalledAlert] = useState(true);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
