@@ -365,14 +365,26 @@ const Navigation = () => {
 const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { getUserRole } = useAuth();
+  const role = getUserRole();
 
-  const bottomItems = [
+  const corretorItems = [
+    { href: "/", label: "Painel", icon: LayoutGrid },
+    { href: "/negociacoes", label: "Negociações", icon: Handshake },
+    { href: "/agenda", label: "Agenda", icon: CalendarDays },
+    { href: "/follow-up", label: "Follow-ups", icon: Users },
+    { href: "/vendas", label: "Vendas", icon: Home },
+  ];
+
+  const defaultItems = [
     { href: "/", label: "Home", icon: LayoutGrid },
     { href: "/vendas", label: "Vendas", icon: Home },
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
     { href: "/ranking", label: "Ranking", icon: Trophy },
     { href: "/metas", label: "Metas", icon: Target },
   ];
+
+  const bottomItems = role === 'corretor' ? corretorItems : defaultItems;
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-xl border-t border-border/40 z-40 flex items-center justify-around px-2 safe-area-bottom">
