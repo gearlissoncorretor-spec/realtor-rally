@@ -640,7 +640,7 @@ const MetaGestao = () => {
                       {goalStatus.label}
                     </Badge>
                   </div>
-                  <Progress value={Math.min(annualProgress, 100)} className="h-4" />
+                  <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-4" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Realizado: <strong className="text-foreground">{formatCurrency(yearlyData.totalVGV)}</strong></span>
                     {isGoalExceeded ? (
@@ -654,7 +654,7 @@ const MetaGestao = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border">
                     {[
                       { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00' },
-                      { label: 'VGV/Corretor', value: brokerStats.activeBrokers > 0 ? formatCurrency(yearlyData.totalVGV / brokerStats.activeBrokers) : 'R$ 0,00' },
+                      { label: 'VGV/Corretor ativo', value: brokerStats.activeWithSales > 0 ? formatCurrency(yearlyData.totalVGV / brokerStats.activeWithSales) : 'R$ 0,00' },
                       { label: 'VGC Total', value: formatCurrency(yearlyData.totalVGC) },
                       { label: 'Crescimento', value: getGrowthDisplay() },
                     ].map((stat, i) => (
@@ -681,19 +681,14 @@ const MetaGestao = () => {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      {annualProgress > 999 ? (
+                      {annualProgress >= 100 ? (
                         <>
-                          <span className="text-lg font-bold text-success">{Math.round(annualProgress)}%</span>
-                          <span className="text-[10px] text-success font-semibold">🚀 superada</span>
-                        </>
-                      ) : annualProgress >= 100 ? (
-                        <>
-                          <span className="text-2xl font-bold text-success">{Math.round(annualProgress)}%</span>
+                          <span className="text-2xl font-bold text-success">{formatPercentDisplay(annualProgress, 0)}</span>
                           <span className="text-[10px] text-success font-semibold">atingida!</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-2xl font-bold text-foreground">{Math.round(annualProgress)}%</span>
+                          <span className="text-2xl font-bold text-foreground">{formatPercentDisplay(annualProgress, 0)}</span>
                           <span className="text-[10px] text-muted-foreground">atingido</span>
                         </>
                       )}
@@ -702,7 +697,7 @@ const MetaGestao = () => {
                   {isMetaTooLow && (
                     <div className="mt-3 flex items-center gap-1.5 text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg px-3 py-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      <span>Meta abaixo do histórico</span>
+                      <span>Meta abaixo do histórico ({formatCurrency(recentMonthlyAverage)}/mês)</span>
                     </div>
                   )}
                 </div>
