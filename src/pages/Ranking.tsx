@@ -2278,11 +2278,14 @@ const Ranking = () => {
                   </Card>
                 )}
 
+                {/* Gradient separator between podium and leaderboard */}
+                <div className="gradient-separator my-6 mx-8 rounded-full" />
+
                 {/* Leaderboard */}
                 <Card className="overflow-hidden border-border/50">
                   <div className="p-4 border-b border-border bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center gap-2">
                     <div className="flex items-center gap-2 flex-1">
-                      <Flame className="w-5 h-5 text-warning" />
+                      <Flame className="w-5 h-5 text-warning animate-medal-pulse" />
                       <h2 className="font-semibold text-foreground text-sm">
                         {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
                       </h2>
@@ -2292,7 +2295,8 @@ const Ranking = () => {
                     </div>
                     {rankingType === 'vendas' && (
                       <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
-                        <SelectTrigger className="h-8 w-[150px] text-xs border-border/50">
+                        <SelectTrigger className="h-8 w-[160px] text-xs border-border/50 hover:border-primary/40 transition-colors backdrop-blur-sm bg-background/80">
+                          <TrendingUp className="w-3 h-3 mr-1.5 text-muted-foreground" />
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
