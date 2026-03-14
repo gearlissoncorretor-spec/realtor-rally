@@ -35,9 +35,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Percent,
   Building2,
-  UserPlus,
   Plus,
   Loader2
 } from 'lucide-react';
