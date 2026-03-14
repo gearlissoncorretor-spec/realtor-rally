@@ -609,7 +609,7 @@ const LeaderboardCard = ({
           </div>
 
         <div className="text-right">
-          <p className="font-bold text-sm text-foreground">{formatCurrency(broker.revenue)}</p>
+          <p className="font-black text-sm text-foreground tracking-tight">{formatCurrency(broker.revenue)}</p>
           {broker.growth !== null && (
             <div className="flex items-center justify-end gap-0.5">
               {broker.growth > 0 ? (
