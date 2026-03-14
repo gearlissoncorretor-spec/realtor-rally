@@ -488,7 +488,11 @@ const MetaGestao = () => {
                   <Progress value={Math.min(annualProgress, 100)} className="h-4" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Realizado: <strong className="text-foreground">{formatCurrency(yearlyData.totalVGV)}</strong></span>
-                    <span>Faltam: <strong className="text-foreground">{formatCurrencyCompact(remaining)}</strong></span>
+                    {isGoalExceeded ? (
+                      <span>Meta superada em: <strong className="text-success">{formatCurrency(exceededBy)}</strong></span>
+                    ) : (
+                      <span>Faltam: <strong className="text-foreground">{formatCurrency(remaining)}</strong></span>
+                    )}
                   </div>
                   
                   {/* Quick Stats */}
