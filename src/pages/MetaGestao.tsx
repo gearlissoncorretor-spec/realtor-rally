@@ -682,11 +682,11 @@ const MetaGestao = () => {
                     })}
                     <tr className="bg-muted/50 font-semibold">
                       <td className="py-3 px-2 text-sm text-foreground">Total</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrencyCompact(recalculatedAnnualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(recalculatedAnnualGoal)}</td>
                       <td className="text-center py-3 px-2 font-mono text-sm">{brokerHiringGoal}</td>
-                      <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrencyCompact(yearlyData.totalVGV)}</td>
+                      <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrency(yearlyData.totalVGV)}</td>
                       <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - recalculatedAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
-                        {formatCurrencyCompact(Math.abs(yearlyData.totalVGV - recalculatedAnnualGoal))}
+                        {formatCurrency(Math.abs(yearlyData.totalVGV - recalculatedAnnualGoal))}
                       </td>
                       <td className="text-center py-3 px-2 text-sm">{annualProgress.toFixed(0)}%</td>
                       <td></td>
