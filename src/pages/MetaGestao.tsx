@@ -469,7 +469,7 @@ const MetaGestao = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Progressão: <strong>{formatCurrencyCompact(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrencyCompact(monthlyProgression[11])}</strong> (Dez)
+                  Progressão: <strong>{formatCurrency(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrency(monthlyProgression[11])}</strong> (Dez)
                 </p>
               </div>
               
