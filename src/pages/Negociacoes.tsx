@@ -84,6 +84,7 @@ const Negociacoes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterTemperature, setFilterTemperature] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("newest");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   
@@ -142,7 +143,7 @@ const Negociacoes = () => {
   // Filter negotiations (active tab)
   const filteredNegotiations = useMemo(() => {
     const terminalStatuses = ['perdida', 'venda_concluida'];
-    return negotiations.filter(negotiation => {
+    const filtered = negotiations.filter(negotiation => {
       const matchesSearch = 
         negotiation.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         negotiation.property_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,7 +155,13 @@ const Negociacoes = () => {
       
       return matchesSearch && matchesStatus && matchesTemperature && isActive;
     });
-  }, [negotiations, searchTerm, filterStatus, filterTemperature]);
+
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+  }, [negotiations, searchTerm, filterStatus, filterTemperature, sortOrder]);
 
   // Filter lost negotiations
   const filteredLostNegotiations = useMemo(() => {
@@ -804,6 +811,25 @@ const Negociacoes = () => {
                             {temp.label}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortOrder} onValueChange={setSortOrder}>
+                      <SelectTrigger className="w-full sm:w-44">
+                        <SelectValue placeholder="Ordenar por" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Mais recentes
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="oldest">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Mais antigas
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </>
