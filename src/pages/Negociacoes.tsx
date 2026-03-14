@@ -108,6 +108,10 @@ const Negociacoes = () => {
   const [returnToFollowUpOpen, setReturnToFollowUpOpen] = useState(false);
   const [selectedForFollowUp, setSelectedForFollowUp] = useState<Negotiation | null>(null);
   
+  // Notes dialog state
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedForNotes, setSelectedForNotes] = useState<Negotiation | null>(null);
+  
   // Form state
   const [formData, setFormData] = useState<CreateNegotiationInput>({
     broker_id: '',
