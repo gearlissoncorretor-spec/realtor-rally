@@ -46,19 +46,15 @@ const Acompanhamento = () => {
     return brokers.find(b => b.id === brokerId)?.avatar_url || undefined;
   };
 
-  // Build and filter process cards
+  // Build and filter process cards — show ALL sales regardless of period
   const processCards = useMemo<ProcessCardData[]>(() => {
-    if (!sales || !brokers) return [];
+    if (!sales || !brokers || !stages.length) return [];
     const search = searchTerm.toLowerCase();
+    const firstStageId = stages[0]?.id || "";
 
     return sales
       .filter(sale => {
-        // Period filter
-        const d = sale.sale_date ? new Date(sale.sale_date) : null;
-        if (d) {
-          if (d.getMonth() + 1 !== selectedMonth || d.getFullYear() !== selectedYear) return false;
-        }
-        // Search filter
+        // Search filter only
         if (search) {
           const brokerName = getBrokerName(sale.broker_id).toLowerCase();
           return sale.client_name.toLowerCase().includes(search) || brokerName.includes(search);
@@ -74,10 +70,10 @@ const Acompanhamento = () => {
         brokerAvatar: getBrokerAvatar(sale.broker_id),
         value: sale.property_value,
         saleDate: sale.sale_date || new Date().toISOString().split("T")[0],
-        stageId: sale.process_stage_id || (stages[0]?.id || ""),
+        stageId: sale.process_stage_id || firstStageId,
         status: sale.status || "pendente",
       }));
-  }, [sales, brokers, stages, searchTerm, selectedMonth, selectedYear]);
+  }, [sales, brokers, stages, searchTerm]);
 
   const getCardsForStage = (stageId: string) => processCards.filter(c => c.stageId === stageId);
 
