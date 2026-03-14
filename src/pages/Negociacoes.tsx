@@ -992,6 +992,10 @@ const Negociacoes = () => {
                                         <Undo2 className="w-4 h-4" />
                                         <span className="ml-1">Follow Up</span>
                                       </Button>
+                                      <Button size="sm" variant="outline" onClick={() => { setSelectedForNotes(negotiation); setNotesDialogOpen(true); }} title="Notas">
+                                        <StickyNote className="w-4 h-4" />
+                                        <span className="ml-1">Notas</span>
+                                      </Button>
                                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(negotiation.id)} title="Excluir">
                                         <Trash2 className="w-4 h-4" />
                                       </Button>
