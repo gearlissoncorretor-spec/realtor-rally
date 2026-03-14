@@ -927,7 +927,7 @@ const Negociacoes = () => {
                               const statusConfig = getStatusByValue(negotiation.status);
                               const canConvert = isApproved(negotiation.status);
                               return (
-                                <TableRow key={negotiation.id}>
+                                <TableRow key={negotiation.id} className={isStalled(negotiation) ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}>
                                   <TableCell>
                                     <div>
                                       <p className="font-medium">{negotiation.client_name}</p>
