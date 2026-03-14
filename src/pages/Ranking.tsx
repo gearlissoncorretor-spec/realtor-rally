@@ -1857,13 +1857,22 @@ const Ranking = () => {
     return sorted.map((b, i) => ({ ...b, position: i + 1 }));
   }, [allBrokerRankings, managerUserIds, sortField]);
 
-  // Captação rankings - based on captador field
+  // Captação rankings - based on captador field, filtered by team hierarchy
   const captacaoRankings: BrokerRanking[] = useMemo(() => {
     const captadorMap = new Map<string, { name: string; count: number; vgv: number }>();
     
+    // Get team-filtered broker ids for hierarchy enforcement
+    const teamBrokerIds = effectiveTeamFilter !== 'all'
+      ? new Set(brokers.filter(b => b.team_id === effectiveTeamFilter).map(b => b.id))
+      : null;
+
     filteredSales.forEach(sale => {
       if (!sale.captador || sale.captador.trim() === '') return;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return;
+      
+      // If team-filtered, only include sales from team brokers
+      if (teamBrokerIds && sale.broker_id && !teamBrokerIds.has(sale.broker_id)) return;
+      
       const captador = sale.captador.trim();
       const existing = captadorMap.get(captador) || { name: captador, count: 0, vgv: 0 };
       existing.count += 1;
@@ -1891,7 +1900,7 @@ const Ranking = () => {
           teamId: matchedBroker?.team_id || null,
         };
       });
-  }, [filteredSales, brokers]);
+  }, [filteredSales, brokers, effectiveTeamFilter]);
 
   // Team rankings (for directors)
   const teamRankings: TeamRanking[] = useMemo(() => {
