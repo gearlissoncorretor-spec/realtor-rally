@@ -915,6 +915,9 @@ const Negociacoes = () => {
                                     {formatCurrency(negotiation.negotiated_value)}
                                   </TableCell>
                                   <TableCell>
+                                    {getTemperatureBadge(negotiation.temperature)}
+                                  </TableCell>
+                                  <TableCell>
                                     <NegotiationStatusBadge 
                                       status={negotiation.status}
                                       label={statusConfig?.label}
