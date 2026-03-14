@@ -498,10 +498,10 @@ const MetaGestao = () => {
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border">
                     {[
-                      { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrencyCompact(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0' },
-                      { label: 'VGV/Corretor', value: brokerStats.activeBrokers > 0 ? formatCurrencyCompact(yearlyData.totalVGV / brokerStats.activeBrokers) : 'R$ 0' },
-                      { label: 'VGC Total', value: formatCurrencyCompact(yearlyData.totalVGC) },
-                      { label: 'Crescimento', value: performanceStats?.avgGrowth ? `${performanceStats.avgGrowth > 0 ? '+' : ''}${performanceStats.avgGrowth.toFixed(1)}%` : '0%' },
+                      { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00' },
+                      { label: 'VGV/Corretor', value: brokerStats.activeBrokers > 0 ? formatCurrency(yearlyData.totalVGV / brokerStats.activeBrokers) : 'R$ 0,00' },
+                      { label: 'VGC Total', value: formatCurrency(yearlyData.totalVGC) },
+                      { label: 'Crescimento', value: getGrowthDisplay() },
                     ].map((stat, i) => (
                       <div key={i}>
                         <p className="text-xs text-muted-foreground">{stat.label}</p>
