@@ -36,7 +36,8 @@ import {
   Undo2,
   Thermometer,
   AlertTriangle,
-  StickyNote
+  StickyNote,
+  MessageCircle
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
@@ -856,7 +857,9 @@ const Negociacoes = () => {
                                   <div className="min-w-0 flex-1">
                                     <p className="font-semibold text-foreground truncate">{negotiation.client_name}</p>
                                     {negotiation.client_phone && (
-                                      <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700">
+                                        <MessageCircle className="w-3 h-3" />{negotiation.client_phone}
+                                      </a>
                                     )}
                                   </div>
                                   <NegotiationStatusBadge 
@@ -941,7 +944,9 @@ const Negociacoes = () => {
                                     <div>
                                       <p className="font-medium">{negotiation.client_name}</p>
                                       {negotiation.client_phone && (
-                                        <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                        <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700">
+                                          <MessageCircle className="w-3 h-3" />{negotiation.client_phone}
+                                        </a>
                                       )}
                                     </div>
                                   </TableCell>
@@ -1089,7 +1094,9 @@ const Negociacoes = () => {
                                   <div>
                                     <p className="font-medium">{negotiation.client_name}</p>
                                     {negotiation.client_phone && (
-                                      <p className="text-xs text-muted-foreground">{negotiation.client_phone}</p>
+                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700">
+                                        <MessageCircle className="w-3 h-3" />{negotiation.client_phone}
+                                      </a>
                                     )}
                                   </div>
                                 </TableCell>
