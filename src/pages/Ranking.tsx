@@ -390,15 +390,15 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
   if (podiumOrder.length === 0) return null;
 
   const podiumConfig = [
-    { height: "h-32 md:h-40", avatarSize: "w-14 h-14 md:w-16 md:h-16", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
-    { height: "h-40 md:h-52", avatarSize: "w-16 h-16 md:w-20 md:h-20", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
-    { height: "h-24 md:h-32", avatarSize: "w-12 h-12 md:w-14 md:h-14", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
+    { height: "h-32 md:h-40", avatarSize: "w-14 h-14 md:w-16 md:h-16", nameSize: "text-sm md:text-base", valueSize: "text-lg md:text-xl", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
+    { height: "h-44 md:h-56", avatarSize: "w-18 h-18 md:w-22 md:h-22", nameSize: "text-base md:text-lg", valueSize: "text-xl md:text-2xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
+    { height: "h-24 md:h-32", avatarSize: "w-12 h-12 md:w-14 md:h-14", nameSize: "text-xs md:text-sm", valueSize: "text-base md:text-lg", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
   ];
 
   return (
     <div className="relative mb-8">
       <ParticleEffect />
-      <div className="flex items-end justify-center gap-3 md:gap-6 pt-8">
+      <div className="flex items-end justify-center gap-4 md:gap-8 pt-8">
         {podiumOrder.map((broker, index) => {
           const config = podiumConfig[index];
           const isFirst = broker.position === 1;
@@ -416,34 +416,34 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
               style={{ animationDelay: `${isFirst ? 0.4 : index === 0 ? 0.2 : 0.6}s` }}
             >
               {isFirst && (
-                <div className="relative mb-1 animate-bounce" style={{ animationDuration: '2.5s' }}>
-                  <Crown className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
+                <div className="relative mb-1 animate-medal-pulse">
+                  <Crown className="w-8 h-8 md:w-10 md:h-10 text-warning drop-shadow-[0_0_14px_rgba(250,204,21,0.7)]" />
                 </div>
               )}
 
-              {/* Avatar with glow ring */}
-              <div className="relative mb-2">
+              {/* Avatar with gradient border ring */}
+              <div className="relative mb-3">
                 {isFirst && (
-                  <div className="absolute -inset-4 rounded-full blur-2xl animate-pulse" style={{ background: `radial-gradient(circle, ${config.glowColor}, transparent 70%)` }} />
+                  <div className="absolute -inset-5 rounded-full blur-2xl animate-spotlight-pulse" style={{ background: `radial-gradient(circle, ${config.glowColor}, transparent 60%)` }} />
                 )}
-                <div className="absolute -inset-1 rounded-full animate-[spin_8s_linear_infinite] opacity-60" style={{
+                <div className="absolute -inset-1.5 rounded-full animate-[spin_8s_linear_infinite] opacity-70" style={{
                   background: isFirst
-                    ? 'conic-gradient(from 0deg, rgba(250,204,21,0.6), rgba(245,158,11,0.4), rgba(250,204,21,0.1), rgba(250,204,21,0.6))'
+                    ? 'conic-gradient(from 0deg, rgba(250,204,21,0.7), rgba(245,158,11,0.5), rgba(250,204,21,0.15), rgba(250,204,21,0.7))'
                     : broker.position === 2
-                    ? 'conic-gradient(from 0deg, rgba(148,163,184,0.4), rgba(148,163,184,0.1), rgba(148,163,184,0.4))'
-                    : 'conic-gradient(from 0deg, rgba(251,146,60,0.4), rgba(251,146,60,0.1), rgba(251,146,60,0.4))',
+                    ? 'conic-gradient(from 0deg, rgba(148,163,184,0.5), rgba(148,163,184,0.15), rgba(148,163,184,0.5))'
+                    : 'conic-gradient(from 0deg, rgba(251,146,60,0.5), rgba(251,146,60,0.15), rgba(251,146,60,0.5))',
                   borderRadius: '50%',
                 }} />
                 <Avatar className={cn(
-                  config.avatarSize,
-                  "ring-4 shadow-2xl transition-all relative z-10 group-hover:scale-105",
+                  isFirst ? "w-16 h-16 md:w-20 md:h-20" : config.avatarSize,
+                  "ring-4 shadow-2xl transition-all duration-300 relative z-10 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(250,204,21,0.2)]",
                   config.ring,
                   isCurrentUser && "ring-primary ring-offset-2 ring-offset-background"
                 )}>
                   <AvatarImage src={broker.avatar} alt={broker.name} className="object-cover" />
                   <AvatarFallback className={cn(
                     "font-black",
-                    isFirst ? "bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-xl md:text-2xl" :
+                    isFirst ? "bg-gradient-to-br from-yellow-500 to-amber-700 text-yellow-100 text-xl md:text-2xl" :
                     broker.position === 2 ? "bg-gradient-to-br from-slate-500 to-slate-700 text-slate-100 text-lg" :
                     "bg-gradient-to-br from-orange-600 to-orange-800 text-orange-100 text-sm"
                   )}>
@@ -457,12 +457,10 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 )}
               </div>
 
-              <p className={cn("font-bold text-center leading-tight text-foreground", config.nameSize)}>
+              <p className={cn("font-bold text-center leading-tight text-foreground mb-0.5", config.nameSize)}>
                 {broker.name.split(' ').slice(0, 2).join(' ')}
               </p>
-              <p className="text-xs text-muted-foreground mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
-              
-              {/* Level badge with XP bar - hidden for now */}
+              <p className="text-[11px] text-muted-foreground mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
 
               {/* Achievement badges */}
               {achievements.length > 0 && (
@@ -473,27 +471,30 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 </div>
               )}
 
+              {/* Revenue - stronger typography */}
               <p className={cn(
-                "font-black mb-2",
+                "font-black mb-2 animate-number-count tracking-tight",
                 config.valueSize,
-                isFirst ? "text-warning drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]" : "text-foreground"
+                isFirst ? "text-warning drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]" : "text-foreground"
               )}>
                 {formatCurrencyCompact(broker.revenue)}
               </p>
 
-              {/* Podium base with 3D perspective */}
+              {/* Podium base with glass effect + reflection */}
               <div className={cn(
-                "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden transition-all group-hover:scale-[1.02]",
+                "w-26 md:w-36 rounded-2xl border flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-[1.03] glass-pedestal pedestal-reflection",
                 config.height,
-                `bg-gradient-to-t ${config.gradient}`,
                 config.border
               )} style={{
-                boxShadow: `0 8px 32px -4px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+                boxShadow: `0 12px 40px -4px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                background: `linear-gradient(to top, ${config.glowColor.replace(')', ', 0.15)')}, transparent)`,
               }}>
                 {isFirst && (
                   <div className="absolute inset-0 shimmer-effect" />
                 )}
-                <span className={cn("font-black", config.numColor, config.numSize)}>
+                {/* Glass shine overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.06] via-transparent to-transparent rounded-2xl" />
+                <span className={cn("font-black relative z-10 animate-number-count", config.numColor, config.numSize)} style={{ animationDelay: '0.3s' }}>
                   {broker.position}
                 </span>
               </div>
