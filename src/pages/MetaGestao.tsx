@@ -408,25 +408,45 @@ const MetaGestao = () => {
   };
 
   const goalStatus = getGoalStatus(annualProgress);
+  const annualProgressVariant = annualProgress >= 80 ? 'success' : annualProgress >= 50 ? 'warning' : 'danger';
 
-  // Growth calculation with safety for zero
-  const getGrowthDisplay = () => {
-    if (!performanceStats?.avgGrowth && performanceStats?.avgGrowth !== 0) return 'Sem histórico';
-    const validMonths = monthlyGoals.filter(m => m.achieved > 0);
-    if (validMonths.length < 2) return 'Sem histórico';
-    const growth = performanceStats.avgGrowth;
-    if (!isFinite(growth)) return 'Sem histórico';
-    return `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
+  const formatPercentDisplay = (value: number, decimals = 1) => {
+    if (!isFinite(value)) return '0%';
+    if (value >= 999.9) return '999%+';
+    return `${value.toFixed(decimals)}%`;
   };
 
-  // Meta validation alert
-  const isMetaTooLow = useMemo(() => {
-    if (annualGoal <= 0) return false;
-    const last3Months = monthlyGoals.slice(0, new Date().getMonth()).filter(m => m.achieved > 0);
-    if (last3Months.length === 0) return false;
-    const avgMonthly = last3Months.reduce((s, m) => s + m.achieved, 0) / last3Months.length;
-    return annualGoal < avgMonthly; // annual target less than a single month average
-  }, [annualGoal, monthlyGoals]);
+  // Crescimento: mês atual vs mês anterior (ou último mês do ano selecionado)
+  const periodGrowth = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const periodMonth = selectedYear === currentYear ? currentMonth : 12;
+    if (periodMonth <= 1) return null;
+
+    const currentAchieved = monthlyGoals.find((m) => m.monthIndex === periodMonth)?.achieved || 0;
+    const previousAchieved = monthlyGoals.find((m) => m.monthIndex === periodMonth - 1)?.achieved || 0;
+
+    if (previousAchieved <= 0) return null;
+
+    return ((currentAchieved - previousAchieved) / previousAchieved) * 100;
+  }, [monthlyGoals, selectedYear]);
+
+  const getGrowthDisplay = () => {
+    if (periodGrowth === null || !isFinite(periodGrowth)) return 'Sem histórico';
+    return `${periodGrowth > 0 ? '+' : ''}${periodGrowth.toFixed(1)}%`;
+  };
+
+  const recentMonthlyAverage = useMemo(() => {
+    const achievedMonths = monthlyGoals.filter((month) => month.achieved > 0);
+    const recentMonths = achievedMonths.slice(-3);
+    if (recentMonths.length === 0) return 0;
+
+    return recentMonths.reduce((sum, month) => sum + month.achieved, 0) / recentMonths.length;
+  }, [monthlyGoals]);
+
+  // Alerta para metas muito abaixo do histórico recente
+  const isMetaTooLow = effectiveAnnualGoal > 0 && recentMonthlyAverage > 0 && effectiveAnnualGoal < recentMonthlyAverage;
 
   if (isLoading) {
     return (
