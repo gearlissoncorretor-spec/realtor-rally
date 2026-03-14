@@ -1,0 +1,1 @@
+UPDATE sales SET process_stage_id = (SELECT id FROM process_stages ORDER BY order_index ASC LIMIT 1) WHERE process_stage_id IS NULL;
