@@ -849,6 +849,9 @@ const Negociacoes = () => {
                                     <p>{format(new Date(negotiation.start_date), "dd/MM/yy", { locale: ptBR })}</p>
                                   </div>
                                 </div>
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  {getTemperatureBadge(negotiation.temperature)}
+                                </div>
                                 <div className="flex items-center gap-2 pt-1 border-t border-border/30">
                                   <Button size="sm" variant="ghost" onClick={() => handleEdit(negotiation)} className="flex-1 h-9">
                                     <Edit className="w-4 h-4 mr-1" /> Editar
