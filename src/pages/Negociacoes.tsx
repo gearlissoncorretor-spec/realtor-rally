@@ -387,6 +387,13 @@ const Negociacoes = () => {
     });
   }, [negotiations]);
 
+  const isStalled = (negotiation: Negotiation) => {
+    const now = new Date();
+    const lastUpdate = new Date(negotiation.updated_at);
+    const diffDays = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 3;
+  };
+
 
   if (loading) {
     return (
