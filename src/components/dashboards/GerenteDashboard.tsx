@@ -172,9 +172,19 @@ const GerenteDashboard = () => {
   const brokerPerformance = useMemo(() => {
     return activeTeamBrokers.map(broker => {
       const bSales = monthSales.filter(s => s.broker_id === broker.id);
+      const allBrokerSales = teamSales.filter(s => s.broker_id === broker.id);
       const vgv = bSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
       const bNeg = activeNegotiations.filter(n => n.broker_id === broker.id);
       const bFollowUps = pendingFollowUps.filter(f => f.broker_id === broker.id);
+      
+      // Calculate days since last sale
+      const lastSaleDate = allBrokerSales.length > 0
+        ? Math.max(...allBrokerSales.map(s => new Date(s.sale_date || s.created_at || '').getTime()))
+        : null;
+      const daysSinceLastSale = lastSaleDate
+        ? Math.floor((Date.now() - lastSaleDate) / (1000 * 60 * 60 * 24))
+        : null;
+
       return {
         id: broker.id,
         name: broker.name,
@@ -183,12 +193,18 @@ const GerenteDashboard = () => {
         negotiations: bNeg.length,
         followUps: bFollowUps.length,
         avatar_url: broker.avatar_url,
+        daysSinceLastSale,
       };
     }).sort((a, b) => b.vgv - a.vgv);
-  }, [activeTeamBrokers, monthSales, activeNegotiations, pendingFollowUps]);
+  }, [activeTeamBrokers, monthSales, teamSales, activeNegotiations, pendingFollowUps]);
 
   // Alerts: brokers with no activity
   const brokersWithoutSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations === 0);
+  
+  // Brokers inactive for 5+ days (no sales in 5+ days)
+  const inactiveBrokers = brokerPerformance.filter(b => 
+    b.daysSinceLastSale !== null && b.daysSinceLastSale >= 5
+  );
 
   // Funnel data
   const funnelData = [
