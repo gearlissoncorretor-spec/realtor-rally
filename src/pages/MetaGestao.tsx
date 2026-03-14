@@ -615,7 +615,7 @@ const MetaGestao = () => {
                   Meta Financeira Anual
                 </CardTitle>
                 {canManage && (
-                  <Button size="sm" onClick={() => void handleSaveTargets()} disabled={savingTargets}>
+                  <Button size="sm" onClick={() => void handlePrimarySave()} disabled={savingTargets}>
                     {savingTargets ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
                     Salvar
                   </Button>
