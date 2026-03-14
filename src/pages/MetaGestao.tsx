@@ -974,8 +974,8 @@ const MetaGestao = () => {
                   { label: 'Vendas no Ano', value: String(yearlyData.totalSales || 0), sub: 'unidades', icon: '🏠' },
                   { 
                     label: 'Distância p/ Meta', 
-                    value: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? 'Atingida!' : formatCurrency(remaining),
-                    sub: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? '✅' : 'restantes',
+                    value: isGoalExceeded ? formatCurrency(exceededBy) : formatCurrency(remaining),
+                    sub: isGoalExceeded ? 'superada' : 'restantes',
                     icon: '🎯'
                   },
                 ].map((item, i) => (
