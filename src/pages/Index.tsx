@@ -9,6 +9,7 @@ import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import React, { useState, useMemo, useEffect } from "react";
 import GerenteDashboard from "@/components/dashboards/GerenteDashboard";
 import CorretorDashboard from "@/components/dashboards/CorretorDashboard";
+import DiretorDashboard from "@/components/dashboards/DiretorDashboard";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
