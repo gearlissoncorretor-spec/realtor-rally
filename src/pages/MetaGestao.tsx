@@ -815,7 +815,7 @@ const MetaGestao = () => {
                   },
                   { 
                     label: 'Pior Mês', 
-                    value: performanceStats?.worstMonth ? formatCurrencyCompact(performanceStats.worstMonth.achieved) : 'R$ 0',
+                    value: performanceStats?.worstMonth ? formatCurrency(performanceStats.worstMonth.achieved) : 'R$ 0,00',
                     sub: performanceStats?.worstMonth ? format(performanceStats.worstMonth.month, 'MMMM', { locale: ptBR }) : '-',
                     icon: '📉'
                   },
