@@ -56,112 +56,157 @@ interface MonthlyGoal {
   percentAchieved: number;
 }
 
+const getRecordTimestamp = (record: { updated_at?: string | null; created_at?: string | null }) => {
+  const updatedAt = record.updated_at ? new Date(record.updated_at).getTime() : 0;
+  const createdAt = record.created_at ? new Date(record.created_at).getTime() : 0;
+  return Math.max(updatedAt, createdAt, 0);
+};
+
 const useManagementGoals = (year: number, teamFilter?: string | null) => {
   const { sales, targets, brokers } = useData();
-  const { teams, teamMembers } = useTeams();
-  
+
   const filteredBrokerIds = useMemo(() => {
     if (!teamFilter) return null;
-    return brokers.filter(b => b.team_id === teamFilter).map(b => b.id);
+    return brokers.filter((broker) => broker.team_id === teamFilter).map((broker) => broker.id);
   }, [brokers, teamFilter]);
 
-  // Filter targets by team_id when applicable
-  const filteredTargets = useMemo(() => {
-    if (!teamFilter) return targets;
-    return targets.filter(t => (t as any).team_id === teamFilter);
+  // Meta Gestão opera apenas com metas globais (empresa/equipe), nunca metas individuais por corretor
+  const scopedTargets = useMemo(() => {
+    return targets.filter((target) => {
+      const isBrokerTarget = target.broker_id !== null;
+      if (isBrokerTarget) return false;
+
+      if (teamFilter) return target.team_id === teamFilter;
+      return target.team_id === null;
+    });
   }, [targets, teamFilter]);
-  
-  const yearlyData = useMemo(() => {
+
+  const yearSales = useMemo(() => {
     const yearStart = startOfYear(new Date(year, 0, 1));
     const yearEnd = endOfYear(new Date(year, 0, 1));
-    
-    const yearSales = sales.filter(sale => {
+
+    return sales.filter((sale) => {
       const saleDate = new Date(sale.sale_date || sale.created_at || '');
       const inYear = saleDate >= yearStart && saleDate <= yearEnd && sale.status === 'confirmada';
       if (!inYear) return false;
       if (filteredBrokerIds && sale.broker_id) return filteredBrokerIds.includes(sale.broker_id);
       return !filteredBrokerIds;
     });
-    
-    const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
-    const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
-    const totalSales = yearSales.length;
-    const yearTargets = filteredTargets.filter(t => t.year === year);
-    const annualTarget = yearTargets.reduce((sum, t) => sum + t.target_value, 0);
-    
-    return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
-  }, [sales, filteredTargets, year, filteredBrokerIds]);
-  
+  }, [sales, year, filteredBrokerIds]);
+
+  const latestTargetByMonth = useMemo(() => {
+    const monthMap = new Map<number, (typeof scopedTargets)[number]>();
+
+    scopedTargets
+      .filter((target) => target.year === year)
+      .forEach((target) => {
+        const current = monthMap.get(target.month);
+        if (!current || getRecordTimestamp(target) >= getRecordTimestamp(current)) {
+          monthMap.set(target.month, target);
+        }
+      });
+
+    return monthMap;
+  }, [scopedTargets, year]);
+
+  const monthlyAchievedByMonth = useMemo(() => {
+    const achievedMap = new Map<number, number>();
+
+    yearSales.forEach((sale) => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      const monthIndex = saleDate.getMonth() + 1;
+      achievedMap.set(monthIndex, (achievedMap.get(monthIndex) || 0) + (sale.vgv || 0));
+    });
+
+    return achievedMap;
+  }, [yearSales]);
+
   const monthlyGoals = useMemo((): MonthlyGoal[] => {
     const yearStart = startOfYear(new Date(year, 0, 1));
     const yearEnd = endOfYear(new Date(year, 0, 1));
     const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
-    
-    return months.map(month => {
-      const monthStart = startOfMonth(month);
-      const monthEnd = endOfMonth(month);
+
+    return months.map((month) => {
       const monthIndex = month.getMonth() + 1;
-      const monthTarget = filteredTargets.find(t => t.year === year && t.month === monthIndex);
-      const target = monthTarget?.target_value || 0;
-      const monthSales = sales.filter(sale => {
-        const saleDate = new Date(sale.sale_date || sale.created_at || '');
-        const inMonth = saleDate >= monthStart && saleDate <= monthEnd && sale.status === 'confirmada';
-        if (!inMonth) return false;
-        // Apply team filter to monthly sales too
-        if (filteredBrokerIds && sale.broker_id) return filteredBrokerIds.includes(sale.broker_id);
-        return !filteredBrokerIds;
-      });
-      const achieved = monthSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
-      
+      const target = latestTargetByMonth.get(monthIndex)?.target_value || 0;
+      const achieved = monthlyAchievedByMonth.get(monthIndex) || 0;
+
       return {
-        month, monthIndex, target, expectedTarget: 0,
-        achieved, difference: achieved - target,
-        percentAchieved: target > 0 ? (achieved / target) * 100 : 0
+        month,
+        monthIndex,
+        target,
+        expectedTarget: 0,
+        achieved,
+        difference: achieved - target,
+        percentAchieved: target > 0 ? (achieved / target) * 100 : 0,
       };
     });
-  }, [sales, filteredTargets, year, filteredBrokerIds]);
-  
+  }, [year, latestTargetByMonth, monthlyAchievedByMonth]);
+
+  const yearlyData = useMemo(() => {
+    const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
+    const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
+    const totalSales = yearSales.length;
+    const yearTargets = Array.from(latestTargetByMonth.values());
+    const annualTarget = yearTargets.reduce((sum, target) => sum + target.target_value, 0);
+
+    return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
+  }, [yearSales, latestTargetByMonth]);
+
   const brokerStats = useMemo(() => {
-    let filteredBrokers = brokers;
-    if (teamFilter) filteredBrokers = brokers.filter(b => b.team_id === teamFilter);
+    const scopedBrokers = teamFilter ? brokers.filter((broker) => broker.team_id === teamFilter) : brokers;
+    const activeBrokerIds = new Set(scopedBrokers.filter((broker) => broker.status === 'ativo').map((broker) => broker.id));
+    const activeWithSales = new Set(
+      yearSales
+        .map((sale) => sale.broker_id)
+        .filter((brokerId): brokerId is string => !!brokerId && activeBrokerIds.has(brokerId))
+    ).size;
+
     return {
-      activeBrokers: filteredBrokers.filter(b => b.status === 'ativo').length,
-      totalBrokers: filteredBrokers.length
+      activeBrokers: activeBrokerIds.size,
+      activeWithSales,
+      totalBrokers: scopedBrokers.length,
     };
-  }, [brokers, teamFilter]);
-  
+  }, [brokers, teamFilter, yearSales]);
+
   const performanceStats = useMemo(() => {
-    const completedMonths = monthlyGoals.filter(m => m.achieved > 0 || m.target > 0);
+    const completedMonths = monthlyGoals.filter((month) => month.achieved > 0 || month.target > 0);
     if (completedMonths.length === 0) return null;
-    
-    const bestMonth = completedMonths.reduce((best, c) => c.achieved > best.achieved ? c : best, completedMonths[0]);
-    const worstMonth = completedMonths.reduce((worst, c) => c.achieved < worst.achieved ? c : worst, completedMonths[0]);
-    
+
+    const bestMonth = completedMonths.reduce((best, month) => (month.achieved > best.achieved ? month : best), completedMonths[0]);
+    const worstMonth = completedMonths.reduce((worst, month) => (month.achieved < worst.achieved ? month : worst), completedMonths[0]);
+
     const monthlyGrowth: number[] = [];
-    for (let i = 1; i < completedMonths.length; i++) {
-      const prev = completedMonths[i - 1].achieved;
-      if (prev > 0) monthlyGrowth.push(((completedMonths[i].achieved - prev) / prev) * 100);
+    for (let i = 1; i < monthlyGoals.length; i++) {
+      const previous = monthlyGoals[i - 1].achieved;
+      const current = monthlyGoals[i].achieved;
+      if (previous > 0) {
+        monthlyGrowth.push(((current - previous) / previous) * 100);
+      }
     }
-    const avgGrowth = monthlyGrowth.length > 0 ? monthlyGrowth.reduce((a, b) => a + b, 0) / monthlyGrowth.length : 0;
-    
+
+    const avgGrowth = monthlyGrowth.length > 0
+      ? monthlyGrowth.reduce((sum, growth) => sum + growth, 0) / monthlyGrowth.length
+      : 0;
+
     return { bestMonth, worstMonth, avgGrowth };
   }, [monthlyGoals]);
-  
+
   const probability = useMemo(() => {
     const { annualTarget, totalVGV } = yearlyData;
     if (annualTarget === 0) return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
-    
+
     const yearProgress = (new Date().getMonth() + 1) / 12;
     const projectedTotal = yearProgress > 0 ? totalVGV / yearProgress : 0;
     const baseProb = Math.min(100, (projectedTotal / annualTarget) * 100);
-    
+
     return {
       current: Math.round(baseProb),
       withMoreBrokers: Math.round(Math.min(100, baseProb * 1.15)),
-      withHigherTicket: Math.round(Math.min(100, baseProb * 1.20))
+      withHigherTicket: Math.round(Math.min(100, baseProb * 1.2)),
     };
   }, [yearlyData]);
-  
+
   return { yearlyData, monthlyGoals, brokerStats, performanceStats, probability };
 };
 
