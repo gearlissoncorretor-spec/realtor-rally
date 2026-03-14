@@ -113,10 +113,11 @@ const FollowUpPage = () => {
         followUp.observations?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = filterStatus === 'all' || followUp.status === filterStatus;
+      const matchesBroker = filterBroker === 'all' || followUp.broker_id === filterBroker;
       
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesBroker;
     });
-  }, [followUps, searchTerm, filterStatus]);
+  }, [followUps, searchTerm, filterStatus, filterBroker]);
 
   // Sort by urgency (overdue first, then today, then by date)
   const sortedFollowUps = useMemo(() => {
