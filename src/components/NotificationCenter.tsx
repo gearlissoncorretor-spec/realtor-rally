@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Bell, BellOff, Smartphone, AlertCircle, Handshake, Users, Target, ShoppingCart, Wifi, WifiOff, Loader2 } from 'lucide-react';
+import { Bell, BellOff, Smartphone, AlertCircle, Handshake, Users, Target, ShoppingCart, Wifi, WifiOff, Loader2, UserMinus, TrendingDown, AlertTriangle } from 'lucide-react';
 import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useWebPush } from '@/hooks/useWebPush';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -45,6 +45,9 @@ export const NotificationCenter = () => {
     { key: 'overdueFollowUps' as const, icon: Users, label: 'Follow-ups vencidos', desc: 'Alerta quando a data de contato com o lead já passou' },
     { key: 'goalDeadlines' as const, icon: Target, label: 'Metas próximas do prazo', desc: 'Alerta quando uma meta vence em 3 dias e está abaixo de 80%' },
     { key: 'newSales' as const, icon: ShoppingCart, label: 'Novas vendas', desc: 'Notifica quando uma venda é registrada' },
+    { key: 'brokerInactivity' as const, icon: UserMinus, label: 'Corretores inativos', desc: 'Alerta quando corretores ficam sem atividade por mais de 5 dias' },
+    { key: 'conversionDrop' as const, icon: TrendingDown, label: 'Queda de conversão', desc: 'Alerta quando as vendas semanais caem mais de 30%' },
+    { key: 'metaAtRisk' as const, icon: AlertTriangle, label: 'Meta em risco', desc: 'Alerta quando a meta mensal está abaixo do ritmo esperado' },
   ];
 
   return (
@@ -119,7 +122,7 @@ export const NotificationCenter = () => {
             Tipos de Alerta
           </CardTitle>
           <CardDescription>
-            Escolha quais alertas deseja receber
+            Escolha quais alertas deseja receber — inclui alertas inteligentes de inatividade, metas em risco e queda de conversão
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -157,7 +160,7 @@ export const NotificationCenter = () => {
                 </div>
                 <Switch
                   id={key}
-                  checked={config[key]}
+                  checked={(config as any)[key] ?? true}
                   onCheckedChange={(checked) => updateConfig({ [key]: checked })}
                 />
               </div>
