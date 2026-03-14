@@ -8,23 +8,25 @@ import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents, CalendarEvent as CalEvent } from '@/hooks/useCalendarEvents';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import { useData } from '@/contexts/DataContext';
-import { format } from 'date-fns';
+import { format, getDaysInMonth, getDate, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import MonthlyGoalPanel from '@/components/goals/MonthlyGoalPanel';
 import AnnualGoalPanel from '@/components/goals/AnnualGoalPanel';
 import {
   Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
-  CheckSquare, Square, ChevronRight, Calendar, MapPin,
+  CheckSquare, Square, ChevronRight, ChevronDown, ChevronUp,
+  Calendar, MapPin,
   Users, RotateCcw, FileText, BarChart3, TrendingUp,
   DollarSign, Lightbulb, X, AlertTriangle, Eye,
-  MessageCircle, Award, Briefcase, Activity,
+  MessageCircle, Award, Briefcase, Activity, Rocket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +40,7 @@ const GerenteDashboard = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
+  const [rankingExpanded, setRankingExpanded] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
@@ -111,7 +114,7 @@ const GerenteDashboard = () => {
     return [...internal, ...mappedGoogle].sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   }, [events, googleEvents]);
 
-  // Team targets from the targets table (used in Meta Gestão)
+  // Team targets from the targets table
   const monthlyTarget = useMemo(() => {
     return (targets || []).find(t => 
       t.month === currentMonth && 
@@ -147,6 +150,25 @@ const GerenteDashboard = () => {
   const annualAchieved = yearVGV;
   const annualProgress = annualTargetValue > 0 ? Math.min((annualAchieved / annualTargetValue) * 100, 100) : 0;
 
+  // Smart goal insights
+  const goalInsights = useMemo(() => {
+    if (monthlyTargetValue <= 0) return null;
+    const now = new Date();
+    const totalDays = getDaysInMonth(now);
+    const daysPassed = getDate(now);
+    const daysRemaining = totalDays - daysPassed;
+    const remaining = Math.max(0, monthlyTargetValue - monthlyAchieved);
+    const ticketMedioValue = monthSales.length > 0 ? monthVGV / monthSales.length : 0;
+    const salesNeeded = ticketMedioValue > 0 ? Math.ceil(remaining / ticketMedioValue) : 0;
+    const dailyAvg = daysPassed > 0 ? monthlyAchieved / daysPassed : 0;
+    const projectedDate = dailyAvg > 0 && remaining > 0
+      ? addDays(now, Math.ceil(remaining / dailyAvg))
+      : null;
+    const isGoalMet = monthlyAchieved >= monthlyTargetValue;
+
+    return { salesNeeded, projectedDate, remaining, isGoalMet, ticketMedioValue, daysRemaining };
+  }, [monthlyTargetValue, monthlyAchieved, monthSales, monthVGV]);
+
   // Broker performance ranking
   const brokerPerformance = useMemo(() => {
     return activeTeamBrokers.map(broker => {
@@ -169,7 +191,7 @@ const GerenteDashboard = () => {
   // Alerts: brokers with no activity
   const brokersWithoutSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations === 0);
 
-  // Funnel data (team-wide)
+  // Funnel data
   const funnelData = [
     { label: 'Leads', value: teamFollowUps.length, color: 'bg-blue-500' },
     { label: 'Atendimento', value: activeNegotiations.length, color: 'bg-cyan-500' },
@@ -184,8 +206,8 @@ const GerenteDashboard = () => {
   const conversionRate = teamFollowUps.length > 0 ? Math.round((monthSales.length / teamFollowUps.length) * 100) : 0;
 
   // Sections
-  const focusSections = ['kpis', 'alerts', 'ranking', 'negotiations'];
-  const allSections = ['kpis', 'alerts', 'agenda', 'ranking', 'negotiations', 'goal', 'funnel', 'metrics', 'opportunities'];
+  const focusSections = ['kpis', 'alerts', 'goal', 'ranking', 'negotiations'];
+  const allSections = ['kpis', 'alerts', 'goal', 'agenda', 'negotiations', 'ranking', 'funnel', 'metrics', 'opportunities'];
   const sections = focusMode ? focusSections : allSections;
 
   const kpiCards = [
@@ -199,6 +221,8 @@ const GerenteDashboard = () => {
     visita: '#10b981', captacao: '#10b981', reuniao: '#8b5cf6', meta: '#8b5cf6',
     follow_up: '#f59e0b', lembrete: '#3b82f6', venda: '#06b6d4', outro: '#6b7280',
   };
+
+  const medals = ['🥇', '🥈', '🥉'];
 
   return (
     <div className="min-h-screen bg-background">
@@ -244,12 +268,12 @@ const GerenteDashboard = () => {
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 flex items-center gap-3">
               <Zap className="w-5 h-5 text-amber-400 shrink-0" />
               <p className="text-sm text-amber-200">
-                <strong>Modo Foco ativo</strong> — KPIs, alertas, ranking da equipe e negociações quentes.
+                <strong>Modo Foco ativo</strong> — KPIs, metas, alertas, ranking e negociações quentes.
               </p>
             </div>
           )}
 
-          {/* KPI Cards */}
+          {/* 1. KPI Cards */}
           {sections.includes('kpis') && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {kpiCards.map(card => (
@@ -267,7 +291,7 @@ const GerenteDashboard = () => {
             </div>
           )}
 
-          {/* Alerts: Brokers without activity */}
+          {/* 2. Alerts */}
           {sections.includes('alerts') && brokersWithoutSales.length > 0 && (
             <div className="rounded-xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent p-4">
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
@@ -283,7 +307,6 @@ const GerenteDashboard = () => {
             </div>
           )}
 
-          {/* Alert: Brokers with negotiations but no sales this month */}
           {sections.includes('alerts') && (() => {
             const activeBrokersNoSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations > 0);
             return activeBrokersNoSales.length > 0 ? (
@@ -305,6 +328,78 @@ const GerenteDashboard = () => {
             ) : null;
           })()}
 
+          {/* 3. Goal Panel — Monthly + Annual + Smart Insights */}
+          {sections.includes('goal') && (
+            <div className="space-y-4">
+              <div className="grid lg:grid-cols-2 gap-4">
+                <MonthlyGoalPanel
+                  targetValue={monthlyTargetValue}
+                  achievedValue={monthlyAchieved}
+                />
+                <AnnualGoalPanel
+                  targetValue={annualTargetValue}
+                  achievedValue={annualAchieved}
+                  year={currentYear}
+                />
+              </div>
+
+              {/* Smart Insights */}
+              {goalInsights && monthlyTargetValue > 0 && (
+                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4">
+                  <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+                    <Rocket className="w-4 h-4 text-primary" /> Inteligência de Meta
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {goalInsights.isGoalMet ? (
+                      <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center col-span-full">
+                        <p className="text-sm font-bold text-emerald-400">
+                          🎉 Meta atingida! Superado em {formatCurrency(monthlyAchieved - monthlyTargetValue)}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {goalInsights.salesNeeded > 0 && goalInsights.ticketMedioValue > 0 && (
+                          <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                            <p className="text-xs text-muted-foreground">Vendas necessárias</p>
+                            <p className="text-lg font-bold text-foreground mt-1">
+                              🔥 Faltam {goalInsights.salesNeeded} venda{goalInsights.salesNeeded > 1 ? 's' : ''}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              Ticket médio atual: {formatCurrency(goalInsights.ticketMedioValue)}
+                            </p>
+                          </div>
+                        )}
+                        {goalInsights.projectedDate && (
+                          <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                            <p className="text-xs text-muted-foreground">Projeção de atingimento</p>
+                            <p className="text-lg font-bold text-foreground mt-1">
+                              🚀 {format(goalInsights.projectedDate, "dd/MM")}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              {goalInsights.projectedDate.getMonth() === new Date().getMonth()
+                                ? 'Mantendo o ritmo atual'
+                                : '⚠️ Projeção ultrapassa o mês'}
+                            </p>
+                          </div>
+                        )}
+                        <div className="p-3 rounded-lg bg-card/50 border border-border/50">
+                          <p className="text-xs text-muted-foreground">Valor restante</p>
+                          <p className="text-lg font-bold text-foreground mt-1">
+                            {formatCurrency(goalInsights.remaining)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {goalInsights.daysRemaining} dia{goalInsights.daysRemaining !== 1 ? 's' : ''} restante{goalInsights.daysRemaining !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4. Agenda + Negociações Quentes */}
           <div className={cn("grid gap-4", sections.includes('negotiations') && sections.includes('agenda') ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
 
             {/* Agenda do Dia */}
@@ -342,7 +437,7 @@ const GerenteDashboard = () => {
               </div>
             )}
 
-            {/* Negociações Quentes da Equipe */}
+            {/* Negociações Quentes */}
             {sections.includes('negotiations') && (
               <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -385,70 +480,6 @@ const GerenteDashboard = () => {
               </div>
             )}
           </div>
-
-          {/* Ranking da Equipe */}
-          {sections.includes('ranking') && (
-            <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-amber-400" /> Ranking da Equipe — Mês Atual
-                </h2>
-                <Button variant="ghost" size="sm" className="text-xs text-amber-400" onClick={() => navigate('/ranking')}>
-                  Ver ranking completo <ChevronRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
-              {brokerPerformance.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">Nenhum corretor na equipe</p>
-              ) : (
-                <div className="space-y-2">
-                  {brokerPerformance.map((broker, idx) => {
-                    const medals = ['🥇', '🥈', '🥉'];
-                    const maxVGV = brokerPerformance[0]?.vgv || 1;
-                    const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
-                    return (
-                      <div key={broker.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/20 transition-all">
-                        <span className="text-sm w-6 text-center shrink-0">{idx < 3 ? medals[idx] : `${idx + 1}º`}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-foreground truncate">{broker.name}</span>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
-                              <span>{broker.salesCount} vendas</span>
-                              <span>{broker.negotiations} neg.</span>
-                              <span className="font-semibold text-foreground">{formatCurrency(broker.vgv)}</span>
-                            </div>
-                          </div>
-                          <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all",
-                                idx === 0 ? "bg-amber-400" : idx === 1 ? "bg-gray-400" : idx === 2 ? "bg-amber-600" : "bg-primary/50"
-                              )}
-                              style={{ width: `${barWidth}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Goal Row - Monthly + Annual */}
-          {!focusMode && sections.includes('goal') && (
-            <div className="grid lg:grid-cols-2 gap-4">
-              <MonthlyGoalPanel
-                targetValue={monthlyTargetValue}
-                achievedValue={monthlyAchieved}
-              />
-              <AnnualGoalPanel
-                targetValue={annualTargetValue}
-                achievedValue={annualAchieved}
-                year={currentYear}
-              />
-            </div>
-          )}
 
           {/* Funil da Equipe */}
           {!focusMode && sections.includes('funnel') && (
@@ -527,6 +558,101 @@ const GerenteDashboard = () => {
                   <p className="text-xs text-muted-foreground">Corretores parados</p>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* 5. Ranking da Equipe — ÚLTIMO BLOCO, expandível */}
+          {sections.includes('ranking') && (
+            <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-amber-400" /> Ranking da Equipe — Mês Atual
+                </h2>
+                <Button variant="ghost" size="sm" className="text-xs text-amber-400" onClick={() => navigate('/ranking')}>
+                  Ver ranking completo <ChevronRight className="w-3 h-3 ml-1" />
+                </Button>
+              </div>
+              {brokerPerformance.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Nenhum corretor na equipe</p>
+              ) : (
+                <Collapsible open={rankingExpanded} onOpenChange={setRankingExpanded}>
+                  {/* Top 3 always visible */}
+                  <div className="space-y-2">
+                    {brokerPerformance.slice(0, 3).map((broker, idx) => {
+                      const maxVGV = brokerPerformance[0]?.vgv || 1;
+                      const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
+                      return (
+                        <div key={broker.id} className={cn(
+                          "flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/20 transition-all",
+                          idx === 0 && "bg-amber-500/5 border border-amber-500/10"
+                        )}>
+                          <span className="text-lg w-8 text-center shrink-0">{medals[idx]}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-foreground truncate">{broker.name}</span>
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                                <span>{broker.salesCount} vendas</span>
+                                <span>{broker.negotiations} neg.</span>
+                                <span className="font-semibold text-foreground">{formatCurrency(broker.vgv)}</span>
+                              </div>
+                            </div>
+                            <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all duration-700",
+                                  idx === 0 ? "bg-amber-400" : idx === 1 ? "bg-gray-400" : "bg-amber-600"
+                                )}
+                                style={{ width: `${barWidth}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Expanded: 4th+ */}
+                  {brokerPerformance.length > 3 && (
+                    <>
+                      <CollapsibleContent className="space-y-2 mt-2 animate-fade-in">
+                        {brokerPerformance.slice(3).map((broker, idx) => {
+                          const maxVGV = brokerPerformance[0]?.vgv || 1;
+                          const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
+                          const position = idx + 4;
+                          return (
+                            <div key={broker.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/20 transition-all">
+                              <span className="text-sm w-8 text-center shrink-0 text-muted-foreground">{position}º</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium text-foreground truncate">{broker.name}</span>
+                                  <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+                                    <span>{broker.salesCount} vendas</span>
+                                    <span>{broker.negotiations} neg.</span>
+                                    <span className="font-semibold text-foreground">{formatCurrency(broker.vgv)}</span>
+                                  </div>
+                                </div>
+                                <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+                                  <div className="h-full rounded-full bg-primary/50 transition-all duration-700" style={{ width: `${barWidth}%` }} />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </CollapsibleContent>
+
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-full mt-3 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 gap-1.5">
+                          {rankingExpanded ? (
+                            <>Mostrar menos <ChevronUp className="w-3.5 h-3.5" /></>
+                          ) : (
+                            <>Ver ranking completo ({brokerPerformance.length - 3} mais) <ChevronDown className="w-3.5 h-3.5" /></>
+                          )}
+                        </Button>
+                      </CollapsibleTrigger>
+                    </>
+                  )}
+                </Collapsible>
+              )}
             </div>
           )}
         </div>
