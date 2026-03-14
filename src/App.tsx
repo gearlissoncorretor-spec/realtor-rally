@@ -90,7 +90,7 @@ const App = () => (
             <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
             <Route element={<AuthenticatedLayout />}>
               <Route path="/" element={
-                <ProtectedRoute><LazyPage><Index /></LazyPage></ProtectedRoute>
+                <ProtectedRoute><LazyPage><Home /></LazyPage></ProtectedRoute>
               } />
               <Route path="/vendas" element={
                 <ProtectedRoute><LazyPage><Vendas /></LazyPage></ProtectedRoute>
