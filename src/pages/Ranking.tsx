@@ -43,7 +43,12 @@ interface BrokerRanking {
   email: string;
   userId?: string | null;
   teamId?: string | null;
+  teamName?: string | null;
+  ticketMedio?: number;
+  participationPct?: number;
 }
+
+type SortField = 'vgv' | 'sales' | 'ticket' | 'growth';
 
 interface TeamRanking {
   id: string;
@@ -477,17 +482,18 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
 };
 
 // ===== STATS HEADER =====
-const StatsHeader = ({ brokers }: { brokers: BrokerRanking[] }) => {
+const StatsHeader = ({ brokers, activeBrokerCount }: { brokers: BrokerRanking[]; activeBrokerCount?: number }) => {
   const totalSales = brokers.reduce((sum, b) => sum + b.sales, 0);
   const totalVGV = brokers.reduce((sum, b) => sum + b.revenue, 0);
   const avgTicket = totalSales > 0 ? totalVGV / totalSales : 0;
   const topBroker = brokers[0];
+  const activeCount = activeBrokerCount ?? brokers.length;
 
   const stats = [
-    { icon: Users, label: "Vendas Totais", value: totalSales.toString(), color: "text-primary", bg: "bg-primary/10", glow: "shadow-primary/5" },
+    { icon: Users, label: "Corretores Ativos", value: activeCount.toString(), color: "text-primary", bg: "bg-primary/10", glow: "shadow-primary/5" },
+    { icon: TrendingUp, label: "Vendas Totais", value: totalSales.toString(), color: "text-info", bg: "bg-info/10", glow: "shadow-info/5" },
     { icon: DollarSign, label: "VGV Total", value: formatCurrency(totalVGV), color: "text-success", bg: "bg-success/10", glow: "shadow-success/5" },
-    { icon: Target, label: "Ticket Médio", value: formatCurrency(avgTicket), color: "text-info", bg: "bg-info/10", glow: "shadow-info/5" },
-    { icon: Crown, label: "Líder do Período", value: topBroker?.name.split(' ')[0] || '-', color: "text-warning", bg: "bg-warning/10", glow: "shadow-warning/5" },
+    { icon: Target, label: "Ticket Médio", value: formatCurrency(avgTicket), color: "text-warning", bg: "bg-warning/10", glow: "shadow-warning/5" },
   ];
 
   return (
@@ -559,18 +565,23 @@ const LeaderboardCard = ({
           <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-semibold text-sm text-foreground truncate">{broker.name}</p>
-            {isCurrentUser && (
-              <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">⭐ VOCÊ</Badge>
-            )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-sm text-foreground truncate">{broker.name}</p>
+              {isCurrentUser && (
+                <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">⭐ VOCÊ</Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-muted-foreground">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</span>
+              {broker.teamName && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-border/60">{broker.teamName}</Badge>
+              )}
+              {broker.participationPct !== undefined && broker.participationPct > 0 && (
+                <span className="text-[10px] text-primary font-medium">{broker.participationPct.toFixed(1)}% do VGV</span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</span>
-            {/* XP/Level hidden for now */}
-          </div>
-        </div>
 
         <div className="text-right">
           <p className="font-bold text-sm text-foreground">{formatCurrency(broker.revenue)}</p>
@@ -688,6 +699,7 @@ const QuickPeriodButtons = ({
     { key: 'today', label: 'Hoje' },
     { key: 'week', label: 'Semana' },
     { key: 'month', label: 'Mês' },
+    { key: 'quarter', label: 'Trimestre' },
     { key: 'year', label: 'Ano' },
     { key: 'all', label: 'Histórico' },
   ];
@@ -1634,6 +1646,8 @@ const Ranking = () => {
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [showConfetti, setShowConfetti] = useState(false);
   const [rankingType, setRankingType] = useState<RankingType>('vendas');
+  const [sortField, setSortField] = useState<SortField>('vgv');
+  const [isExpanded, setIsExpanded] = useState(false);
   const [tvRankingMode, setTVRankingMode] = useState<TVRankingMode>('alternate');
   const [tvSlideInterval, setTVSlideInterval] = useState<number>(() => {
     const saved = localStorage.getItem('tv-slide-interval');
@@ -1703,6 +1717,11 @@ const Ranking = () => {
         weekAgo.setDate(weekAgo.getDate() - 7);
         return saleDate >= weekAgo;
       }
+      if (quickPeriod === 'quarter') {
+        const currentQuarter = Math.floor(now.getMonth() / 3);
+        const saleQuarter = Math.floor(saleDate.getMonth() / 3);
+        return saleDate.getFullYear() === now.getFullYear() && saleQuarter === currentQuarter;
+      }
       if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear();
       if (quickPeriod === 'all') return true;
 
@@ -1713,6 +1732,44 @@ const Ranking = () => {
     });
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
 
+  // Previous period sales for comparison
+  const previousPeriodSales = useMemo(() => {
+    const now = new Date();
+    return sales.filter(sale => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      if (quickPeriod === 'today') {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return saleDate.toDateString() === yesterday.toDateString();
+      }
+      if (quickPeriod === 'week') {
+        const twoWeeksAgo = new Date(now);
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        const oneWeekAgo = new Date(now);
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        return saleDate >= twoWeeksAgo && saleDate < oneWeekAgo;
+      }
+      if (quickPeriod === 'quarter') {
+        const currentQuarter = Math.floor(now.getMonth() / 3);
+        const prevQuarterMonth = (currentQuarter - 1) * 3;
+        if (currentQuarter === 0) {
+          const saleQuarter = Math.floor(saleDate.getMonth() / 3);
+          return saleDate.getFullYear() === now.getFullYear() - 1 && saleQuarter === 3;
+        }
+        const saleQuarter = Math.floor(saleDate.getMonth() / 3);
+        return saleDate.getFullYear() === now.getFullYear() && saleQuarter === currentQuarter - 1;
+      }
+      if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear() - 1;
+      if (quickPeriod === 'all') return false;
+      // month
+      const filterMonth = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
+      const filterYear = selectedYear > 0 ? selectedYear : now.getFullYear();
+      const prevMonth = filterMonth === 1 ? 12 : filterMonth - 1;
+      const prevYear = filterMonth === 1 ? filterYear - 1 : filterYear;
+      return saleDate.getMonth() + 1 === prevMonth && saleDate.getFullYear() === prevYear;
+    });
+  }, [sales, selectedMonth, selectedYear, quickPeriod]);
+
   // All brokers including managers - used for summary stats
   const allBrokerRankings: BrokerRanking[] = useMemo(() => {
     let filteredBrokers = brokers;
@@ -1720,7 +1777,7 @@ const Ranking = () => {
       filteredBrokers = brokers.filter(b => b.team_id === selectedTeam);
     }
 
-    return filteredBrokers
+    const rankings = filteredBrokers
       .filter(broker => broker.status === 'ativo')
       .map(broker => {
         const brokerSales = filteredSales.filter(sale => 
@@ -1729,6 +1786,18 @@ const Ranking = () => {
           sale.status !== 'distrato'
         );
         const totalRevenue = brokerSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+        const ticketMedio = brokerSales.length > 0 ? totalRevenue / brokerSales.length : 0;
+        const team = teams.find(t => t.id === broker.team_id);
+
+        // Growth from previous period
+        const prevBrokerSales = previousPeriodSales.filter(sale =>
+          sale.broker_id === broker.id &&
+          sale.status !== 'cancelada' &&
+          sale.status !== 'distrato'
+        );
+        const prevRevenue = prevBrokerSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+        const growth = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : null;
+
         return {
           id: broker.id,
           name: broker.name,
@@ -1736,22 +1805,49 @@ const Ranking = () => {
           sales: brokerSales.length,
           revenue: totalRevenue,
           position: 0,
-          growth: calculateGrowth(broker.id, sales),
+          growth,
           email: broker.email,
           userId: broker.user_id,
           teamId: broker.team_id,
+          teamName: team?.name || null,
+          ticketMedio,
+          participationPct: 0,
         };
-      })
+      });
+
+    // Calculate total VGV for participation
+    const totalVGV = rankings.reduce((sum, b) => sum + b.revenue, 0);
+    rankings.forEach(b => {
+      b.participationPct = totalVGV > 0 ? (b.revenue / totalVGV) * 100 : 0;
+    });
+
+    return rankings
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [brokers, filteredSales, sales, selectedTeam]);
+  }, [brokers, filteredSales, previousPeriodSales, selectedTeam, teams]);
+
+  // Active broker count
+  const activeBrokerCount = useMemo(() => {
+    return brokers.filter(b => b.status === 'ativo').length;
+  }, [brokers]);
 
   // Brokers excluding managers - used for podium and leaderboard
   const brokerRankings: BrokerRanking[] = useMemo(() => {
-    return allBrokerRankings
-      .filter(broker => !broker.userId || !managerUserIds.includes(broker.userId))
-      .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [allBrokerRankings, managerUserIds]);
+    const filtered = allBrokerRankings
+      .filter(broker => !broker.userId || !managerUserIds.includes(broker.userId));
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortField) {
+        case 'sales': return b.sales - a.sales || b.revenue - a.revenue;
+        case 'ticket': return (b.ticketMedio || 0) - (a.ticketMedio || 0);
+        case 'growth': return (b.growth || -Infinity) - (a.growth || -Infinity);
+        default: return b.revenue - a.revenue || b.sales - a.sales;
+      }
+    });
+
+    return sorted.map((b, i) => ({ ...b, position: i + 1 }));
+  }, [allBrokerRankings, managerUserIds, sortField]);
 
   // Captação rankings - based on captador field
   const captacaoRankings: BrokerRanking[] = useMemo(() => {
@@ -1845,6 +1941,10 @@ const Ranking = () => {
     const now = new Date();
     if (quickPeriod === 'today') return `Hoje — ${now.toLocaleDateString('pt-BR')}`;
     if (quickPeriod === 'week') return 'Última Semana';
+    if (quickPeriod === 'quarter') {
+      const quarterNum = Math.floor(now.getMonth() / 3) + 1;
+      return `${quarterNum}º Trimestre ${now.getFullYear()}`;
+    }
     if (quickPeriod === 'year') return `Ano ${now.getFullYear()}`;
     if (quickPeriod === 'all') return 'Todos os Períodos';
     const month = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
@@ -2016,7 +2116,7 @@ const Ranking = () => {
         )}
 
         {/* Stats */}
-        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : allBrokerRankings} />
+        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : allBrokerRankings} activeBrokerCount={activeBrokerCount} />
 
         {/* Main content: Ranking + Spotlight sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
@@ -2138,34 +2238,79 @@ const Ranking = () => {
 
                 {/* Leaderboard */}
                 <Card className="overflow-hidden border-border/50">
-                  <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-warning" />
-                    <h2 className="font-semibold text-foreground text-sm">
-                      {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
-                    </h2>
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
-                    </Badge>
+                  <div className="p-4 border-b border-border bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <Flame className="w-5 h-5 text-warning" />
+                      <h2 className="font-semibold text-foreground text-sm">
+                        {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
+                      </h2>
+                      <Badge variant="secondary" className="text-xs">
+                        {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
+                      </Badge>
+                    </div>
+                    {rankingType === 'vendas' && (
+                      <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+                        <SelectTrigger className="h-8 w-[150px] text-xs border-border/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="vgv">Ordenar por VGV</SelectItem>
+                          <SelectItem value="sales">Ordenar por Vendas</SelectItem>
+                          <SelectItem value="ticket">Ordenar por Ticket</SelectItem>
+                          <SelectItem value="growth">Ordenar por Crescimento</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   <div className="p-3 space-y-2">
-                    {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).map((broker) => (
-                      <LeaderboardCard
-                        key={broker.id}
-                        broker={broker}
-                        allBrokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings}
-                        currentUserId={user?.id}
-                        showProgressBar={broker.position > 1}
-                      />
-                    ))}
-                    {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length === 0 && (
-                      <div className="text-center py-12">
-                        <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                        <p className="text-muted-foreground font-medium">
-                          {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
-                        </p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const currentList = rankingType === 'captacao' ? captacaoRankings : brokerRankings;
+                      const displayList = isExpanded ? currentList : currentList.slice(0, 10);
+                      const hasMore = currentList.length > 10;
+
+                      return (
+                        <>
+                          {displayList.map((broker) => (
+                            <LeaderboardCard
+                              key={broker.id}
+                              broker={broker}
+                              allBrokers={currentList}
+                              currentUserId={user?.id}
+                              showProgressBar={broker.position > 1}
+                            />
+                          ))}
+                          {hasMore && !isExpanded && (
+                            <Button
+                              variant="ghost"
+                              className="w-full mt-2 text-sm text-primary hover:text-primary/80"
+                              onClick={() => setIsExpanded(true)}
+                            >
+                              <ChevronDown className="w-4 h-4 mr-1" />
+                              Ver ranking completo ({currentList.length - 10} restantes)
+                            </Button>
+                          )}
+                          {isExpanded && hasMore && (
+                            <Button
+                              variant="ghost"
+                              className="w-full mt-2 text-sm text-muted-foreground"
+                              onClick={() => setIsExpanded(false)}
+                            >
+                              <ChevronUp className="w-4 h-4 mr-1" />
+                              Recolher
+                            </Button>
+                          )}
+                          {currentList.length === 0 && (
+                            <div className="text-center py-12">
+                              <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                              <p className="text-muted-foreground font-medium">
+                                {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
+                              </p>
+                              <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </Card>
               </>
