@@ -873,7 +873,7 @@ const MetaGestao = () => {
                     })}
                     <tr className="bg-muted/50 font-semibold">
                       <td className="py-3 px-2 text-sm text-foreground">Total</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(effectiveAnnualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(monthlyTargetsTotal)}</td>
                       <td className="text-center py-3 px-2 font-mono text-sm">{brokerHiringGoal}</td>
                       <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrency(yearlyData.totalVGV)}</td>
                       <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - effectiveAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
