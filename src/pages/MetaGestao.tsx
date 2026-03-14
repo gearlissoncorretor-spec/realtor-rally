@@ -626,7 +626,7 @@ const MetaGestao = () => {
                               />
                             ) : (
                               <div className="flex items-center justify-center gap-1">
-                                <span className="font-mono text-sm text-foreground">{formatCurrencyCompact(currentGoalValue)}</span>
+                                <span className="font-mono text-sm text-foreground">{formatCurrency(currentGoalValue)}</span>
                                 {canManage && (
                                   <Button size="icon" variant="ghost" onClick={() => setEditingMonthlyGoal(monthIndex)} className="h-6 w-6">
                                     <Edit2 className="w-3 h-3 text-muted-foreground" />
