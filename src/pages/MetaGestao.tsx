@@ -448,7 +448,6 @@ const MetaGestao = () => {
 
       if (shouldConvertScale) {
         normalizedAnnualGoal = normalizedAnnualGoal * 1000;
-        setAnnualGoal(normalizedAnnualGoal);
       }
     }
 
@@ -460,11 +459,28 @@ const MetaGestao = () => {
       if (!shouldContinue) return;
     }
 
-    const distributedGoals = buildLinearMonthlyGoalMap(normalizedAnnualGoal);
-    setAnnualGoal(normalizedAnnualGoal);
-    setEditableMonthlyGoals(distributedGoals);
-    setEditingAnnualGoal(false);
-    await handleSaveTargets(distributedGoals);
+    // Save annual goal as month=0 target (independent from monthly)
+    try {
+      setSavingTargets(true);
+      if (annualTargetRecord) {
+        await updateTarget(annualTargetRecord.id, { target_value: normalizedAnnualGoal });
+      } else {
+        await createTarget({
+          year: selectedYear,
+          month: 0,
+          target_value: normalizedAnnualGoal,
+          team_id: teamFilter ?? null,
+          broker_id: null,
+        } as any);
+      }
+      setAnnualGoal(normalizedAnnualGoal);
+      setEditingAnnualGoal(false);
+      toast.success('Meta anual salva com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao salvar meta anual');
+    } finally {
+      setSavingTargets(false);
+    }
   };
 
   const handlePrimarySave = async () => {
