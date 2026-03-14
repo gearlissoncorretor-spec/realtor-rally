@@ -588,7 +588,7 @@ const MetaGestao = () => {
                   Meta Financeira Anual
                 </CardTitle>
                 {canManage && (
-                  <Button size="sm" onClick={handleSaveTargets} disabled={savingTargets}>
+                  <Button size="sm" onClick={() => void handleSaveTargets()} disabled={savingTargets}>
                     {savingTargets ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
                     Salvar
                   </Button>
@@ -608,15 +608,7 @@ const MetaGestao = () => {
                       className="h-12 text-xl font-bold flex-1"
                       autoFocus
                     />
-                    <Button size="icon" variant="ghost" onClick={() => { 
-                      setEditingAnnualGoal(false); 
-                      // When saving annual goal, distribute evenly to all months
-                      const newMonthly: { [month: number]: number } = {};
-                      const perMonth = annualGoal / 12;
-                      for (let i = 1; i <= 12; i++) newMonthly[i] = perMonth;
-                      setEditableMonthlyGoals(newMonthly);
-                      handleSaveTargets(); 
-                    }} className="h-12 w-12">
+                    <Button size="icon" variant="ghost" onClick={() => void handleSaveAnnualGoal()} className="h-12 w-12">
                       <Save className="w-5 h-5 text-success" />
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => setEditingAnnualGoal(false)} className="h-12 w-12">
@@ -625,7 +617,7 @@ const MetaGestao = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-foreground">{formatCurrency(annualGoal)}</span>
+                    <span className="text-2xl font-bold text-foreground">{formatCurrency(effectiveAnnualGoal)}</span>
                     {canManage && (
                       <Button size="icon" variant="ghost" onClick={() => setEditingAnnualGoal(true)} className="h-8 w-8">
                         <Edit2 className="w-4 h-4 text-muted-foreground hover:text-primary" />
@@ -634,7 +626,7 @@ const MetaGestao = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Progressão: <strong>{formatCurrency(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrency(monthlyProgression[11])}</strong> (Dez)
+                  Progressão: <strong>{formatCurrency(getMonthlyGoal(1))}</strong> (Jan) → <strong>{formatCurrency(getMonthlyGoal(12))}</strong> (Dez)
                 </p>
               </div>
               
