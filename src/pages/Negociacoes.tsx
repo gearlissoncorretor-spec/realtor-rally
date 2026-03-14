@@ -844,7 +844,7 @@ const Negociacoes = () => {
                           const statusConfig = getStatusByValue(negotiation.status);
                           const canConvert = isApproved(negotiation.status);
                           return (
-                            <Card key={negotiation.id} className="border border-border/50">
+                            <Card key={negotiation.id} className={`border ${isStalled(negotiation) ? 'border-destructive/50 bg-destructive/5' : 'border-border/50'}`}>
                               <CardContent className="p-4 space-y-3">
                                 <div className="flex items-start justify-between">
                                   <div className="min-w-0 flex-1">
