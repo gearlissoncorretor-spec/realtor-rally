@@ -1217,6 +1217,13 @@ const Negociacoes = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Notes Dialog */}
+      <NegotiationNotesDialog
+        open={notesDialogOpen}
+        onOpenChange={setNotesDialogOpen}
+        negotiation={selectedForNotes}
+      />
     </div>
   );
 };
