@@ -33,7 +33,9 @@ import {
   Star,
   Clock,
   Ban,
-  Undo2
+  Undo2,
+  Thermometer,
+  AlertTriangle
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
