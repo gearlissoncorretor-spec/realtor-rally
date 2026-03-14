@@ -537,7 +537,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-primary/50" />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Meta Anual</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(annualGoal)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(effectiveAnnualGoal)}</p>
                 <div className="flex items-center gap-1 mt-2">
                   <Target className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs text-muted-foreground">Objetivo {selectedYear}</span>
@@ -558,11 +558,11 @@ const MetaGestao = () => {
             </Card>
             
             <Card className="border-border/50 bg-card relative overflow-hidden">
-              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", annualProgress >= 80 ? "bg-gradient-to-r from-success to-success/50" : annualProgress >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
+              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", annualProgress >= 80 ? "bg-gradient-to-r from-success to-success/50" : annualProgress >= 50 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Atingimento</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{annualProgress.toFixed(1)}%</p>
-                <Progress value={Math.min(annualProgress, 100)} className="h-1.5 mt-2" />
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatPercentDisplay(annualProgress, 1)}</p>
+                <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-1.5 mt-2" />
               </CardContent>
             </Card>
             
