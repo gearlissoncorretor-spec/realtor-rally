@@ -191,9 +191,8 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     return { bestMonth, worstMonth, avgGrowth };
   }, [monthlyGoals]);
 
-  // Probability uses the annual goal passed in, not derived from monthly
+  // Probability placeholder - will be recalculated in component with independent annual goal
   const probability = useMemo(() => {
-    // annualGoalForProb will be set from the parent component's effectiveAnnualGoal
     return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
   }, []);
 
