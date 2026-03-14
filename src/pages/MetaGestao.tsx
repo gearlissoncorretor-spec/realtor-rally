@@ -35,9 +35,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Percent,
   Building2,
-  UserPlus,
   Plus,
   Loader2
 } from 'lucide-react';
@@ -107,7 +105,11 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
       const target = monthTarget?.target_value || 0;
       const monthSales = sales.filter(sale => {
         const saleDate = new Date(sale.sale_date || sale.created_at || '');
-        return saleDate >= monthStart && saleDate <= monthEnd && sale.status === 'confirmada';
+        const inMonth = saleDate >= monthStart && saleDate <= monthEnd && sale.status === 'confirmada';
+        if (!inMonth) return false;
+        // Apply team filter to monthly sales too
+        if (filteredBrokerIds && sale.broker_id) return filteredBrokerIds.includes(sale.broker_id);
+        return !filteredBrokerIds;
       });
       const achieved = monthSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
       
@@ -117,7 +119,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
         percentAchieved: target > 0 ? (achieved / target) * 100 : 0
       };
     });
-  }, [sales, filteredTargets, year]);
+  }, [sales, filteredTargets, year, filteredBrokerIds]);
   
   const brokerStats = useMemo(() => {
     let filteredBrokers = brokers;
@@ -197,14 +199,18 @@ const MetaGestao = () => {
   const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear, teamFilter);
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
   
+  // Track which months have been manually saved in DB
+  const [dbMonthlyGoals, setDbMonthlyGoals] = useState<{ [month: number]: number }>({});
+  
   useEffect(() => {
     const savedMonthlyGoals: { [month: number]: number } = {};
     const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => {
       savedMonthlyGoals[goal.monthIndex] = goal.target;
       return sum + goal.target;
     }, 0);
-    if (savedAnnualTotal > 0) setAnnualGoal(savedAnnualTotal);
+    setAnnualGoal(savedAnnualTotal);
     setEditableMonthlyGoals(savedMonthlyGoals);
+    setDbMonthlyGoals(savedMonthlyGoals);
   }, [monthlyGoals, selectedYear]);
   
   // Distribute annual goal evenly across 12 months (simple equal split)
@@ -217,7 +223,15 @@ const MetaGestao = () => {
   const monthlyProgression = calculateMonthlyProgression(annualGoal);
   
   const getMonthlyGoal = (monthIndex: number): number => {
-    if (editableMonthlyGoals[monthIndex] !== undefined) return editableMonthlyGoals[monthIndex];
+    // If user manually edited this month, use that value
+    if (editableMonthlyGoals[monthIndex] !== undefined && editableMonthlyGoals[monthIndex] !== dbMonthlyGoals[monthIndex]) {
+      return editableMonthlyGoals[monthIndex];
+    }
+    // If there's a saved DB value and user hasn't changed the annual goal, use DB value
+    if (dbMonthlyGoals[monthIndex] !== undefined && dbMonthlyGoals[monthIndex] > 0) {
+      return dbMonthlyGoals[monthIndex];
+    }
+    // Otherwise use the calculated progression
     return monthlyProgression[monthIndex - 1] || 0;
   };
   
@@ -225,7 +239,7 @@ const MetaGestao = () => {
     let total = 0;
     for (let i = 1; i <= 12; i++) total += getMonthlyGoal(i);
     return total;
-  }, [editableMonthlyGoals, monthlyProgression]);
+  }, [editableMonthlyGoals, dbMonthlyGoals, monthlyProgression]);
   
   const handleMonthlyGoalChange = (monthIndex: number, value: number) => {
     setEditableMonthlyGoals(prev => ({ ...prev, [monthIndex]: value }));
@@ -451,7 +465,15 @@ const MetaGestao = () => {
                       className="h-12 text-xl font-bold flex-1"
                       autoFocus
                     />
-                    <Button size="icon" variant="ghost" onClick={() => { setEditingAnnualGoal(false); handleSaveTargets(); }} className="h-12 w-12">
+                    <Button size="icon" variant="ghost" onClick={() => { 
+                      setEditingAnnualGoal(false); 
+                      // When saving annual goal, distribute evenly to all months
+                      const newMonthly: { [month: number]: number } = {};
+                      const perMonth = annualGoal / 12;
+                      for (let i = 1; i <= 12; i++) newMonthly[i] = perMonth;
+                      setEditableMonthlyGoals(newMonthly);
+                      handleSaveTargets(); 
+                    }} className="h-12 w-12">
                       <Save className="w-5 h-5 text-success" />
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => setEditingAnnualGoal(false)} className="h-12 w-12">
