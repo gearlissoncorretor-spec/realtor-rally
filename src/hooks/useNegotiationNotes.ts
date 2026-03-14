@@ -61,7 +61,7 @@ export const useNegotiationNotes = (negotiationId: string | null) => {
           note,
           created_by: userData.user?.id,
         })
-        .select('*, profiles:created_by(full_name, avatar_url)')
+        .select()
         .single();
       if (error) throw error;
       return data;
