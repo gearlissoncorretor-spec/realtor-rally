@@ -48,46 +48,32 @@ export const useFollowUpNotes = (followUpId: string | null) => {
     enabled: !!followUpId,
   });
 
-  const addNoteMutation = useMutation({
-    mutationFn: async ({ followUpId, note }: { followUpId: string; note: string }) => {
-      const { data: userData } = await supabase.auth.getUser();
-      const { data, error } = await (supabase as any)
-        .from('follow_up_notes')
-        .insert({
-          follow_up_id: followUpId,
-          note,
-          created_by: userData.user?.id,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_: any, variables: { followUpId: string }) => {
-      queryClient.invalidateQueries({ queryKey: ['follow-up-notes', variables.followUpId] });
-      toast({ title: 'Nota adicionada', description: 'A nota foi registrada com sucesso.' });
-    },
-    onError: () => {
-      toast({ title: 'Erro', description: 'Não foi possível adicionar a nota.', variant: 'destructive' });
-    },
-  });
+  const addNote = async ({ followUpId, note }: { followUpId: string; note: string }) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const { data, error } = await (supabase as any)
+      .from('follow_up_notes')
+      .insert({
+        follow_up_id: followUpId,
+        note,
+        created_by: userData.user?.id,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ['follow-up-notes', followUpId] });
+    toast({ title: 'Nota adicionada', description: 'A nota foi registrada com sucesso.' });
+    return data;
+  };
 
-  const deleteNoteMutation = useMutation({
-    mutationFn: async (noteId: string) => {
-      const { error } = await (supabase as any)
-        .from('follow_up_notes')
-        .delete()
-        .eq('id', noteId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['follow-up-notes', followUpId] });
-      toast({ title: 'Nota excluída' });
-    },
-    onError: () => {
-      toast({ title: 'Erro', description: 'Não foi possível excluir a nota.', variant: 'destructive' });
-    },
-  });
+  const deleteNote = async (noteId: string) => {
+    const { error } = await (supabase as any)
+      .from('follow_up_notes')
+      .delete()
+      .eq('id', noteId);
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ['follow-up-notes', followUpId] });
+    toast({ title: 'Nota excluída' });
+  };
 
   return {
     notes,
