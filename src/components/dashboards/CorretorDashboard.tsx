@@ -7,20 +7,21 @@ import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useGoals } from '@/hooks/useGoals';
+import { useCommissions } from '@/hooks/useCommissions';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import {
   Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
-  CheckSquare, Square, Eye, MessageCircle, ChevronRight,
-  Calendar, MapPin, Users, RotateCcw, FileText, BarChart3,
-  TrendingUp, DollarSign, Lightbulb, Focus, X,
+  CheckSquare, Square, MessageCircle, ChevronRight,
+  Calendar, MapPin, RotateCcw, FileText, BarChart3,
+  DollarSign, Lightbulb, X, Handshake, ClipboardList, Wallet,
+  TrendingUp, ArrowUpRight, ArrowDownRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +32,7 @@ const CorretorDashboard = () => {
   const { negotiations } = useNegotiations();
   const { followUps } = useFollowUps();
   const { goals } = useGoals();
+  const { commissions } = useCommissions();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
@@ -39,13 +41,12 @@ const CorretorDashboard = () => {
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
 
-  // Current broker
   const currentBroker = brokers?.find(b => b.user_id === user?.id);
   const brokerId = currentBroker?.id;
 
-  // Current month sales
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
+
   const brokerSales = useMemo(() =>
     (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato'), [sales, brokerId]);
   const monthSales = useMemo(() =>
@@ -54,34 +55,48 @@ const CorretorDashboard = () => {
       return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
     }), [brokerSales, currentMonth, currentYear]);
 
-  // Broker negotiations
   const brokerNegotiations = useMemo(() =>
     (negotiations || []).filter(n => n.broker_id === brokerId), [negotiations, brokerId]);
   const activeNegotiations = brokerNegotiations.filter(n => !['perdida', 'cancelada', 'ganha'].includes(n.status));
   const hotNegotiations = getHotNegotiations(activeNegotiations, 4);
 
-  // Follow-ups
   const brokerFollowUps = useMemo(() =>
     (followUps || []).filter(f => f.broker_id === brokerId), [followUps, brokerId]);
   const pendingFollowUps = brokerFollowUps.filter(f => f.status !== 'convertido' && f.status !== 'perdido');
 
-  // Today events
   const todayEvents = events || [];
 
-  // Goal progress
   const brokerGoals = useMemo(() =>
     (goals || []).filter(g => g.status === 'active' && (g.assigned_to === user?.id || g.broker_id === brokerId)),
     [goals, user?.id, brokerId]);
   const primaryGoal = brokerGoals[0];
   const goalProgress = primaryGoal ? Math.min((primaryGoal.current_value / primaryGoal.target_value) * 100, 100) : 0;
 
-  // Activity counts
+  // Commissions
+  const brokerCommissions = useMemo(() =>
+    (commissions || []).filter(c => c.broker_id === brokerId), [commissions, brokerId]);
+  const monthCommissions = useMemo(() =>
+    brokerCommissions.filter(c => {
+      const d = new Date(c.created_at);
+      return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+    }), [brokerCommissions, currentMonth, currentYear]);
+  const totalCommissionsMonth = monthCommissions.reduce((s, c) => s + (c.commission_value || 0), 0);
+  const paidCommissions = brokerCommissions.filter(c => c.status === 'pago').reduce((s, c) => s + (c.commission_value || 0), 0);
+  const pendingCommissions = brokerCommissions.filter(c => c.status === 'pendente').reduce((s, c) => s + (c.commission_value || 0), 0);
+
+  const monthVGV = monthSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
+  const ticketMedio = monthSales.length > 0 ? monthVGV / monthSales.length : 0;
+
+  // Meta progress from broker or goal
+  const metaValue = primaryGoal?.target_value || currentBroker?.meta_monthly || 0;
+  const metaRealizado = primaryGoal?.current_value || monthVGV;
+  const metaPercent = metaValue > 0 ? Math.min((metaRealizado / metaValue) * 100, 999) : 0;
+
   const callEvents = todayEvents.filter(e => e.event_type === 'lembrete' || e.event_type === 'outro').length;
   const visitEvents = todayEvents.filter(e => e.event_type === 'visita' || e.event_type === 'captacao').length;
   const followUpCount = pendingFollowUps.length;
   const proposalCount = activeNegotiations.filter(n => n.status === 'proposta_enviada' || n.status === 'em_negociacao').length;
 
-  // Funnel data
   const funnelData = [
     { label: 'Leads', value: brokerFollowUps.length, color: 'bg-blue-500' },
     { label: 'Atendimento', value: activeNegotiations.length, color: 'bg-cyan-500' },
@@ -91,7 +106,6 @@ const CorretorDashboard = () => {
   ];
   const maxFunnel = Math.max(...funnelData.map(f => f.value), 1);
 
-  // Mini ranking
   const brokerRankings = useMemo(() => {
     if (!brokers || !sales) return [];
     const activeBrokers = brokers.filter(b => b.status === 'ativo');
@@ -105,9 +119,6 @@ const CorretorDashboard = () => {
     }).sort((a, b) => b.vgv - a.vgv).slice(0, 5);
   }, [brokers, sales, currentMonth, currentYear]);
 
-  const myRankPosition = brokerRankings.findIndex(r => r.id === brokerId) + 1;
-
-  // Tasks from negotiations + follow-ups
   const priorityTasks = useMemo(() => {
     const tasks: { id: string; label: string; type: string }[] = [];
     hotNegotiations.slice(0, 2).forEach(n => {
@@ -130,11 +141,8 @@ const CorretorDashboard = () => {
     });
   };
 
-  const monthVGV = monthSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
-
-  // Focus mode sections
-  const focusSections = ['activities', 'agenda', 'negotiations', 'tasks'];
-  const allSections = ['activities', 'agenda', 'negotiations', 'goal', 'funnel', 'tasks', 'ranking', 'opportunities'];
+  const focusSections = ['kpis', 'activities', 'agenda', 'negotiations', 'tasks'];
+  const allSections = ['kpis', 'activities', 'quicknav', 'agenda', 'negotiations', 'goal', 'funnel', 'tasks', 'ranking'];
 
   const sections = focusMode ? focusSections : allSections;
 
@@ -150,6 +158,18 @@ const CorretorDashboard = () => {
     follow_up: '#f59e0b', lembrete: '#3b82f6', venda: '#06b6d4', outro: '#6b7280',
   };
 
+  // Quick nav sections for mobile
+  const quickNavItems = [
+    { label: 'Minhas Vendas', icon: DollarSign, href: '/vendas', color: 'text-emerald-400', bg: 'from-emerald-500/15 to-emerald-600/5', border: 'border-emerald-500/25', count: monthSales.length },
+    { label: 'Minhas Comissões', icon: Wallet, href: '/comissoes', color: 'text-amber-400', bg: 'from-amber-500/15 to-amber-600/5', border: 'border-amber-500/25', count: brokerCommissions.length },
+    { label: 'Minha Agenda', icon: Calendar, href: '/agenda', color: 'text-blue-400', bg: 'from-blue-500/15 to-blue-600/5', border: 'border-blue-500/25', count: todayEvents.length },
+    { label: 'Minhas Metas', icon: Target, href: '/metas', color: 'text-purple-400', bg: 'from-purple-500/15 to-purple-600/5', border: 'border-purple-500/25', count: brokerGoals.length },
+    { label: 'Negociações', icon: Handshake, href: '/negociacoes', color: 'text-cyan-400', bg: 'from-cyan-500/15 to-cyan-600/5', border: 'border-cyan-500/25', count: activeNegotiations.length },
+    { label: 'Follow-ups', icon: RotateCcw, href: '/follow-up', color: 'text-orange-400', bg: 'from-orange-500/15 to-orange-600/5', border: 'border-orange-500/25', count: pendingFollowUps.length },
+    { label: 'Minhas Tarefas', icon: ClipboardList, href: '/tarefas-kanban', color: 'text-rose-400', bg: 'from-rose-500/15 to-rose-600/5', border: 'border-rose-500/25', count: null },
+    { label: 'Configurações', icon: TrendingUp, href: '/configuracoes', color: 'text-muted-foreground', bg: 'from-muted/30 to-muted/10', border: 'border-border', count: null },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -160,10 +180,10 @@ const CorretorDashboard = () => {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-                Central do Corretor
+                {isMobile ? 'Meu Painel' : 'Central do Corretor'}
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Painel diário de vendas, negociações e produtividade
+                {isMobile ? `Olá, ${profile?.full_name?.split(' ')[0] || 'Corretor'}! Seu resumo do dia.` : 'Painel diário de vendas, negociações e produtividade'}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -176,7 +196,7 @@ const CorretorDashboard = () => {
                 {focusMode ? <X className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
                 {focusMode ? 'Sair do Foco' : 'Modo Foco'}
               </Button>
-              {!focusMode && (
+              {!focusMode && !isMobile && (
                 <>
                   <Button variant="outline" size="sm" className="gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => navigate('/follow-up')}>
                     <UserPlus className="w-3.5 h-3.5" /> Novo Cliente
@@ -189,13 +209,115 @@ const CorretorDashboard = () => {
             </div>
           </div>
 
-          {/* Focus mode banner */}
           {focusMode && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 flex items-center gap-3">
               <Zap className="w-5 h-5 text-amber-400 shrink-0" />
               <p className="text-sm text-amber-200">
-                <strong>Modo Foco ativo</strong> — Mostrando apenas o essencial: clientes, visitas, follow-ups e negociações quentes.
+                <strong>Modo Foco ativo</strong> — Mostrando apenas o essencial.
               </p>
+            </div>
+          )}
+
+          {/* KPI Indicators */}
+          {sections.includes('kpis') && (
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <KPIIndicator
+                label="Vendas do Mês"
+                value={monthSales.length.toString()}
+                subtitle={formatCurrency(monthVGV)}
+                icon={DollarSign}
+                color="text-emerald-400"
+                borderColor="border-emerald-500/25"
+                onClick={() => navigate('/vendas')}
+              />
+              <KPIIndicator
+                label="Comissões"
+                value={formatCurrency(totalCommissionsMonth)}
+                subtitle={`${monthCommissions.length} lançamentos`}
+                icon={Wallet}
+                color="text-amber-400"
+                borderColor="border-amber-500/25"
+                onClick={() => navigate('/comissoes')}
+              />
+              <KPIIndicator
+                label="Follow-ups"
+                value={pendingFollowUps.length.toString()}
+                subtitle="pendentes"
+                icon={RotateCcw}
+                color="text-orange-400"
+                borderColor="border-orange-500/25"
+                onClick={() => navigate('/follow-up')}
+              />
+              <KPIIndicator
+                label="Negociações"
+                value={activeNegotiations.length.toString()}
+                subtitle="ativas"
+                icon={Handshake}
+                color="text-cyan-400"
+                borderColor="border-cyan-500/25"
+                onClick={() => navigate('/negociacoes')}
+              />
+              <KPIIndicator
+                label="Meta"
+                value={`${Math.round(metaPercent)}%`}
+                subtitle={metaValue > 0 ? (metaRealizado >= metaValue ? 'Atingida! 🎉' : `Faltam ${formatCurrency(metaValue - metaRealizado)}`) : 'Sem meta'}
+                icon={Target}
+                color={metaPercent >= 100 ? 'text-emerald-400' : metaPercent >= 80 ? 'text-primary' : metaPercent >= 50 ? 'text-amber-400' : 'text-red-400'}
+                borderColor={metaPercent >= 100 ? 'border-emerald-500/25' : metaPercent >= 50 ? 'border-amber-500/25' : 'border-red-500/25'}
+                onClick={() => navigate('/metas')}
+              />
+            </div>
+          )}
+
+          {/* Quick Nav Grid (mobile-focused) */}
+          {sections.includes('quicknav') && isMobile && (
+            <div className="grid grid-cols-4 gap-2">
+              {quickNavItems.map(item => (
+                <button
+                  key={item.href}
+                  onClick={() => navigate(item.href)}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 p-3 rounded-xl border bg-gradient-to-br transition-all active:scale-95",
+                    item.border, item.bg
+                  )}
+                >
+                  <div className="relative">
+                    <item.icon className={cn("w-5 h-5", item.color)} />
+                    {item.count !== null && item.count > 0 && (
+                      <span className="absolute -top-1.5 -right-2.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                        {item.count > 99 ? '99+' : item.count}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] font-medium text-foreground leading-tight text-center">{item.label.replace('Minhas ', '').replace('Minha ', '')}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Quick Nav Grid (desktop) */}
+          {sections.includes('quicknav') && !isMobile && (
+            <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
+              {quickNavItems.map(item => (
+                <button
+                  key={item.href}
+                  onClick={() => navigate(item.href)}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-4 rounded-xl border bg-gradient-to-br transition-all hover:scale-[1.03] active:scale-95",
+                    item.border, item.bg
+                  )}
+                >
+                  <div className="relative">
+                    <item.icon className={cn("w-6 h-6", item.color)} />
+                    {item.count !== null && item.count > 0 && (
+                      <span className="absolute -top-1.5 -right-2.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                        {item.count > 99 ? '99+' : item.count}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-medium text-foreground leading-tight text-center">{item.label}</span>
+                </button>
+              ))}
             </div>
           )}
 
@@ -218,8 +340,6 @@ const CorretorDashboard = () => {
 
           {/* Agenda + Negotiations Row */}
           <div className={cn("grid gap-4", sections.includes('negotiations') ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
-
-            {/* Agenda do Dia */}
             {sections.includes('agenda') && (
               <div className="rounded-xl border border-border bg-card/50 p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -262,7 +382,6 @@ const CorretorDashboard = () => {
               </div>
             )}
 
-            {/* Negociações Quentes */}
             {sections.includes('negotiations') && (
               <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -305,24 +424,26 @@ const CorretorDashboard = () => {
           {/* Goal + Funnel Row */}
           {!focusMode && (
             <div className="grid lg:grid-cols-2 gap-4">
-              {/* Meta do Mês */}
               {sections.includes('goal') && (
                 <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5">
                   <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
                     <Target className="w-4 h-4 text-primary" /> Meta do Mês
                   </h2>
-                  {primaryGoal ? (
+                  {metaValue > 0 ? (
                     <div className="space-y-4">
                       <div className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">{primaryGoal.title}</p>
-                        <p className="text-3xl font-bold text-foreground">{formatCurrency(primaryGoal.current_value)}</p>
-                        <p className="text-xs text-muted-foreground">de {formatCurrency(primaryGoal.target_value)}</p>
+                        <p className="text-xs text-muted-foreground mb-1">{primaryGoal?.title || 'Meta Mensal'}</p>
+                        <p className="text-3xl font-bold text-foreground">{formatCurrency(metaRealizado)}</p>
+                        <p className="text-xs text-muted-foreground">de {formatCurrency(metaValue)}</p>
                       </div>
-                      <Progress value={goalProgress} className="h-3" />
+                      <Progress value={Math.min(metaPercent, 100)} className="h-3" />
                       <div className="flex justify-between text-xs">
-                        <span className="text-primary font-semibold">{Math.round(goalProgress)}% concluído</span>
+                        <span className={cn("font-semibold", metaPercent >= 100 ? 'text-emerald-400' : 'text-primary')}>{Math.round(metaPercent)}% concluído</span>
                         <span className="text-muted-foreground">
-                          Faltam: {formatCurrency(Math.max(primaryGoal.target_value - primaryGoal.current_value, 0))}
+                          {metaRealizado >= metaValue
+                            ? `Meta superada em ${formatCurrency(metaRealizado - metaValue)}`
+                            : `Faltam: ${formatCurrency(metaValue - metaRealizado)}`
+                          }
                         </span>
                       </div>
                     </div>
@@ -330,22 +451,12 @@ const CorretorDashboard = () => {
                     <div className="text-center space-y-3">
                       <p className="text-3xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
                       <p className="text-xs text-muted-foreground">VGV do mês • {monthSales.length} vendas</p>
-                      <p className="text-xs text-muted-foreground">Meta mensal: {formatCurrency(currentBroker?.meta_monthly || 0)}</p>
-                      {(currentBroker?.meta_monthly || 0) > 0 && (
-                        <>
-                          <Progress value={Math.min((monthVGV / (currentBroker?.meta_monthly || 1)) * 100, 100)} className="h-3" />
-                          <div className="flex justify-between text-xs">
-                            <span className="text-primary font-semibold">{Math.round((monthVGV / (currentBroker?.meta_monthly || 1)) * 100)}%</span>
-                            <span className="text-muted-foreground">Faltam: {formatCurrency(Math.max((currentBroker?.meta_monthly || 0) - monthVGV, 0))}</span>
-                          </div>
-                        </>
-                      )}
+                      <p className="text-xs text-muted-foreground">Nenhuma meta definida</p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Funil de Vendas */}
               {sections.includes('funnel') && (
                 <div className="rounded-xl border border-border bg-card/50 p-5">
                   <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
@@ -373,8 +484,6 @@ const CorretorDashboard = () => {
 
           {/* Tasks + Ranking Row */}
           <div className={cn("grid gap-4", !focusMode ? "lg:grid-cols-3" : "lg:grid-cols-1")}>
-
-            {/* Tarefas Prioritárias */}
             {sections.includes('tasks') && (
               <div className={cn("rounded-xl border border-border bg-card/50 p-4", !focusMode ? "lg:col-span-2" : "")}>
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
@@ -409,11 +518,10 @@ const CorretorDashboard = () => {
               </div>
             )}
 
-            {/* Mini Ranking */}
             {!focusMode && sections.includes('ranking') && (
               <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                  <Trophy className="w-4 h-4 text-amber-400" /> Ranking da Semana
+                  <Trophy className="w-4 h-4 text-amber-400" /> Ranking da Equipe
                 </h2>
                 <div className="space-y-2">
                   {brokerRankings.map((r, idx) => {
@@ -439,33 +547,36 @@ const CorretorDashboard = () => {
               </div>
             )}
           </div>
-
-          {/* Opportunities */}
-          {!focusMode && sections.includes('opportunities') && (
-            <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-transparent p-4">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                <Lightbulb className="w-4 h-4 text-cyan-400" /> Radar de Oportunidades
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 rounded-lg bg-card/30 border border-border/30">
-                  <p className="text-2xl font-bold text-foreground">{pendingFollowUps.length}</p>
-                  <p className="text-xs text-muted-foreground">Leads aguardando contato</p>
-                </div>
-                <div className="p-3 rounded-lg bg-card/30 border border-border/30">
-                  <p className="text-2xl font-bold text-foreground">{activeNegotiations.length}</p>
-                  <p className="text-xs text-muted-foreground">Negociações em andamento</p>
-                </div>
-                <div className="p-3 rounded-lg bg-card/30 border border-border/30">
-                  <p className="text-2xl font-bold text-foreground">{todayEvents.length}</p>
-                  <p className="text-xs text-muted-foreground">Compromissos hoje</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </main>
     </div>
   );
 };
+
+// KPI Card component
+const KPIIndicator = ({ label, value, subtitle, icon: Icon, color, borderColor, onClick }: {
+  label: string;
+  value: string;
+  subtitle: string;
+  icon: React.ElementType;
+  color: string;
+  borderColor: string;
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "rounded-xl border bg-card/50 p-3 lg:p-4 text-left transition-all hover:scale-[1.02] active:scale-95",
+      borderColor
+    )}
+  >
+    <div className="flex items-center justify-between mb-1">
+      <p className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <Icon className={cn("w-4 h-4 lg:w-5 lg:h-5 opacity-70", color)} />
+    </div>
+    <p className={cn("text-lg lg:text-xl font-bold text-foreground truncate")}>{value}</p>
+    <p className="text-[10px] lg:text-xs text-muted-foreground truncate mt-0.5">{subtitle}</p>
+  </button>
+);
 
 export default CorretorDashboard;
