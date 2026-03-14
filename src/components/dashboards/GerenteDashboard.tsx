@@ -343,6 +343,25 @@ const GerenteDashboard = () => {
             ) : null;
           })()}
 
+          {/* Broker Inactivity Alert (5+ days without sales) */}
+          {sections.includes('alerts') && inactiveBrokers.length > 0 && (
+            <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+                <Clock className="w-4 h-4 text-orange-400" /> Alerta de Inatividade — 5+ dias sem vendas
+              </h2>
+              <p className="text-xs text-muted-foreground mb-3">
+                Estes corretores não registram vendas há pelo menos 5 dias.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {inactiveBrokers.map(b => (
+                  <Badge key={b.id} variant="outline" className="border-orange-500/30 text-orange-400 bg-orange-500/10 py-1 px-3">
+                    {b.name.split(' ')[0]} — {b.daysSinceLastSale} dias sem venda
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 3. Goal Panel — Monthly + Annual + Smart Insights */}
           {sections.includes('goal') && (
             <div className="space-y-4">
