@@ -565,18 +565,23 @@ const LeaderboardCard = ({
           <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-semibold text-sm text-foreground truncate">{broker.name}</p>
-            {isCurrentUser && (
-              <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">⭐ VOCÊ</Badge>
-            )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="font-semibold text-sm text-foreground truncate">{broker.name}</p>
+              {isCurrentUser && (
+                <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">⭐ VOCÊ</Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-muted-foreground">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</span>
+              {broker.teamName && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-border/60">{broker.teamName}</Badge>
+              )}
+              {broker.participationPct !== undefined && broker.participationPct > 0 && (
+                <span className="text-[10px] text-primary font-medium">{broker.participationPct.toFixed(1)}% do VGV</span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</span>
-            {/* XP/Level hidden for now */}
-          </div>
-        </div>
 
         <div className="text-right">
           <p className="font-bold text-sm text-foreground">{formatCurrency(broker.revenue)}</p>
