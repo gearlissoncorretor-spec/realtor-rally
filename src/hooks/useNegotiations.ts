@@ -21,6 +21,7 @@ export interface Negotiation {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  temperature: string;
 }
 
 export interface CreateNegotiationInput {
