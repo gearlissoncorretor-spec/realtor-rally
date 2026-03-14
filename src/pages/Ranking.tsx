@@ -1832,7 +1832,7 @@ const Ranking = () => {
     return rankings
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [brokers, filteredSales, previousPeriodSales, selectedTeam, teams]);
+  }, [brokers, filteredSales, previousPeriodSales, effectiveTeamFilter, teams]);
 
   // Active broker count
   const activeBrokerCount = useMemo(() => {
