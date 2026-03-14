@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { FollowUpNote } from "@/hooks/useFollowUpNotes";
 import {
   Dialog,
   DialogContent,
