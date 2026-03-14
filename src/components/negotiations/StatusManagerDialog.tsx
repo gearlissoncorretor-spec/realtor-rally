@@ -77,8 +77,8 @@ export function StatusManagerDialog({ open, onOpenChange }: StatusManagerDialogP
     setIsAddingNew(false);
   };
 
-  const handleUpdateStatus = (id: string, updates: Partial<NegotiationStatus>) => {
-    updateStatus(id, updates);
+  const handleUpdateStatus = async (id: string, updates: Partial<NegotiationStatus>) => {
+    await updateStatus(id, updates);
     setEditingId(null);
   };
 
