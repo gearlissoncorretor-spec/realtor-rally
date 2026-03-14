@@ -123,17 +123,16 @@ const GerenteDashboard = () => {
     );
   }, [targets, currentMonth, currentYear, teamHierarchy?.team_id]);
 
-  const annualTargets = useMemo(() => {
-    return (targets || []).filter(t => 
+  // Load annual goal from month=0 target (independent from monthly)
+  const annualTargetValue = useMemo(() => {
+    const annualRecord = (targets || []).find(t => 
       t.year === currentYear &&
+      t.month === 0 &&
+      t.broker_id === null &&
       (t.team_id === teamHierarchy?.team_id || (!t.team_id && !t.broker_id))
     );
+    return annualRecord?.target_value || 0;
   }, [targets, currentYear, teamHierarchy?.team_id]);
-
-  const annualTargetValue = useMemo(() => 
-    annualTargets.reduce((sum, t) => sum + (t.target_value || 0), 0),
-    [annualTargets]
-  );
 
   // Calculate actual progress from sales data
   const monthlyAchieved = monthVGV;
