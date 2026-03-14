@@ -657,7 +657,7 @@ const MetaGestao = () => {
                             )}
                           </td>
                           <td className="text-right py-3 px-2 font-mono text-sm font-medium text-foreground">
-                            {formatCurrencyCompact(achieved)}
+                            {formatCurrency(achieved)}
                           </td>
                           <td className={cn("text-right py-3 px-2 font-mono text-sm", difference >= 0 ? "text-success" : "text-destructive")}>
                             <span className="flex items-center justify-end gap-1">
