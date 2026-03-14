@@ -78,7 +78,7 @@ export const useFollowUpNotes = (followUpId: string | null) => {
   return {
     notes,
     loading: isLoading,
-    addNote: addNoteMutation.mutateAsync,
-    deleteNote: deleteNoteMutation.mutateAsync,
+    addNote,
+    deleteNote,
   };
 };
