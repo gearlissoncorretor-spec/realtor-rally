@@ -527,8 +527,47 @@ const DiretorDashboardPage = () => {
 };
 
 
-// Dashboard principal - acessível por todos os perfis
+// Dashboard principal - renderiza dashboard baseado no perfil
 const Index = () => {
+  const { isDiretor, isAdmin, isGerente, isCorretor } = useAuth();
+  
+  // Diretores e admins veem o dashboard estratégico completo
+  if (isDiretor() || isAdmin()) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
+          <DiretorDashboard />
+        </div>
+      </div>
+    );
+  }
+
+  // Gerentes veem dashboard de equipe
+  if (isGerente()) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
+          <GerenteDashboard />
+        </div>
+      </div>
+    );
+  }
+
+  // Corretores veem dashboard individual
+  if (isCorretor()) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
+          <CorretorDashboard />
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: dashboard padrão
   return <DiretorDashboardPage />;
 };
 
