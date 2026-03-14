@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table,
   TableBody,
@@ -29,24 +28,27 @@ import {
   Handshake,
   Phone,
   MessageCircle,
-  Percent,
-  TrendingUp
+  StickyNote,
+  ChevronDown,
+  ChevronUp,
+  Settings
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
-import { format, isToday, isPast, parseISO } from "date-fns";
+import { format, isToday, isPast, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FollowUpStatusBadge } from "@/components/followup/FollowUpStatusBadge";
 import { ConvertToNegotiationDialog } from "@/components/followup/ConvertToNegotiationDialog";
 import { AddContactDialog } from "@/components/followup/AddContactDialog";
+import { FollowUpNotesDialog } from "@/components/followup/FollowUpNotesDialog";
+import { FollowUpContactHistory } from "@/components/followup/FollowUpContactHistory";
 import { ResponsiveStatCard } from "@/components/negotiations/ResponsiveStatCard";
 import { ExpandableCell } from "@/components/ExpandableCell";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatusManagerDialog";
 import { cn } from "@/lib/utils";
-import { Settings } from "lucide-react";
 
 const FollowUpPage = () => {
   const { user, isCorretor } = useAuth();
