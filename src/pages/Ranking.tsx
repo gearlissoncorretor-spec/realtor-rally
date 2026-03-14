@@ -43,7 +43,12 @@ interface BrokerRanking {
   email: string;
   userId?: string | null;
   teamId?: string | null;
+  teamName?: string | null;
+  ticketMedio?: number;
+  participationPct?: number;
 }
+
+type SortField = 'vgv' | 'sales' | 'ticket' | 'growth';
 
 interface TeamRanking {
   id: string;
