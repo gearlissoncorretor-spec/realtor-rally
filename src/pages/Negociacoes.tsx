@@ -884,6 +884,7 @@ const Negociacoes = () => {
                               <TableHead>Imóvel</TableHead>
                               <TableHead>Corretor</TableHead>
                               <TableHead>Valor</TableHead>
+                              <TableHead>Termômetro</TableHead>
                               <TableHead>Status</TableHead>
                               <TableHead>Data</TableHead>
                               <TableHead className="text-right">Ações</TableHead>
