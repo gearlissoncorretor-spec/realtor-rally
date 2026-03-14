@@ -381,6 +381,19 @@ const MetaGestao = () => {
   const remaining = Math.max(0, effectiveAnnualGoal - yearlyData.totalVGV);
   const exceededBy = Math.max(0, yearlyData.totalVGV - effectiveAnnualGoal);
 
+  // Probability based on independent annual goal
+  const componentProbability = useMemo(() => {
+    if (effectiveAnnualGoal === 0) return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
+    const yearProgress = (new Date().getMonth() + 1) / 12;
+    const projectedTotal = yearProgress > 0 ? yearlyData.totalVGV / yearProgress : 0;
+    const baseProb = Math.min(100, (projectedTotal / effectiveAnnualGoal) * 100);
+    return {
+      current: Math.round(baseProb),
+      withMoreBrokers: Math.round(Math.min(100, baseProb * 1.15)),
+      withHigherTicket: Math.round(Math.min(100, baseProb * 1.2)),
+    };
+  }, [effectiveAnnualGoal, yearlyData.totalVGV]);
+
   // Smart status label based on progress
   const getGoalStatus = (progress: number) => {
     if (progress >= 120) return { label: '🚀 Meta superada', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
