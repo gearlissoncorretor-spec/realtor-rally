@@ -520,16 +520,36 @@ const MetaGestao = () => {
                         cx="50" cy="50" r="42" fill="none" strokeWidth="10"
                         strokeLinecap="round"
                         className={cn("transition-all duration-700",
-                          annualProgress >= 90 ? "stroke-success" : annualProgress >= 50 ? "stroke-warning" : "stroke-destructive"
+                          annualProgress >= 100 ? "stroke-success" : annualProgress >= 80 ? "stroke-success" : annualProgress >= 50 ? "stroke-warning" : "stroke-destructive"
                         )}
                         strokeDasharray={`${Math.min(annualProgress, 100) * 2.64} 264`}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-bold text-foreground">{Math.round(annualProgress)}%</span>
-                      <span className="text-[10px] text-muted-foreground">atingido</span>
+                      {annualProgress > 999 ? (
+                        <>
+                          <span className="text-lg font-bold text-success">{Math.round(annualProgress)}%</span>
+                          <span className="text-[10px] text-success font-semibold">🚀 superada</span>
+                        </>
+                      ) : annualProgress >= 100 ? (
+                        <>
+                          <span className="text-2xl font-bold text-success">{Math.round(annualProgress)}%</span>
+                          <span className="text-[10px] text-success font-semibold">atingida!</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-2xl font-bold text-foreground">{Math.round(annualProgress)}%</span>
+                          <span className="text-[10px] text-muted-foreground">atingido</span>
+                        </>
+                      )}
                     </div>
                   </div>
+                  {isMetaTooLow && (
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg px-3 py-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Meta abaixo do histórico</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
