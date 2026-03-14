@@ -41,7 +41,7 @@ import {
   Plus,
   Loader2
 } from 'lucide-react';
-import { formatCurrency, formatCurrencyCompact, formatPercentage } from '@/utils/formatting';
+import { formatCurrency, formatPercentage } from '@/utils/formatting';
 import { format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachMonthOfInterval, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
