@@ -744,146 +744,147 @@ const MetaGestao = () => {
             </CardContent>
           </Card>
 
-          {/* Monthly Goal Dashboard */}
-          {(() => {
-            const currentMonth = new Date().getMonth() + 1;
-            const currentMonthGoal = monthlyGoals.find(g => g.monthIndex === currentMonth);
-            const currentMonthTarget = getMonthlyGoal(currentMonth);
-            const currentMonthAchieved = currentMonthGoal?.achieved || 0;
-            return (
-              <MonthlyGoalDashboard
-                targetValue={currentMonthTarget}
-                achievedValue={currentMonthAchieved}
-              />
-            );
-          })()}
-          
-          {/* Monthly Goals Table */}
+          {/* Monthly Goals - Card Grid */}
           <Card className="border-border/50 bg-card shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="w-5 h-5 text-primary" />
-                Progressão Mensal
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  Metas Mensais
+                </CardTitle>
+                {canManage && (
+                  <Button size="sm" onClick={() => handleSaveTargets()} disabled={savingTargets}>
+                    {savingTargets ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+                    Salvar Todas
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
-                {canManage ? "Clique no ícone de lápis para editar metas individuais." : "Acompanhamento mensal de metas e realização."}
+                Defina a meta de cada mês individualmente. O realizado é calculado automaticamente com base nas vendas confirmadas.
               </p>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto -mx-6 px-6">
-                <table className="w-full min-w-[800px]">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Mês</th>
-                      <th className="text-center py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Meta VGV</th>
-                      <th className="text-center py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Corretores</th>
-                      <th className="text-right py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Realizado</th>
-                      <th className="text-right py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Diferença</th>
-                      <th className="text-center py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">%</th>
-                      <th className="text-center py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {monthlyGoals.map((goal, idx) => {
-                      const monthIndex = goal.monthIndex;
-                      const currentGoalValue = getMonthlyGoal(monthIndex);
-                      const achieved = goal.achieved;
-                      const difference = achieved - currentGoalValue;
-                      const percentAchieved = currentGoalValue > 0 ? (achieved / currentGoalValue) * 100 : 0;
-                      const isCurrentMonth = isSameMonth(goal.month, new Date());
-                      const brokerGoalForMonth = editableMonthlyBrokers[monthIndex] ?? Math.ceil(brokerHiringGoal / 12 * monthIndex);
-                      
-                      return (
-                        <tr key={idx} className={cn(
-                          "border-b border-border/50 hover:bg-muted/30 transition-colors",
-                          isCurrentMonth && "bg-primary/5"
-                        )}>
-                          <td className="py-3 px-2">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium capitalize text-sm text-foreground">
-                                {format(goal.month, 'MMM', { locale: ptBR })}
-                              </span>
-                              {isCurrentMonth && <Badge variant="outline" className="text-[10px] h-5 px-1.5">Atual</Badge>}
-                            </div>
-                          </td>
-                          <td className="text-center py-3 px-2">
-                            {editingMonthlyGoal === monthIndex && canManage ? (
-                              <CurrencyInput
-                                value={editableMonthlyGoals[monthIndex] ?? getMonthlyGoal(monthIndex)}
-                                onChange={(val) => handleMonthlyGoalChange(monthIndex, val)}
-                                onBlur={() => { saveMonthlyGoal(monthIndex); setEditingMonthlyGoal(null); }}
-                                className="h-8 text-sm text-center max-w-[120px] mx-auto"
-                                autoFocus
-                              />
-                            ) : (
-                              <div className="flex items-center justify-center gap-1">
-                                <span className="font-mono text-sm text-foreground">{formatCurrency(currentGoalValue)}</span>
-                                {canManage && (
-                                  <Button size="icon" variant="ghost" onClick={() => setEditingMonthlyGoal(monthIndex)} className="h-6 w-6">
-                                    <Edit2 className="w-3 h-3 text-muted-foreground" />
-                                  </Button>
-                                )}
-                              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {monthlyGoals.map((goal) => {
+                  const monthIndex = goal.monthIndex;
+                  const currentGoalValue = getMonthlyGoal(monthIndex);
+                  const achieved = goal.achieved;
+                  const percentAchieved = currentGoalValue > 0 ? (achieved / currentGoalValue) * 100 : 0;
+                  const difference = achieved - currentGoalValue;
+                  const isCurrentMonth = isSameMonth(goal.month, new Date());
+                  const isEditing = editingMonthlyGoal === monthIndex;
+
+                  return (
+                    <div
+                      key={monthIndex}
+                      className={cn(
+                        "rounded-xl border p-3 space-y-2 transition-all",
+                        isCurrentMonth
+                          ? "border-primary/40 bg-primary/5 ring-1 ring-primary/20"
+                          : "border-border bg-card hover:border-border/80"
+                      )}
+                    >
+                      {/* Month header */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold capitalize text-foreground">
+                          {format(goal.month, 'MMM', { locale: ptBR })}
+                        </span>
+                        {isCurrentMonth && (
+                          <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-primary/30 text-primary">
+                            Atual
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Meta input/display */}
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Meta</p>
+                        {isEditing && canManage ? (
+                          <CurrencyInput
+                            value={editableMonthlyGoals[monthIndex] ?? currentGoalValue}
+                            onChange={(val) => handleMonthlyGoalChange(monthIndex, val)}
+                            onBlur={() => {
+                              saveMonthlyGoal(monthIndex);
+                              setEditingMonthlyGoal(null);
+                            }}
+                            className="h-8 text-sm"
+                            autoFocus
+                          />
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm font-bold text-foreground">{formatCurrency(currentGoalValue)}</span>
+                            {canManage && (
+                              <Button size="icon" variant="ghost" onClick={() => setEditingMonthlyGoal(monthIndex)} className="h-5 w-5 shrink-0">
+                                <Edit2 className="w-3 h-3 text-muted-foreground" />
+                              </Button>
                             )}
-                          </td>
-                          <td className="text-center py-3 px-2">
-                            {editingMonthlyBroker === monthIndex && canManage ? (
-                              <Input
-                                type="number"
-                                value={editableMonthlyBrokers[monthIndex] ?? brokerGoalForMonth}
-                                onChange={(e) => handleMonthlyBrokerChange(monthIndex, parseInt(e.target.value) || 0)}
-                                onBlur={() => setEditingMonthlyBroker(null)}
-                                className="h-8 text-sm text-center max-w-[70px] mx-auto"
-                                autoFocus
-                              />
-                            ) : (
-                              <div className="flex items-center justify-center gap-1">
-                                <span className="font-mono text-sm text-foreground">{editableMonthlyBrokers[monthIndex] ?? brokerGoalForMonth}</span>
-                                {canManage && (
-                                  <Button size="icon" variant="ghost" onClick={() => setEditingMonthlyBroker(monthIndex)} className="h-6 w-6">
-                                    <Edit2 className="w-3 h-3 text-muted-foreground" />
-                                  </Button>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                          <td className="text-right py-3 px-2 font-mono text-sm font-medium text-foreground">
-                            {formatCurrency(achieved)}
-                          </td>
-                          <td className={cn("text-right py-3 px-2 font-mono text-sm", difference >= 0 ? "text-success" : "text-destructive")}>
-                            <span className="flex items-center justify-end gap-1">
-                              {difference >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                              {formatCurrency(Math.abs(difference))}
-                            </span>
-                          </td>
-                          <td className="text-center py-3 px-2">
-                            <span className={cn("text-sm font-semibold",
-                              percentAchieved >= 80 ? "text-success" : percentAchieved >= 50 ? "text-warning" : "text-destructive"
-                            )}>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Realizado */}
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Realizado</p>
+                        <p className="text-sm font-semibold text-foreground">{formatCurrency(achieved)}</p>
+                      </div>
+
+                      {/* Progress bar */}
+                      {currentGoalValue > 0 && (
+                        <div className="space-y-1">
+                          <div className="w-full rounded-full overflow-hidden h-1.5 bg-muted/30">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all duration-500",
+                                percentAchieved >= 80
+                                  ? "bg-success"
+                                  : percentAchieved >= 50
+                                  ? "bg-warning"
+                                  : "bg-destructive"
+                              )}
+                              style={{ width: `${Math.min(percentAchieved, 100)}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={cn(
+                                "text-[10px] font-semibold",
+                                percentAchieved >= 80 ? "text-success" : percentAchieved >= 50 ? "text-warning" : "text-destructive"
+                              )}
+                            >
                               {formatPercentDisplay(percentAchieved, 0)}
                             </span>
-                          </td>
-                          <td className="text-center py-3 px-2">
-                            <div className={cn("w-2.5 h-2.5 rounded-full mx-auto",
-                              percentAchieved >= 80 ? "bg-success" : percentAchieved >= 50 ? "bg-warning" : currentGoalValue > 0 ? "bg-destructive" : "bg-muted"
-                            )} />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    <tr className="bg-muted/50 font-semibold">
-                      <td className="py-3 px-2 text-sm text-foreground">Total</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(monthlyTargetsTotal)}</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{brokerHiringGoal}</td>
-                      <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrency(yearlyData.totalVGV)}</td>
-                      <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - effectiveAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
-                        {formatCurrency(Math.abs(yearlyData.totalVGV - effectiveAnnualGoal))}
-                      </td>
-                      <td className="text-center py-3 px-2 text-sm">{formatPercentDisplay(annualProgress, 0)}</td>
-                      <td></td>
-                    </tr>
-                  </tbody>
-                </table>
+                            <span
+                              className={cn(
+                                "text-[10px]",
+                                difference >= 0 ? "text-success" : "text-destructive"
+                              )}
+                            >
+                              {difference >= 0 ? '+' : ''}{formatCurrency(difference)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Totals row */}
+              <div className="mt-4 p-3 rounded-xl bg-muted/50 border border-border flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Metas Mensais</p>
+                  <p className="text-base font-bold text-foreground">{formatCurrency(monthlyTargetsTotal)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Realizado</p>
+                  <p className="text-base font-bold text-foreground">{formatCurrency(yearlyData.totalVGV)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Diferença</p>
+                  <p className={cn("text-base font-bold", yearlyData.totalVGV - monthlyTargetsTotal >= 0 ? "text-success" : "text-destructive")}>
+                    {yearlyData.totalVGV - monthlyTargetsTotal >= 0 ? '+' : ''}{formatCurrency(yearlyData.totalVGV - monthlyTargetsTotal)}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
