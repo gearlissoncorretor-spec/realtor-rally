@@ -98,6 +98,9 @@ const Negociacoes = () => {
   const [celebrationOpen, setCelebrationOpen] = useState(false);
   const [celebrationData, setCelebrationData] = useState<{ brokerName: string; clientName: string; saleValue: number }>({ brokerName: '', clientName: '', saleValue: 0 });
   
+  // Stalled alert state
+  const [showStalledAlert, setShowStalledAlert] = useState(true);
+
   // Return to follow-up state
   const [returnToFollowUpOpen, setReturnToFollowUpOpen] = useState(false);
   const [selectedForFollowUp, setSelectedForFollowUp] = useState<Negotiation | null>(null);
