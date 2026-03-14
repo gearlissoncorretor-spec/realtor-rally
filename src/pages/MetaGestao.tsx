@@ -147,10 +147,9 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
     const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
     const totalSales = yearSales.length;
-    const yearTargets = Array.from(latestTargetByMonth.values());
-    const annualTarget = yearTargets.reduce((sum, target) => sum + target.target_value, 0);
+    const monthlyTargetsSum = Array.from(latestTargetByMonth.values()).reduce((sum, target) => sum + target.target_value, 0);
 
-    return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
+    return { totalVGV, totalVGC, totalSales, monthlyTargetsSum, yearSales };
   }, [yearSales, latestTargetByMonth]);
 
   const brokerStats = useMemo(() => {
