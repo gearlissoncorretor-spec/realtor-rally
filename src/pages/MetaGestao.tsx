@@ -819,14 +819,14 @@ const MetaGestao = () => {
                           </td>
                           <td className="text-center py-3 px-2">
                             <span className={cn("text-sm font-semibold",
-                              percentAchieved >= 100 ? "text-success" : percentAchieved >= 50 ? "text-warning" : "text-destructive"
+                              percentAchieved >= 80 ? "text-success" : percentAchieved >= 50 ? "text-warning" : "text-destructive"
                             )}>
-                              {percentAchieved.toFixed(0)}%
+                              {formatPercentDisplay(percentAchieved, 0)}
                             </span>
                           </td>
                           <td className="text-center py-3 px-2">
                             <div className={cn("w-2.5 h-2.5 rounded-full mx-auto",
-                              percentAchieved >= 100 ? "bg-success" : percentAchieved >= 50 ? "bg-warning" : currentGoalValue > 0 ? "bg-destructive" : "bg-muted"
+                              percentAchieved >= 80 ? "bg-success" : percentAchieved >= 50 ? "bg-warning" : currentGoalValue > 0 ? "bg-destructive" : "bg-muted"
                             )} />
                           </td>
                         </tr>
@@ -834,13 +834,13 @@ const MetaGestao = () => {
                     })}
                     <tr className="bg-muted/50 font-semibold">
                       <td className="py-3 px-2 text-sm text-foreground">Total</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(recalculatedAnnualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(effectiveAnnualGoal)}</td>
                       <td className="text-center py-3 px-2 font-mono text-sm">{brokerHiringGoal}</td>
                       <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrency(yearlyData.totalVGV)}</td>
-                      <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - recalculatedAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
-                        {formatCurrency(Math.abs(yearlyData.totalVGV - recalculatedAnnualGoal))}
+                      <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - effectiveAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
+                        {formatCurrency(Math.abs(yearlyData.totalVGV - effectiveAnnualGoal))}
                       </td>
-                      <td className="text-center py-3 px-2 text-sm">{annualProgress.toFixed(0)}%</td>
+                      <td className="text-center py-3 px-2 text-sm">{formatPercentDisplay(annualProgress, 0)}</td>
                       <td></td>
                     </tr>
                   </tbody>
