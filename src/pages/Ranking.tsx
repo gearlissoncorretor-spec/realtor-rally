@@ -2234,34 +2234,79 @@ const Ranking = () => {
 
                 {/* Leaderboard */}
                 <Card className="overflow-hidden border-border/50">
-                  <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-warning" />
-                    <h2 className="font-semibold text-foreground text-sm">
-                      {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
-                    </h2>
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
-                    </Badge>
+                  <div className="p-4 border-b border-border bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <Flame className="w-5 h-5 text-warning" />
+                      <h2 className="font-semibold text-foreground text-sm">
+                        {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
+                      </h2>
+                      <Badge variant="secondary" className="text-xs">
+                        {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length} {rankingType === 'captacao' ? 'captadores' : 'corretores'}
+                      </Badge>
+                    </div>
+                    {rankingType === 'vendas' && (
+                      <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+                        <SelectTrigger className="h-8 w-[150px] text-xs border-border/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="vgv">Ordenar por VGV</SelectItem>
+                          <SelectItem value="sales">Ordenar por Vendas</SelectItem>
+                          <SelectItem value="ticket">Ordenar por Ticket</SelectItem>
+                          <SelectItem value="growth">Ordenar por Crescimento</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   <div className="p-3 space-y-2">
-                    {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).map((broker) => (
-                      <LeaderboardCard
-                        key={broker.id}
-                        broker={broker}
-                        allBrokers={rankingType === 'captacao' ? captacaoRankings : brokerRankings}
-                        currentUserId={user?.id}
-                        showProgressBar={broker.position > 1}
-                      />
-                    ))}
-                    {(rankingType === 'captacao' ? captacaoRankings : brokerRankings).length === 0 && (
-                      <div className="text-center py-12">
-                        <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                        <p className="text-muted-foreground font-medium">
-                          {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
-                        </p>
-                        <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const currentList = rankingType === 'captacao' ? captacaoRankings : brokerRankings;
+                      const displayList = isExpanded ? currentList : currentList.slice(0, 10);
+                      const hasMore = currentList.length > 10;
+
+                      return (
+                        <>
+                          {displayList.map((broker) => (
+                            <LeaderboardCard
+                              key={broker.id}
+                              broker={broker}
+                              allBrokers={currentList}
+                              currentUserId={user?.id}
+                              showProgressBar={broker.position > 1}
+                            />
+                          ))}
+                          {hasMore && !isExpanded && (
+                            <Button
+                              variant="ghost"
+                              className="w-full mt-2 text-sm text-primary hover:text-primary/80"
+                              onClick={() => setIsExpanded(true)}
+                            >
+                              <ChevronDown className="w-4 h-4 mr-1" />
+                              Ver ranking completo ({currentList.length - 10} restantes)
+                            </Button>
+                          )}
+                          {isExpanded && hasMore && (
+                            <Button
+                              variant="ghost"
+                              className="w-full mt-2 text-sm text-muted-foreground"
+                              onClick={() => setIsExpanded(false)}
+                            >
+                              <ChevronUp className="w-4 h-4 mr-1" />
+                              Recolher
+                            </Button>
+                          )}
+                          {currentList.length === 0 && (
+                            <div className="text-center py-12">
+                              <Trophy className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                              <p className="text-muted-foreground font-medium">
+                                {rankingType === 'captacao' ? 'Nenhuma captação encontrada no período' : 'Nenhum corretor encontrado no período'}
+                              </p>
+                              <p className="text-xs text-muted-foreground/60 mt-1">Tente alterar o filtro de período</p>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </Card>
               </>
