@@ -813,6 +813,24 @@ const Negociacoes = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    <Select value={sortOrder} onValueChange={setSortOrder}>
+                      <SelectTrigger className="w-full sm:w-44">
+                        <SelectValue placeholder="Ordenar por" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Mais recentes
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="oldest">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Mais antigas
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
                   </>
                 )}
               </div>
