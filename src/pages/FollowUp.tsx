@@ -644,11 +644,12 @@ const FollowUpPage = () => {
                         {sortedFollowUps.map((followUp) => {
                           const dateStatus = getDateStatus(followUp.next_contact_date);
                           const statusConfig = getStatusByValue(followUp.status);
+                          const daysLabel = getDaysLabel(followUp.next_contact_date);
                           return (
                             <TableRow
                               key={followUp.id}
                               className={cn(
-                                dateStatus === 'overdue' && 'bg-red-500/5',
+                                dateStatus === 'overdue' && 'bg-destructive/5',
                                 dateStatus === 'today' && 'bg-yellow-500/5'
                               )}
                             >
@@ -667,11 +668,23 @@ const FollowUpPage = () => {
                               <TableCell>{getBrokerName(followUp.broker_id)}</TableCell>
                               <TableCell>
                                 {followUp.next_contact_date ? (
-                                  <span className={cn("flex items-center gap-1", dateStatus === 'overdue' && 'text-red-600 font-medium', dateStatus === 'today' && 'text-yellow-600 font-medium')}>
-                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3" />}
-                                    {dateStatus === 'today' && <Clock className="w-3 h-3" />}
-                                    {format(parseISO(followUp.next_contact_date), "dd/MM/yyyy", { locale: ptBR })}
-                                  </span>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className={cn("flex items-center gap-1", dateStatus === 'overdue' && 'text-destructive font-medium', dateStatus === 'today' && 'text-yellow-600 font-medium')}>
+                                      {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3 animate-pulse" />}
+                                      {dateStatus === 'today' && <Clock className="w-3 h-3 animate-pulse" />}
+                                      {format(parseISO(followUp.next_contact_date), "dd/MM/yyyy", { locale: ptBR })}
+                                    </span>
+                                    {daysLabel && (
+                                      <span className={cn(
+                                        "text-[10px] font-medium",
+                                        dateStatus === 'overdue' && 'text-destructive',
+                                        dateStatus === 'today' && 'text-yellow-600',
+                                        dateStatus === 'future' && 'text-muted-foreground'
+                                      )}>
+                                        {daysLabel}
+                                      </span>
+                                    )}
+                                  </div>
                                 ) : <span className="text-muted-foreground">-</span>}
                               </TableCell>
                               <TableCell>
@@ -679,8 +692,11 @@ const FollowUpPage = () => {
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center justify-end gap-1">
-                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="gap-1 bg-primary hover:bg-primary/90" title="Converter em Negociação">
+                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="gap-1" title="Converter em Negociação">
                                     <Handshake className="w-4 h-4" /><span className="hidden lg:inline">Negociação</span>
+                                  </Button>
+                                  <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} title="Notas">
+                                    <StickyNote className="w-4 h-4" />
                                   </Button>
                                   <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} title="Registrar contato">
                                     <Phone className="w-4 h-4" />
