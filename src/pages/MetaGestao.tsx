@@ -191,20 +191,11 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     return { bestMonth, worstMonth, avgGrowth };
   }, [monthlyGoals]);
 
+  // Probability uses the annual goal passed in, not derived from monthly
   const probability = useMemo(() => {
-    const { annualTarget, totalVGV } = yearlyData;
-    if (annualTarget === 0) return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
-
-    const yearProgress = (new Date().getMonth() + 1) / 12;
-    const projectedTotal = yearProgress > 0 ? totalVGV / yearProgress : 0;
-    const baseProb = Math.min(100, (projectedTotal / annualTarget) * 100);
-
-    return {
-      current: Math.round(baseProb),
-      withMoreBrokers: Math.round(Math.min(100, baseProb * 1.15)),
-      withHigherTicket: Math.round(Math.min(100, baseProb * 1.2)),
-    };
-  }, [yearlyData]);
+    // annualGoalForProb will be set from the parent component's effectiveAnnualGoal
+    return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
+  }, []);
 
   return { yearlyData, monthlyGoals, brokerStats, performanceStats, probability };
 };
