@@ -209,7 +209,7 @@ const DiretorDashboard = () => {
     const counts: Record<string, number> = {};
     filteredSales.forEach(sale => {
       const type = sale.property_type || 'outros';
-      const label = type === 'apartamento' ? 'Apartamento' : type === 'casa' ? 'Casa' : type === 'lote' ? 'Lote' : type === 'comercial' ? 'Comercial' : 'Outros';
+      const label = type === 'apartamento' ? 'Apartamento' : type === 'casa' ? 'Casa' : type === 'terreno' ? 'Terreno' : type === 'comercial' ? 'Comercial' : type === 'rural' ? 'Rural' : 'Outros';
       counts[label] = (counts[label] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
