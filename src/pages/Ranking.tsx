@@ -1717,6 +1717,11 @@ const Ranking = () => {
         weekAgo.setDate(weekAgo.getDate() - 7);
         return saleDate >= weekAgo;
       }
+      if (quickPeriod === 'quarter') {
+        const currentQuarter = Math.floor(now.getMonth() / 3);
+        const saleQuarter = Math.floor(saleDate.getMonth() / 3);
+        return saleDate.getFullYear() === now.getFullYear() && saleQuarter === currentQuarter;
+      }
       if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear();
       if (quickPeriod === 'all') return true;
 
@@ -1724,6 +1729,44 @@ const Ranking = () => {
       const filterMonth = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
       const filterYear = selectedYear > 0 ? selectedYear : now.getFullYear();
       return saleDate.getMonth() + 1 === filterMonth && saleDate.getFullYear() === filterYear;
+    });
+  }, [sales, selectedMonth, selectedYear, quickPeriod]);
+
+  // Previous period sales for comparison
+  const previousPeriodSales = useMemo(() => {
+    const now = new Date();
+    return sales.filter(sale => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      if (quickPeriod === 'today') {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return saleDate.toDateString() === yesterday.toDateString();
+      }
+      if (quickPeriod === 'week') {
+        const twoWeeksAgo = new Date(now);
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        const oneWeekAgo = new Date(now);
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        return saleDate >= twoWeeksAgo && saleDate < oneWeekAgo;
+      }
+      if (quickPeriod === 'quarter') {
+        const currentQuarter = Math.floor(now.getMonth() / 3);
+        const prevQuarterMonth = (currentQuarter - 1) * 3;
+        if (currentQuarter === 0) {
+          const saleQuarter = Math.floor(saleDate.getMonth() / 3);
+          return saleDate.getFullYear() === now.getFullYear() - 1 && saleQuarter === 3;
+        }
+        const saleQuarter = Math.floor(saleDate.getMonth() / 3);
+        return saleDate.getFullYear() === now.getFullYear() && saleQuarter === currentQuarter - 1;
+      }
+      if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear() - 1;
+      if (quickPeriod === 'all') return false;
+      // month
+      const filterMonth = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
+      const filterYear = selectedYear > 0 ? selectedYear : now.getFullYear();
+      const prevMonth = filterMonth === 1 ? 12 : filterMonth - 1;
+      const prevYear = filterMonth === 1 ? filterYear - 1 : filterYear;
+      return saleDate.getMonth() + 1 === prevMonth && saleDate.getFullYear() === prevYear;
     });
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
 
