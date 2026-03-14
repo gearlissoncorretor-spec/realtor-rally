@@ -2114,8 +2114,8 @@ const Ranking = () => {
           />
         )}
 
-        {/* Team filter */}
-        {teamsForFilter.length > 0 && (
+        {/* Team filter - only for directors/admins */}
+        {(isDiretor() || isAdmin()) && teamsForFilter.length > 0 && (
           <TeamFilter
             teams={teamsForFilter}
             selectedTeam={selectedTeam}
