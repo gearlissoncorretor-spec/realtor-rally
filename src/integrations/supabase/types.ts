@@ -1237,6 +1237,101 @@ export type Database = {
           },
         ]
       }
+      negotiation_notes: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          negotiation_id: string
+          note: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          negotiation_id: string
+          note: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          negotiation_id?: string
+          note?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negotiation_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "negotiation_notes_negotiation_id_fkey"
+            columns: ["negotiation_id"]
+            isOneToOne: false
+            referencedRelation: "negotiations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      negotiation_statuses: {
+        Row: {
+          color: string
+          company_id: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          label: string
+          order_index: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          color?: string
+          company_id?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label: string
+          order_index?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          color?: string
+          company_id?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label?: string
+          order_index?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "negotiation_statuses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       negotiations: {
         Row: {
           broker_id: string

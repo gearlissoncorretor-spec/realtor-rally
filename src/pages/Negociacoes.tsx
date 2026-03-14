@@ -35,7 +35,8 @@ import {
   Ban,
   Undo2,
   Thermometer,
-  AlertTriangle
+  AlertTriangle,
+  StickyNote
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
@@ -50,6 +51,7 @@ import { LossReasonDialog } from "@/components/negotiations/LossReasonDialog";
 import { ResponsiveStatCard } from "@/components/negotiations/ResponsiveStatCard";
 import { NegotiationStatusBadge } from "@/components/negotiations/NegotiationStatusBadge";
 import { StatusManagerDialog } from "@/components/negotiations/StatusManagerDialog";
+import { NegotiationNotesDialog } from "@/components/negotiations/NegotiationNotesDialog";
 import { useNegotiationStatuses } from "@/hooks/useNegotiationStatuses";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SaleCelebration } from "@/components/SaleCelebration";
@@ -105,6 +107,10 @@ const Negociacoes = () => {
   // Return to follow-up state
   const [returnToFollowUpOpen, setReturnToFollowUpOpen] = useState(false);
   const [selectedForFollowUp, setSelectedForFollowUp] = useState<Negotiation | null>(null);
+  
+  // Notes dialog state
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedForNotes, setSelectedForNotes] = useState<Negotiation | null>(null);
   
   // Form state
   const [formData, setFormData] = useState<CreateNegotiationInput>({
@@ -898,6 +904,9 @@ const Negociacoes = () => {
                                   <Button size="sm" variant="outline" onClick={() => handleOpenReturnToFollowUp(negotiation)} className="h-9" title="Voltar para Follow Up">
                                     <Undo2 className="w-4 h-4" />
                                   </Button>
+                                  <Button size="sm" variant="outline" onClick={() => { setSelectedForNotes(negotiation); setNotesDialogOpen(true); }} className="h-9" title="Notas">
+                                    <StickyNote className="w-4 h-4" />
+                                  </Button>
                                   <Button size="sm" variant="ghost" className="text-destructive h-9" onClick={() => setDeleteId(negotiation.id)}>
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
@@ -982,6 +991,10 @@ const Negociacoes = () => {
                                       <Button size="sm" variant="outline" onClick={() => handleOpenReturnToFollowUp(negotiation)} title="Voltar para Follow Up">
                                         <Undo2 className="w-4 h-4" />
                                         <span className="ml-1">Follow Up</span>
+                                      </Button>
+                                      <Button size="sm" variant="outline" onClick={() => { setSelectedForNotes(negotiation); setNotesDialogOpen(true); }} title="Notas">
+                                        <StickyNote className="w-4 h-4" />
+                                        <span className="ml-1">Notas</span>
                                       </Button>
                                       <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteId(negotiation.id)} title="Excluir">
                                         <Trash2 className="w-4 h-4" />
@@ -1204,6 +1217,13 @@ const Negociacoes = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Notes Dialog */}
+      <NegotiationNotesDialog
+        open={notesDialogOpen}
+        onOpenChange={setNotesDialogOpen}
+        negotiation={selectedForNotes}
+      />
     </div>
   );
 };
