@@ -960,9 +960,9 @@ const MetaGestao = () => {
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: 'Conservador', value: Math.max(0, probability.current - 15), icon: TrendingDown, color: 'text-muted-foreground' },
-                    { label: 'Realista', value: probability.current, icon: Target, color: 'text-primary', highlight: true },
-                    { label: 'Agressivo', value: probability.withHigherTicket, icon: TrendingUp, color: 'text-success' },
+                    { label: 'Conservador', value: Math.max(0, componentProbability.current - 15), icon: TrendingDown, color: 'text-muted-foreground' },
+                    { label: 'Realista', value: componentProbability.current, icon: Target, color: 'text-primary', highlight: true },
+                    { label: 'Agressivo', value: componentProbability.withHigherTicket, icon: TrendingUp, color: 'text-success' },
                   ].map((scenario, i) => (
                     <div key={i} className={cn(
                       "p-3 rounded-xl text-center",
