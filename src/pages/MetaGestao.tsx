@@ -56,112 +56,157 @@ interface MonthlyGoal {
   percentAchieved: number;
 }
 
+const getRecordTimestamp = (record: { updated_at?: string | null; created_at?: string | null }) => {
+  const updatedAt = record.updated_at ? new Date(record.updated_at).getTime() : 0;
+  const createdAt = record.created_at ? new Date(record.created_at).getTime() : 0;
+  return Math.max(updatedAt, createdAt, 0);
+};
+
 const useManagementGoals = (year: number, teamFilter?: string | null) => {
   const { sales, targets, brokers } = useData();
-  const { teams, teamMembers } = useTeams();
-  
+
   const filteredBrokerIds = useMemo(() => {
     if (!teamFilter) return null;
-    return brokers.filter(b => b.team_id === teamFilter).map(b => b.id);
+    return brokers.filter((broker) => broker.team_id === teamFilter).map((broker) => broker.id);
   }, [brokers, teamFilter]);
 
-  // Filter targets by team_id when applicable
-  const filteredTargets = useMemo(() => {
-    if (!teamFilter) return targets;
-    return targets.filter(t => (t as any).team_id === teamFilter);
+  // Meta Gestão opera apenas com metas globais (empresa/equipe), nunca metas individuais por corretor
+  const scopedTargets = useMemo(() => {
+    return targets.filter((target) => {
+      const isBrokerTarget = target.broker_id !== null;
+      if (isBrokerTarget) return false;
+
+      if (teamFilter) return target.team_id === teamFilter;
+      return target.team_id === null;
+    });
   }, [targets, teamFilter]);
-  
-  const yearlyData = useMemo(() => {
+
+  const yearSales = useMemo(() => {
     const yearStart = startOfYear(new Date(year, 0, 1));
     const yearEnd = endOfYear(new Date(year, 0, 1));
-    
-    const yearSales = sales.filter(sale => {
+
+    return sales.filter((sale) => {
       const saleDate = new Date(sale.sale_date || sale.created_at || '');
       const inYear = saleDate >= yearStart && saleDate <= yearEnd && sale.status === 'confirmada';
       if (!inYear) return false;
       if (filteredBrokerIds && sale.broker_id) return filteredBrokerIds.includes(sale.broker_id);
       return !filteredBrokerIds;
     });
-    
-    const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
-    const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
-    const totalSales = yearSales.length;
-    const yearTargets = filteredTargets.filter(t => t.year === year);
-    const annualTarget = yearTargets.reduce((sum, t) => sum + t.target_value, 0);
-    
-    return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
-  }, [sales, filteredTargets, year, filteredBrokerIds]);
-  
+  }, [sales, year, filteredBrokerIds]);
+
+  const latestTargetByMonth = useMemo(() => {
+    const monthMap = new Map<number, (typeof scopedTargets)[number]>();
+
+    scopedTargets
+      .filter((target) => target.year === year)
+      .forEach((target) => {
+        const current = monthMap.get(target.month);
+        if (!current || getRecordTimestamp(target) >= getRecordTimestamp(current)) {
+          monthMap.set(target.month, target);
+        }
+      });
+
+    return monthMap;
+  }, [scopedTargets, year]);
+
+  const monthlyAchievedByMonth = useMemo(() => {
+    const achievedMap = new Map<number, number>();
+
+    yearSales.forEach((sale) => {
+      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      const monthIndex = saleDate.getMonth() + 1;
+      achievedMap.set(monthIndex, (achievedMap.get(monthIndex) || 0) + (sale.vgv || 0));
+    });
+
+    return achievedMap;
+  }, [yearSales]);
+
   const monthlyGoals = useMemo((): MonthlyGoal[] => {
     const yearStart = startOfYear(new Date(year, 0, 1));
     const yearEnd = endOfYear(new Date(year, 0, 1));
     const months = eachMonthOfInterval({ start: yearStart, end: yearEnd });
-    
-    return months.map(month => {
-      const monthStart = startOfMonth(month);
-      const monthEnd = endOfMonth(month);
+
+    return months.map((month) => {
       const monthIndex = month.getMonth() + 1;
-      const monthTarget = filteredTargets.find(t => t.year === year && t.month === monthIndex);
-      const target = monthTarget?.target_value || 0;
-      const monthSales = sales.filter(sale => {
-        const saleDate = new Date(sale.sale_date || sale.created_at || '');
-        const inMonth = saleDate >= monthStart && saleDate <= monthEnd && sale.status === 'confirmada';
-        if (!inMonth) return false;
-        // Apply team filter to monthly sales too
-        if (filteredBrokerIds && sale.broker_id) return filteredBrokerIds.includes(sale.broker_id);
-        return !filteredBrokerIds;
-      });
-      const achieved = monthSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
-      
+      const target = latestTargetByMonth.get(monthIndex)?.target_value || 0;
+      const achieved = monthlyAchievedByMonth.get(monthIndex) || 0;
+
       return {
-        month, monthIndex, target, expectedTarget: 0,
-        achieved, difference: achieved - target,
-        percentAchieved: target > 0 ? (achieved / target) * 100 : 0
+        month,
+        monthIndex,
+        target,
+        expectedTarget: 0,
+        achieved,
+        difference: achieved - target,
+        percentAchieved: target > 0 ? (achieved / target) * 100 : 0,
       };
     });
-  }, [sales, filteredTargets, year, filteredBrokerIds]);
-  
+  }, [year, latestTargetByMonth, monthlyAchievedByMonth]);
+
+  const yearlyData = useMemo(() => {
+    const totalVGV = yearSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
+    const totalVGC = yearSales.reduce((sum, sale) => sum + (sale.vgc || 0), 0);
+    const totalSales = yearSales.length;
+    const yearTargets = Array.from(latestTargetByMonth.values());
+    const annualTarget = yearTargets.reduce((sum, target) => sum + target.target_value, 0);
+
+    return { totalVGV, totalVGC, totalSales, annualTarget, yearSales, yearTargets };
+  }, [yearSales, latestTargetByMonth]);
+
   const brokerStats = useMemo(() => {
-    let filteredBrokers = brokers;
-    if (teamFilter) filteredBrokers = brokers.filter(b => b.team_id === teamFilter);
+    const scopedBrokers = teamFilter ? brokers.filter((broker) => broker.team_id === teamFilter) : brokers;
+    const activeBrokerIds = new Set(scopedBrokers.filter((broker) => broker.status === 'ativo').map((broker) => broker.id));
+    const activeWithSales = new Set(
+      yearSales
+        .map((sale) => sale.broker_id)
+        .filter((brokerId): brokerId is string => !!brokerId && activeBrokerIds.has(brokerId))
+    ).size;
+
     return {
-      activeBrokers: filteredBrokers.filter(b => b.status === 'ativo').length,
-      totalBrokers: filteredBrokers.length
+      activeBrokers: activeBrokerIds.size,
+      activeWithSales,
+      totalBrokers: scopedBrokers.length,
     };
-  }, [brokers, teamFilter]);
-  
+  }, [brokers, teamFilter, yearSales]);
+
   const performanceStats = useMemo(() => {
-    const completedMonths = monthlyGoals.filter(m => m.achieved > 0 || m.target > 0);
+    const completedMonths = monthlyGoals.filter((month) => month.achieved > 0 || month.target > 0);
     if (completedMonths.length === 0) return null;
-    
-    const bestMonth = completedMonths.reduce((best, c) => c.achieved > best.achieved ? c : best, completedMonths[0]);
-    const worstMonth = completedMonths.reduce((worst, c) => c.achieved < worst.achieved ? c : worst, completedMonths[0]);
-    
+
+    const bestMonth = completedMonths.reduce((best, month) => (month.achieved > best.achieved ? month : best), completedMonths[0]);
+    const worstMonth = completedMonths.reduce((worst, month) => (month.achieved < worst.achieved ? month : worst), completedMonths[0]);
+
     const monthlyGrowth: number[] = [];
-    for (let i = 1; i < completedMonths.length; i++) {
-      const prev = completedMonths[i - 1].achieved;
-      if (prev > 0) monthlyGrowth.push(((completedMonths[i].achieved - prev) / prev) * 100);
+    for (let i = 1; i < monthlyGoals.length; i++) {
+      const previous = monthlyGoals[i - 1].achieved;
+      const current = monthlyGoals[i].achieved;
+      if (previous > 0) {
+        monthlyGrowth.push(((current - previous) / previous) * 100);
+      }
     }
-    const avgGrowth = monthlyGrowth.length > 0 ? monthlyGrowth.reduce((a, b) => a + b, 0) / monthlyGrowth.length : 0;
-    
+
+    const avgGrowth = monthlyGrowth.length > 0
+      ? monthlyGrowth.reduce((sum, growth) => sum + growth, 0) / monthlyGrowth.length
+      : 0;
+
     return { bestMonth, worstMonth, avgGrowth };
   }, [monthlyGoals]);
-  
+
   const probability = useMemo(() => {
     const { annualTarget, totalVGV } = yearlyData;
     if (annualTarget === 0) return { current: 0, withMoreBrokers: 0, withHigherTicket: 0 };
-    
+
     const yearProgress = (new Date().getMonth() + 1) / 12;
     const projectedTotal = yearProgress > 0 ? totalVGV / yearProgress : 0;
     const baseProb = Math.min(100, (projectedTotal / annualTarget) * 100);
-    
+
     return {
       current: Math.round(baseProb),
       withMoreBrokers: Math.round(Math.min(100, baseProb * 1.15)),
-      withHigherTicket: Math.round(Math.min(100, baseProb * 1.20))
+      withHigherTicket: Math.round(Math.min(100, baseProb * 1.2)),
     };
   }, [yearlyData]);
-  
+
   return { yearlyData, monthlyGoals, brokerStats, performanceStats, probability };
 };
 
@@ -194,91 +239,152 @@ const MetaGestao = () => {
   const [editingBrokerHiringGoal, setEditingBrokerHiringGoal] = useState(false);
   const [editingMonthlyGoal, setEditingMonthlyGoal] = useState<number | null>(null);
   const [editingMonthlyBroker, setEditingMonthlyBroker] = useState<number | null>(null);
-  
+
   const canManage = isAdmin() || isDiretor() || isGerente();
   const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear, teamFilter);
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
-  
+
   // Track which months have been manually saved in DB
   const [dbMonthlyGoals, setDbMonthlyGoals] = useState<{ [month: number]: number }>({});
-  
+
+  const scopedTargetsByMonth = useMemo(() => {
+    const monthMap = new Map<number, (typeof targets)[number]>();
+
+    targets
+      .filter((target) => {
+        if (target.year !== selectedYear) return false;
+        if (target.broker_id !== null) return false;
+        if (teamFilter) return target.team_id === teamFilter;
+        return target.team_id === null;
+      })
+      .forEach((target) => {
+        const existing = monthMap.get(target.month);
+        if (!existing || getRecordTimestamp(target) >= getRecordTimestamp(existing)) {
+          monthMap.set(target.month, target);
+        }
+      });
+
+    return monthMap;
+  }, [targets, selectedYear, teamFilter]);
+
   useEffect(() => {
     const savedMonthlyGoals: { [month: number]: number } = {};
     const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => {
       savedMonthlyGoals[goal.monthIndex] = goal.target;
       return sum + goal.target;
     }, 0);
+
     setAnnualGoal(savedAnnualTotal);
     setEditableMonthlyGoals(savedMonthlyGoals);
     setDbMonthlyGoals(savedMonthlyGoals);
-  }, [monthlyGoals, selectedYear]);
-  
-  // Distribute annual goal evenly across 12 months (simple equal split)
-  const calculateMonthlyProgression = (annualTarget: number): number[] => {
-    if (annualTarget <= 0) return Array(12).fill(0);
-    const monthlyValue = annualTarget / 12;
-    return Array(12).fill(monthlyValue);
+  }, [monthlyGoals, selectedYear, teamFilter]);
+
+  const buildLinearMonthlyGoalMap = (annualTarget: number): { [month: number]: number } => {
+    const normalizedAnnual = Math.max(0, Number(annualTarget) || 0);
+    if (normalizedAnnual === 0) {
+      return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
+        acc[month] = 0;
+        return acc;
+      }, {} as { [month: number]: number });
+    }
+
+    const base = Math.floor((normalizedAnnual / 12) * 100) / 100;
+    let remainderInCents = Math.round((normalizedAnnual - base * 12) * 100);
+
+    return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
+      const increment = remainderInCents > 0 ? 0.01 : 0;
+      acc[month] = Number((base + increment).toFixed(2));
+      remainderInCents = Math.max(0, remainderInCents - 1);
+      return acc;
+    }, {} as { [month: number]: number });
   };
-  
-  const monthlyProgression = calculateMonthlyProgression(annualGoal);
-  
+
+  const fallbackMonthlyValue = annualGoal > 0 ? annualGoal / 12 : 0;
+
   const getMonthlyGoal = (monthIndex: number): number => {
-    // If user manually edited this month, use that value
-    if (editableMonthlyGoals[monthIndex] !== undefined && editableMonthlyGoals[monthIndex] !== dbMonthlyGoals[monthIndex]) {
-      return editableMonthlyGoals[monthIndex];
-    }
-    // If there's a saved DB value and user hasn't changed the annual goal, use DB value
-    if (dbMonthlyGoals[monthIndex] !== undefined && dbMonthlyGoals[monthIndex] > 0) {
-      return dbMonthlyGoals[monthIndex];
-    }
-    // Otherwise use the calculated progression
-    return monthlyProgression[monthIndex - 1] || 0;
+    if (editableMonthlyGoals[monthIndex] !== undefined) return editableMonthlyGoals[monthIndex];
+    if (dbMonthlyGoals[monthIndex] !== undefined) return dbMonthlyGoals[monthIndex];
+    return fallbackMonthlyValue;
   };
-  
-  const recalculatedAnnualGoal = useMemo(() => {
-    let total = 0;
-    for (let i = 1; i <= 12; i++) total += getMonthlyGoal(i);
-    return total;
-  }, [editableMonthlyGoals, dbMonthlyGoals, monthlyProgression]);
-  
+
+  const monthlyProgression = useMemo(
+    () => Array.from({ length: 12 }, (_, index) => getMonthlyGoal(index + 1)),
+    [editableMonthlyGoals, dbMonthlyGoals, fallbackMonthlyValue]
+  );
+
+  const recalculatedAnnualGoal = useMemo(
+    () => monthlyProgression.reduce((sum, monthlyValue) => sum + monthlyValue, 0),
+    [monthlyProgression]
+  );
+
+  const effectiveAnnualGoal = Math.max(0, recalculatedAnnualGoal);
+
   const handleMonthlyGoalChange = (monthIndex: number, value: number) => {
-    setEditableMonthlyGoals(prev => ({ ...prev, [monthIndex]: value }));
+    setEditableMonthlyGoals((prev) => ({ ...prev, [monthIndex]: Math.max(0, value || 0) }));
   };
-  
+
   const handleMonthlyBrokerChange = async (monthIndex: number, value: number) => {
-    setEditableMonthlyBrokers(prev => ({ ...prev, [monthIndex]: value }));
+    setEditableMonthlyBrokers((prev) => ({ ...prev, [monthIndex]: value }));
   };
-  
+
   const saveMonthlyGoal = async (monthIndex: number) => {
-    const value = editableMonthlyGoals[monthIndex];
-    if (value === undefined) return;
+    const value = Math.max(0, editableMonthlyGoals[monthIndex] || 0);
+
     try {
-      const existingTarget = targets.find(t => t.year === selectedYear && t.month === monthIndex && (t as any).team_id === teamFilter);
+      const existingTarget = scopedTargetsByMonth.get(monthIndex);
       if (existingTarget) {
         await updateTarget(existingTarget.id, { target_value: value });
       } else {
-        await createTarget({ year: selectedYear, month: monthIndex, target_value: value, team_id: teamFilter } as any);
+        await createTarget({
+          year: selectedYear,
+          month: monthIndex,
+          target_value: value,
+          team_id: teamFilter ?? null,
+          broker_id: null,
+        } as any);
       }
+
+      setDbMonthlyGoals((prev) => ({ ...prev, [monthIndex]: value }));
+      setEditableMonthlyGoals((prev) => ({ ...prev, [monthIndex]: value }));
       toast.success(`Meta de ${format(new Date(selectedYear, monthIndex - 1), 'MMMM', { locale: ptBR })} salva!`);
     } catch (error) {
       toast.error('Erro ao salvar meta mensal');
     }
   };
-  
-  const handleSaveTargets = async () => {
+
+  const handleSaveTargets = async (monthlyOverrides?: { [month: number]: number }) => {
     setSavingTargets(true);
+
     try {
+      const operations: Promise<void>[] = [];
+
       for (let month = 1; month <= 12; month++) {
-        const monthlyValue = getMonthlyGoal(month);
-        const existingTarget = targets.find(t => t.year === selectedYear && t.month === month && (t as any).team_id === teamFilter);
+        const monthlyValue = Math.max(0, Number(monthlyOverrides?.[month] ?? getMonthlyGoal(month)) || 0);
+        const existingTarget = scopedTargetsByMonth.get(month);
+
         if (existingTarget) {
           if (Math.abs(existingTarget.target_value - monthlyValue) > 0.01) {
-            await updateTarget(existingTarget.id, { target_value: monthlyValue });
+            operations.push(updateTarget(existingTarget.id, { target_value: monthlyValue }));
           }
         } else if (monthlyValue > 0) {
-          await createTarget({ year: selectedYear, month: month, target_value: monthlyValue, team_id: teamFilter } as any);
+          operations.push(
+            createTarget({
+              year: selectedYear,
+              month,
+              target_value: monthlyValue,
+              team_id: teamFilter ?? null,
+              broker_id: null,
+            } as any)
+          );
         }
       }
+
+      await Promise.all(operations);
+
+      if (monthlyOverrides) {
+        setEditableMonthlyGoals(monthlyOverrides);
+      }
+
       toast.success('Metas salvas com sucesso!');
     } catch (error) {
       toast.error('Erro ao salvar metas');
@@ -286,11 +392,11 @@ const MetaGestao = () => {
       setSavingTargets(false);
     }
   };
-  
-  const annualProgress = annualGoal > 0 ? (yearlyData.totalVGV / annualGoal) * 100 : 0;
-  const isGoalExceeded = yearlyData.totalVGV >= annualGoal && annualGoal > 0;
-  const remaining = Math.max(0, annualGoal - yearlyData.totalVGV);
-  const exceededBy = Math.max(0, yearlyData.totalVGV - annualGoal);
+
+  const annualProgress = effectiveAnnualGoal > 0 ? (yearlyData.totalVGV / effectiveAnnualGoal) * 100 : 0;
+  const isGoalExceeded = yearlyData.totalVGV >= effectiveAnnualGoal && effectiveAnnualGoal > 0;
+  const remaining = Math.max(0, effectiveAnnualGoal - yearlyData.totalVGV);
+  const exceededBy = Math.max(0, yearlyData.totalVGV - effectiveAnnualGoal);
 
   // Smart status label based on progress
   const getGoalStatus = (progress: number) => {
@@ -302,25 +408,62 @@ const MetaGestao = () => {
   };
 
   const goalStatus = getGoalStatus(annualProgress);
+  const annualProgressVariant = annualProgress >= 80 ? 'success' : annualProgress >= 50 ? 'warning' : 'danger';
 
-  // Growth calculation with safety for zero
-  const getGrowthDisplay = () => {
-    if (!performanceStats?.avgGrowth && performanceStats?.avgGrowth !== 0) return 'Sem histórico';
-    const validMonths = monthlyGoals.filter(m => m.achieved > 0);
-    if (validMonths.length < 2) return 'Sem histórico';
-    const growth = performanceStats.avgGrowth;
-    if (!isFinite(growth)) return 'Sem histórico';
-    return `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
+  const formatPercentDisplay = (value: number, decimals = 1) => {
+    if (!isFinite(value)) return '0%';
+    if (value >= 999.9) return '999%+';
+    return `${value.toFixed(decimals)}%`;
   };
 
-  // Meta validation alert
-  const isMetaTooLow = useMemo(() => {
-    if (annualGoal <= 0) return false;
-    const last3Months = monthlyGoals.slice(0, new Date().getMonth()).filter(m => m.achieved > 0);
-    if (last3Months.length === 0) return false;
-    const avgMonthly = last3Months.reduce((s, m) => s + m.achieved, 0) / last3Months.length;
-    return annualGoal < avgMonthly; // annual target less than a single month average
-  }, [annualGoal, monthlyGoals]);
+  // Crescimento: mês atual vs mês anterior (ou último mês do ano selecionado)
+  const periodGrowth = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const periodMonth = selectedYear === currentYear ? currentMonth : 12;
+    if (periodMonth <= 1) return null;
+
+    const currentAchieved = monthlyGoals.find((m) => m.monthIndex === periodMonth)?.achieved || 0;
+    const previousAchieved = monthlyGoals.find((m) => m.monthIndex === periodMonth - 1)?.achieved || 0;
+
+    if (previousAchieved <= 0) return null;
+
+    return ((currentAchieved - previousAchieved) / previousAchieved) * 100;
+  }, [monthlyGoals, selectedYear]);
+
+  const getGrowthDisplay = () => {
+    if (periodGrowth === null || !isFinite(periodGrowth)) return 'Sem histórico';
+    return `${periodGrowth > 0 ? '+' : ''}${periodGrowth.toFixed(1)}%`;
+  };
+
+  const recentMonthlyAverage = useMemo(() => {
+    const achievedMonths = monthlyGoals.filter((month) => month.achieved > 0);
+    const recentMonths = achievedMonths.slice(-3);
+    if (recentMonths.length === 0) return 0;
+
+    return recentMonths.reduce((sum, month) => sum + month.achieved, 0) / recentMonths.length;
+  }, [monthlyGoals]);
+
+  // Alerta para metas muito abaixo do histórico recente
+  const isMetaTooLow = effectiveAnnualGoal > 0 && recentMonthlyAverage > 0 && effectiveAnnualGoal < recentMonthlyAverage;
+
+  const handleSaveAnnualGoal = async () => {
+    const normalizedAnnualGoal = Math.max(0, Number(annualGoal) || 0);
+
+    if (normalizedAnnualGoal > 0 && recentMonthlyAverage > 0 && normalizedAnnualGoal < recentMonthlyAverage) {
+      const shouldContinue = window.confirm(
+        `A meta anual (${formatCurrency(normalizedAnnualGoal)}) está abaixo da média dos últimos 3 meses (${formatCurrency(recentMonthlyAverage)}). Deseja salvar mesmo assim?`
+      );
+
+      if (!shouldContinue) return;
+    }
+
+    const distributedGoals = buildLinearMonthlyGoalMap(normalizedAnnualGoal);
+    setEditableMonthlyGoals(distributedGoals);
+    setEditingAnnualGoal(false);
+    await handleSaveTargets(distributedGoals);
+  };
 
   if (isLoading) {
     return (
@@ -394,7 +537,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-primary/50" />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Meta Anual</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(annualGoal)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(effectiveAnnualGoal)}</p>
                 <div className="flex items-center gap-1 mt-2">
                   <Target className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs text-muted-foreground">Objetivo {selectedYear}</span>
@@ -415,11 +558,11 @@ const MetaGestao = () => {
             </Card>
             
             <Card className="border-border/50 bg-card relative overflow-hidden">
-              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", annualProgress >= 80 ? "bg-gradient-to-r from-success to-success/50" : annualProgress >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
+              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", annualProgress >= 80 ? "bg-gradient-to-r from-success to-success/50" : annualProgress >= 50 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Atingimento</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{annualProgress.toFixed(1)}%</p>
-                <Progress value={Math.min(annualProgress, 100)} className="h-1.5 mt-2" />
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatPercentDisplay(annualProgress, 1)}</p>
+                <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-1.5 mt-2" />
               </CardContent>
             </Card>
             
@@ -445,7 +588,7 @@ const MetaGestao = () => {
                   Meta Financeira Anual
                 </CardTitle>
                 {canManage && (
-                  <Button size="sm" onClick={handleSaveTargets} disabled={savingTargets}>
+                  <Button size="sm" onClick={() => void handleSaveTargets()} disabled={savingTargets}>
                     {savingTargets ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
                     Salvar
                   </Button>
@@ -465,15 +608,7 @@ const MetaGestao = () => {
                       className="h-12 text-xl font-bold flex-1"
                       autoFocus
                     />
-                    <Button size="icon" variant="ghost" onClick={() => { 
-                      setEditingAnnualGoal(false); 
-                      // When saving annual goal, distribute evenly to all months
-                      const newMonthly: { [month: number]: number } = {};
-                      const perMonth = annualGoal / 12;
-                      for (let i = 1; i <= 12; i++) newMonthly[i] = perMonth;
-                      setEditableMonthlyGoals(newMonthly);
-                      handleSaveTargets(); 
-                    }} className="h-12 w-12">
+                    <Button size="icon" variant="ghost" onClick={() => void handleSaveAnnualGoal()} className="h-12 w-12">
                       <Save className="w-5 h-5 text-success" />
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => setEditingAnnualGoal(false)} className="h-12 w-12">
@@ -482,7 +617,7 @@ const MetaGestao = () => {
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl font-bold text-foreground">{formatCurrency(annualGoal)}</span>
+                    <span className="text-2xl font-bold text-foreground">{formatCurrency(effectiveAnnualGoal)}</span>
                     {canManage && (
                       <Button size="icon" variant="ghost" onClick={() => setEditingAnnualGoal(true)} className="h-8 w-8">
                         <Edit2 className="w-4 h-4 text-muted-foreground hover:text-primary" />
@@ -491,7 +626,7 @@ const MetaGestao = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Progressão: <strong>{formatCurrency(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrency(monthlyProgression[11])}</strong> (Dez)
+                  Progressão: <strong>{formatCurrency(getMonthlyGoal(1))}</strong> (Jan) → <strong>{formatCurrency(getMonthlyGoal(12))}</strong> (Dez)
                 </p>
               </div>
               
@@ -505,7 +640,7 @@ const MetaGestao = () => {
                       {goalStatus.label}
                     </Badge>
                   </div>
-                  <Progress value={Math.min(annualProgress, 100)} className="h-4" />
+                  <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-4" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Realizado: <strong className="text-foreground">{formatCurrency(yearlyData.totalVGV)}</strong></span>
                     {isGoalExceeded ? (
@@ -519,7 +654,7 @@ const MetaGestao = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border">
                     {[
                       { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00' },
-                      { label: 'VGV/Corretor', value: brokerStats.activeBrokers > 0 ? formatCurrency(yearlyData.totalVGV / brokerStats.activeBrokers) : 'R$ 0,00' },
+                      { label: 'VGV/Corretor ativo', value: brokerStats.activeWithSales > 0 ? formatCurrency(yearlyData.totalVGV / brokerStats.activeWithSales) : 'R$ 0,00' },
                       { label: 'VGC Total', value: formatCurrency(yearlyData.totalVGC) },
                       { label: 'Crescimento', value: getGrowthDisplay() },
                     ].map((stat, i) => (
@@ -546,19 +681,14 @@ const MetaGestao = () => {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      {annualProgress > 999 ? (
+                      {annualProgress >= 100 ? (
                         <>
-                          <span className="text-lg font-bold text-success">{Math.round(annualProgress)}%</span>
-                          <span className="text-[10px] text-success font-semibold">🚀 superada</span>
-                        </>
-                      ) : annualProgress >= 100 ? (
-                        <>
-                          <span className="text-2xl font-bold text-success">{Math.round(annualProgress)}%</span>
+                          <span className="text-2xl font-bold text-success">{formatPercentDisplay(annualProgress, 0)}</span>
                           <span className="text-[10px] text-success font-semibold">atingida!</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-2xl font-bold text-foreground">{Math.round(annualProgress)}%</span>
+                          <span className="text-2xl font-bold text-foreground">{formatPercentDisplay(annualProgress, 0)}</span>
                           <span className="text-[10px] text-muted-foreground">atingido</span>
                         </>
                       )}
@@ -567,7 +697,7 @@ const MetaGestao = () => {
                   {isMetaTooLow && (
                     <div className="mt-3 flex items-center gap-1.5 text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg px-3 py-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      <span>Meta abaixo do histórico</span>
+                      <span>Meta abaixo do histórico ({formatCurrency(recentMonthlyAverage)}/mês)</span>
                     </div>
                   )}
                 </div>
@@ -689,14 +819,14 @@ const MetaGestao = () => {
                           </td>
                           <td className="text-center py-3 px-2">
                             <span className={cn("text-sm font-semibold",
-                              percentAchieved >= 100 ? "text-success" : percentAchieved >= 50 ? "text-warning" : "text-destructive"
+                              percentAchieved >= 80 ? "text-success" : percentAchieved >= 50 ? "text-warning" : "text-destructive"
                             )}>
-                              {percentAchieved.toFixed(0)}%
+                              {formatPercentDisplay(percentAchieved, 0)}
                             </span>
                           </td>
                           <td className="text-center py-3 px-2">
                             <div className={cn("w-2.5 h-2.5 rounded-full mx-auto",
-                              percentAchieved >= 100 ? "bg-success" : percentAchieved >= 50 ? "bg-warning" : currentGoalValue > 0 ? "bg-destructive" : "bg-muted"
+                              percentAchieved >= 80 ? "bg-success" : percentAchieved >= 50 ? "bg-warning" : currentGoalValue > 0 ? "bg-destructive" : "bg-muted"
                             )} />
                           </td>
                         </tr>
@@ -704,13 +834,13 @@ const MetaGestao = () => {
                     })}
                     <tr className="bg-muted/50 font-semibold">
                       <td className="py-3 px-2 text-sm text-foreground">Total</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(recalculatedAnnualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(effectiveAnnualGoal)}</td>
                       <td className="text-center py-3 px-2 font-mono text-sm">{brokerHiringGoal}</td>
                       <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrency(yearlyData.totalVGV)}</td>
-                      <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - recalculatedAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
-                        {formatCurrency(Math.abs(yearlyData.totalVGV - recalculatedAnnualGoal))}
+                      <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - effectiveAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
+                        {formatCurrency(Math.abs(yearlyData.totalVGV - effectiveAnnualGoal))}
                       </td>
-                      <td className="text-center py-3 px-2 text-sm">{annualProgress.toFixed(0)}%</td>
+                      <td className="text-center py-3 px-2 text-sm">{formatPercentDisplay(annualProgress, 0)}</td>
                       <td></td>
                     </tr>
                   </tbody>
@@ -844,8 +974,8 @@ const MetaGestao = () => {
                   { label: 'Vendas no Ano', value: String(yearlyData.totalSales || 0), sub: 'unidades', icon: '🏠' },
                   { 
                     label: 'Distância p/ Meta', 
-                    value: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? 'Atingida!' : formatCurrency(remaining),
-                    sub: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? '✅' : 'restantes',
+                    value: isGoalExceeded ? formatCurrency(exceededBy) : formatCurrency(remaining),
+                    sub: isGoalExceeded ? 'superada' : 'restantes',
                     icon: '🎯'
                   },
                 ].map((item, i) => (
