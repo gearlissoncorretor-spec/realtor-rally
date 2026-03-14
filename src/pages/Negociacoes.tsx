@@ -50,6 +50,7 @@ import { LossReasonDialog } from "@/components/negotiations/LossReasonDialog";
 import { ResponsiveStatCard } from "@/components/negotiations/ResponsiveStatCard";
 import { NegotiationStatusBadge } from "@/components/negotiations/NegotiationStatusBadge";
 import { StatusManagerDialog } from "@/components/negotiations/StatusManagerDialog";
+import { NegotiationNotesDialog } from "@/components/negotiations/NegotiationNotesDialog";
 import { useNegotiationStatuses } from "@/hooks/useNegotiationStatuses";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SaleCelebration } from "@/components/SaleCelebration";
