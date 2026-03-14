@@ -831,6 +831,7 @@ const Negociacoes = () => {
                           </div>
                         </SelectItem>
                       </SelectContent>
+                    </Select>
                   </>
                 )}
               </div>
