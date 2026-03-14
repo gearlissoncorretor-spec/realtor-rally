@@ -564,6 +564,66 @@ export type Database = {
           },
         ]
       }
+      commission_installments: {
+        Row: {
+          commission_id: string
+          company_id: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          installment_number: number
+          observations: string | null
+          payment_date: string | null
+          payment_method: string | null
+          status: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          commission_id: string
+          company_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          installment_number: number
+          observations?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          commission_id?: string
+          company_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          installment_number?: number
+          observations?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_installments_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "commissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_installments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commissions: {
         Row: {
           base_value: number
