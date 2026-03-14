@@ -1941,6 +1941,10 @@ const Ranking = () => {
     const now = new Date();
     if (quickPeriod === 'today') return `Hoje — ${now.toLocaleDateString('pt-BR')}`;
     if (quickPeriod === 'week') return 'Última Semana';
+    if (quickPeriod === 'quarter') {
+      const quarterNum = Math.floor(now.getMonth() / 3) + 1;
+      return `${quarterNum}º Trimestre ${now.getFullYear()}`;
+    }
     if (quickPeriod === 'year') return `Ano ${now.getFullYear()}`;
     if (quickPeriod === 'all') return 'Todos os Períodos';
     const month = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
