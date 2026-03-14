@@ -250,6 +250,7 @@ const Negociacoes = () => {
       status: 'em_contato',
       start_date: new Date().toISOString().split('T')[0],
       observations: '',
+      temperature: 'morna',
     });
   };
 
