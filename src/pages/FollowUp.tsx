@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table,
   TableBody,
@@ -29,24 +28,27 @@ import {
   Handshake,
   Phone,
   MessageCircle,
-  Percent,
-  TrendingUp
+  StickyNote,
+  ChevronDown,
+  ChevronUp,
+  Settings
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
-import { format, isToday, isPast, parseISO } from "date-fns";
+import { format, isToday, isPast, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FollowUpStatusBadge } from "@/components/followup/FollowUpStatusBadge";
 import { ConvertToNegotiationDialog } from "@/components/followup/ConvertToNegotiationDialog";
 import { AddContactDialog } from "@/components/followup/AddContactDialog";
+import { FollowUpNotesDialog } from "@/components/followup/FollowUpNotesDialog";
+import { FollowUpContactHistory } from "@/components/followup/FollowUpContactHistory";
 import { ResponsiveStatCard } from "@/components/negotiations/ResponsiveStatCard";
 import { ExpandableCell } from "@/components/ExpandableCell";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatusManagerDialog";
 import { cn } from "@/lib/utils";
-import { Settings } from "lucide-react";
 
 const FollowUpPage = () => {
   const { user, isCorretor } = useAuth();
@@ -68,6 +70,7 @@ const FollowUpPage = () => {
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUpType | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterBroker, setFilterBroker] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
   // Conversion dialog
@@ -78,6 +81,13 @@ const FollowUpPage = () => {
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [selectedForContact, setSelectedForContact] = useState<FollowUpType | null>(null);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
+
+  // Notes dialog
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedForNotes, setSelectedForNotes] = useState<FollowUpType | null>(null);
+
+  // Expanded contact history (mobile)
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   
   // Form state
   const [formData, setFormData] = useState<CreateFollowUpInput>({
@@ -103,10 +113,11 @@ const FollowUpPage = () => {
         followUp.observations?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = filterStatus === 'all' || followUp.status === filterStatus;
+      const matchesBroker = filterBroker === 'all' || followUp.broker_id === filterBroker;
       
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesBroker;
     });
-  }, [followUps, searchTerm, filterStatus]);
+  }, [followUps, searchTerm, filterStatus, filterBroker]);
 
   // Sort by urgency (overdue first, then today, then by date)
   const sortedFollowUps = useMemo(() => {
@@ -212,6 +223,11 @@ const FollowUpPage = () => {
     setSelectedForContact(null);
   };
 
+  const handleOpenNotes = (followUp: FollowUpType) => {
+    setSelectedForNotes(followUp);
+    setNotesDialogOpen(true);
+  };
+
   const getBrokerName = (brokerId: string) => {
     const broker = brokers.find(b => b.id === brokerId);
     return broker?.name || 'Não encontrado';
@@ -229,6 +245,15 @@ const FollowUpPage = () => {
     if (isToday(date)) return 'today';
     if (isPast(date)) return 'overdue';
     return 'future';
+  };
+
+  const getDaysLabel = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    const date = parseISO(dateStr);
+    const days = differenceInDays(date, new Date());
+    if (days === 0) return 'Hoje';
+    if (days < 0) return `${Math.abs(days)}d atrás`;
+    return `em ${days}d`;
   };
 
   if (loading) {
@@ -431,7 +456,7 @@ const FollowUpPage = () => {
           {/* Filters */}
           <Card>
             <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
@@ -442,7 +467,7 @@ const FollowUpPage = () => {
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full sm:w-48">
+                  <SelectTrigger className="w-full sm:w-44">
                     <SelectValue placeholder="Filtrar status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -454,6 +479,21 @@ const FollowUpPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {!isCorretor() && (
+                  <Select value={filterBroker} onValueChange={setFilterBroker}>
+                    <SelectTrigger className="w-full sm:w-44">
+                      <SelectValue placeholder="Filtrar corretor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os corretores</SelectItem>
+                      {brokers.map((broker) => (
+                        <SelectItem key={broker.id} value={broker.id}>
+                          {broker.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -472,13 +512,17 @@ const FollowUpPage = () => {
                     {sortedFollowUps.map((followUp) => {
                       const dateStatus = getDateStatus(followUp.next_contact_date);
                       const statusConfig = getStatusByValue(followUp.status);
+                      const daysLabel = getDaysLabel(followUp.next_contact_date);
+                      const isExpanded = expandedId === followUp.id;
                       return (
                         <Card
                           key={followUp.id}
                           className={cn(
-                            "border border-border/50",
-                            dateStatus === 'overdue' && 'border-red-500/30 bg-red-500/5',
-                            dateStatus === 'today' && 'border-yellow-500/30 bg-yellow-500/5'
+                            "border-l-4 transition-all",
+                            dateStatus === 'overdue' && 'border-l-destructive bg-destructive/5',
+                            dateStatus === 'today' && 'border-l-yellow-500 bg-yellow-500/5',
+                            dateStatus === 'future' && 'border-l-primary/30',
+                            !dateStatus && 'border-l-border'
                           )}
                         >
                           <CardContent className="p-4 space-y-3">
@@ -497,12 +541,24 @@ const FollowUpPage = () => {
                                   </a>
                                 )}
                               </div>
-                              <FollowUpStatusBadge
-                                status={followUp.status}
-                                label={statusConfig?.label}
-                                color={statusConfig?.color}
-                                icon={statusConfig?.icon}
-                              />
+                              <div className="flex flex-col items-end gap-1">
+                                <FollowUpStatusBadge
+                                  status={followUp.status}
+                                  label={statusConfig?.label}
+                                  color={statusConfig?.color}
+                                  icon={statusConfig?.icon}
+                                />
+                                {daysLabel && (
+                                  <span className={cn(
+                                    "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
+                                    dateStatus === 'overdue' && 'bg-destructive/10 text-destructive',
+                                    dateStatus === 'today' && 'bg-yellow-500/10 text-yellow-600',
+                                    dateStatus === 'future' && 'bg-muted text-muted-foreground'
+                                  )}>
+                                    {daysLabel}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                               <div>
@@ -522,19 +578,37 @@ const FollowUpPage = () => {
                                 {followUp.next_contact_date ? (
                                   <span className={cn(
                                     "flex items-center gap-1 text-sm",
-                                    dateStatus === 'overdue' && 'text-red-600 font-medium',
+                                    dateStatus === 'overdue' && 'text-destructive font-medium',
                                     dateStatus === 'today' && 'text-yellow-600 font-medium'
                                   )}>
-                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3" />}
-                                    {dateStatus === 'today' && <Clock className="w-3 h-3" />}
+                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3 animate-pulse" />}
+                                    {dateStatus === 'today' && <Clock className="w-3 h-3 animate-pulse" />}
                                     {format(parseISO(followUp.next_contact_date), "dd/MM/yy", { locale: ptBR })}
                                   </span>
                                 ) : <span className="text-muted-foreground">-</span>}
                               </div>
                             </div>
+
+                            {/* Expandable contact history */}
+                            <button
+                              onClick={() => setExpandedId(isExpanded ? null : followUp.id)}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                            >
+                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                              Histórico de contatos
+                            </button>
+                            {isExpanded && (
+                              <div className="pl-2 border-l-2 border-border/50">
+                                <FollowUpContactHistory followUpId={followUp.id} />
+                              </div>
+                            )}
+
                             <div className="flex items-center gap-2 pt-1 border-t border-border/30">
                               <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="flex-1 h-9 gap-1">
                                 <Handshake className="w-4 h-4" /> Negociação
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} className="h-9" title="Notas">
+                                <StickyNote className="w-4 h-4" />
                               </Button>
                               <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} className="h-9">
                                 <Phone className="w-4 h-4" />
@@ -570,11 +644,12 @@ const FollowUpPage = () => {
                         {sortedFollowUps.map((followUp) => {
                           const dateStatus = getDateStatus(followUp.next_contact_date);
                           const statusConfig = getStatusByValue(followUp.status);
+                          const daysLabel = getDaysLabel(followUp.next_contact_date);
                           return (
                             <TableRow
                               key={followUp.id}
                               className={cn(
-                                dateStatus === 'overdue' && 'bg-red-500/5',
+                                dateStatus === 'overdue' && 'bg-destructive/5',
                                 dateStatus === 'today' && 'bg-yellow-500/5'
                               )}
                             >
@@ -593,11 +668,23 @@ const FollowUpPage = () => {
                               <TableCell>{getBrokerName(followUp.broker_id)}</TableCell>
                               <TableCell>
                                 {followUp.next_contact_date ? (
-                                  <span className={cn("flex items-center gap-1", dateStatus === 'overdue' && 'text-red-600 font-medium', dateStatus === 'today' && 'text-yellow-600 font-medium')}>
-                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3" />}
-                                    {dateStatus === 'today' && <Clock className="w-3 h-3" />}
-                                    {format(parseISO(followUp.next_contact_date), "dd/MM/yyyy", { locale: ptBR })}
-                                  </span>
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className={cn("flex items-center gap-1", dateStatus === 'overdue' && 'text-destructive font-medium', dateStatus === 'today' && 'text-yellow-600 font-medium')}>
+                                      {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3 animate-pulse" />}
+                                      {dateStatus === 'today' && <Clock className="w-3 h-3 animate-pulse" />}
+                                      {format(parseISO(followUp.next_contact_date), "dd/MM/yyyy", { locale: ptBR })}
+                                    </span>
+                                    {daysLabel && (
+                                      <span className={cn(
+                                        "text-[10px] font-medium",
+                                        dateStatus === 'overdue' && 'text-destructive',
+                                        dateStatus === 'today' && 'text-yellow-600',
+                                        dateStatus === 'future' && 'text-muted-foreground'
+                                      )}>
+                                        {daysLabel}
+                                      </span>
+                                    )}
+                                  </div>
                                 ) : <span className="text-muted-foreground">-</span>}
                               </TableCell>
                               <TableCell>
@@ -605,8 +692,11 @@ const FollowUpPage = () => {
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center justify-end gap-1">
-                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="gap-1 bg-primary hover:bg-primary/90" title="Converter em Negociação">
+                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="gap-1" title="Converter em Negociação">
                                     <Handshake className="w-4 h-4" /><span className="hidden lg:inline">Negociação</span>
+                                  </Button>
+                                  <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} title="Notas">
+                                    <StickyNote className="w-4 h-4" />
                                   </Button>
                                   <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} title="Registrar contato">
                                     <Phone className="w-4 h-4" />
@@ -663,6 +753,14 @@ const FollowUpPage = () => {
         open={contactDialogOpen}
         onOpenChange={setContactDialogOpen}
         onConfirm={handleConfirmContact}
+      />
+
+      {/* Notes dialog */}
+      <FollowUpNotesDialog
+        followUpId={selectedForNotes?.id || null}
+        clientName={selectedForNotes?.client_name || ''}
+        open={notesDialogOpen}
+        onOpenChange={setNotesDialogOpen}
       />
 
       <FollowUpStatusManagerDialog

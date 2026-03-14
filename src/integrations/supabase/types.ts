@@ -784,6 +784,48 @@ export type Database = {
           },
         ]
       }
+      follow_up_notes: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          follow_up_id: string
+          id: string
+          note: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          follow_up_id: string
+          id?: string
+          note: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          follow_up_id?: string
+          id?: string
+          note?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_up_notes_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follow_up_statuses: {
         Row: {
           color: string
