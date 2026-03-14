@@ -22,7 +22,7 @@ export const useFollowUpNotes = (followUpId: string | null) => {
     queryKey: ['follow-up-notes', followUpId],
     queryFn: async () => {
       if (!followUpId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('follow_up_notes')
         .select('*')
         .eq('follow_up_id', followUpId)
@@ -30,17 +30,17 @@ export const useFollowUpNotes = (followUpId: string | null) => {
 
       if (error) throw error;
 
-      const creatorIds = [...new Set((data || []).map(n => n.created_by).filter(Boolean))];
+      const creatorIds = [...new Set((data || []).map((n: any) => n.created_by).filter(Boolean))];
       let profilesMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
       if (creatorIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url')
-          .in('id', creatorIds);
+          .in('id', creatorIds as string[]);
         profiles?.forEach(p => { profilesMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url }; });
       }
 
-      return (data || []).map(n => ({
+      return (data || []).map((n: any) => ({
         ...n,
         profiles: n.created_by ? profilesMap[n.created_by] : undefined,
       })) as FollowUpNote[];
@@ -51,7 +51,7 @@ export const useFollowUpNotes = (followUpId: string | null) => {
   const addNoteMutation = useMutation({
     mutationFn: async ({ followUpId, note }: { followUpId: string; note: string }) => {
       const { data: userData } = await supabase.auth.getUser();
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('follow_up_notes')
         .insert({
           follow_up_id: followUpId,
@@ -63,7 +63,7 @@ export const useFollowUpNotes = (followUpId: string | null) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_: any, variables: { followUpId: string }) => {
       queryClient.invalidateQueries({ queryKey: ['follow-up-notes', variables.followUpId] });
       toast({ title: 'Nota adicionada', description: 'A nota foi registrada com sucesso.' });
     },
@@ -74,7 +74,7 @@ export const useFollowUpNotes = (followUpId: string | null) => {
 
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('follow_up_notes')
         .delete()
         .eq('id', noteId);

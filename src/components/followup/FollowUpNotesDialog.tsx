@@ -100,7 +100,7 @@ export function FollowUpNotesDialog({
                       <UserAvatar
                         name={note.profiles?.full_name || "Usuário"}
                         avatarUrl={note.profiles?.avatar_url}
-                        size="xs"
+                        size="sm"
                       />
                       <span className="font-medium text-foreground/80">
                         {note.profiles?.full_name || "Usuário"}
