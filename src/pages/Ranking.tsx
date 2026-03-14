@@ -699,6 +699,7 @@ const QuickPeriodButtons = ({
     { key: 'today', label: 'Hoje' },
     { key: 'week', label: 'Semana' },
     { key: 'month', label: 'Mês' },
+    { key: 'quarter', label: 'Trimestre' },
     { key: 'year', label: 'Ano' },
     { key: 'all', label: 'Histórico' },
   ];
