@@ -207,12 +207,11 @@ const MetaGestao = () => {
     setEditableMonthlyGoals(savedMonthlyGoals);
   }, [monthlyGoals, selectedYear]);
   
+  // Distribute annual goal evenly across 12 months (simple equal split)
   const calculateMonthlyProgression = (annualTarget: number): number[] => {
     if (annualTarget <= 0) return Array(12).fill(0);
-    const baseValue = annualTarget / 36;
-    const totalGrowthNeeded = annualTarget - (12 * baseValue);
-    const growthIncrement = totalGrowthNeeded / 66;
-    return Array.from({ length: 12 }, (_, i) => baseValue + (i * growthIncrement));
+    const monthlyValue = annualTarget / 12;
+    return Array(12).fill(monthlyValue);
   };
   
   const monthlyProgression = calculateMonthlyProgression(annualGoal);
