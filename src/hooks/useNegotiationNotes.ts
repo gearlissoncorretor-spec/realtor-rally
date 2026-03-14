@@ -24,9 +24,27 @@ export const useNegotiationNotes = (negotiationId: string | null) => {
       if (!negotiationId) return [];
       const { data, error } = await supabase
         .from('negotiation_notes')
-        .select('*, profiles:created_by(full_name, avatar_url)')
+        .select('*')
         .eq('negotiation_id', negotiationId)
         .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Fetch profiles separately for each note
+      const creatorIds = [...new Set((data || []).map(n => n.created_by).filter(Boolean))];
+      let profilesMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
+      if (creatorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', creatorIds);
+        profiles?.forEach(p => { profilesMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url }; });
+      }
+      
+      return (data || []).map(n => ({
+        ...n,
+        profiles: n.created_by ? profilesMap[n.created_by] : undefined,
+      })) as NegotiationNote[];
       if (error) throw error;
       return data as NegotiationNote[];
     },
