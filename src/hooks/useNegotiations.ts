@@ -35,6 +35,7 @@ export interface CreateNegotiationInput {
   status?: string;
   start_date?: string;
   observations?: string;
+  temperature?: string;
 }
 
 export interface UpdateNegotiationInput {
