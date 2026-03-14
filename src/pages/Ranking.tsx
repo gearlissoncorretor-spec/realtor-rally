@@ -1777,7 +1777,7 @@ const Ranking = () => {
       filteredBrokers = brokers.filter(b => b.team_id === selectedTeam);
     }
 
-    return filteredBrokers
+    const rankings = filteredBrokers
       .filter(broker => broker.status === 'ativo')
       .map(broker => {
         const brokerSales = filteredSales.filter(sale => 
@@ -1786,6 +1786,18 @@ const Ranking = () => {
           sale.status !== 'distrato'
         );
         const totalRevenue = brokerSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+        const ticketMedio = brokerSales.length > 0 ? totalRevenue / brokerSales.length : 0;
+        const team = teams.find(t => t.id === broker.team_id);
+
+        // Growth from previous period
+        const prevBrokerSales = previousPeriodSales.filter(sale =>
+          sale.broker_id === broker.id &&
+          sale.status !== 'cancelada' &&
+          sale.status !== 'distrato'
+        );
+        const prevRevenue = prevBrokerSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
+        const growth = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : null;
+
         return {
           id: broker.id,
           name: broker.name,
@@ -1793,22 +1805,49 @@ const Ranking = () => {
           sales: brokerSales.length,
           revenue: totalRevenue,
           position: 0,
-          growth: calculateGrowth(broker.id, sales),
+          growth,
           email: broker.email,
           userId: broker.user_id,
           teamId: broker.team_id,
+          teamName: team?.name || null,
+          ticketMedio,
+          participationPct: 0,
         };
-      })
+      });
+
+    // Calculate total VGV for participation
+    const totalVGV = rankings.reduce((sum, b) => sum + b.revenue, 0);
+    rankings.forEach(b => {
+      b.participationPct = totalVGV > 0 ? (b.revenue / totalVGV) * 100 : 0;
+    });
+
+    return rankings
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [brokers, filteredSales, sales, selectedTeam]);
+  }, [brokers, filteredSales, previousPeriodSales, selectedTeam, teams]);
+
+  // Active broker count
+  const activeBrokerCount = useMemo(() => {
+    return brokers.filter(b => b.status === 'ativo').length;
+  }, [brokers]);
 
   // Brokers excluding managers - used for podium and leaderboard
   const brokerRankings: BrokerRanking[] = useMemo(() => {
-    return allBrokerRankings
-      .filter(broker => !broker.userId || !managerUserIds.includes(broker.userId))
-      .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [allBrokerRankings, managerUserIds]);
+    const filtered = allBrokerRankings
+      .filter(broker => !broker.userId || !managerUserIds.includes(broker.userId));
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortField) {
+        case 'sales': return b.sales - a.sales || b.revenue - a.revenue;
+        case 'ticket': return (b.ticketMedio || 0) - (a.ticketMedio || 0);
+        case 'growth': return (b.growth || -Infinity) - (a.growth || -Infinity);
+        default: return b.revenue - a.revenue || b.sales - a.sales;
+      }
+    });
+
+    return sorted.map((b, i) => ({ ...b, position: i + 1 }));
+  }, [allBrokerRankings, managerUserIds, sortField]);
 
   // Captação rankings - based on captador field
   const captacaoRankings: BrokerRanking[] = useMemo(() => {
