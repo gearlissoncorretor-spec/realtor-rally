@@ -199,14 +199,18 @@ const MetaGestao = () => {
   const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear, teamFilter);
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
   
+  // Track which months have been manually saved in DB
+  const [dbMonthlyGoals, setDbMonthlyGoals] = useState<{ [month: number]: number }>({});
+  
   useEffect(() => {
     const savedMonthlyGoals: { [month: number]: number } = {};
     const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => {
       savedMonthlyGoals[goal.monthIndex] = goal.target;
       return sum + goal.target;
     }, 0);
-    if (savedAnnualTotal > 0) setAnnualGoal(savedAnnualTotal);
+    setAnnualGoal(savedAnnualTotal);
     setEditableMonthlyGoals(savedMonthlyGoals);
+    setDbMonthlyGoals(savedMonthlyGoals);
   }, [monthlyGoals, selectedYear]);
   
   // Distribute annual goal evenly across 12 months (simple equal split)
@@ -219,7 +223,15 @@ const MetaGestao = () => {
   const monthlyProgression = calculateMonthlyProgression(annualGoal);
   
   const getMonthlyGoal = (monthIndex: number): number => {
-    if (editableMonthlyGoals[monthIndex] !== undefined) return editableMonthlyGoals[monthIndex];
+    // If user manually edited this month, use that value
+    if (editableMonthlyGoals[monthIndex] !== undefined && editableMonthlyGoals[monthIndex] !== dbMonthlyGoals[monthIndex]) {
+      return editableMonthlyGoals[monthIndex];
+    }
+    // If there's a saved DB value and user hasn't changed the annual goal, use DB value
+    if (dbMonthlyGoals[monthIndex] !== undefined && dbMonthlyGoals[monthIndex] > 0) {
+      return dbMonthlyGoals[monthIndex];
+    }
+    // Otherwise use the calculated progression
     return monthlyProgression[monthIndex - 1] || 0;
   };
   
@@ -227,7 +239,7 @@ const MetaGestao = () => {
     let total = 0;
     for (let i = 1; i <= 12; i++) total += getMonthlyGoal(i);
     return total;
-  }, [editableMonthlyGoals, monthlyProgression]);
+  }, [editableMonthlyGoals, dbMonthlyGoals, monthlyProgression]);
   
   const handleMonthlyGoalChange = (monthIndex: number, value: number) => {
     setEditableMonthlyGoals(prev => ({ ...prev, [monthIndex]: value }));
