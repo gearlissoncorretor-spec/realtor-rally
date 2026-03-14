@@ -1637,7 +1637,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
 // ===== MAIN PAGE =====
 const Ranking = () => {
   const { brokers, sales, brokersLoading, salesLoading } = useData();
-  const { user, isDiretor, isAdmin, isGerente, getUserRole, profile } = useAuth();
+  const { user, isDiretor, isAdmin, isGerente, isCorretor, getUserRole, profile, teamHierarchy } = useAuth();
   const { teams } = useTeams();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
