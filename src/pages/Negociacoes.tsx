@@ -575,6 +575,30 @@ const Negociacoes = () => {
                       </div>
                     </div>
 
+                    {/* Temperature selector */}
+                    <div>
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <Thermometer className="w-4 h-4" />
+                        Termômetro da Negociação
+                      </label>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        {TEMPERATURE_OPTIONS.map((temp) => (
+                          <button
+                            key={temp.value}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, temperature: temp.value })}
+                            className={`p-3 rounded-lg border-2 text-center text-sm font-medium transition-all ${
+                              formData.temperature === temp.value
+                                ? `${temp.bg} border-current ${temp.color} scale-105 shadow-md`
+                                : 'border-border bg-background hover:bg-muted'
+                            }`}
+                          >
+                            {temp.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div>
                       <label className="text-sm font-medium">Observações</label>
                       <Textarea
