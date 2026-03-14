@@ -116,38 +116,62 @@ const getXPProgress = (xp: number) => {
   return Math.min(((xp - currentThreshold) / (level.nextXp - currentThreshold)) * 100, 100);
 };
 
-// ===== PARTICLE EFFECTS =====
+// ===== PARTICLE EFFECTS (more subtle + radial glow) =====
 const ParticleEffect = () => (
   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {Array.from({ length: 15 }).map((_, i) => (
+    {/* Spotlight behind champion (center) */}
+    <div
+      className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full animate-spotlight-pulse"
+      style={{
+        background: 'radial-gradient(circle, rgba(250,204,21,0.15) 0%, rgba(250,204,21,0.05) 40%, transparent 70%)',
+      }}
+    />
+    {/* Secondary radial glows */}
+    <div
+      className="absolute top-12 left-[20%] w-48 h-48 rounded-full opacity-30"
+      style={{
+        background: 'radial-gradient(circle, rgba(148,163,184,0.2) 0%, transparent 70%)',
+        animation: 'spotlight-pulse 4s ease-in-out infinite 1s',
+      }}
+    />
+    <div
+      className="absolute top-16 right-[20%] w-40 h-40 rounded-full opacity-25"
+      style={{
+        background: 'radial-gradient(circle, rgba(251,146,60,0.2) 0%, transparent 70%)',
+        animation: 'spotlight-pulse 4s ease-in-out infinite 2s',
+      }}
+    />
+    {/* Subtle particles */}
+    {Array.from({ length: 12 }).map((_, i) => (
       <div
         key={i}
         className={cn(
           "absolute rounded-full",
-          i % 4 === 0 ? "w-1.5 h-1.5 bg-warning/30" :
-          i % 4 === 1 ? "w-1 h-1 bg-primary/25" :
-          i % 4 === 2 ? "w-1 h-1 bg-success/20" :
-          "w-0.5 h-0.5 bg-info/30"
+          i % 4 === 0 ? "w-1 h-1 bg-warning/25" :
+          i % 4 === 1 ? "w-0.5 h-0.5 bg-primary/20" :
+          i % 4 === 2 ? "w-0.5 h-0.5 bg-success/15" :
+          "w-1 h-1 bg-info/20"
         )}
         style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          animation: `float-particle ${4 + Math.random() * 6}s ease-in-out infinite`,
+          left: `${10 + Math.random() * 80}%`,
+          top: `${10 + Math.random() * 80}%`,
+          animation: `float-particle ${5 + Math.random() * 5}s ease-in-out infinite`,
           animationDelay: `${Math.random() * 4}s`,
         }}
       />
     ))}
-    {Array.from({ length: 6 }).map((_, i) => (
+    {/* Softer glow orbs */}
+    {Array.from({ length: 4 }).map((_, i) => (
       <div
         key={`glow-${i}`}
         className={cn(
-          "absolute w-3 h-3 rounded-full blur-sm",
-          i % 3 === 0 ? "bg-warning/15" : i % 3 === 1 ? "bg-primary/15" : "bg-destructive/10"
+          "absolute w-2 h-2 rounded-full blur-sm",
+          i % 2 === 0 ? "bg-warning/10" : "bg-primary/10"
         )}
         style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          animation: `float-particle ${5 + Math.random() * 5}s ease-in-out infinite`,
+          left: `${20 + Math.random() * 60}%`,
+          top: `${20 + Math.random() * 60}%`,
+          animation: `float-particle ${6 + Math.random() * 4}s ease-in-out infinite`,
           animationDelay: `${Math.random() * 3}s`,
         }}
       />
@@ -180,87 +204,87 @@ const SpotlightBrokerSidebar = ({
   const initials = broker?.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '';
 
   return (
-    <Card className="relative overflow-hidden border-warning/20">
+    <Card className="relative overflow-hidden border-warning/20 animate-glow-champion">
       {/* Animated gradient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-40"
           style={{
-            background: 'linear-gradient(135deg, hsl(var(--warning) / 0.15) 0%, hsl(var(--primary) / 0.1) 50%, hsl(var(--warning) / 0.15) 100%)',
+            background: 'linear-gradient(135deg, hsl(var(--warning) / 0.2) 0%, hsl(var(--primary) / 0.15) 50%, hsl(var(--warning) / 0.2) 100%)',
             backgroundSize: '200% 200%',
             animation: 'gradient-shift 6s ease-in-out infinite',
           }}
         />
-        {/* Floating orbs */}
-        <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-warning/10 blur-xl animate-pulse" />
-        <div className="absolute bottom-8 left-4 w-12 h-12 rounded-full bg-primary/10 blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-warning/15 blur-2xl animate-pulse" />
+        <div className="absolute bottom-8 left-4 w-14 h-14 rounded-full bg-primary/12 blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-warning/8 blur-3xl animate-spotlight-pulse" />
       </div>
 
-      <div className="relative z-10 p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-4 h-4 text-warning" />
-          <h3 className="text-sm font-bold text-foreground">Corretor Destaque</h3>
-          <Star className="w-3 h-3 text-warning" />
+      <div className="relative z-10 p-5">
+        <div className="flex items-center gap-2 mb-5">
+          <Sparkles className="w-4 h-4 text-warning animate-medal-pulse" />
+          <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">Corretor Destaque</h3>
+          <Star className="w-3 h-3 text-warning animate-medal-pulse" style={{ animationDelay: '0.5s' }} />
         </div>
 
         {broker ? (
           <div className="flex flex-col items-center text-center">
-            {/* Avatar with golden glow */}
-            <div className="relative mb-3">
-              <div className="absolute -inset-2 rounded-full bg-warning/20 blur-lg animate-pulse" />
-              <Avatar className="w-20 h-20 ring-4 ring-warning/50 shadow-2xl relative z-10">
+            <div className="relative mb-4">
+              <div className="absolute -inset-3 rounded-full bg-warning/25 blur-xl animate-spotlight-pulse" />
+              <div className="absolute -inset-1 rounded-full animate-[spin_8s_linear_infinite] opacity-70" style={{
+                background: 'conic-gradient(from 0deg, rgba(250,204,21,0.6), rgba(245,158,11,0.3), rgba(250,204,21,0.1), rgba(250,204,21,0.6))',
+                borderRadius: '50%',
+              }} />
+              <Avatar className="w-24 h-24 ring-4 ring-warning/60 shadow-2xl relative z-10 transition-transform hover:scale-105">
                 <AvatarImage src={broker.avatar} alt={broker.name} className="object-cover" />
-                <AvatarFallback className="bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-xl font-black">
+                <AvatarFallback className="bg-gradient-to-br from-yellow-500 to-amber-700 text-yellow-100 text-2xl font-black">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="absolute -top-2 -right-2 z-20">
-                <Crown className="w-6 h-6 text-warning drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+                <Crown className="w-7 h-7 text-warning animate-medal-pulse drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]" />
               </div>
             </div>
 
-            <p className="font-bold text-foreground text-lg mb-1">{broker.name}</p>
+            <p className="font-black text-foreground text-xl mb-1 tracking-tight">{broker.name}</p>
             
-            {/* Celebration label */}
-            <div className="flex items-center gap-1.5 mb-3">
+            <div className="flex items-center gap-2 mb-4">
               <Trophy className="w-4 h-4 text-warning" />
-              <span className="text-xs font-semibold text-warning">Destaque do Mês</span>
+              <span className="text-xs font-bold text-warning uppercase tracking-wider">Destaque do Mês</span>
               <Trophy className="w-4 h-4 text-warning" />
             </div>
 
-            {/* Celebration particles */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(8)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute w-1.5 h-1.5 rounded-full bg-warning/60"
+                  className="absolute w-1 h-1 rounded-full bg-warning/50"
                   style={{
-                    left: `${15 + i * 14}%`,
-                    top: `${20 + (i % 3) * 20}%`,
-                    animation: `float-particle ${2 + i * 0.5}s ease-in-out infinite`,
-                    animationDelay: `${i * 0.3}s`,
+                    left: `${10 + i * 12}%`,
+                    top: `${15 + (i % 4) * 18}%`,
+                    animation: `float-particle ${2.5 + i * 0.4}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.25}s`,
                   }}
                 />
               ))}
             </div>
           </div>
         ) : (
-          <div className="text-center py-6">
-            <Star className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+          <div className="text-center py-8">
+            <Star className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
             <p className="text-xs text-muted-foreground">Nenhum corretor selecionado</p>
           </div>
         )}
 
-        {/* Manager can change spotlight */}
         {canManage && (
-          <div className="mt-4 pt-3 border-t border-border/50">
+          <div className="mt-4 pt-3 border-t border-warning/10">
             <label className="text-[10px] text-muted-foreground block mb-1.5">Selecionar destaque:</label>
             <Select
               value={broker?.id || 'none'}
               onValueChange={(v) => onChangeBroker(v === 'none' ? null : v)}
               disabled={isUpdating}
             >
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger className="h-8 text-xs border-warning/20 hover:border-warning/40 transition-colors">
                 <SelectValue placeholder="Escolher corretor..." />
               </SelectTrigger>
               <SelectContent>
@@ -366,15 +390,15 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
   if (podiumOrder.length === 0) return null;
 
   const podiumConfig = [
-    { height: "h-32 md:h-40", avatarSize: "w-14 h-14 md:w-16 md:h-16", nameSize: "text-sm md:text-base", valueSize: "text-base md:text-lg", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
-    { height: "h-40 md:h-52", avatarSize: "w-16 h-16 md:w-20 md:h-20", nameSize: "text-base md:text-lg", valueSize: "text-lg md:text-xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
-    { height: "h-24 md:h-32", avatarSize: "w-12 h-12 md:w-14 md:h-14", nameSize: "text-xs md:text-sm", valueSize: "text-sm md:text-base", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
+    { height: "h-32 md:h-40", avatarSize: "w-14 h-14 md:w-16 md:h-16", nameSize: "text-sm md:text-base", valueSize: "text-lg md:text-xl", ring: "ring-slate-300/60", gradient: "from-slate-400/20 via-slate-400/10 to-transparent", border: "border-slate-400/30", numColor: "text-slate-300/60", numSize: "text-4xl md:text-5xl", glowColor: "rgba(148,163,184,0.3)" },
+    { height: "h-44 md:h-56", avatarSize: "w-18 h-18 md:w-22 md:h-22", nameSize: "text-base md:text-lg", valueSize: "text-xl md:text-2xl", ring: "ring-yellow-400/70", gradient: "from-yellow-500/25 via-yellow-500/10 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/50", numSize: "text-5xl md:text-6xl", glowColor: "rgba(250,204,21,0.4)" },
+    { height: "h-24 md:h-32", avatarSize: "w-12 h-12 md:w-14 md:h-14", nameSize: "text-xs md:text-sm", valueSize: "text-base md:text-lg", ring: "ring-orange-400/50", gradient: "from-orange-500/20 via-orange-500/8 to-transparent", border: "border-orange-400/30", numColor: "text-orange-400/50", numSize: "text-3xl md:text-4xl", glowColor: "rgba(251,146,60,0.3)" },
   ];
 
   return (
     <div className="relative mb-8">
       <ParticleEffect />
-      <div className="flex items-end justify-center gap-3 md:gap-6 pt-8">
+      <div className="flex items-end justify-center gap-4 md:gap-8 pt-8">
         {podiumOrder.map((broker, index) => {
           const config = podiumConfig[index];
           const isFirst = broker.position === 1;
@@ -392,34 +416,34 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
               style={{ animationDelay: `${isFirst ? 0.4 : index === 0 ? 0.2 : 0.6}s` }}
             >
               {isFirst && (
-                <div className="relative mb-1 animate-bounce" style={{ animationDuration: '2.5s' }}>
-                  <Crown className="w-8 h-8 md:w-10 md:h-10 text-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
+                <div className="relative mb-1 animate-medal-pulse">
+                  <Crown className="w-8 h-8 md:w-10 md:h-10 text-warning drop-shadow-[0_0_14px_rgba(250,204,21,0.7)]" />
                 </div>
               )}
 
-              {/* Avatar with glow ring */}
-              <div className="relative mb-2">
+              {/* Avatar with gradient border ring */}
+              <div className="relative mb-3">
                 {isFirst && (
-                  <div className="absolute -inset-4 rounded-full blur-2xl animate-pulse" style={{ background: `radial-gradient(circle, ${config.glowColor}, transparent 70%)` }} />
+                  <div className="absolute -inset-5 rounded-full blur-2xl animate-spotlight-pulse" style={{ background: `radial-gradient(circle, ${config.glowColor}, transparent 60%)` }} />
                 )}
-                <div className="absolute -inset-1 rounded-full animate-[spin_8s_linear_infinite] opacity-60" style={{
+                <div className="absolute -inset-1.5 rounded-full animate-[spin_8s_linear_infinite] opacity-70" style={{
                   background: isFirst
-                    ? 'conic-gradient(from 0deg, rgba(250,204,21,0.6), rgba(245,158,11,0.4), rgba(250,204,21,0.1), rgba(250,204,21,0.6))'
+                    ? 'conic-gradient(from 0deg, rgba(250,204,21,0.7), rgba(245,158,11,0.5), rgba(250,204,21,0.15), rgba(250,204,21,0.7))'
                     : broker.position === 2
-                    ? 'conic-gradient(from 0deg, rgba(148,163,184,0.4), rgba(148,163,184,0.1), rgba(148,163,184,0.4))'
-                    : 'conic-gradient(from 0deg, rgba(251,146,60,0.4), rgba(251,146,60,0.1), rgba(251,146,60,0.4))',
+                    ? 'conic-gradient(from 0deg, rgba(148,163,184,0.5), rgba(148,163,184,0.15), rgba(148,163,184,0.5))'
+                    : 'conic-gradient(from 0deg, rgba(251,146,60,0.5), rgba(251,146,60,0.15), rgba(251,146,60,0.5))',
                   borderRadius: '50%',
                 }} />
                 <Avatar className={cn(
-                  config.avatarSize,
-                  "ring-4 shadow-2xl transition-all relative z-10 group-hover:scale-105",
+                  isFirst ? "w-16 h-16 md:w-20 md:h-20" : config.avatarSize,
+                  "ring-4 shadow-2xl transition-all duration-300 relative z-10 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(250,204,21,0.2)]",
                   config.ring,
                   isCurrentUser && "ring-primary ring-offset-2 ring-offset-background"
                 )}>
                   <AvatarImage src={broker.avatar} alt={broker.name} className="object-cover" />
                   <AvatarFallback className={cn(
                     "font-black",
-                    isFirst ? "bg-gradient-to-br from-yellow-600 to-amber-800 text-yellow-100 text-xl md:text-2xl" :
+                    isFirst ? "bg-gradient-to-br from-yellow-500 to-amber-700 text-yellow-100 text-xl md:text-2xl" :
                     broker.position === 2 ? "bg-gradient-to-br from-slate-500 to-slate-700 text-slate-100 text-lg" :
                     "bg-gradient-to-br from-orange-600 to-orange-800 text-orange-100 text-sm"
                   )}>
@@ -433,12 +457,10 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 )}
               </div>
 
-              <p className={cn("font-bold text-center leading-tight text-foreground", config.nameSize)}>
+              <p className={cn("font-bold text-center leading-tight text-foreground mb-0.5", config.nameSize)}>
                 {broker.name.split(' ').slice(0, 2).join(' ')}
               </p>
-              <p className="text-xs text-muted-foreground mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
-              
-              {/* Level badge with XP bar - hidden for now */}
+              <p className="text-[11px] text-muted-foreground mb-0.5">{broker.sales} {broker.sales === 1 ? 'venda' : 'vendas'}</p>
 
               {/* Achievement badges */}
               {achievements.length > 0 && (
@@ -449,27 +471,30 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 </div>
               )}
 
+              {/* Revenue - stronger typography */}
               <p className={cn(
-                "font-black mb-2",
+                "font-black mb-2 animate-number-count tracking-tight",
                 config.valueSize,
-                isFirst ? "text-warning drop-shadow-[0_0_10px_rgba(251,191,36,0.3)]" : "text-foreground"
+                isFirst ? "text-warning drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]" : "text-foreground"
               )}>
                 {formatCurrencyCompact(broker.revenue)}
               </p>
 
-              {/* Podium base with 3D perspective */}
+              {/* Podium base with glass effect + reflection */}
               <div className={cn(
-                "w-24 md:w-32 rounded-t-xl border-2 flex items-center justify-center relative overflow-hidden transition-all group-hover:scale-[1.02]",
+                "w-26 md:w-36 rounded-2xl border flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-[1.03] glass-pedestal pedestal-reflection",
                 config.height,
-                `bg-gradient-to-t ${config.gradient}`,
                 config.border
               )} style={{
-                boxShadow: `0 8px 32px -4px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+                boxShadow: `0 12px 40px -4px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                background: `linear-gradient(to top, ${config.glowColor.replace(')', ', 0.15)')}, transparent)`,
               }}>
                 {isFirst && (
                   <div className="absolute inset-0 shimmer-effect" />
                 )}
-                <span className={cn("font-black", config.numColor, config.numSize)}>
+                {/* Glass shine overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.06] via-transparent to-transparent rounded-2xl" />
+                <span className={cn("font-black relative z-10 animate-number-count", config.numColor, config.numSize)} style={{ animationDelay: '0.3s' }}>
                   {broker.position}
                 </span>
               </div>
@@ -560,7 +585,7 @@ const LeaderboardCard = ({
       <div className="flex items-center gap-3">
         <PositionBadge position={broker.position} />
 
-        <Avatar className="h-10 w-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
+        <Avatar className="h-10 w-10 ring-2 ring-border/50 group-hover:ring-primary/50 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/10">
           <AvatarImage src={broker.avatar} className="object-cover" />
           <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
         </Avatar>
@@ -584,7 +609,7 @@ const LeaderboardCard = ({
           </div>
 
         <div className="text-right">
-          <p className="font-bold text-sm text-foreground">{formatCurrency(broker.revenue)}</p>
+          <p className="font-black text-sm text-foreground tracking-tight">{formatCurrency(broker.revenue)}</p>
           {broker.growth !== null && (
             <div className="flex items-center justify-end gap-0.5">
               {broker.growth > 0 ? (
@@ -2253,11 +2278,14 @@ const Ranking = () => {
                   </Card>
                 )}
 
+                {/* Gradient separator between podium and leaderboard */}
+                <div className="gradient-separator my-6 mx-8 rounded-full" />
+
                 {/* Leaderboard */}
                 <Card className="overflow-hidden border-border/50">
                   <div className="p-4 border-b border-border bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center gap-2">
                     <div className="flex items-center gap-2 flex-1">
-                      <Flame className="w-5 h-5 text-warning" />
+                      <Flame className="w-5 h-5 text-warning animate-medal-pulse" />
                       <h2 className="font-semibold text-foreground text-sm">
                         {rankingType === 'captacao' ? 'Classificação Captadores' : 'Classificação Completa'}
                       </h2>
@@ -2267,7 +2295,8 @@ const Ranking = () => {
                     </div>
                     {rankingType === 'vendas' && (
                       <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
-                        <SelectTrigger className="h-8 w-[150px] text-xs border-border/50">
+                        <SelectTrigger className="h-8 w-[160px] text-xs border-border/50 hover:border-primary/40 transition-colors backdrop-blur-sm bg-background/80">
+                          <TrendingUp className="w-3 h-3 mr-1.5 text-muted-foreground" />
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
