@@ -380,7 +380,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-primary/50" />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Meta Anual</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrencyCompact(annualGoal)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(annualGoal)}</p>
                 <div className="flex items-center gap-1 mt-2">
                   <Target className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs text-muted-foreground">Objetivo {selectedYear}</span>
