@@ -585,7 +585,7 @@ const LeaderboardCard = ({
       <div className="flex items-center gap-3">
         <PositionBadge position={broker.position} />
 
-        <Avatar className="h-10 w-10 ring-2 ring-border/50 group-hover:ring-primary/30 transition-all">
+        <Avatar className="h-10 w-10 ring-2 ring-border/50 group-hover:ring-primary/50 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/10">
           <AvatarImage src={broker.avatar} className="object-cover" />
           <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
         </Avatar>
