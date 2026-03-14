@@ -142,11 +142,12 @@ const Negociacoes = () => {
         negotiation.observations?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = filterStatus === 'all' || negotiation.status === filterStatus;
+      const matchesTemperature = filterTemperature === 'all' || negotiation.temperature === filterTemperature;
       const isActive = !terminalStatuses.includes(negotiation.status);
       
-      return matchesSearch && matchesStatus && isActive;
+      return matchesSearch && matchesStatus && matchesTemperature && isActive;
     });
-  }, [negotiations, searchTerm, filterStatus]);
+  }, [negotiations, searchTerm, filterStatus, filterTemperature]);
 
   // Filter lost negotiations
   const filteredLostNegotiations = useMemo(() => {
