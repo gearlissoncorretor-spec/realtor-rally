@@ -13,7 +13,7 @@ import { useBrokers } from "@/hooks/useBrokers";
 import { useProcessStages } from "@/hooks/useProcessStages";
 import { formatCurrency } from "@/utils/formatting";
 import KPICard from "@/components/KPICard";
-import PeriodFilter from "@/components/PeriodFilter";
+// PeriodFilter removed — pipeline shows all sales
 import AcompanhamentoSkeleton from "@/components/skeletons/AcompanhamentoSkeleton";
 import ProcessKanbanCard, { type ProcessCardData } from "@/components/acompanhamento/ProcessKanbanCard";
 
