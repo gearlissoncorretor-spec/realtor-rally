@@ -978,8 +978,8 @@ const MetaGestao = () => {
                 <div className="p-3 rounded-lg bg-info/5 border border-info/20">
                   <p className="text-xs font-medium text-info mb-1.5">Insights</p>
                   <ul className="space-y-1 text-xs text-muted-foreground">
-                    <li>• +3 corretores → <strong className="text-foreground">{probability.withMoreBrokers}%</strong></li>
-                    <li>• +15% ticket → <strong className="text-foreground">{probability.withHigherTicket}%</strong></li>
+                    <li>• +3 corretores → <strong className="text-foreground">{componentProbability.withMoreBrokers}%</strong></li>
+                    <li>• +15% ticket → <strong className="text-foreground">{componentProbability.withHigherTicket}%</strong></li>
                     <li>• Crescimento médio: <strong className="text-foreground">{performanceStats?.avgGrowth?.toFixed(1) || 0}%</strong></li>
                   </ul>
                 </div>
