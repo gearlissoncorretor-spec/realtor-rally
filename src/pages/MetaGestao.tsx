@@ -276,7 +276,39 @@ const MetaGestao = () => {
   };
   
   const annualProgress = annualGoal > 0 ? (yearlyData.totalVGV / annualGoal) * 100 : 0;
+  const isGoalExceeded = yearlyData.totalVGV >= annualGoal && annualGoal > 0;
   const remaining = Math.max(0, annualGoal - yearlyData.totalVGV);
+  const exceededBy = Math.max(0, yearlyData.totalVGV - annualGoal);
+
+  // Smart status label based on progress
+  const getGoalStatus = (progress: number) => {
+    if (progress >= 120) return { label: '🚀 Meta superada', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
+    if (progress >= 100) return { label: '🎉 Meta atingida', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
+    if (progress >= 80) return { label: 'No caminho', color: 'border-success/30 text-success bg-success/10', icon: CheckCircle2 };
+    if (progress >= 50) return { label: 'Em atenção', color: 'border-warning/30 text-warning bg-warning/10', icon: AlertTriangle };
+    return { label: 'Abaixo do esperado', color: 'border-destructive/30 text-destructive bg-destructive/10', icon: Clock };
+  };
+
+  const goalStatus = getGoalStatus(annualProgress);
+
+  // Growth calculation with safety for zero
+  const getGrowthDisplay = () => {
+    if (!performanceStats?.avgGrowth && performanceStats?.avgGrowth !== 0) return 'Sem histórico';
+    const validMonths = monthlyGoals.filter(m => m.achieved > 0);
+    if (validMonths.length < 2) return 'Sem histórico';
+    const growth = performanceStats.avgGrowth;
+    if (!isFinite(growth)) return 'Sem histórico';
+    return `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`;
+  };
+
+  // Meta validation alert
+  const isMetaTooLow = useMemo(() => {
+    if (annualGoal <= 0) return false;
+    const last3Months = monthlyGoals.slice(0, new Date().getMonth()).filter(m => m.achieved > 0);
+    if (last3Months.length === 0) return false;
+    const avgMonthly = last3Months.reduce((s, m) => s + m.achieved, 0) / last3Months.length;
+    return annualGoal < avgMonthly; // annual target less than a single month average
+  }, [annualGoal, monthlyGoals]);
 
   if (isLoading) {
     return (
