@@ -51,6 +51,7 @@ export interface UpdateNegotiationInput {
   start_date?: string;
   observations?: string;
   loss_reason?: string;
+  temperature?: string;
 }
 
 export const useNegotiations = () => {
