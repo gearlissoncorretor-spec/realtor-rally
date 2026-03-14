@@ -1637,7 +1637,7 @@ const RankingTVMode = ({ brokerRankings, captacaoRankings, allBrokerRankings, on
 // ===== MAIN PAGE =====
 const Ranking = () => {
   const { brokers, sales, brokersLoading, salesLoading } = useData();
-  const { user, isDiretor, isAdmin, isGerente, getUserRole, profile } = useAuth();
+  const { user, isDiretor, isAdmin, isGerente, isCorretor, getUserRole, profile, teamHierarchy } = useAuth();
   const { teams } = useTeams();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
@@ -1701,7 +1701,15 @@ const Ranking = () => {
   // Can manage spotlight
   const canManageSpotlight = isDiretor() || isAdmin() || isGerente();
 
-  // Build teams list with real names
+  // Enforce hierarchy: gerente/corretor locked to their team
+  const effectiveTeamFilter = useMemo(() => {
+    if (isGerente() || isCorretor()) {
+      return profile?.team_id || teamHierarchy?.team_id || 'none';
+    }
+    return selectedTeam;
+  }, [isGerente, isCorretor, profile, teamHierarchy, selectedTeam]);
+
+  // Build teams list with real names (only for directors)
   const teamsForFilter = useMemo(() => {
     return teams.map(t => ({ id: t.id, name: t.name }));
   }, [teams]);
@@ -1773,8 +1781,8 @@ const Ranking = () => {
   // All brokers including managers - used for summary stats
   const allBrokerRankings: BrokerRanking[] = useMemo(() => {
     let filteredBrokers = brokers;
-    if (selectedTeam !== 'all') {
-      filteredBrokers = brokers.filter(b => b.team_id === selectedTeam);
+    if (effectiveTeamFilter !== 'all') {
+      filteredBrokers = brokers.filter(b => b.team_id === effectiveTeamFilter);
     }
 
     const rankings = filteredBrokers
@@ -1824,7 +1832,7 @@ const Ranking = () => {
     return rankings
       .sort((a, b) => b.revenue - a.revenue || b.sales - a.sales)
       .map((b, i) => ({ ...b, position: i + 1 }));
-  }, [brokers, filteredSales, previousPeriodSales, selectedTeam, teams]);
+  }, [brokers, filteredSales, previousPeriodSales, effectiveTeamFilter, teams]);
 
   // Active broker count
   const activeBrokerCount = useMemo(() => {
@@ -1849,13 +1857,22 @@ const Ranking = () => {
     return sorted.map((b, i) => ({ ...b, position: i + 1 }));
   }, [allBrokerRankings, managerUserIds, sortField]);
 
-  // Captação rankings - based on captador field
+  // Captação rankings - based on captador field, filtered by team hierarchy
   const captacaoRankings: BrokerRanking[] = useMemo(() => {
     const captadorMap = new Map<string, { name: string; count: number; vgv: number }>();
     
+    // Get team-filtered broker ids for hierarchy enforcement
+    const teamBrokerIds = effectiveTeamFilter !== 'all'
+      ? new Set(brokers.filter(b => b.team_id === effectiveTeamFilter).map(b => b.id))
+      : null;
+
     filteredSales.forEach(sale => {
       if (!sale.captador || sale.captador.trim() === '') return;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return;
+      
+      // If team-filtered, only include sales from team brokers
+      if (teamBrokerIds && sale.broker_id && !teamBrokerIds.has(sale.broker_id)) return;
+      
       const captador = sale.captador.trim();
       const existing = captadorMap.get(captador) || { name: captador, count: 0, vgv: 0 };
       existing.count += 1;
@@ -1883,7 +1900,7 @@ const Ranking = () => {
           teamId: matchedBroker?.team_id || null,
         };
       });
-  }, [filteredSales, brokers]);
+  }, [filteredSales, brokers, effectiveTeamFilter]);
 
   // Team rankings (for directors)
   const teamRankings: TeamRanking[] = useMemo(() => {
@@ -2106,8 +2123,8 @@ const Ranking = () => {
           />
         )}
 
-        {/* Team filter */}
-        {teamsForFilter.length > 0 && (
+        {/* Team filter - only for directors/admins */}
+        {(isDiretor() || isAdmin()) && teamsForFilter.length > 0 && (
           <TeamFilter
             teams={teamsForFilter}
             selectedTeam={selectedTeam}
