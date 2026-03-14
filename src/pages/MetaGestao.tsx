@@ -480,16 +480,9 @@ const MetaGestao = () => {
                 <div className="lg:col-span-2 space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Progresso Anual</span>
-                    <Badge variant="outline" className={cn(
-                      "text-xs",
-                      annualProgress >= 90 ? "border-success/30 text-success bg-success/10" :
-                      annualProgress >= 50 ? "border-warning/30 text-warning bg-warning/10" :
-                      "border-destructive/30 text-destructive bg-destructive/10"
-                    )}>
-                      {annualProgress >= 90 ? <CheckCircle2 className="w-3 h-3 mr-1" /> :
-                       annualProgress >= 50 ? <AlertTriangle className="w-3 h-3 mr-1" /> :
-                       <Clock className="w-3 h-3 mr-1" />}
-                      {annualProgress >= 90 ? 'No caminho' : annualProgress >= 50 ? 'Atenção' : 'Acelerar'}
+                    <Badge variant="outline" className={cn("text-xs", goalStatus.color)}>
+                      <goalStatus.icon className="w-3 h-3 mr-1" />
+                      {goalStatus.label}
                     </Badge>
                   </div>
                   <Progress value={Math.min(annualProgress, 100)} className="h-4" />
