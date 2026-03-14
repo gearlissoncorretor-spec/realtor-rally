@@ -80,6 +80,7 @@ const Negociacoes = () => {
   const [editingNegotiation, setEditingNegotiation] = useState<Negotiation | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterTemperature, setFilterTemperature] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   
