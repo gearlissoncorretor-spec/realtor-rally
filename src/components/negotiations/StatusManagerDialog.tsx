@@ -51,10 +51,9 @@ export function StatusManagerDialog({ open, onOpenChange }: StatusManagerDialogP
     is_active: true,
   });
 
-  const handleAddStatus = () => {
+  const handleAddStatus = async () => {
     if (!newStatus.label.trim()) return;
     
-    // Generate value from label
     const value = newStatus.label
       .toLowerCase()
       .normalize('NFD')
@@ -62,7 +61,7 @@ export function StatusManagerDialog({ open, onOpenChange }: StatusManagerDialogP
       .replace(/\s+/g, '_')
       .replace(/[^a-z0-9_]/g, '');
     
-    addStatus({
+    await addStatus({
       ...newStatus,
       value: value || `custom_${Date.now()}`,
     });
