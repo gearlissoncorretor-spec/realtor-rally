@@ -35,7 +35,8 @@ import {
   Ban,
   Undo2,
   Thermometer,
-  AlertTriangle
+  AlertTriangle,
+  StickyNote
 } from "lucide-react";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
