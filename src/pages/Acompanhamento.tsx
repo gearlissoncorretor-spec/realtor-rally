@@ -228,12 +228,6 @@ const Acompanhamento = () => {
               className="pl-9"
             />
           </div>
-          <PeriodFilter
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-            onMonthChange={setSelectedMonth}
-            onYearChange={setSelectedYear}
-          />
         </div>
 
         {/* Kanban Board */}
