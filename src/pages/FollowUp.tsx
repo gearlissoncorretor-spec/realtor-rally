@@ -755,6 +755,14 @@ const FollowUpPage = () => {
         onConfirm={handleConfirmContact}
       />
 
+      {/* Notes dialog */}
+      <FollowUpNotesDialog
+        followUpId={selectedForNotes?.id || null}
+        clientName={selectedForNotes?.client_name || ''}
+        open={notesDialogOpen}
+        onOpenChange={setNotesDialogOpen}
+      />
+
       <FollowUpStatusManagerDialog
         open={statusManagerOpen}
         onOpenChange={setStatusManagerOpen}
