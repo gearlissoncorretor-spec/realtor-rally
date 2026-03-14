@@ -105,7 +105,11 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
       const target = monthTarget?.target_value || 0;
       const monthSales = sales.filter(sale => {
         const saleDate = new Date(sale.sale_date || sale.created_at || '');
-        return saleDate >= monthStart && saleDate <= monthEnd && sale.status === 'confirmada';
+        const inMonth = saleDate >= monthStart && saleDate <= monthEnd && sale.status === 'confirmada';
+        if (!inMonth) return false;
+        // Apply team filter to monthly sales too
+        if (filteredBrokerIds && sale.broker_id) return filteredBrokerIds.includes(sale.broker_id);
+        return !filteredBrokerIds;
       });
       const achieved = monthSales.reduce((sum, sale) => sum + (sale.vgv || 0), 0);
       
@@ -115,7 +119,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
         percentAchieved: target > 0 ? (achieved / target) * 100 : 0
       };
     });
-  }, [sales, filteredTargets, year]);
+  }, [sales, filteredTargets, year, filteredBrokerIds]);
   
   const brokerStats = useMemo(() => {
     let filteredBrokers = brokers;
