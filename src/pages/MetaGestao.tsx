@@ -465,7 +465,15 @@ const MetaGestao = () => {
                       className="h-12 text-xl font-bold flex-1"
                       autoFocus
                     />
-                    <Button size="icon" variant="ghost" onClick={() => { setEditingAnnualGoal(false); handleSaveTargets(); }} className="h-12 w-12">
+                    <Button size="icon" variant="ghost" onClick={() => { 
+                      setEditingAnnualGoal(false); 
+                      // When saving annual goal, distribute evenly to all months
+                      const newMonthly: { [month: number]: number } = {};
+                      const perMonth = annualGoal / 12;
+                      for (let i = 1; i <= 12; i++) newMonthly[i] = perMonth;
+                      setEditableMonthlyGoals(newMonthly);
+                      handleSaveTargets(); 
+                    }} className="h-12 w-12">
                       <Save className="w-5 h-5 text-success" />
                     </Button>
                     <Button size="icon" variant="ghost" onClick={() => setEditingAnnualGoal(false)} className="h-12 w-12">
