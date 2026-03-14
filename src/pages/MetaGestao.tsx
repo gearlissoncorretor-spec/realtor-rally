@@ -41,7 +41,7 @@ import {
   Plus,
   Loader2
 } from 'lucide-react';
-import { formatCurrency, formatCurrencyCompact, formatPercentage } from '@/utils/formatting';
+import { formatCurrency, formatPercentage } from '@/utils/formatting';
 import { format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachMonthOfInterval, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -207,12 +207,11 @@ const MetaGestao = () => {
     setEditableMonthlyGoals(savedMonthlyGoals);
   }, [monthlyGoals, selectedYear]);
   
+  // Distribute annual goal evenly across 12 months (simple equal split)
   const calculateMonthlyProgression = (annualTarget: number): number[] => {
     if (annualTarget <= 0) return Array(12).fill(0);
-    const baseValue = annualTarget / 36;
-    const totalGrowthNeeded = annualTarget - (12 * baseValue);
-    const growthIncrement = totalGrowthNeeded / 66;
-    return Array.from({ length: 12 }, (_, i) => baseValue + (i * growthIncrement));
+    const monthlyValue = annualTarget / 12;
+    return Array(12).fill(monthlyValue);
   };
   
   const monthlyProgression = calculateMonthlyProgression(annualGoal);
@@ -255,9 +254,8 @@ const MetaGestao = () => {
   const handleSaveTargets = async () => {
     setSavingTargets(true);
     try {
-      const progression = calculateMonthlyProgression(annualGoal);
       for (let month = 1; month <= 12; month++) {
-        const monthlyValue = progression[month - 1];
+        const monthlyValue = getMonthlyGoal(month);
         const existingTarget = targets.find(t => t.year === selectedYear && t.month === month && (t as any).team_id === teamFilter);
         if (existingTarget) {
           if (Math.abs(existingTarget.target_value - monthlyValue) > 0.01) {
@@ -382,7 +380,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-primary/50" />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Meta Anual</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrencyCompact(annualGoal)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(annualGoal)}</p>
                 <div className="flex items-center gap-1 mt-2">
                   <Target className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs text-muted-foreground">Objetivo {selectedYear}</span>
@@ -394,7 +392,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-info to-info/50" />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Realizado</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrencyCompact(yearlyData.totalVGV)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(yearlyData.totalVGV)}</p>
                 <div className="flex items-center gap-1 mt-2">
                   <DollarSign className="w-3.5 h-3.5 text-info" />
                   <span className="text-xs text-muted-foreground">{yearlyData.totalSales} vendas</span>
@@ -471,7 +469,7 @@ const MetaGestao = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Progressão: <strong>{formatCurrencyCompact(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrencyCompact(monthlyProgression[11])}</strong> (Dez)
+                  Progressão: <strong>{formatCurrency(monthlyProgression[0])}</strong> (Jan) → <strong>{formatCurrency(monthlyProgression[11])}</strong> (Dez)
                 </p>
               </div>
               
@@ -628,7 +626,7 @@ const MetaGestao = () => {
                               />
                             ) : (
                               <div className="flex items-center justify-center gap-1">
-                                <span className="font-mono text-sm text-foreground">{formatCurrencyCompact(currentGoalValue)}</span>
+                                <span className="font-mono text-sm text-foreground">{formatCurrency(currentGoalValue)}</span>
                                 {canManage && (
                                   <Button size="icon" variant="ghost" onClick={() => setEditingMonthlyGoal(monthIndex)} className="h-6 w-6">
                                     <Edit2 className="w-3 h-3 text-muted-foreground" />
@@ -659,12 +657,12 @@ const MetaGestao = () => {
                             )}
                           </td>
                           <td className="text-right py-3 px-2 font-mono text-sm font-medium text-foreground">
-                            {formatCurrencyCompact(achieved)}
+                            {formatCurrency(achieved)}
                           </td>
                           <td className={cn("text-right py-3 px-2 font-mono text-sm", difference >= 0 ? "text-success" : "text-destructive")}>
                             <span className="flex items-center justify-end gap-1">
                               {difference >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                              {formatCurrencyCompact(Math.abs(difference))}
+                              {formatCurrency(Math.abs(difference))}
                             </span>
                           </td>
                           <td className="text-center py-3 px-2">
@@ -684,11 +682,11 @@ const MetaGestao = () => {
                     })}
                     <tr className="bg-muted/50 font-semibold">
                       <td className="py-3 px-2 text-sm text-foreground">Total</td>
-                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrencyCompact(recalculatedAnnualGoal)}</td>
+                      <td className="text-center py-3 px-2 font-mono text-sm">{formatCurrency(recalculatedAnnualGoal)}</td>
                       <td className="text-center py-3 px-2 font-mono text-sm">{brokerHiringGoal}</td>
-                      <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrencyCompact(yearlyData.totalVGV)}</td>
+                      <td className="text-right py-3 px-2 font-mono text-sm">{formatCurrency(yearlyData.totalVGV)}</td>
                       <td className={cn("text-right py-3 px-2 font-mono text-sm", yearlyData.totalVGV - recalculatedAnnualGoal >= 0 ? "text-success" : "text-destructive")}>
-                        {formatCurrencyCompact(Math.abs(yearlyData.totalVGV - recalculatedAnnualGoal))}
+                        {formatCurrency(Math.abs(yearlyData.totalVGV - recalculatedAnnualGoal))}
                       </td>
                       <td className="text-center py-3 px-2 text-sm">{annualProgress.toFixed(0)}%</td>
                       <td></td>
@@ -811,20 +809,20 @@ const MetaGestao = () => {
                 {[
                   { 
                     label: 'Melhor Mês', 
-                    value: performanceStats?.bestMonth ? formatCurrencyCompact(performanceStats.bestMonth.achieved) : 'R$ 0',
+                    value: performanceStats?.bestMonth ? formatCurrency(performanceStats.bestMonth.achieved) : 'R$ 0,00',
                     sub: performanceStats?.bestMonth ? format(performanceStats.bestMonth.month, 'MMMM', { locale: ptBR }) : '-',
                     icon: '🏆'
                   },
                   { 
                     label: 'Pior Mês', 
-                    value: performanceStats?.worstMonth ? formatCurrencyCompact(performanceStats.worstMonth.achieved) : 'R$ 0',
+                    value: performanceStats?.worstMonth ? formatCurrency(performanceStats.worstMonth.achieved) : 'R$ 0,00',
                     sub: performanceStats?.worstMonth ? format(performanceStats.worstMonth.month, 'MMMM', { locale: ptBR }) : '-',
                     icon: '📉'
                   },
                   { label: 'Vendas no Ano', value: String(yearlyData.totalSales || 0), sub: 'unidades', icon: '🏠' },
                   { 
                     label: 'Distância p/ Meta', 
-                    value: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? 'Atingida!' : formatCurrencyCompact(remaining),
+                    value: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? 'Atingida!' : formatCurrency(remaining),
                     sub: yearlyData.totalVGV >= annualGoal && annualGoal > 0 ? '✅' : 'restantes',
                     icon: '🎯'
                   },
