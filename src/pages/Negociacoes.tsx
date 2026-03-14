@@ -62,6 +62,12 @@ const PROPERTY_TYPES = [
   { value: 'rural', label: 'Rural' },
 ];
 
+const TEMPERATURE_OPTIONS = [
+  { value: 'fria', label: '❄️ Fria', color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/30' },
+  { value: 'morna', label: '🌤️ Morna', color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/30' },
+  { value: 'quente', label: '🔥 Quente', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/30' },
+];
+
 const Negociacoes = () => {
   const { user, isCorretor } = useAuth();
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
