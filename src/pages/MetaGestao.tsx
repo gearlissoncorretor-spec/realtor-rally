@@ -797,7 +797,7 @@ const MetaGestao = () => {
                           <td className="text-center py-3 px-2">
                             {editingMonthlyGoal === monthIndex && canManage ? (
                               <CurrencyInput
-                                value={editableMonthlyGoals[monthIndex] ?? monthlyProgression[idx] ?? 0}
+                                value={editableMonthlyGoals[monthIndex] ?? getMonthlyGoal(monthIndex)}
                                 onChange={(val) => handleMonthlyGoalChange(monthIndex, val)}
                                 onBlur={() => { saveMonthlyGoal(monthIndex); setEditingMonthlyGoal(null); }}
                                 className="h-8 text-sm text-center max-w-[120px] mx-auto"
