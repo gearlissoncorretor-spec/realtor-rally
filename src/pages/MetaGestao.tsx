@@ -98,7 +98,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
     const monthMap = new Map<number, (typeof scopedTargets)[number]>();
 
     scopedTargets
-      .filter((target) => target.year === year)
+      .filter((target) => target.year === year && target.month > 0)
       .forEach((target) => {
         const current = monthMap.get(target.month);
         if (!current || getRecordTimestamp(target) >= getRecordTimestamp(current)) {
