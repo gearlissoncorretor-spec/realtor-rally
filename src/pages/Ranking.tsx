@@ -1646,6 +1646,8 @@ const Ranking = () => {
   const [selectedTeam, setSelectedTeam] = useState('all');
   const [showConfetti, setShowConfetti] = useState(false);
   const [rankingType, setRankingType] = useState<RankingType>('vendas');
+  const [sortField, setSortField] = useState<SortField>('vgv');
+  const [isExpanded, setIsExpanded] = useState(false);
   const [tvRankingMode, setTVRankingMode] = useState<TVRankingMode>('alternate');
   const [tvSlideInterval, setTVSlideInterval] = useState<number>(() => {
     const saved = localStorage.getItem('tv-slide-interval');
