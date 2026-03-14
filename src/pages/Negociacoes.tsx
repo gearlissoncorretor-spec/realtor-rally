@@ -84,6 +84,7 @@ const Negociacoes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterTemperature, setFilterTemperature] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("newest");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   
