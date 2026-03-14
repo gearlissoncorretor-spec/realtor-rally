@@ -231,6 +231,7 @@ const Negociacoes = () => {
       status: negotiation.status,
       start_date: negotiation.start_date,
       observations: negotiation.observations || '',
+      temperature: negotiation.temperature || 'morna',
     });
     setIsFormOpen(true);
   };
