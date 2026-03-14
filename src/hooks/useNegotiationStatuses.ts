@@ -19,6 +19,7 @@ export const DEFAULT_NEGOTIATION_STATUSES = [
   { value: 'em_aprovacao', label: 'Em Aprovação', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', icon: '🟡', order_index: 1, is_active: true, is_system: true },
   { value: 'cliente_reprovado', label: 'Cliente Reprovado', color: 'bg-red-500/10 text-red-500 border-red-500/20', icon: '🔴', order_index: 2, is_active: true, is_system: true },
   { value: 'cliente_aprovado', label: 'Cliente Aprovado', color: 'bg-green-500/10 text-green-500 border-green-500/20', icon: '🟢', order_index: 3, is_active: true, is_system: true },
+  { value: 'contrato', label: 'Contrato', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', icon: '📋', order_index: 4, is_active: true, is_system: true },
   { value: 'perdida', label: 'Perdida', color: 'bg-gray-500/10 text-gray-500 border-gray-500/20', icon: '❌', order_index: 98, is_active: true, is_system: true },
   { value: 'venda_concluida', label: 'Venda Concluída', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', icon: '💰', order_index: 99, is_active: true, is_system: true },
 ];
