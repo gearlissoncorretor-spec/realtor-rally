@@ -392,7 +392,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-info to-info/50" />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Realizado</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrencyCompact(yearlyData.totalVGV)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(yearlyData.totalVGV)}</p>
                 <div className="flex items-center gap-1 mt-2">
                   <DollarSign className="w-3.5 h-3.5 text-info" />
                   <span className="text-xs text-muted-foreground">{yearlyData.totalSales} vendas</span>
