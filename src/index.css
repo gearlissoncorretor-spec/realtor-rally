@@ -348,9 +348,45 @@
     50% { background-position: 100% 50%; }
   }
 
+  @keyframes spotlight-pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.08); }
+  }
+
+  @keyframes medal-pulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(250,204,21,0.3)); }
+    50% { transform: scale(1.12); filter: drop-shadow(0 0 12px rgba(250,204,21,0.6)); }
+  }
+
+  @keyframes number-count {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glow-champion {
+    0%, 100% { box-shadow: 0 0 20px rgba(250,204,21,0.2), 0 0 40px rgba(250,204,21,0.1); }
+    50% { box-shadow: 0 0 30px rgba(250,204,21,0.4), 0 0 60px rgba(250,204,21,0.2); }
+  }
+
   .animate-podium-rise {
     animation: podium-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
+  }
+
+  .animate-spotlight-pulse {
+    animation: spotlight-pulse 3s ease-in-out infinite;
+  }
+
+  .animate-medal-pulse {
+    animation: medal-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-number-count {
+    animation: number-count 0.5s ease-out forwards;
+  }
+
+  .animate-glow-champion {
+    animation: glow-champion 2.5s ease-in-out infinite;
   }
 
   .hover-lift {
@@ -371,6 +407,37 @@
     );
     background-size: 1000px 100%;
     animation: shimmer 3s infinite;
+  }
+
+  /* Glass pedestal effect */
+  .glass-pedestal {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Pedestal reflection */
+  .pedestal-reflection {
+    position: relative;
+  }
+  .pedestal-reflection::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 10%;
+    right: 10%;
+    height: 8px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.04), transparent);
+    border-radius: 0 0 50% 50%;
+    filter: blur(2px);
+  }
+
+  /* Gradient separator */
+  .gradient-separator {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), hsl(var(--warning) / 0.3), hsl(var(--primary) / 0.4), transparent);
   }
 
   /* Responsive typography */
