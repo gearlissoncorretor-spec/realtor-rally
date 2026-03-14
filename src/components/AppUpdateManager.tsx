@@ -1,61 +1,33 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 
 export const AppUpdateManager = () => {
-  const applyUpdate = useCallback((worker: ServiceWorker | null) => {
-    if (worker) {
-      worker.postMessage({ type: 'SKIP_WAITING' });
-    }
-    window.location.reload();
-  }, []);
-
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
-    const handleControllerChange = () => {
-      window.location.reload();
-    };
-
-    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
-
-    const checkForUpdates = async () => {
+    // Only apply updates on page load (when user enters/re-enters the app)
+    const applyPendingUpdate = async () => {
       try {
         const registration = await navigator.serviceWorker.ready;
-        
-        // Auto-apply if there's a waiting worker
+
         if (registration.waiting) {
-          applyUpdate(registration.waiting);
-          return;
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
 
-        // Listen for new updates and auto-apply
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (!newWorker) return;
-
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              applyUpdate(newWorker);
-            }
-          });
-        });
-
-        // Periodic check every 2 minutes
-        const interval = setInterval(() => {
-          registration.update().catch(console.error);
-        }, 2 * 60 * 1000);
-
-        return () => clearInterval(interval);
+        // Check for new version on load, but don't auto-reload
+        await registration.update();
+        
+        if (registration.waiting) {
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
       } catch (e) {
-        console.error('SW registration error:', e);
+        console.error('SW update check error:', e);
       }
     };
 
-    checkForUpdates();
+    applyPendingUpdate();
 
-    return () => {
-      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-    };
-  }, [applyUpdate]);
+    // No periodic checks, no auto-reload while using the app
+  }, []);
 
   return null;
 };
