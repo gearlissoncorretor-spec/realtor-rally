@@ -512,13 +512,17 @@ const FollowUpPage = () => {
                     {sortedFollowUps.map((followUp) => {
                       const dateStatus = getDateStatus(followUp.next_contact_date);
                       const statusConfig = getStatusByValue(followUp.status);
+                      const daysLabel = getDaysLabel(followUp.next_contact_date);
+                      const isExpanded = expandedId === followUp.id;
                       return (
                         <Card
                           key={followUp.id}
                           className={cn(
-                            "border border-border/50",
-                            dateStatus === 'overdue' && 'border-red-500/30 bg-red-500/5',
-                            dateStatus === 'today' && 'border-yellow-500/30 bg-yellow-500/5'
+                            "border-l-4 transition-all",
+                            dateStatus === 'overdue' && 'border-l-destructive bg-destructive/5',
+                            dateStatus === 'today' && 'border-l-yellow-500 bg-yellow-500/5',
+                            dateStatus === 'future' && 'border-l-primary/30',
+                            !dateStatus && 'border-l-border'
                           )}
                         >
                           <CardContent className="p-4 space-y-3">
@@ -537,12 +541,24 @@ const FollowUpPage = () => {
                                   </a>
                                 )}
                               </div>
-                              <FollowUpStatusBadge
-                                status={followUp.status}
-                                label={statusConfig?.label}
-                                color={statusConfig?.color}
-                                icon={statusConfig?.icon}
-                              />
+                              <div className="flex flex-col items-end gap-1">
+                                <FollowUpStatusBadge
+                                  status={followUp.status}
+                                  label={statusConfig?.label}
+                                  color={statusConfig?.color}
+                                  icon={statusConfig?.icon}
+                                />
+                                {daysLabel && (
+                                  <span className={cn(
+                                    "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
+                                    dateStatus === 'overdue' && 'bg-destructive/10 text-destructive',
+                                    dateStatus === 'today' && 'bg-yellow-500/10 text-yellow-600',
+                                    dateStatus === 'future' && 'bg-muted text-muted-foreground'
+                                  )}>
+                                    {daysLabel}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                               <div>
@@ -562,19 +578,37 @@ const FollowUpPage = () => {
                                 {followUp.next_contact_date ? (
                                   <span className={cn(
                                     "flex items-center gap-1 text-sm",
-                                    dateStatus === 'overdue' && 'text-red-600 font-medium',
+                                    dateStatus === 'overdue' && 'text-destructive font-medium',
                                     dateStatus === 'today' && 'text-yellow-600 font-medium'
                                   )}>
-                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3" />}
-                                    {dateStatus === 'today' && <Clock className="w-3 h-3" />}
+                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3 animate-pulse" />}
+                                    {dateStatus === 'today' && <Clock className="w-3 h-3 animate-pulse" />}
                                     {format(parseISO(followUp.next_contact_date), "dd/MM/yy", { locale: ptBR })}
                                   </span>
                                 ) : <span className="text-muted-foreground">-</span>}
                               </div>
                             </div>
+
+                            {/* Expandable contact history */}
+                            <button
+                              onClick={() => setExpandedId(isExpanded ? null : followUp.id)}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                            >
+                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                              Histórico de contatos
+                            </button>
+                            {isExpanded && (
+                              <div className="pl-2 border-l-2 border-border/50">
+                                <FollowUpContactHistory followUpId={followUp.id} />
+                              </div>
+                            )}
+
                             <div className="flex items-center gap-2 pt-1 border-t border-border/30">
                               <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="flex-1 h-9 gap-1">
                                 <Handshake className="w-4 h-4" /> Negociação
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} className="h-9" title="Notas">
+                                <StickyNote className="w-4 h-4" />
                               </Button>
                               <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} className="h-9">
                                 <Phone className="w-4 h-4" />
