@@ -143,7 +143,7 @@ const Negociacoes = () => {
   // Filter negotiations (active tab)
   const filteredNegotiations = useMemo(() => {
     const terminalStatuses = ['perdida', 'venda_concluida'];
-    return negotiations.filter(negotiation => {
+    const filtered = negotiations.filter(negotiation => {
       const matchesSearch = 
         negotiation.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         negotiation.property_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -155,7 +155,13 @@ const Negociacoes = () => {
       
       return matchesSearch && matchesStatus && matchesTemperature && isActive;
     });
-  }, [negotiations, searchTerm, filterStatus, filterTemperature]);
+
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+  }, [negotiations, searchTerm, filterStatus, filterTemperature, sortOrder]);
 
   // Filter lost negotiations
   const filteredLostNegotiations = useMemo(() => {
