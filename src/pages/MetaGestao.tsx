@@ -665,7 +665,7 @@ const MetaGestao = () => {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Progressão: <strong>{formatCurrency(getMonthlyGoal(1))}</strong> (Jan) → <strong>{formatCurrency(getMonthlyGoal(12))}</strong> (Dez)
+                  Meta definida manualmente pelo gestor — independente das metas mensais.
                 </p>
               </div>
               
