@@ -1701,7 +1701,15 @@ const Ranking = () => {
   // Can manage spotlight
   const canManageSpotlight = isDiretor() || isAdmin() || isGerente();
 
-  // Build teams list with real names
+  // Enforce hierarchy: gerente/corretor locked to their team
+  const effectiveTeamFilter = useMemo(() => {
+    if (isGerente() || isCorretor()) {
+      return profile?.team_id || teamHierarchy?.team_id || 'none';
+    }
+    return selectedTeam;
+  }, [isGerente, isCorretor, profile, teamHierarchy, selectedTeam]);
+
+  // Build teams list with real names (only for directors)
   const teamsForFilter = useMemo(() => {
     return teams.map(t => ({ id: t.id, name: t.name }));
   }, [teams]);
