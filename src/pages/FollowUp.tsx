@@ -456,7 +456,7 @@ const FollowUpPage = () => {
           {/* Filters */}
           <Card>
             <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
@@ -467,7 +467,7 @@ const FollowUpPage = () => {
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full sm:w-48">
+                  <SelectTrigger className="w-full sm:w-44">
                     <SelectValue placeholder="Filtrar status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -479,6 +479,21 @@ const FollowUpPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {!isCorretor() && (
+                  <Select value={filterBroker} onValueChange={setFilterBroker}>
+                    <SelectTrigger className="w-full sm:w-44">
+                      <SelectValue placeholder="Filtrar corretor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os corretores</SelectItem>
+                      {brokers.map((broker) => (
+                        <SelectItem key={broker.id} value={broker.id}>
+                          {broker.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </CardContent>
           </Card>
