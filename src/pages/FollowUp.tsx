@@ -70,6 +70,7 @@ const FollowUpPage = () => {
   const [editingFollowUp, setEditingFollowUp] = useState<FollowUpType | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterBroker, setFilterBroker] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
   // Conversion dialog
@@ -80,6 +81,13 @@ const FollowUpPage = () => {
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [selectedForContact, setSelectedForContact] = useState<FollowUpType | null>(null);
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
+
+  // Notes dialog
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedForNotes, setSelectedForNotes] = useState<FollowUpType | null>(null);
+
+  // Expanded contact history (mobile)
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   
   // Form state
   const [formData, setFormData] = useState<CreateFollowUpInput>({
