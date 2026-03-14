@@ -606,10 +606,10 @@ const MetaGestao = () => {
             </Card>
             
             <Card className="border-border/50 bg-card relative overflow-hidden">
-              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", probability.current >= 70 ? "bg-gradient-to-r from-success to-success/50" : probability.current >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
+              <div className={cn("absolute top-0 left-0 right-0 h-[2px]", componentProbability.current >= 70 ? "bg-gradient-to-r from-success to-success/50" : componentProbability.current >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4 sm:p-5">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Probabilidade</p>
-                <p className="text-xl sm:text-2xl font-bold text-foreground">{probability.current}%</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">{componentProbability.current}%</p>
                 <div className="flex items-center gap-1 mt-2">
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                   <span className="text-xs text-muted-foreground">projeção anual</span>
