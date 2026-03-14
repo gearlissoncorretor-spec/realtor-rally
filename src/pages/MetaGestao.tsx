@@ -239,91 +239,152 @@ const MetaGestao = () => {
   const [editingBrokerHiringGoal, setEditingBrokerHiringGoal] = useState(false);
   const [editingMonthlyGoal, setEditingMonthlyGoal] = useState<number | null>(null);
   const [editingMonthlyBroker, setEditingMonthlyBroker] = useState<number | null>(null);
-  
+
   const canManage = isAdmin() || isDiretor() || isGerente();
   const { yearlyData, monthlyGoals, brokerStats, performanceStats, probability } = useManagementGoals(selectedYear, teamFilter);
   const isLoading = brokersLoading || teamsLoading || targetsLoading || salesLoading;
-  
+
   // Track which months have been manually saved in DB
   const [dbMonthlyGoals, setDbMonthlyGoals] = useState<{ [month: number]: number }>({});
-  
+
+  const scopedTargetsByMonth = useMemo(() => {
+    const monthMap = new Map<number, (typeof targets)[number]>();
+
+    targets
+      .filter((target) => {
+        if (target.year !== selectedYear) return false;
+        if (target.broker_id !== null) return false;
+        if (teamFilter) return target.team_id === teamFilter;
+        return target.team_id === null;
+      })
+      .forEach((target) => {
+        const existing = monthMap.get(target.month);
+        if (!existing || getRecordTimestamp(target) >= getRecordTimestamp(existing)) {
+          monthMap.set(target.month, target);
+        }
+      });
+
+    return monthMap;
+  }, [targets, selectedYear, teamFilter]);
+
   useEffect(() => {
     const savedMonthlyGoals: { [month: number]: number } = {};
     const savedAnnualTotal = monthlyGoals.reduce((sum, goal) => {
       savedMonthlyGoals[goal.monthIndex] = goal.target;
       return sum + goal.target;
     }, 0);
+
     setAnnualGoal(savedAnnualTotal);
     setEditableMonthlyGoals(savedMonthlyGoals);
     setDbMonthlyGoals(savedMonthlyGoals);
-  }, [monthlyGoals, selectedYear]);
-  
-  // Distribute annual goal evenly across 12 months (simple equal split)
-  const calculateMonthlyProgression = (annualTarget: number): number[] => {
-    if (annualTarget <= 0) return Array(12).fill(0);
-    const monthlyValue = annualTarget / 12;
-    return Array(12).fill(monthlyValue);
+  }, [monthlyGoals, selectedYear, teamFilter]);
+
+  const buildLinearMonthlyGoalMap = (annualTarget: number): { [month: number]: number } => {
+    const normalizedAnnual = Math.max(0, Number(annualTarget) || 0);
+    if (normalizedAnnual === 0) {
+      return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
+        acc[month] = 0;
+        return acc;
+      }, {} as { [month: number]: number });
+    }
+
+    const base = Math.floor((normalizedAnnual / 12) * 100) / 100;
+    let remainderInCents = Math.round((normalizedAnnual - base * 12) * 100);
+
+    return Array.from({ length: 12 }, (_, index) => index + 1).reduce((acc, month) => {
+      const increment = remainderInCents > 0 ? 0.01 : 0;
+      acc[month] = Number((base + increment).toFixed(2));
+      remainderInCents = Math.max(0, remainderInCents - 1);
+      return acc;
+    }, {} as { [month: number]: number });
   };
-  
-  const monthlyProgression = calculateMonthlyProgression(annualGoal);
-  
+
+  const fallbackMonthlyValue = annualGoal > 0 ? annualGoal / 12 : 0;
+
   const getMonthlyGoal = (monthIndex: number): number => {
-    // If user manually edited this month, use that value
-    if (editableMonthlyGoals[monthIndex] !== undefined && editableMonthlyGoals[monthIndex] !== dbMonthlyGoals[monthIndex]) {
-      return editableMonthlyGoals[monthIndex];
-    }
-    // If there's a saved DB value and user hasn't changed the annual goal, use DB value
-    if (dbMonthlyGoals[monthIndex] !== undefined && dbMonthlyGoals[monthIndex] > 0) {
-      return dbMonthlyGoals[monthIndex];
-    }
-    // Otherwise use the calculated progression
-    return monthlyProgression[monthIndex - 1] || 0;
+    if (editableMonthlyGoals[monthIndex] !== undefined) return editableMonthlyGoals[monthIndex];
+    if (dbMonthlyGoals[monthIndex] !== undefined) return dbMonthlyGoals[monthIndex];
+    return fallbackMonthlyValue;
   };
-  
-  const recalculatedAnnualGoal = useMemo(() => {
-    let total = 0;
-    for (let i = 1; i <= 12; i++) total += getMonthlyGoal(i);
-    return total;
-  }, [editableMonthlyGoals, dbMonthlyGoals, monthlyProgression]);
-  
+
+  const monthlyProgression = useMemo(
+    () => Array.from({ length: 12 }, (_, index) => getMonthlyGoal(index + 1)),
+    [editableMonthlyGoals, dbMonthlyGoals, fallbackMonthlyValue]
+  );
+
+  const recalculatedAnnualGoal = useMemo(
+    () => monthlyProgression.reduce((sum, monthlyValue) => sum + monthlyValue, 0),
+    [monthlyProgression]
+  );
+
+  const effectiveAnnualGoal = Math.max(0, recalculatedAnnualGoal);
+
   const handleMonthlyGoalChange = (monthIndex: number, value: number) => {
-    setEditableMonthlyGoals(prev => ({ ...prev, [monthIndex]: value }));
+    setEditableMonthlyGoals((prev) => ({ ...prev, [monthIndex]: Math.max(0, value || 0) }));
   };
-  
+
   const handleMonthlyBrokerChange = async (monthIndex: number, value: number) => {
-    setEditableMonthlyBrokers(prev => ({ ...prev, [monthIndex]: value }));
+    setEditableMonthlyBrokers((prev) => ({ ...prev, [monthIndex]: value }));
   };
-  
+
   const saveMonthlyGoal = async (monthIndex: number) => {
-    const value = editableMonthlyGoals[monthIndex];
-    if (value === undefined) return;
+    const value = Math.max(0, editableMonthlyGoals[monthIndex] || 0);
+
     try {
-      const existingTarget = targets.find(t => t.year === selectedYear && t.month === monthIndex && (t as any).team_id === teamFilter);
+      const existingTarget = scopedTargetsByMonth.get(monthIndex);
       if (existingTarget) {
         await updateTarget(existingTarget.id, { target_value: value });
       } else {
-        await createTarget({ year: selectedYear, month: monthIndex, target_value: value, team_id: teamFilter } as any);
+        await createTarget({
+          year: selectedYear,
+          month: monthIndex,
+          target_value: value,
+          team_id: teamFilter ?? null,
+          broker_id: null,
+        } as any);
       }
+
+      setDbMonthlyGoals((prev) => ({ ...prev, [monthIndex]: value }));
+      setEditableMonthlyGoals((prev) => ({ ...prev, [monthIndex]: value }));
       toast.success(`Meta de ${format(new Date(selectedYear, monthIndex - 1), 'MMMM', { locale: ptBR })} salva!`);
     } catch (error) {
       toast.error('Erro ao salvar meta mensal');
     }
   };
-  
-  const handleSaveTargets = async () => {
+
+  const handleSaveTargets = async (monthlyOverrides?: { [month: number]: number }) => {
     setSavingTargets(true);
+
     try {
+      const operations: Promise<void>[] = [];
+
       for (let month = 1; month <= 12; month++) {
-        const monthlyValue = getMonthlyGoal(month);
-        const existingTarget = targets.find(t => t.year === selectedYear && t.month === month && (t as any).team_id === teamFilter);
+        const monthlyValue = Math.max(0, Number(monthlyOverrides?.[month] ?? getMonthlyGoal(month)) || 0);
+        const existingTarget = scopedTargetsByMonth.get(month);
+
         if (existingTarget) {
           if (Math.abs(existingTarget.target_value - monthlyValue) > 0.01) {
-            await updateTarget(existingTarget.id, { target_value: monthlyValue });
+            operations.push(updateTarget(existingTarget.id, { target_value: monthlyValue }));
           }
         } else if (monthlyValue > 0) {
-          await createTarget({ year: selectedYear, month: month, target_value: monthlyValue, team_id: teamFilter } as any);
+          operations.push(
+            createTarget({
+              year: selectedYear,
+              month,
+              target_value: monthlyValue,
+              team_id: teamFilter ?? null,
+              broker_id: null,
+            } as any)
+          );
         }
       }
+
+      await Promise.all(operations);
+
+      if (monthlyOverrides) {
+        setEditableMonthlyGoals(monthlyOverrides);
+      }
+
       toast.success('Metas salvas com sucesso!');
     } catch (error) {
       toast.error('Erro ao salvar metas');
@@ -331,11 +392,11 @@ const MetaGestao = () => {
       setSavingTargets(false);
     }
   };
-  
-  const annualProgress = annualGoal > 0 ? (yearlyData.totalVGV / annualGoal) * 100 : 0;
-  const isGoalExceeded = yearlyData.totalVGV >= annualGoal && annualGoal > 0;
-  const remaining = Math.max(0, annualGoal - yearlyData.totalVGV);
-  const exceededBy = Math.max(0, yearlyData.totalVGV - annualGoal);
+
+  const annualProgress = effectiveAnnualGoal > 0 ? (yearlyData.totalVGV / effectiveAnnualGoal) * 100 : 0;
+  const isGoalExceeded = yearlyData.totalVGV >= effectiveAnnualGoal && effectiveAnnualGoal > 0;
+  const remaining = Math.max(0, effectiveAnnualGoal - yearlyData.totalVGV);
+  const exceededBy = Math.max(0, yearlyData.totalVGV - effectiveAnnualGoal);
 
   // Smart status label based on progress
   const getGoalStatus = (progress: number) => {
