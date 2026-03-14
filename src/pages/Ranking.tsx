@@ -1781,8 +1781,8 @@ const Ranking = () => {
   // All brokers including managers - used for summary stats
   const allBrokerRankings: BrokerRanking[] = useMemo(() => {
     let filteredBrokers = brokers;
-    if (selectedTeam !== 'all') {
-      filteredBrokers = brokers.filter(b => b.team_id === selectedTeam);
+    if (effectiveTeamFilter !== 'all') {
+      filteredBrokers = brokers.filter(b => b.team_id === effectiveTeamFilter);
     }
 
     const rankings = filteredBrokers
