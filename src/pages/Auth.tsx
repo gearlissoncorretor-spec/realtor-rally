@@ -277,7 +277,10 @@ const Auth = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8 space-y-1">
+        <div className="text-center mt-8 space-y-2">
+          <button onClick={() => navigate("/landing")} className="text-blue-400 hover:text-blue-300 text-sm font-medium transition">
+            🌐 Conheça o sistema
+          </button>
           <p className="text-white/30 text-xs font-medium">
             Versão 1.0 &nbsp;|&nbsp; © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
           </p>
