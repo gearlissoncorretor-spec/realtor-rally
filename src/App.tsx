@@ -69,7 +69,9 @@ const AuthenticatedLayout = () => {
   return (
     <DataProvider>
       <RealtimeSyncProvider />
-      <Outlet />
+      <OfflineProvider>
+        <Outlet />
+      </OfflineProvider>
     </DataProvider>
   );
 };
