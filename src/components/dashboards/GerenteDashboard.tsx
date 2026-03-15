@@ -41,6 +41,7 @@ const GerenteDashboard = () => {
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
   const [rankingExpanded, setRankingExpanded] = useState(false);
+  const [alertsDismissed, setAlertsDismissed] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
@@ -328,9 +329,16 @@ const GerenteDashboard = () => {
           )}
 
           {/* 2. Alerts */}
-          {sections.includes('alerts') && brokersWithoutSales.length > 0 && (
-            <div className="rounded-xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent p-4">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
+          {sections.includes('alerts') && brokersWithoutSales.length > 0 && !alertsDismissed && (
+            <div className="rounded-xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent p-4 relative">
+              <button
+                onClick={() => setAlertsDismissed(true)}
+                className="absolute top-2 right-2 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                aria-label="Fechar alerta"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 pr-6">
                 <AlertTriangle className="w-4 h-4 text-red-400" /> Atenção — Corretores sem atividade
               </h2>
               <div className="flex flex-wrap gap-2">
