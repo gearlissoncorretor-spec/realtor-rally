@@ -5,20 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, KeyRound, Loader2, ArrowLeft, Mail, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Mail, UserPlus } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
+  const [view, setView] = useState<"login" | "signup" | "forgot">("login");
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [signupForm, setSignupForm] = useState({ email: "", password: "", fullName: "" });
-  
+
   const { signIn, signUp, resetPassword, user, loading, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -59,6 +58,28 @@ const Auth = () => {
     }
   };
 
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (signupForm.password.length < 8) {
+      toast({ title: "Senha fraca", description: "A senha deve ter pelo menos 8 caracteres", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
+      if (error) {
+        toast({ title: "Erro no cadastro", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Conta criada!", description: "Verifique seu email para confirmar o cadastro." });
+        setView("login");
+      }
+    } catch {
+      toast({ title: "Erro", description: "Ocorreu um erro inesperado", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail.trim()) return;
@@ -79,14 +100,13 @@ const Auth = () => {
   };
 
   const orgName = settings?.organization_name || 'Axis';
-  const tagline = settings?.organization_tagline || 'A evolução da gestão imobiliária';
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const initial = orgName.charAt(0).toUpperCase();
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
       <AnimatedBackground />
-      
+
       <div className="relative z-10 w-full max-w-md animate-float-up">
         {/* Logo and Title */}
         <div className="text-center mb-10 space-y-4">
@@ -112,21 +132,15 @@ const Auth = () => {
 
         {/* Card */}
         <div className="glass-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl hover-lift">
-          {showForgotPassword ? (
-            // Forgot Password View
+          {view === "forgot" ? (
             <div className="space-y-5">
               <div className="flex items-center gap-2 mb-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
-                  onClick={() => { setShowForgotPassword(false); setResetSent(false); setForgotEmail(""); }}
-                >
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+                  onClick={() => { setView("login"); setResetSent(false); setForgotEmail(""); }}>
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <h2 className="text-lg font-bold text-white">Esqueci minha senha</h2>
               </div>
-
               {resetSent ? (
                 <div className="text-center space-y-4 py-4">
                   <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500/20 mb-2">
@@ -134,109 +148,127 @@ const Auth = () => {
                   </div>
                   <h3 className="text-lg font-bold text-white">Email Enviado!</h3>
                   <p className="text-white/60 text-sm leading-relaxed">
-                    Enviamos um link de redefinição para <strong className="text-white/80">{forgotEmail}</strong>. 
+                    Enviamos um link de redefinição para <strong className="text-white/80">{forgotEmail}</strong>.
                     Verifique sua caixa de entrada e spam.
                   </p>
-                  <Button
-                    variant="outline"
-                    className="mt-4 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl"
-                    onClick={() => { setShowForgotPassword(false); setResetSent(false); setForgotEmail(""); }}
-                  >
+                  <Button variant="outline" className="mt-4 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl"
+                    onClick={() => { setView("login"); setResetSent(false); setForgotEmail(""); }}>
                     Voltar ao login
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={handleForgotPassword} className="space-y-5">
-                  <p className="text-white/60 text-sm">
-                    Informe seu email cadastrado. Enviaremos um link para redefinir sua senha.
-                  </p>
+                  <p className="text-white/60 text-sm">Informe seu email cadastrado. Enviaremos um link para redefinir sua senha.</p>
                   <div className="space-y-2">
                     <Label htmlFor="forgot-email" className="text-white/90 font-medium text-sm">Email</Label>
-                    <Input
-                      id="forgot-email"
-                      type="email"
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
-                      placeholder="seu@email.com"
-                      required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12"
-                    />
+                    <Input id="forgot-email" type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="seu@email.com" required
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
                   </div>
-                  <Button
-                    type="submit"
+                  <Button type="submit"
                     className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2"
-                    disabled={isSubmitting}
-                  >
+                    disabled={isSubmitting}>
                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
                     {isSubmitting ? "Enviando..." : "Enviar link de redefinição"}
                   </Button>
                 </form>
               )}
             </div>
-          ) : (
-            // Login View
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="text-center mb-2">
-                <h2 className="text-lg font-bold text-white">Acessar o sistema</h2>
+          ) : view === "signup" ? (
+            <form onSubmit={handleSignup} className="space-y-5">
+              <div className="flex items-center gap-2 mb-2">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+                  onClick={() => setView("login")}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h2 className="text-lg font-bold text-white">Criar conta</h2>
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white/90 font-medium text-sm">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="seu@email.com"
-                  required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12"
-                />
+                <Label className="text-white/90 font-medium text-sm">Nome completo</Label>
+                <Input value={signupForm.fullName} onChange={(e) => setSignupForm(p => ({ ...p, fullName: e.target.value }))}
+                  placeholder="Seu nome" required
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
               </div>
-              
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white/90 font-medium text-sm">Senha</Label>
+                <Label className="text-white/90 font-medium text-sm">Email</Label>
+                <Input type="email" value={signupForm.email} onChange={(e) => setSignupForm(p => ({ ...p, email: e.target.value }))}
+                  placeholder="seu@email.com" required
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white/90 font-medium text-sm">Senha</Label>
                 <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
-                    placeholder="••••••••"
-                    required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12 pr-12"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
+                  <Input type={showPassword ? "text" : "password"} value={signupForm.password}
+                    onChange={(e) => setSignupForm(p => ({ ...p, password: e.target.value }))}
+                    placeholder="Mínimo 8 caracteres" required minLength={8}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12 pr-12" />
+                  <Button type="button" variant="ghost" size="sm"
                     className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-white/10 text-white/70 hover:text-white rounded-lg"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
+                    onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-
+              <Button type="submit"
+                className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2"
+                disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
+                {isSubmitting ? "Criando conta..." : "Criar conta"}
+              </Button>
+              <p className="text-center text-white/40 text-xs">
+                Já tem uma conta?{" "}
+                <button type="button" onClick={() => setView("login")} className="text-blue-400 hover:text-blue-300 font-medium">
+                  Fazer login
+                </button>
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="text-center mb-2">
+                <h2 className="text-lg font-bold text-white">Acessar o sistema</h2>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white/90 font-medium text-sm">Email</Label>
+                <Input id="email" type="email" value={loginForm.email}
+                  onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="seu@email.com" required
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-white/90 font-medium text-sm">Senha</Label>
+                <div className="relative">
+                  <Input id="password" type={showPassword ? "text" : "password"} value={loginForm.password}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="••••••••" required
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12 pr-12" />
+                  <Button type="button" variant="ghost" size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-white/10 text-white/70 hover:text-white rounded-lg"
+                    onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
               <div className="text-right">
-                <Button
-                  type="button"
-                  variant="link"
-                  className="text-blue-400 hover:text-blue-300 text-sm p-0 h-auto font-medium"
-                  onClick={() => setShowForgotPassword(true)}
-                >
+                <Button type="button" variant="link" className="text-blue-400 hover:text-blue-300 text-sm p-0 h-auto font-medium"
+                  onClick={() => setView("forgot")}>
                   Esqueci minha senha
                 </Button>
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full h-13 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-base rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_6px_30px_rgba(59,130,246,0.6)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] gap-2 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700" 
-                disabled={isSubmitting}
-              >
+              <Button type="submit"
+                className="w-full h-13 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-base rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_6px_30px_rgba(59,130,246,0.6)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] gap-2 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700"
+                disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>🚀</span>}
                 {isSubmitting ? "Entrando..." : "Entrar no Sistema"}
               </Button>
-
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10" /></div>
+                <div className="relative flex justify-center text-xs"><span className="bg-transparent px-2 text-white/30">ou</span></div>
+              </div>
+              <Button type="button" variant="outline"
+                className="w-full h-12 bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-xl font-semibold gap-2"
+                onClick={() => setView("signup")}>
+                <UserPlus className="w-4 h-4" /> Criar nova conta
+              </Button>
               <p className="text-center text-white/40 text-xs mt-4 italic">
                 Grandes vendas começam com organização.
               </p>
