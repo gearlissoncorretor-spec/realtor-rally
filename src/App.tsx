@@ -69,12 +69,50 @@ const AuthenticatedLayout = () => {
   return (
     <DataProvider>
       <RealtimeSyncProvider />
-      <OfflineProvider>
-        <Outlet />
-      </OfflineProvider>
+      <Outlet />
     </DataProvider>
   );
 };
+
+const AppShell = () => (
+  <OfflineProvider>
+    <Router future={{
+      v7_startTransition: true,
+      v7_relativeSplatPath: true
+    }}>
+      <DynamicTitleUpdater />
+      <Routes>
+        <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
+        <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+        <Route element={<AuthenticatedLayout />}>
+          <Route path="/" element={<ProtectedRoute><LazyPage><Home /></LazyPage></ProtectedRoute>} />
+          <Route path="/vendas" element={<ProtectedRoute><LazyPage><Vendas /></LazyPage></ProtectedRoute>} />
+          <Route path="/corretores" element={<ProtectedRoute><LazyPage><Corretores /></LazyPage></ProtectedRoute>} />
+          <Route path="/equipes" element={<ProtectedRoute><LazyPage><Equipes /></LazyPage></ProtectedRoute>} />
+          <Route path="/ranking" element={<ProtectedRoute><LazyPage><Ranking /></LazyPage></ProtectedRoute>} />
+          <Route path="/metas" element={<ProtectedRoute><LazyPage><Metas /></LazyPage></ProtectedRoute>} />
+          <Route path="/acompanhamento" element={<ProtectedRoute><LazyPage><Acompanhamento /></LazyPage></ProtectedRoute>} />
+          <Route path="/relatorios" element={<ProtectedRoute><LazyPage><Relatorios /></LazyPage></ProtectedRoute>} />
+          <Route path="/x1" element={<ProtectedRoute><LazyPage><X1 /></LazyPage></ProtectedRoute>} />
+          <Route path="/central-gestor" element={<ProtectedRoute><LazyPage><CentralGestor /></LazyPage></ProtectedRoute>} />
+          <Route path="/dashboard-equipes" element={<ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>} />
+          <Route path="/tarefas-kanban" element={<ProtectedRoute><LazyPage><TarefasKanban /></LazyPage></ProtectedRoute>} />
+          <Route path="/atividades" element={<ProtectedRoute><LazyPage><Atividades /></LazyPage></ProtectedRoute>} />
+          <Route path="/negociacoes" element={<ProtectedRoute><LazyPage><Negociacoes /></LazyPage></ProtectedRoute>} />
+          <Route path="/follow-up" element={<ProtectedRoute><LazyPage><FollowUp /></LazyPage></ProtectedRoute>} />
+          <Route path="/meta-gestao" element={<ProtectedRoute><LazyPage><MetaGestao /></LazyPage></ProtectedRoute>} />
+          <Route path="/configuracoes" element={<ProtectedRoute><LazyPage><Configuracoes /></LazyPage></ProtectedRoute>} />
+          <Route path="/agenda" element={<ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>} />
+          <Route path="/comissoes" element={<ProtectedRoute><LazyPage><Comissoes /></LazyPage></ProtectedRoute>} />
+          <Route path="/instalar" element={<ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>} />
+          <Route path="/gestao-usuarios" element={<ProtectedRoute><LazyPage><GestaoUsuarios /></LazyPage></ProtectedRoute>} />
+          <Route path="/super-admin" element={<ProtectedRoute superAdminOnly><LazyPage><SuperAdmin /></LazyPage></ProtectedRoute>} />
+        </Route>
+        <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
+      </Routes>
+    </Router>
+  </OfflineProvider>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -83,85 +121,7 @@ const App = () => (
         <Toaster />
         <AppUpdateManager />
         <InstallPrompt />
-        <Router future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        }}>
-          <DynamicTitleUpdater />
-          <Routes>
-            <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
-            <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
-            <Route element={<AuthenticatedLayout />}>
-              <Route path="/" element={
-                <ProtectedRoute><LazyPage><Home /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/vendas" element={
-                <ProtectedRoute><LazyPage><Vendas /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/corretores" element={
-                <ProtectedRoute><LazyPage><Corretores /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/equipes" element={
-                <ProtectedRoute><LazyPage><Equipes /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/ranking" element={
-                <ProtectedRoute><LazyPage><Ranking /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/metas" element={
-                <ProtectedRoute><LazyPage><Metas /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/acompanhamento" element={
-                <ProtectedRoute><LazyPage><Acompanhamento /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/relatorios" element={
-                <ProtectedRoute><LazyPage><Relatorios /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/x1" element={
-                <ProtectedRoute><LazyPage><X1 /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/central-gestor" element={
-                <ProtectedRoute><LazyPage><CentralGestor /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/dashboard-equipes" element={
-                <ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/tarefas-kanban" element={
-                <ProtectedRoute><LazyPage><TarefasKanban /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/atividades" element={
-                <ProtectedRoute><LazyPage><Atividades /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/negociacoes" element={
-                <ProtectedRoute><LazyPage><Negociacoes /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/follow-up" element={
-                <ProtectedRoute><LazyPage><FollowUp /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/meta-gestao" element={
-                <ProtectedRoute><LazyPage><MetaGestao /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/configuracoes" element={
-                <ProtectedRoute><LazyPage><Configuracoes /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/agenda" element={
-                <ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/comissoes" element={
-                <ProtectedRoute><LazyPage><Comissoes /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/instalar" element={
-                <ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/gestao-usuarios" element={
-                <ProtectedRoute><LazyPage><GestaoUsuarios /></LazyPage></ProtectedRoute>
-              } />
-              <Route path="/super-admin" element={
-                <ProtectedRoute superAdminOnly><LazyPage><SuperAdmin /></LazyPage></ProtectedRoute>
-              } />
-            </Route>
-            <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
-          </Routes>
-        </Router>
+        <AppShell />
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
