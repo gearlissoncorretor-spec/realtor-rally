@@ -246,16 +246,16 @@ const GerenteDashboard = () => {
         <div className="space-y-5 max-w-7xl mx-auto">
 
           {/* Header */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+          <div className="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-3">
+            <div className="text-center sm:text-left w-full lg:w-auto">
+              <h1 className="text-xl lg:text-3xl font-bold text-foreground">
                 Central do Gestor
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Gestão da equipe <strong className="text-foreground">{teamHierarchy?.team_name || 'Sua Equipe'}</strong> — {format(new Date(), "dd/MM/yyyy")}
+              <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">
+                Equipe <strong className="text-foreground">{teamHierarchy?.team_name || 'Sua Equipe'}</strong> — {format(new Date(), "dd/MM/yyyy")}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-2 w-full lg:w-auto">
               <Button
                 variant={focusMode ? 'default' : 'outline'}
                 size="sm"
@@ -268,7 +268,7 @@ const GerenteDashboard = () => {
               {!focusMode && (
                 <>
                   <Button variant="outline" size="sm" className="gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => navigate('/corretores')}>
-                    <Users className="w-3.5 h-3.5" /> Minha Equipe
+                    <Users className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Minha</span> Equipe
                   </Button>
                   <Button variant="outline" size="sm" className="gap-1.5 border-blue-500/20 text-blue-400 hover:bg-blue-500/10" onClick={() => navigate('/negociacoes')}>
                     <Briefcase className="w-3.5 h-3.5" /> Negociações
@@ -277,6 +277,27 @@ const GerenteDashboard = () => {
               )}
             </div>
           </div>
+
+          {/* Mobile Quick Actions */}
+          {isMobile && !focusMode && (
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { icon: DollarSign, label: 'Venda', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', route: '/vendas' },
+                { icon: Briefcase, label: 'Negociação', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20', route: '/negociacoes' },
+                { icon: Calendar, label: 'Agenda', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', route: '/agenda' },
+                { icon: MessageCircle, label: 'Follow-up', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', route: '/follow-up' },
+              ].map(action => (
+                <button
+                  key={action.label}
+                  onClick={() => navigate(action.route)}
+                  className={cn("flex flex-col items-center gap-1 p-3 rounded-xl border transition-all active:scale-95", action.color)}
+                >
+                  <action.icon className="w-5 h-5" />
+                  <span className="text-[10px] font-medium">{action.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Focus mode banner */}
           {focusMode && (
