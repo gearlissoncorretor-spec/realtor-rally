@@ -214,6 +214,26 @@ export const useOfflineSync = () => {
     }
   }, [isOnline, syncAll]);
 
+  // Listen for SW background sync trigger
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === 'TRIGGER_OFFLINE_SYNC') {
+        syncAll();
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handler);
+    return () => navigator.serviceWorker?.removeEventListener('message', handler);
+  }, [syncAll]);
+
+  // Register background sync when going offline with pending items
+  useEffect(() => {
+    if (!isOnline && pendingCount > 0 && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        (reg as any).sync?.register?.('axis-offline-sync').catch(() => {});
+      });
+    }
+  }, [isOnline, pendingCount]);
+
   // Refresh count on mount
   useEffect(() => {
     refreshPendingCount();
