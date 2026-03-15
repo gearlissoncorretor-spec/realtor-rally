@@ -10,6 +10,7 @@ interface ProtectedRouteProps {
   requiredScreen?: string;
   adminOnly?: boolean;
   superAdminOnly?: boolean;
+  allowWithoutCompany?: boolean;
 }
 
 const LOADING_TIMEOUT = 3000;
