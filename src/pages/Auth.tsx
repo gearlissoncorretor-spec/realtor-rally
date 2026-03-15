@@ -26,9 +26,13 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate("/", { replace: true });
+      if (profile && !profile.company_id) {
+        navigate("/onboarding", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, profile, navigate]);
 
   if (loading) {
     return (
