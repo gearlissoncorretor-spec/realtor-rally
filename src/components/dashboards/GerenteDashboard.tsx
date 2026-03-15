@@ -538,18 +538,18 @@ const GerenteDashboard = () => {
 
           {/* Funil da Equipe */}
           {!focusMode && sections.includes('funnel') && (
-            <div className="rounded-xl border border-border bg-card/50 p-5">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas da Equipe
+            <div className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
+              <h2 className="text-xs lg:text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 lg:mb-4">
+                <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2 lg:space-y-3">
                 {funnelData.map(item => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground w-24 text-right">{item.label}</span>
-                    <div className="flex-1 bg-muted/30 rounded-full h-6 overflow-hidden">
+                  <div key={item.label} className="flex items-center gap-2 lg:gap-3">
+                    <span className="text-[10px] lg:text-xs text-muted-foreground w-16 lg:w-24 text-right shrink-0">{item.label}</span>
+                    <div className="flex-1 bg-muted/30 rounded-full h-5 lg:h-6 overflow-hidden">
                       <div
                         className={`h-full ${item.color} rounded-full flex items-center justify-end pr-2 transition-all`}
-                        style={{ width: `${Math.max((item.value / maxFunnel) * 100, 8)}%` }}
+                        style={{ width: `${Math.max((item.value / maxFunnel) * 100, 12)}%` }}
                       >
                         <span className="text-[10px] font-bold text-white">{item.value}</span>
                       </div>
@@ -562,28 +562,28 @@ const GerenteDashboard = () => {
 
           {/* Metrics */}
           {!focusMode && sections.includes('metrics') && (
-            <div className="rounded-xl border border-border bg-card/50 p-5">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
+            <div className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
+              <h2 className="text-xs lg:text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 lg:mb-4">
                 <Activity className="w-4 h-4 text-primary" /> Métricas Consolidadas
               </h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ticketMedio)}</p>
-                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">{formatCurrency(ticketMedio)}</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Ticket Médio</p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">
                     {activeTeamBrokers.length > 0 ? (monthSales.length / activeTeamBrokers.length).toFixed(1) : '0'}
                   </p>
-                  <p className="text-xs text-muted-foreground">Vendas/Corretor</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Vendas/Corretor</p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{conversionRate}%</p>
-                  <p className="text-xs text-muted-foreground">Taxa de Conversão</p>
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">{conversionRate}%</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Taxa de Conversão</p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(monthVGC)}</p>
-                  <p className="text-xs text-muted-foreground">Comissões do Mês</p>
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">{formatCurrency(monthVGC)}</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Comissões do Mês</p>
                 </div>
               </div>
             </div>
