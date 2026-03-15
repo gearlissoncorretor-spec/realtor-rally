@@ -83,17 +83,16 @@ export const useOfflineSync = () => {
 
       if (record.action === 'INSERT') {
         const insertData = { ...record.dados };
-        // Remove local-only fields
         delete insertData._offline_id;
-        const result = await supabase.from(table).insert(insertData);
+        const result = await supabase.from(table as any).insert(insertData as any);
         error = result.error;
       } else if (record.action === 'UPDATE') {
         const { id, ...updateData } = record.dados;
-        delete updateData._offline_id;
-        const result = await supabase.from(table).update(updateData).eq('id', id);
+        delete (updateData as any)._offline_id;
+        const result = await supabase.from(table as any).update(updateData as any).eq('id', id);
         error = result.error;
       } else if (record.action === 'DELETE') {
-        const result = await supabase.from(table).delete().eq('id', record.dados.id);
+        const result = await supabase.from(table as any).delete().eq('id', record.dados.id);
         error = result.error;
       }
 
