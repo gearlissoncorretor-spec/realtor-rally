@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, LogIn, KeyRound, Loader2, ArrowLeft, Mail } from "lucide-react";
+import { Eye, EyeOff, LogIn, KeyRound, Loader2, ArrowLeft, Mail, UserPlus } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
