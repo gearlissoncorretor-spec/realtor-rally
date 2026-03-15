@@ -3,7 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Index from '@/pages/Index';
-import GerenteDashboard from '@/components/dashboards/GerenteDashboard';
 import CorretorDashboard from '@/components/dashboards/CorretorDashboard';
 
 const Home = () => {
@@ -36,13 +35,12 @@ const Home = () => {
   switch (role) {
     case 'diretor':
     case 'admin':
-      return <Index />;
     case 'gerente':
-      return <GerenteDashboard />;
+      return <Index />;
     case 'corretor':
       return <CorretorDashboard />;
     default:
-      return <CorretorDashboard />;
+      return <Index />;
   }
 };
 
