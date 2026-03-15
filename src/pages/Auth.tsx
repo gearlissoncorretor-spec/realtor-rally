@@ -13,11 +13,13 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [signupForm, setSignupForm] = useState({ email: "", password: "", fullName: "" });
   
-  const { signIn, resetPassword, user, loading } = useAuth();
+  const { signIn, signUp, resetPassword, user, loading, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
