@@ -10,6 +10,7 @@ import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { AppUpdateManager } from "@/components/AppUpdateManager";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
+import { OfflineProvider } from "@/components/OfflineIndicator";
 import InstallPrompt from "@/components/InstallPrompt";
 import "./App.css";
 
@@ -68,7 +69,9 @@ const AuthenticatedLayout = () => {
   return (
     <DataProvider>
       <RealtimeSyncProvider />
-      <Outlet />
+      <OfflineProvider>
+        <Outlet />
+      </OfflineProvider>
     </DataProvider>
   );
 };

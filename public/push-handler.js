@@ -46,3 +46,17 @@ self.addEventListener('notificationclick', function(event) {
     })
   );
 });
+
+// Background Sync handler for offline data
+self.addEventListener('sync', function(event) {
+  if (event.tag === 'axis-offline-sync') {
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+        for (const client of clientList) {
+          client.postMessage({ type: 'TRIGGER_OFFLINE_SYNC' });
+          return;
+        }
+      })
+    );
+  }
+});
