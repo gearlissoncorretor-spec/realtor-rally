@@ -632,26 +632,26 @@ const GerenteDashboard = () => {
               ) : (
                 <Collapsible open={rankingExpanded} onOpenChange={setRankingExpanded}>
                   {/* Top 3 always visible */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 lg:space-y-2">
                     {brokerPerformance.slice(0, 3).map((broker, idx) => {
                       const maxVGV = brokerPerformance[0]?.vgv || 1;
                       const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
                       return (
                         <div key={broker.id} className={cn(
-                          "flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/20 transition-all",
+                          "flex items-center gap-2 lg:gap-3 p-2 lg:p-2.5 rounded-lg hover:bg-muted/20 transition-all",
                           idx === 0 && "bg-amber-500/5 border border-amber-500/10"
                         )}>
-                          <span className="text-lg w-8 text-center shrink-0">{medals[idx]}</span>
+                          <span className="text-base lg:text-lg w-6 lg:w-8 text-center shrink-0">{medals[idx]}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium text-foreground truncate">{broker.name}</span>
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
-                                <span>{broker.salesCount} vendas</span>
-                                <span>{broker.negotiations} neg.</span>
+                            <div className="flex items-center justify-between mb-0.5 lg:mb-1">
+                              <span className="text-xs lg:text-sm font-medium text-foreground truncate">{broker.name}</span>
+                              <div className="flex items-center gap-1.5 lg:gap-3 text-[10px] lg:text-xs text-muted-foreground shrink-0">
+                                <span className="hidden sm:inline">{broker.salesCount} vendas</span>
+                                <span className="sm:hidden">{broker.salesCount}v</span>
                                 <span className="font-semibold text-foreground">{formatCurrency(broker.vgv)}</span>
                               </div>
                             </div>
-                            <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-muted/30 rounded-full h-1 lg:h-1.5 overflow-hidden">
                               <div
                                 className={cn(
                                   "h-full rounded-full transition-all duration-700",
