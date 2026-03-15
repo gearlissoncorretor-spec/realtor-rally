@@ -311,16 +311,16 @@ const GerenteDashboard = () => {
 
           {/* 1. KPI Cards */}
           {sections.includes('kpis') && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
               {kpiCards.map(card => (
-                <div key={card.label} className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-4 transition-all hover:scale-[1.02]`}>
+                <div key={card.label} className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-3 lg:p-4 transition-all hover:scale-[1.02]`}>
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{card.label}</p>
-                      <p className="text-3xl font-bold text-foreground mt-1">{card.value}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{card.sub}</p>
+                    <div className="min-w-0">
+                      <p className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{card.label}</p>
+                      <p className="text-2xl lg:text-3xl font-bold text-foreground mt-0.5 lg:mt-1">{card.value}</p>
+                      <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{card.sub}</p>
                     </div>
-                    <card.icon className={`w-8 h-8 ${card.iconColor} opacity-80`} />
+                    <card.icon className={`w-6 h-6 lg:w-8 lg:h-8 ${card.iconColor} opacity-80 shrink-0`} />
                   </div>
                 </div>
               ))}
