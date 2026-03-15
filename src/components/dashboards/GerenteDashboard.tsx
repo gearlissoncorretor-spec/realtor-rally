@@ -246,16 +246,16 @@ const GerenteDashboard = () => {
         <div className="space-y-5 max-w-7xl mx-auto">
 
           {/* Header */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+          <div className="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-3">
+            <div className="text-center sm:text-left w-full lg:w-auto">
+              <h1 className="text-xl lg:text-3xl font-bold text-foreground">
                 Central do Gestor
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Gestão da equipe <strong className="text-foreground">{teamHierarchy?.team_name || 'Sua Equipe'}</strong> — {format(new Date(), "dd/MM/yyyy")}
+              <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">
+                Equipe <strong className="text-foreground">{teamHierarchy?.team_name || 'Sua Equipe'}</strong> — {format(new Date(), "dd/MM/yyyy")}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-2 w-full lg:w-auto">
               <Button
                 variant={focusMode ? 'default' : 'outline'}
                 size="sm"
@@ -268,7 +268,7 @@ const GerenteDashboard = () => {
               {!focusMode && (
                 <>
                   <Button variant="outline" size="sm" className="gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => navigate('/corretores')}>
-                    <Users className="w-3.5 h-3.5" /> Minha Equipe
+                    <Users className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Minha</span> Equipe
                   </Button>
                   <Button variant="outline" size="sm" className="gap-1.5 border-blue-500/20 text-blue-400 hover:bg-blue-500/10" onClick={() => navigate('/negociacoes')}>
                     <Briefcase className="w-3.5 h-3.5" /> Negociações
@@ -277,6 +277,27 @@ const GerenteDashboard = () => {
               )}
             </div>
           </div>
+
+          {/* Mobile Quick Actions */}
+          {isMobile && !focusMode && (
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { icon: DollarSign, label: 'Venda', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', route: '/vendas' },
+                { icon: Briefcase, label: 'Negociação', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20', route: '/negociacoes' },
+                { icon: Calendar, label: 'Agenda', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', route: '/agenda' },
+                { icon: MessageCircle, label: 'Follow-up', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', route: '/follow-up' },
+              ].map(action => (
+                <button
+                  key={action.label}
+                  onClick={() => navigate(action.route)}
+                  className={cn("flex flex-col items-center gap-1 p-3 rounded-xl border transition-all active:scale-95", action.color)}
+                >
+                  <action.icon className="w-5 h-5" />
+                  <span className="text-[10px] font-medium">{action.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Focus mode banner */}
           {focusMode && (
@@ -290,16 +311,16 @@ const GerenteDashboard = () => {
 
           {/* 1. KPI Cards */}
           {sections.includes('kpis') && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
               {kpiCards.map(card => (
-                <div key={card.label} className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-4 transition-all hover:scale-[1.02]`}>
+                <div key={card.label} className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-3 lg:p-4 transition-all hover:scale-[1.02]`}>
                   <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{card.label}</p>
-                      <p className="text-3xl font-bold text-foreground mt-1">{card.value}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{card.sub}</p>
+                    <div className="min-w-0">
+                      <p className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{card.label}</p>
+                      <p className="text-2xl lg:text-3xl font-bold text-foreground mt-0.5 lg:mt-1">{card.value}</p>
+                      <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{card.sub}</p>
                     </div>
-                    <card.icon className={`w-8 h-8 ${card.iconColor} opacity-80`} />
+                    <card.icon className={`w-6 h-6 lg:w-8 lg:h-8 ${card.iconColor} opacity-80 shrink-0`} />
                   </div>
                 </div>
               ))}
@@ -517,18 +538,18 @@ const GerenteDashboard = () => {
 
           {/* Funil da Equipe */}
           {!focusMode && sections.includes('funnel') && (
-            <div className="rounded-xl border border-border bg-card/50 p-5">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas da Equipe
+            <div className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
+              <h2 className="text-xs lg:text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 lg:mb-4">
+                <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2 lg:space-y-3">
                 {funnelData.map(item => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground w-24 text-right">{item.label}</span>
-                    <div className="flex-1 bg-muted/30 rounded-full h-6 overflow-hidden">
+                  <div key={item.label} className="flex items-center gap-2 lg:gap-3">
+                    <span className="text-[10px] lg:text-xs text-muted-foreground w-16 lg:w-24 text-right shrink-0">{item.label}</span>
+                    <div className="flex-1 bg-muted/30 rounded-full h-5 lg:h-6 overflow-hidden">
                       <div
                         className={`h-full ${item.color} rounded-full flex items-center justify-end pr-2 transition-all`}
-                        style={{ width: `${Math.max((item.value / maxFunnel) * 100, 8)}%` }}
+                        style={{ width: `${Math.max((item.value / maxFunnel) * 100, 12)}%` }}
                       >
                         <span className="text-[10px] font-bold text-white">{item.value}</span>
                       </div>
@@ -541,28 +562,28 @@ const GerenteDashboard = () => {
 
           {/* Metrics */}
           {!focusMode && sections.includes('metrics') && (
-            <div className="rounded-xl border border-border bg-card/50 p-5">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
+            <div className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
+              <h2 className="text-xs lg:text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 lg:mb-4">
                 <Activity className="w-4 h-4 text-primary" /> Métricas Consolidadas
               </h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(ticketMedio)}</p>
-                  <p className="text-xs text-muted-foreground">Ticket Médio</p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">{formatCurrency(ticketMedio)}</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Ticket Médio</p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">
                     {activeTeamBrokers.length > 0 ? (monthSales.length / activeTeamBrokers.length).toFixed(1) : '0'}
                   </p>
-                  <p className="text-xs text-muted-foreground">Vendas/Corretor</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Vendas/Corretor</p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{conversionRate}%</p>
-                  <p className="text-xs text-muted-foreground">Taxa de Conversão</p>
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">{conversionRate}%</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Taxa de Conversão</p>
                 </div>
-                <div className="p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(monthVGC)}</p>
-                  <p className="text-xs text-muted-foreground">Comissões do Mês</p>
+                <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground">{formatCurrency(monthVGC)}</p>
+                  <p className="text-[10px] lg:text-xs text-muted-foreground">Comissões do Mês</p>
                 </div>
               </div>
             </div>
@@ -611,26 +632,26 @@ const GerenteDashboard = () => {
               ) : (
                 <Collapsible open={rankingExpanded} onOpenChange={setRankingExpanded}>
                   {/* Top 3 always visible */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 lg:space-y-2">
                     {brokerPerformance.slice(0, 3).map((broker, idx) => {
                       const maxVGV = brokerPerformance[0]?.vgv || 1;
                       const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
                       return (
                         <div key={broker.id} className={cn(
-                          "flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/20 transition-all",
+                          "flex items-center gap-2 lg:gap-3 p-2 lg:p-2.5 rounded-lg hover:bg-muted/20 transition-all",
                           idx === 0 && "bg-amber-500/5 border border-amber-500/10"
                         )}>
-                          <span className="text-lg w-8 text-center shrink-0">{medals[idx]}</span>
+                          <span className="text-base lg:text-lg w-6 lg:w-8 text-center shrink-0">{medals[idx]}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium text-foreground truncate">{broker.name}</span>
-                              <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
-                                <span>{broker.salesCount} vendas</span>
-                                <span>{broker.negotiations} neg.</span>
+                            <div className="flex items-center justify-between mb-0.5 lg:mb-1">
+                              <span className="text-xs lg:text-sm font-medium text-foreground truncate">{broker.name}</span>
+                              <div className="flex items-center gap-1.5 lg:gap-3 text-[10px] lg:text-xs text-muted-foreground shrink-0">
+                                <span className="hidden sm:inline">{broker.salesCount} vendas</span>
+                                <span className="sm:hidden">{broker.salesCount}v</span>
                                 <span className="font-semibold text-foreground">{formatCurrency(broker.vgv)}</span>
                               </div>
                             </div>
-                            <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-muted/30 rounded-full h-1 lg:h-1.5 overflow-hidden">
                               <div
                                 className={cn(
                                   "h-full rounded-full transition-all duration-700",
