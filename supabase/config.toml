@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.slack-notify]
 verify_jwt = false
+
+[functions.setup-company]
+verify_jwt = false

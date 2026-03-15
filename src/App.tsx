@@ -41,6 +41,7 @@ const CentralGestor = lazy(() => import("@/pages/CentralGestor"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Comissoes = lazy(() => import("@/pages/Comissoes"));
+const Onboarding = lazy(() => import("@/pages/Onboarding"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +85,7 @@ const AppShell = () => (
       <Routes>
         <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
         <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+        <Route path="/onboarding" element={<ProtectedRoute allowWithoutCompany><LazyPage><Onboarding /></LazyPage></ProtectedRoute>} />
         <Route element={<AuthenticatedLayout />}>
           <Route path="/" element={<ProtectedRoute><LazyPage><Home /></LazyPage></ProtectedRoute>} />
           <Route path="/vendas" element={<ProtectedRoute><LazyPage><Vendas /></LazyPage></ProtectedRoute>} />

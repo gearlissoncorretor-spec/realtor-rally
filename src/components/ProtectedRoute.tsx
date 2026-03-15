@@ -10,6 +10,7 @@ interface ProtectedRouteProps {
   requiredScreen?: string;
   adminOnly?: boolean;
   superAdminOnly?: boolean;
+  allowWithoutCompany?: boolean;
 }
 
 const LOADING_TIMEOUT = 3000;
@@ -50,7 +51,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requiredScreen, 
   adminOnly,
-  superAdminOnly 
+  superAdminOnly,
+  allowWithoutCompany 
 }) => {
   const { user, loading, hasAccess, profile, isAdmin, isDiretor, isSuperAdmin, getUserRole, getDefaultRoute, error, company } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
@@ -94,6 +96,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Redirect users without company to onboarding (unless already on onboarding)
+  if (!allowWithoutCompany && profile && !profile.company_id && !isSuperAdmin()) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // If on onboarding but already has company, redirect to home
+  if (allowWithoutCompany && profile?.company_id) {
+    return <Navigate to="/" replace />;
   }
 
   // Super admin should only access /super-admin
