@@ -98,6 +98,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth" replace />;
   }
 
+  // Redirect users without company to onboarding (unless already on onboarding)
+  if (!allowWithoutCompany && profile && !profile.company_id && !isSuperAdmin()) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // If on onboarding but already has company, redirect to home
+  if (allowWithoutCompany && profile?.company_id) {
+    return <Navigate to="/" replace />;
+  }
+
   // Super admin should only access /super-admin
   if (isSuperAdmin() && location.pathname !== '/super-admin') {
     return <Navigate to="/super-admin" replace />;
