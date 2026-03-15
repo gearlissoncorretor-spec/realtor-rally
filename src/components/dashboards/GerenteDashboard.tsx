@@ -41,6 +41,7 @@ const GerenteDashboard = () => {
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
   const [rankingExpanded, setRankingExpanded] = useState(false);
+  const [alertsDismissed, setAlertsDismissed] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
