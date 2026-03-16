@@ -22,6 +22,7 @@ interface EditUserDialogProps {
 const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChange, teams, onSaved, allowedRoles }) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     full_name: '',
     nickname: '',
