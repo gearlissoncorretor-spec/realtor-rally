@@ -78,7 +78,7 @@ const GestaoUsuarios = () => {
           id: profileRow.id,
           full_name: linkedBroker?.name || profileRow.full_name,
           nickname: (profileRow as any).nickname || undefined,
-          email: linkedBroker?.email || profileRow.email,
+          email: profileRow.email,
           phone: linkedBroker?.phone || (profileRow as any).phone || undefined,
           birth_date: linkedBroker?.birthday || (profileRow as any).birth_date || undefined,
           avatar_url: linkedBroker?.avatar_url || profileRow.avatar_url || undefined,
@@ -223,6 +223,7 @@ const GestaoUsuarios = () => {
       try {
         const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-credentials', {
           body: {
+            user_id: resetUser.id,
             email: resetUser.email,
             password: tempPass,
             full_name: resetUser.full_name,
@@ -391,7 +392,7 @@ const GestaoUsuarios = () => {
                   <div className="space-y-4 mt-2">
                     <p className="text-sm text-muted-foreground">
                       A senha temporária de <strong className="text-foreground">{resetUser?.full_name}</strong> foi gerada.
-                      Compartilhe com o usuário para que ele acesse o sistema e cadastre uma nova senha.
+                      O login deve ser feito com o email <strong className="text-foreground">{resetUser?.email}</strong> e, após entrar, o sistema exigirá a criação de uma nova senha.
                     </p>
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-muted border">
                       <code className="flex-1 text-lg font-mono font-bold text-foreground tracking-wider select-all">
@@ -402,14 +403,14 @@ const GestaoUsuarios = () => {
                         {copied ? 'Copiado!' : 'Copiar'}
                       </Button>
                     </div>
-                    <div className="text-xs text-muted-foreground bg-warning/10 border border-warning/20 rounded-lg p-3">
-                      <strong className="text-warning">⚠️ Importante:</strong> Esta senha será exibida apenas uma vez.
-                      Anote ou copie antes de fechar esta janela.
+                    <div className="text-xs text-muted-foreground bg-warning/10 border border-warning/20 rounded-lg p-3 space-y-1">
+                      <p><strong className="text-warning">⚠️ Importante:</strong> Esta senha será exibida apenas uma vez.</p>
+                      <p>Use exatamente o email <strong className="text-foreground">{resetUser?.email}</strong> no login.</p>
                     </div>
                   </div>
                 ) : (
                   <p>
-                    Deseja resetar a senha de <strong>{resetUser?.full_name}</strong>? Uma nova senha temporária será gerada e exibida na tela.
+                    Deseja resetar a senha de <strong>{resetUser?.full_name}</strong>? Uma nova senha temporária será gerada e o acesso deverá ser feito com o email <strong>{resetUser?.email}</strong>.
                   </p>
                 )}
               </div>
