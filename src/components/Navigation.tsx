@@ -372,7 +372,7 @@ const MobileBottomNav = () => {
     { href: "/", label: "Painel", icon: LayoutGrid },
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
     { href: "/agenda", label: "Agenda", icon: CalendarDays },
-    { href: "/follow-up", label: "Follow-ups", icon: Users },
+    { href: "/follow-up", label: "Follow-up / Clientes", icon: Users },
     { href: "/vendas", label: "Vendas", icon: Home },
   ];
 
