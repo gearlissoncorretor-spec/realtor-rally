@@ -309,9 +309,15 @@ const Agenda = () => {
               )}
             </div>
 
-            {/* Desktop Activities Panel */}
+            {/* Desktop Activities Panel + Sticky Notes */}
             {!isMobile && (
-              <AgendaActivitiesPanel events={events} currentDate={currentDate} onEventClick={handleEventClick} />
+              <div className="flex flex-col gap-4 w-[280px] shrink-0">
+                <AgendaActivitiesPanel events={events} currentDate={currentDate} onEventClick={handleEventClick} />
+                <AgendaStickyNotes />
+              </div>
+            )}
+            {isMobile && (
+              <AgendaStickyNotes />
             )}
           </div>
         </div>
