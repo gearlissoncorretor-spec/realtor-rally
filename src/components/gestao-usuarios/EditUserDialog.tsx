@@ -70,11 +70,13 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
       if (profileError) throw profileError;
 
       // Sync changes to linked broker record
-      const { data: linkedBroker } = await supabase
+      const { data: linkedBroker, error: linkedBrokerError } = await supabase
         .from('brokers')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
+
+      if (linkedBrokerError) throw linkedBrokerError;
 
       if (linkedBroker) {
         const brokerUpdate: Record<string, any> = {};
@@ -84,10 +86,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
         if (form.birth_date !== (user.birth_date || '')) brokerUpdate.birthday = form.birth_date || null;
 
         if (Object.keys(brokerUpdate).length > 0) {
-          await supabase
+          const { error: brokerUpdateError } = await supabase
             .from('brokers')
             .update(brokerUpdate)
             .eq('id', linkedBroker.id);
+
+          if (brokerUpdateError) throw brokerUpdateError;
         }
       }
 
