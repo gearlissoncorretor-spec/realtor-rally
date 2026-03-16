@@ -107,6 +107,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
       // Invalidate all related caches for instant sync
       queryClient.invalidateQueries({ queryKey: ['brokers'] });
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['gestao-usuarios'] });
       toast({ title: "Usuário atualizado com sucesso!" });
       onSaved();
       onOpenChange(false);

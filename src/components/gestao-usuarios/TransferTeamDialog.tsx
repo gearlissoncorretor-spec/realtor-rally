@@ -24,13 +24,23 @@ const TransferTeamDialog: React.FC<TransferTeamDialogProps> = ({ user, open, onO
   const handleTransfer = async () => {
     if (!user) return;
     setLoading(true);
+
+    const nextTeamId = teamId === 'none' ? null : teamId;
+
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ team_id: teamId === 'none' ? null : teamId })
+        .update({ team_id: nextTeamId })
         .eq('id', user.id);
 
       if (error) throw error;
+
+      const { error: brokerError } = await supabase
+        .from('brokers')
+        .update({ team_id: nextTeamId })
+        .eq('user_id', user.id);
+
+      if (brokerError) throw brokerError;
 
       toast({ title: "Usuário transferido com sucesso!" });
       onSaved();

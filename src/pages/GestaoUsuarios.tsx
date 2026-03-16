@@ -14,20 +14,18 @@ import EditUserDialog from '@/components/gestao-usuarios/EditUserDialog';
 import TransferTeamDialog from '@/components/gestao-usuarios/TransferTeamDialog';
 
 const GestaoUsuarios = () => {
-  const { user, profile, isAdmin, isDiretor, isGerente, getUserRole } = useAuth();
+  const { user, profile, isAdmin, isDiretor, isGerente } = useAuth();
   const { toast } = useToast();
 
   const [users, setUsers] = useState<UserData[]>([]);
   const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [teamFilter, setTeamFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Dialogs
   const [editUser, setEditUser] = useState<UserData | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [transferUser, setTransferUser] = useState<UserData | null>(null);
@@ -39,63 +37,97 @@ const GestaoUsuarios = () => {
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const canManage = isAdmin() || isDiretor() || isGerente();
-  const currentRole = getUserRole();
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (keepLoadingState = false) => {
+    if (!keepLoadingState) setLoading(true);
+
     try {
-      // Fetch profiles, roles, and teams in parallel
-      const [profilesRes, rolesRes, teamsRes] = await Promise.all([
+      const [profilesRes, rolesRes, teamsRes, brokersRes] = await Promise.all([
         supabase.from('profiles').select('*').order('full_name'),
         supabase.from('user_roles').select('user_id, role'),
         supabase.from('teams').select('id, name').order('name'),
+        supabase.from('brokers').select('id, user_id, name, email, phone, birthday, avatar_url, status, team_id'),
       ]);
 
       if (profilesRes.error) throw profilesRes.error;
       if (rolesRes.error) throw rolesRes.error;
+      if (teamsRes.error) throw teamsRes.error;
+      if (brokersRes.error) throw brokersRes.error;
 
       const rolesMap = new Map<string, string>();
-      rolesRes.data?.forEach(r => rolesMap.set(r.user_id, r.role));
+      rolesRes.data?.forEach((role) => rolesMap.set(role.user_id, role.role));
 
       const teamsMap = new Map<string, string>();
-      teamsRes.data?.forEach(t => teamsMap.set(t.id, t.name));
+      teamsRes.data?.forEach((team) => teamsMap.set(team.id, team.name));
 
-      const mapped: UserData[] = (profilesRes.data || []).map(p => ({
-        id: p.id,
-        full_name: p.full_name,
-        nickname: (p as any).nickname || undefined,
-        email: p.email,
-        phone: (p as any).phone || undefined,
-        birth_date: (p as any).birth_date || undefined,
-        avatar_url: p.avatar_url || undefined,
-        status: (p as any).status || 'ativo',
-        approved: p.approved ?? false,
-        team_id: p.team_id || undefined,
-        team_name: p.team_id ? teamsMap.get(p.team_id) : undefined,
-        role: rolesMap.get(p.id) || 'corretor',
-        created_at: p.created_at || undefined,
-        last_login_at: (p as any).last_login_at || undefined,
-      }));
+      const brokerByUserId = new Map(
+        (brokersRes.data || [])
+          .filter((broker) => broker.user_id)
+          .map((broker) => [broker.user_id as string, broker])
+      );
+
+      const mapped: UserData[] = (profilesRes.data || []).map((profileRow) => {
+        const linkedBroker = brokerByUserId.get(profileRow.id);
+        const role = rolesMap.get(profileRow.id) || 'corretor';
+        const resolvedTeamId = linkedBroker?.team_id || profileRow.team_id || undefined;
+
+        return {
+          id: profileRow.id,
+          full_name: linkedBroker?.name || profileRow.full_name,
+          nickname: (profileRow as any).nickname || undefined,
+          email: linkedBroker?.email || profileRow.email,
+          phone: linkedBroker?.phone || (profileRow as any).phone || undefined,
+          birth_date: linkedBroker?.birthday || (profileRow as any).birth_date || undefined,
+          avatar_url: linkedBroker?.avatar_url || profileRow.avatar_url || undefined,
+          status: linkedBroker?.status || (profileRow as any).status || 'ativo',
+          approved: profileRow.approved ?? false,
+          team_id: resolvedTeamId,
+          team_name: resolvedTeamId ? teamsMap.get(resolvedTeamId) : undefined,
+          role,
+          created_at: profileRow.created_at || undefined,
+          last_login_at: (profileRow as any).last_login_at || undefined,
+          broker_id: linkedBroker?.id,
+        };
+      });
 
       setUsers(mapped);
       setTeams(teamsRes.data || []);
     } catch (err: any) {
       toast({ title: 'Erro ao carregar dados', description: err.message, variant: 'destructive' });
     } finally {
-      setLoading(false);
+      if (!keepLoadingState) setLoading(false);
     }
   }, [toast]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase.channel(`gestao-usuarios-sync-${user.id}`);
+    const refresh = () => fetchData(true);
+
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'brokers' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, refresh)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchData]);
 
   const filteredUsers = useMemo(() => {
-    return users.filter(u => {
-      // Gerentes só veem membros da própria equipe + a si mesmos
+    return users.filter((u) => {
       if (isGerente() && profile?.team_id && u.team_id !== profile.team_id && u.id !== user?.id) return false;
-      if (search && !u.full_name.toLowerCase().includes(search.toLowerCase()) && 
-          !(u.nickname?.toLowerCase().includes(search.toLowerCase()))) return false;
+      if (search && !u.full_name.toLowerCase().includes(search.toLowerCase()) && !(u.nickname?.toLowerCase().includes(search.toLowerCase()))) return false;
       if (roleFilter !== 'all' && u.role !== roleFilter) return false;
       if (teamFilter === 'none' && u.team_id) return false;
       if (teamFilter !== 'all' && teamFilter !== 'none' && u.team_id !== teamFilter) return false;
@@ -104,16 +136,36 @@ const GestaoUsuarios = () => {
     });
   }, [users, search, roleFilter, teamFilter, statusFilter, isGerente, profile, user]);
 
+  const syncBrokerFields = async (userId: string, payload: { status?: string; team_id?: string | null }) => {
+    const brokerPatch: Record<string, string | null> = {};
+
+    if (payload.status !== undefined) brokerPatch.status = payload.status;
+    if (payload.team_id !== undefined) brokerPatch.team_id = payload.team_id;
+
+    if (Object.keys(brokerPatch).length === 0) return;
+
+    const { error } = await supabase
+      .from('brokers')
+      .update(brokerPatch)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+  };
+
   const handleToggleStatus = async (u: UserData) => {
     const newStatus = u.status === 'ativo' ? 'inativo' : 'ativo';
+
     try {
       const { error } = await supabase
         .from('profiles')
         .update({ status: newStatus } as any)
         .eq('id', u.id);
+
       if (error) throw error;
+
+      await syncBrokerFields(u.id, { status: newStatus });
       toast({ title: `Usuário ${newStatus === 'ativo' ? 'ativado' : 'inativado'}` });
-      fetchData();
+      fetchData(true);
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     }
@@ -121,16 +173,19 @@ const GestaoUsuarios = () => {
 
   const handleDelete = async () => {
     if (!deleteUser) return;
+
     try {
-      // Just inactivate - don't actually delete to preserve historical data
       const { error } = await supabase
         .from('profiles')
         .update({ status: 'inativo' } as any)
         .eq('id', deleteUser.id);
+
       if (error) throw error;
-      toast({ title: "Usuário marcado como inativo", description: "Dados históricos preservados." });
+
+      await syncBrokerFields(deleteUser.id, { status: 'inativo' });
+      toast({ title: 'Usuário marcado como inativo', description: 'Dados históricos preservados.' });
       setDeleteOpen(false);
-      fetchData();
+      fetchData(true);
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     }
@@ -138,29 +193,29 @@ const GestaoUsuarios = () => {
 
   const handleResetPassword = async () => {
     if (!resetUser) return;
+
     setResetLoading(true);
     const tempPass = generateTempPassword();
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Você precisa estar autenticado');
 
-      const response = await fetch(
-        'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/update-user-password',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ userId: resetUser.id, password: tempPass }),
-        }
-      );
+      const response = await fetch('https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/update-user-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ userId: resetUser.id, password: tempPass }),
+      });
+
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Erro ao resetar senha');
 
       setGeneratedPassword(tempPass);
       setResetSuccess(true);
-      toast({ title: "Senha resetada com sucesso!", description: "A senha temporária foi gerada. Compartilhe com o usuário." });
+      toast({ title: 'Senha resetada com sucesso!', description: 'A senha temporária foi gerada. Compartilhe com o usuário.' });
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     } finally {
@@ -175,13 +230,12 @@ const GestaoUsuarios = () => {
     return pass;
   };
 
-  const [copied, setCopied] = useState(false);
   const handleCopyPassword = () => {
-    if (generatedPassword) {
-      navigator.clipboard.writeText(generatedPassword);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+    if (!generatedPassword) return;
+
+    navigator.clipboard.writeText(generatedPassword);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleCloseReset = () => {
@@ -192,18 +246,20 @@ const GestaoUsuarios = () => {
     setCopied(false);
   };
 
-  const allowedRoles = isAdmin() ? ['admin', 'diretor', 'gerente', 'corretor'] 
-    : isDiretor() ? ['gerente', 'corretor'] 
-    : isGerente() ? ['corretor'] 
-    : [];
+  const allowedRoles = isAdmin()
+    ? ['admin', 'diretor', 'gerente', 'corretor']
+    : isDiretor()
+      ? ['gerente', 'corretor']
+      : isGerente()
+        ? ['corretor']
+        : [];
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header */}
-           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="w-full text-center sm:text-left">
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
                 <Users className="h-7 w-7" /> Gestão de Usuários
@@ -213,24 +269,22 @@ const GestaoUsuarios = () => {
               </p>
             </div>
             {canManage && (
-              <CreateUserDialog 
-                teams={teams} 
-                onCreated={fetchData} 
-                allowedRoles={allowedRoles}
-              />
+              <CreateUserDialog teams={teams} onCreated={fetchData} allowedRoles={allowedRoles} />
             )}
           </div>
 
-          {/* Filters */}
           <UserFilters
-            search={search} onSearchChange={setSearch}
-            roleFilter={roleFilter} onRoleFilterChange={setRoleFilter}
-            teamFilter={teamFilter} onTeamFilterChange={setTeamFilter}
-            statusFilter={statusFilter} onStatusFilterChange={setStatusFilter}
+            search={search}
+            onSearchChange={setSearch}
+            roleFilter={roleFilter}
+            onRoleFilterChange={setRoleFilter}
+            teamFilter={teamFilter}
+            onTeamFilterChange={setTeamFilter}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
             teams={teams}
           />
 
-          {/* Users List */}
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -242,18 +296,18 @@ const GestaoUsuarios = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredUsers.map(u => (
+              {filteredUsers.map((u) => (
                 <UserCard
                   key={u.id}
                   user={u}
                   isCurrentUser={u.id === user?.id}
                   canManage={canManage || (isGerente() && u.role === 'corretor')}
                   isAdmin={isAdmin()}
-                  onEdit={(u) => { setEditUser(u); setEditOpen(true); }}
-                  onResetPassword={(u) => { setResetUser(u); setResetOpen(true); }}
+                  onEdit={(selectedUser) => { setEditUser(selectedUser); setEditOpen(true); }}
+                  onResetPassword={(selectedUser) => { setResetUser(selectedUser); setResetOpen(true); }}
                   onToggleStatus={handleToggleStatus}
-                  onDelete={(u) => { setDeleteUser(u); setDeleteOpen(true); }}
-                  onTransferTeam={(u) => { setTransferUser(u); setTransferOpen(true); }}
+                  onDelete={(selectedUser) => { setDeleteUser(selectedUser); setDeleteOpen(true); }}
+                  onTransferTeam={(selectedUser) => { setTransferUser(selectedUser); setTransferOpen(true); }}
                 />
               ))}
             </div>
@@ -261,25 +315,29 @@ const GestaoUsuarios = () => {
         </div>
       </div>
 
-      {/* Edit Dialog */}
-      <EditUserDialog 
-        user={editUser} open={editOpen} onOpenChange={setEditOpen}
-        teams={teams} onSaved={fetchData} allowedRoles={allowedRoles}
+      <EditUserDialog
+        user={editUser}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        teams={teams}
+        onSaved={() => fetchData(true)}
+        allowedRoles={allowedRoles}
       />
 
-      {/* Transfer Dialog */}
       <TransferTeamDialog
-        user={transferUser} open={transferOpen} onOpenChange={setTransferOpen}
-        teams={teams} onSaved={fetchData}
+        user={transferUser}
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+        teams={teams}
+        onSaved={() => fetchData(true)}
       />
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              O usuário <strong>{deleteUser?.full_name}</strong> será marcado como inativo. 
+              O usuário <strong>{deleteUser?.full_name}</strong> será marcado como inativo.
               Dados históricos (negociações, metas, atividades) serão preservados.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -292,7 +350,6 @@ const GestaoUsuarios = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reset Password Dialog */}
       <AlertDialog open={resetOpen} onOpenChange={(open) => { if (!open) handleCloseReset(); else setResetOpen(true); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -304,7 +361,7 @@ const GestaoUsuarios = () => {
                 {resetSuccess && generatedPassword ? (
                   <div className="space-y-4 mt-2">
                     <p className="text-sm text-muted-foreground">
-                      A senha temporária de <strong className="text-foreground">{resetUser?.full_name}</strong> foi gerada. 
+                      A senha temporária de <strong className="text-foreground">{resetUser?.full_name}</strong> foi gerada.
                       Compartilhe com o usuário para que ele acesse o sistema e cadastre uma nova senha.
                     </p>
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-muted border">
@@ -317,7 +374,7 @@ const GestaoUsuarios = () => {
                       </Button>
                     </div>
                     <div className="text-xs text-muted-foreground bg-warning/10 border border-warning/20 rounded-lg p-3">
-                      <strong className="text-warning">⚠️ Importante:</strong> Esta senha será exibida apenas uma vez. 
+                      <strong className="text-warning">⚠️ Importante:</strong> Esta senha será exibida apenas uma vez.
                       Anote ou copie antes de fechar esta janela.
                     </div>
                   </div>
