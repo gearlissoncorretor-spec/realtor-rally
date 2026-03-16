@@ -56,6 +56,7 @@ const Metas = () => {
   const { tasks: allTasks } = useAllGoalTasks();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
@@ -65,6 +66,7 @@ const Metas = () => {
   const rawRole = getUserRole();
   const userRole = rawRole === 'admin' ? 'diretor' : rawRole;
   const canManageGoals = ['diretor', 'gerente'].includes(userRole);
+  const isDirectorView = isDiretor() || isAdmin();
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
   const userTeamId = profile?.team_id || currentBroker?.team_id;
@@ -87,11 +89,24 @@ const Metas = () => {
     return [];
   }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin]);
 
+  // Teams that have brokers assigned
+  const teamsWithBrokers = useMemo(() => {
+    if (!isDirectorView) return [];
+    const teamIds = new Set(accessibleBrokers.map(b => b.team_id).filter(Boolean));
+    return teams.filter(t => teamIds.has(t.id));
+  }, [teams, accessibleBrokers, isDirectorView]);
+
+  // Brokers filtered by selected team (for directors)
+  const visibleBrokers = useMemo(() => {
+    if (!isDirectorView || selectedTeamId === 'all') return accessibleBrokers;
+    return accessibleBrokers.filter(b => b.team_id === selectedTeamId);
+  }, [accessibleBrokers, selectedTeamId, isDirectorView]);
+
   useEffect(() => {
-    if (accessibleBrokers.length > 0 && !selectedBrokerId) {
-      setSelectedBrokerId(accessibleBrokers[0].id);
+    if (visibleBrokers.length > 0 && (!selectedBrokerId || !visibleBrokers.find(b => b.id === selectedBrokerId))) {
+      setSelectedBrokerId(visibleBrokers[0].id);
     }
-  }, [accessibleBrokers, selectedBrokerId]);
+  }, [visibleBrokers, selectedBrokerId]);
 
   const goToPreviousMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
   const goToNextMonth = () => {
@@ -101,7 +116,7 @@ const Metas = () => {
 
   const filteredGoals = useMemo(() => {
     if (!selectedBrokerId) return [];
-    const selectedBrokerData = accessibleBrokers.find(b => b.id === selectedBrokerId);
+    const selectedBrokerData = visibleBrokers.find(b => b.id === selectedBrokerId);
     return goals.filter(goal => {
       const matchesBroker = goal.broker_id === selectedBrokerId || 
         (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id) ||
@@ -112,7 +127,7 @@ const Metas = () => {
       const goalEnd = new Date(goal.end_date);
       return matchesBroker && goalStart <= monthEnd && goalEnd >= monthStart;
     });
-  }, [goals, selectedBrokerId, selectedMonth, accessibleBrokers]);
+  }, [goals, selectedBrokerId, selectedMonth, visibleBrokers]);
 
   const stats = useMemo(() => {
     const active = filteredGoals.filter(g => g.status === 'active').length;
@@ -127,7 +142,7 @@ const Metas = () => {
   }, [filteredGoals]);
 
   const selectedGoal = selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null;
-  const selectedBroker = accessibleBrokers.find(b => b.id === selectedBrokerId);
+  const selectedBroker = visibleBrokers.find(b => b.id === selectedBrokerId);
 
   const handleEdit = (goal: Goal) => {
     setEditingGoal(goal);
@@ -283,12 +298,46 @@ const Metas = () => {
             </TabsList>
 
             <TabsContent value="metas" className="space-y-6 mt-6">
+              {/* Team Tabs for Directors */}
+              {isDirectorView && teamsWithBrokers.length > 0 && (
+                <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
+                  <div className="inline-flex h-11 bg-card border border-border shadow-sm rounded-xl p-1 gap-0.5 min-w-max">
+                    <button
+                      onClick={() => setSelectedTeamId('all')}
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors",
+                        selectedTeamId === 'all'
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      <Users className="w-4 h-4 inline-block mr-1.5" />
+                      Todas as Equipes
+                    </button>
+                    {teamsWithBrokers.map((team) => (
+                      <button
+                        key={team.id}
+                        onClick={() => setSelectedTeamId(team.id)}
+                        className={cn(
+                          "px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors",
+                          selectedTeamId === team.id
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        {team.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Broker Tabs */}
-              {accessibleBrokers.length > 0 ? (
+              {visibleBrokers.length > 0 ? (
                 <Tabs value={selectedBrokerId} onValueChange={setSelectedBrokerId} className="w-full">
                   <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
                     <TabsList className="inline-flex h-11 bg-card border border-border shadow-sm rounded-xl p-1 gap-0.5 min-w-max">
-                      {accessibleBrokers.map((broker) => (
+                      {visibleBrokers.map((broker) => (
                         <TabsTrigger
                           key={broker.id}
                           value={broker.id}
@@ -300,7 +349,7 @@ const Metas = () => {
                     </TabsList>
                   </div>
 
-                  {accessibleBrokers.map((broker) => (
+                  {visibleBrokers.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
                       
                       {/* KPI Cards */}
