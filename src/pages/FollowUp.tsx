@@ -428,7 +428,7 @@ const FollowUpPage = () => {
               iconColor="text-blue-500"
               bgColor="bg-blue-500/10"
               value={stats.total}
-              label="Clientes em Follow Up"
+              label="Clientes em Follow-up"
             />
             <ResponsiveStatCard
               icon={Clock}
