@@ -88,8 +88,8 @@ serve(async (req) => {
     }
     // 7. negotiations
     await supabaseClient.from('negotiations').delete().eq('broker_id', broker_id)
-    // 8. sales (nullify broker_id to preserve sale records)
-    await supabaseClient.from('sales').update({ broker_id: null }).eq('broker_id', broker_id)
+    // 8. sales — preserve records: save broker name in vendedor, then nullify broker_id
+    await supabaseClient.from('sales').update({ vendedor: broker.name, broker_id: null }).eq('broker_id', broker_id)
     // 9. goals
     await supabaseClient.from('goals').delete().eq('broker_id', broker_id)
     // 10. targets

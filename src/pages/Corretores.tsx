@@ -861,15 +861,25 @@ const Corretores = () => {
       <AlertDialog open={!!deleteConfirmBroker} onOpenChange={() => setDeleteConfirmBroker(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Corretor</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o corretor <strong>{deleteConfirmBroker?.name}</strong>? Esta ação não pode ser desfeita.
+            <AlertDialogTitle>Excluir Corretor Permanentemente</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>Tem certeza que deseja excluir o corretor <strong>{deleteConfirmBroker?.name}</strong>?</p>
+                <ul className="text-xs space-y-1 text-muted-foreground list-disc list-inside">
+                  <li>O nome será removido de todas as telas do sistema</li>
+                  <li>As <strong className="text-foreground">vendas serão preservadas</strong> no histórico</li>
+                  <li>Esta ação <strong className="text-destructive">não pode ser desfeita</strong></li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  💡 Para apenas ocultar da lista principal, use <strong className="text-foreground">Inativar</strong> em vez de excluir.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteBroker} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
-              {isDeleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Excluindo...</> : <><Trash2 className="w-4 h-4 mr-2" />Excluir</>}
+              {isDeleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Excluindo...</> : <><Trash2 className="w-4 h-4 mr-2" />Excluir Permanentemente</>}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
