@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
@@ -7,7 +7,6 @@ import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useGoals } from '@/hooks/useGoals';
-import { useCommissions } from '@/hooks/useCommissions';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
@@ -17,11 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import {
-  Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
-  CheckSquare, Square, MessageCircle, ChevronRight,
-  Calendar, MapPin, RotateCcw, FileText, BarChart3,
-  DollarSign, Lightbulb, X, Handshake, ClipboardList, Wallet,
-  TrendingUp, ArrowUpRight, ArrowDownRight,
+  UserPlus, Phone, Target, Flame, Calendar, ChevronRight,
+  Handshake, DollarSign, AlertTriangle, TrendingUp, Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,11 +28,8 @@ const CorretorDashboard = () => {
   const { negotiations } = useNegotiations();
   const { followUps } = useFollowUps();
   const { goals } = useGoals();
-  const { commissions } = useCommissions();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [focusMode, setFocusMode] = useState(false);
-  const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set());
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
@@ -64,519 +57,305 @@ const CorretorDashboard = () => {
     (followUps || []).filter(f => f.broker_id === brokerId), [followUps, brokerId]);
   const pendingFollowUps = brokerFollowUps.filter(f => f.status !== 'convertido' && f.status !== 'perdido');
 
+  const todayFollowUps = pendingFollowUps.filter(f => f.next_contact_date === today);
   const todayEvents = events || [];
 
   const brokerGoals = useMemo(() =>
     (goals || []).filter(g => g.status === 'active' && (g.assigned_to === user?.id || g.broker_id === brokerId)),
     [goals, user?.id, brokerId]);
   const primaryGoal = brokerGoals[0];
-  const goalProgress = primaryGoal ? Math.min((primaryGoal.current_value / primaryGoal.target_value) * 100, 100) : 0;
-
-  // Commissions
-  const brokerCommissions = useMemo(() =>
-    (commissions || []).filter(c => c.broker_id === brokerId), [commissions, brokerId]);
-  const monthCommissions = useMemo(() =>
-    brokerCommissions.filter(c => {
-      const d = new Date(c.created_at);
-      return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
-    }), [brokerCommissions, currentMonth, currentYear]);
-  const totalCommissionsMonth = monthCommissions.reduce((s, c) => s + (c.commission_value || 0), 0);
-  const paidCommissions = brokerCommissions.filter(c => c.status === 'pago').reduce((s, c) => s + (c.commission_value || 0), 0);
-  const pendingCommissions = brokerCommissions.filter(c => c.status === 'pendente').reduce((s, c) => s + (c.commission_value || 0), 0);
 
   const monthVGV = monthSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
-  const ticketMedio = monthSales.length > 0 ? monthVGV / monthSales.length : 0;
 
-  // Meta progress from broker or goal
   const metaValue = primaryGoal?.target_value || currentBroker?.meta_monthly || 0;
   const metaRealizado = primaryGoal?.current_value || monthVGV;
   const metaPercent = metaValue > 0 ? Math.min((metaRealizado / metaValue) * 100, 999) : 0;
+  const metaFaltam = metaValue > 0 ? Math.max(metaValue - metaRealizado, 0) : 0;
 
-  const callEvents = todayEvents.filter(e => e.event_type === 'lembrete' || e.event_type === 'outro').length;
   const visitEvents = todayEvents.filter(e => e.event_type === 'visita' || e.event_type === 'captacao').length;
-  const followUpCount = pendingFollowUps.length;
-  const proposalCount = activeNegotiations.filter(n => n.status === 'proposta_enviada' || n.status === 'em_negociacao').length;
 
-  const funnelData = [
-    { label: 'Leads', value: brokerFollowUps.length, color: 'bg-blue-500' },
-    { label: 'Atendimento', value: activeNegotiations.length, color: 'bg-cyan-500' },
-    { label: 'Visitas', value: activeNegotiations.filter(n => n.status === 'visita_realizada' || n.status === 'em_negociacao').length, color: 'bg-emerald-500' },
-    { label: 'Propostas', value: proposalCount, color: 'bg-purple-500' },
-    { label: 'Fechados', value: monthSales.length, color: 'bg-amber-500' },
-  ];
-  const maxFunnel = Math.max(...funnelData.map(f => f.value), 1);
-
-  const brokerRankings = useMemo(() => {
-    if (!brokers || !sales) return [];
-    const activeBrokers = brokers.filter(b => b.status === 'ativo');
-    return activeBrokers.map(b => {
-      const bSales = (sales || []).filter(s => {
-        if (s.broker_id !== b.id || s.status === 'distrato') return false;
-        const d = new Date(s.sale_date || s.created_at || '');
-        return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
-      });
-      return { id: b.id, name: b.name, vgv: bSales.reduce((sum, s) => sum + (s.vgv || 0), 0) };
-    }).sort((a, b) => b.vgv - a.vgv).slice(0, 5);
-  }, [brokers, sales, currentMonth, currentYear]);
-
-  const priorityTasks = useMemo(() => {
-    const tasks: { id: string; label: string; type: string }[] = [];
-    hotNegotiations.slice(0, 2).forEach(n => {
-      tasks.push({ id: `neg-${n.id}`, label: `Acompanhar negociação - ${n.client_name}`, type: 'negotiation' });
-    });
-    pendingFollowUps.slice(0, 3).forEach(f => {
-      tasks.push({ id: `fu-${f.id}`, label: `Follow-up - ${f.client_name}`, type: 'followup' });
-    });
-    todayEvents.slice(0, 2).forEach(e => {
-      tasks.push({ id: `ev-${e.id}`, label: `${e.title}${e.start_time ? ` às ${e.start_time.slice(0, 5)}` : ''}`, type: 'event' });
-    });
-    return tasks.slice(0, 6);
-  }, [hotNegotiations, pendingFollowUps, todayEvents]);
-
-  const toggleTask = (id: string) => {
-    setCheckedTasks(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const focusSections = ['kpis', 'activities', 'agenda', 'negotiations', 'tasks'];
-  const allSections = ['kpis', 'activities', 'quicknav', 'agenda', 'negotiations', 'goal', 'funnel', 'tasks', 'ranking'];
-
-  const sections = focusMode ? focusSections : allSections;
-
-  const activityCards = [
-    { label: 'Ligações', count: callEvents, icon: Phone, gradient: 'from-blue-500/20 to-blue-600/5', border: 'border-blue-500/30', iconColor: 'text-blue-400' },
-    { label: 'Visitas', count: visitEvents, icon: MapPin, gradient: 'from-emerald-500/20 to-emerald-600/5', border: 'border-emerald-500/30', iconColor: 'text-emerald-400' },
-    { label: 'Follow-ups', count: followUpCount, icon: RotateCcw, gradient: 'from-orange-500/20 to-orange-600/5', border: 'border-orange-500/30', iconColor: 'text-orange-400' },
-    { label: 'Propostas', count: proposalCount, icon: FileText, gradient: 'from-purple-500/20 to-purple-600/5', border: 'border-purple-500/30', iconColor: 'text-purple-400' },
-  ];
+  // Smart alerts
+  const alerts: { icon: string; text: string; type: 'warning' | 'fire' | 'info' }[] = [];
+  const contactsToday = todayFollowUps.length;
+  if (contactsToday > 0) {
+    alerts.push({ icon: '⚠', text: `Você tem ${contactsToday} cliente${contactsToday > 1 ? 's' : ''} aguardando contato hoje`, type: 'warning' });
+  }
+  if (metaValue > 0 && metaFaltam > 0) {
+    alerts.push({ icon: '🔥', text: `Você está a ${formatCurrency(metaFaltam)} de bater sua meta`, type: 'fire' });
+  }
+  if (visitEvents > 0) {
+    alerts.push({ icon: '📅', text: `Você tem ${visitEvents} visita${visitEvents > 1 ? 's' : ''} agendada${visitEvents > 1 ? 's' : ''} hoje`, type: 'info' });
+  }
 
   const eventTypeColors: Record<string, string> = {
     visita: '#10b981', captacao: '#10b981', reuniao: '#8b5cf6', meta: '#8b5cf6',
     follow_up: '#f59e0b', lembrete: '#3b82f6', venda: '#06b6d4', outro: '#6b7280',
   };
 
-  // Quick nav sections for mobile
-  const quickNavItems = [
-    { label: 'Minhas Vendas', icon: DollarSign, href: '/vendas', color: 'text-emerald-400', bg: 'from-emerald-500/15 to-emerald-600/5', border: 'border-emerald-500/25', count: monthSales.length },
-    { label: 'Minhas Comissões', icon: Wallet, href: '/comissoes', color: 'text-amber-400', bg: 'from-amber-500/15 to-amber-600/5', border: 'border-amber-500/25', count: brokerCommissions.length },
-    { label: 'Minha Agenda', icon: Calendar, href: '/agenda', color: 'text-blue-400', bg: 'from-blue-500/15 to-blue-600/5', border: 'border-blue-500/25', count: todayEvents.length },
-    { label: 'Minhas Metas', icon: Target, href: '/metas', color: 'text-purple-400', bg: 'from-purple-500/15 to-purple-600/5', border: 'border-purple-500/25', count: brokerGoals.length },
-    { label: 'Negociações', icon: Handshake, href: '/negociacoes', color: 'text-cyan-400', bg: 'from-cyan-500/15 to-cyan-600/5', border: 'border-cyan-500/25', count: activeNegotiations.length },
-    { label: 'Follow-ups', icon: RotateCcw, href: '/follow-up', color: 'text-orange-400', bg: 'from-orange-500/15 to-orange-600/5', border: 'border-orange-500/25', count: pendingFollowUps.length },
-    { label: 'Minhas Tarefas', icon: ClipboardList, href: '/tarefas-kanban', color: 'text-rose-400', bg: 'from-rose-500/15 to-rose-600/5', border: 'border-rose-500/25', count: null },
-    { label: 'Configurações', icon: TrendingUp, href: '/configuracoes', color: 'text-muted-foreground', bg: 'from-muted/30 to-muted/10', border: 'border-border', count: null },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
-        <div className="space-y-5 max-w-7xl mx-auto">
+        <div className="space-y-5 max-w-5xl mx-auto">
 
           {/* Header */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-                {isMobile ? 'Meu Painel' : 'Central do Corretor'}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {isMobile ? `Olá, ${profile?.full_name?.split(' ')[0] || 'Corretor'}! Seu resumo do dia.` : 'Painel diário de vendas, negociações e produtividade'}
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+              {isMobile ? 'Meu Painel' : 'Central do Corretor'}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Olá, {profile?.full_name?.split(' ')[0] || 'Corretor'}! Seu resumo do dia.
+            </p>
+          </div>
+
+          {/* ========== 1. THREE MAIN CARDS ========== */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Vendas do Mês */}
+            <button
+              onClick={() => navigate('/vendas')}
+              className="rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 p-5 text-left transition-all hover:scale-[1.02] active:scale-95"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Vendas do Mês</p>
+                <DollarSign className="w-5 h-5 text-emerald-400 opacity-70" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {monthSales.length} venda{monthSales.length !== 1 ? 's' : ''}
               </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant={focusMode ? 'default' : 'outline'}
-                size="sm"
-                className={cn("gap-1.5 transition-all", focusMode && "bg-amber-500 hover:bg-amber-600 text-white")}
-                onClick={() => setFocusMode(!focusMode)}
-              >
-                {focusMode ? <X className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
-                {focusMode ? 'Sair do Foco' : 'Modo Foco'}
-              </Button>
-              {!focusMode && !isMobile && (
+              <p className="text-2xl lg:text-3xl font-bold text-foreground mt-1">
+                {formatCurrency(monthVGV)}
+              </p>
+            </button>
+
+            {/* Meta do Mês */}
+            <button
+              onClick={() => navigate('/metas')}
+              className={cn(
+                "rounded-xl border p-5 text-left transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-br",
+                metaPercent >= 100
+                  ? "border-emerald-500/30 from-emerald-500/10 to-emerald-600/5"
+                  : metaPercent >= 50
+                    ? "border-primary/30 from-primary/10 to-primary/5"
+                    : "border-amber-500/30 from-amber-500/10 to-amber-600/5"
+              )}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Meta do Mês</p>
+                <Target className={cn("w-5 h-5 opacity-70", metaPercent >= 100 ? 'text-emerald-400' : metaPercent >= 50 ? 'text-primary' : 'text-amber-400')} />
+              </div>
+              {metaValue > 0 ? (
                 <>
-                  <Button variant="outline" size="sm" className="gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => navigate('/follow-up')}>
-                    <UserPlus className="w-3.5 h-3.5" /> Novo Cliente
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1.5 border-blue-500/20 text-blue-400 hover:bg-blue-500/10" onClick={() => navigate('/agenda')}>
-                    <Phone className="w-3.5 h-3.5" /> Registrar Ligação
-                  </Button>
+                  <p className="text-2xl lg:text-3xl font-bold text-foreground">{Math.round(metaPercent)}% <span className="text-sm font-normal text-muted-foreground">concluído</span></p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatCurrency(metaRealizado)} de {formatCurrency(metaValue)}
+                  </p>
+                  <Progress value={Math.min(metaPercent, 100)} className="h-2 mt-3" />
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    {metaRealizado >= metaValue
+                      ? `🎉 Meta superada em ${formatCurrency(metaRealizado - metaValue)}`
+                      : `Faltam ${formatCurrency(metaFaltam)}`
+                    }
+                  </p>
                 </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhuma meta definida</p>
               )}
-            </div>
+            </button>
+
+            {/* Follow-ups Hoje */}
+            <button
+              onClick={() => navigate('/follow-up')}
+              className={cn(
+                "rounded-xl border p-5 text-left transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-br",
+                pendingFollowUps.length > 0
+                  ? "border-orange-500/40 from-orange-500/15 to-orange-600/5 ring-1 ring-orange-500/20"
+                  : "border-border from-muted/10 to-transparent"
+              )}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Follow-ups Hoje</p>
+                <AlertTriangle className={cn("w-5 h-5 opacity-70", pendingFollowUps.length > 0 ? 'text-orange-400' : 'text-muted-foreground')} />
+              </div>
+              <p className="text-2xl lg:text-3xl font-bold text-foreground">{pendingFollowUps.length}</p>
+              <p className="text-sm text-muted-foreground mt-1">pendentes</p>
+            </button>
           </div>
 
-          {focusMode && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 flex items-center gap-3">
-              <Zap className="w-5 h-5 text-amber-400 shrink-0" />
-              <p className="text-sm text-amber-200">
-                <strong>Modo Foco ativo</strong> — Mostrando apenas o essencial.
-              </p>
-            </div>
-          )}
-
-          {/* KPI Indicators */}
-          {sections.includes('kpis') && (
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-              <KPIIndicator
-                label="Vendas do Mês"
-                value={monthSales.length.toString()}
-                subtitle={formatCurrency(monthVGV)}
-                icon={DollarSign}
-                color="text-emerald-400"
-                borderColor="border-emerald-500/25"
-                onClick={() => navigate('/vendas')}
-              />
-              <KPIIndicator
-                label="Comissões"
-                value={formatCurrency(totalCommissionsMonth)}
-                subtitle={`${monthCommissions.length} lançamentos`}
-                icon={Wallet}
-                color="text-amber-400"
-                borderColor="border-amber-500/25"
-                onClick={() => navigate('/comissoes')}
-              />
-              <KPIIndicator
-                label="Follow-ups"
-                value={pendingFollowUps.length.toString()}
-                subtitle="pendentes"
-                icon={RotateCcw}
-                color="text-orange-400"
-                borderColor="border-orange-500/25"
-                onClick={() => navigate('/follow-up')}
-              />
-              <KPIIndicator
-                label="Negociações"
-                value={activeNegotiations.length.toString()}
-                subtitle="ativas"
-                icon={Handshake}
-                color="text-cyan-400"
-                borderColor="border-cyan-500/25"
-                onClick={() => navigate('/negociacoes')}
-              />
-              <KPIIndicator
-                label="Meta"
-                value={`${Math.round(metaPercent)}%`}
-                subtitle={metaValue > 0 ? (metaRealizado >= metaValue ? 'Atingida! 🎉' : `Faltam ${formatCurrency(metaValue - metaRealizado)}`) : 'Sem meta'}
-                icon={Target}
-                color={metaPercent >= 100 ? 'text-emerald-400' : metaPercent >= 80 ? 'text-primary' : metaPercent >= 50 ? 'text-amber-400' : 'text-red-400'}
-                borderColor={metaPercent >= 100 ? 'border-emerald-500/25' : metaPercent >= 50 ? 'border-amber-500/25' : 'border-red-500/25'}
-                onClick={() => navigate('/metas')}
-              />
-            </div>
-          )}
-
-          {/* Quick Nav Grid (mobile-focused) */}
-          {sections.includes('quicknav') && isMobile && (
-            <div className="grid grid-cols-4 gap-2">
-              {quickNavItems.map(item => (
-                <button
-                  key={item.href}
-                  onClick={() => navigate(item.href)}
+          {/* ========== 2. SMART ALERTS ========== */}
+          {alerts.length > 0 && (
+            <div className="space-y-2">
+              {alerts.map((alert, i) => (
+                <div
+                  key={i}
                   className={cn(
-                    "flex flex-col items-center gap-1.5 p-3 rounded-xl border bg-gradient-to-br transition-all active:scale-95",
-                    item.border, item.bg
+                    "flex items-center gap-3 rounded-lg border px-4 py-2.5 text-sm",
+                    alert.type === 'warning' && "border-amber-500/30 bg-amber-500/5 text-amber-300",
+                    alert.type === 'fire' && "border-orange-500/30 bg-orange-500/5 text-orange-300",
+                    alert.type === 'info' && "border-blue-500/30 bg-blue-500/5 text-blue-300",
                   )}
                 >
-                  <div className="relative">
-                    <item.icon className={cn("w-5 h-5", item.color)} />
-                    {item.count !== null && item.count > 0 && (
-                      <span className="absolute -top-1.5 -right-2.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                        {item.count > 99 ? '99+' : item.count}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[10px] font-medium text-foreground leading-tight text-center">{item.label.replace('Minhas ', '').replace('Minha ', '')}</span>
-                </button>
+                  <span className="text-base">{alert.icon}</span>
+                  <span>{alert.text}</span>
+                </div>
               ))}
             </div>
           )}
 
-          {/* Quick Nav Grid (desktop) */}
-          {sections.includes('quicknav') && !isMobile && (
-            <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
-              {quickNavItems.map(item => (
-                <button
-                  key={item.href}
-                  onClick={() => navigate(item.href)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-4 rounded-xl border bg-gradient-to-br transition-all hover:scale-[1.03] active:scale-95",
-                    item.border, item.bg
-                  )}
-                >
-                  <div className="relative">
-                    <item.icon className={cn("w-6 h-6", item.color)} />
-                    {item.count !== null && item.count > 0 && (
-                      <span className="absolute -top-1.5 -right-2.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                        {item.count > 99 ? '99+' : item.count}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[11px] font-medium text-foreground leading-tight text-center">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Activity Cards */}
-          {sections.includes('activities') && (
+          {/* ========== 3. QUICK ACTIONS ========== */}
+          <div>
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Ações Rápidas</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {activityCards.map(card => (
-                <div key={card.label} className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-4 transition-all hover:scale-[1.02]`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{card.label}</p>
-                      <p className="text-3xl font-bold text-foreground mt-1">{card.count}</p>
-                    </div>
-                    <card.icon className={`w-8 h-8 ${card.iconColor} opacity-80`} />
-                  </div>
-                </div>
-              ))}
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 border-primary/20 hover:bg-primary/10 hover:border-primary/40"
+                onClick={() => navigate('/negociacoes')}
+              >
+                <Handshake className="w-5 h-5 text-primary" />
+                <span className="text-xs font-medium">+ Nova Negociação</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/40"
+                onClick={() => navigate('/follow-up')}
+              >
+                <UserPlus className="w-5 h-5 text-emerald-400" />
+                <span className="text-xs font-medium">+ Novo Cliente</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 border-blue-500/20 hover:bg-blue-500/10 hover:border-blue-500/40"
+                onClick={() => navigate('/agenda')}
+              >
+                <Phone className="w-5 h-5 text-blue-400" />
+                <span className="text-xs font-medium">Registrar Ligação</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-4 flex flex-col items-center gap-2 border-purple-500/20 hover:bg-purple-500/10 hover:border-purple-500/40"
+                onClick={() => navigate('/agenda')}
+              >
+                <Calendar className="w-5 h-5 text-purple-400" />
+                <span className="text-xs font-medium">Abrir Agenda</span>
+              </Button>
             </div>
-          )}
-
-          {/* Agenda + Negotiations Row */}
-          <div className={cn("grid gap-4", sections.includes('negotiations') ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
-            {sections.includes('agenda') && (
-              <div className="rounded-xl border border-border bg-card/50 p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-primary" /> Agenda do Dia
-                  </h2>
-                  <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={() => navigate('/agenda')}>
-                    Ver tudo <ChevronRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </div>
-                {todayEvents.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">Nenhum compromisso hoje</p>
-                ) : (
-                  <div className="space-y-2">
-                    {todayEvents.slice(0, 5).map(event => {
-                      const color = eventTypeColors[event.event_type] || '#3b82f6';
-                      return (
-                        <div key={event.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate('/agenda')}>
-                          <span className="text-xs font-mono text-muted-foreground w-12 shrink-0">
-                            {event.start_time?.slice(0, 5) || '—'}
-                          </span>
-                          <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate" style={{ color }}>{event.title}</p>
-                            {event.client_name && <p className="text-xs text-muted-foreground truncate">{event.client_name}</p>}
-                          </div>
-                          <div className="flex gap-1 shrink-0">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-blue-400">
-                              <Phone className="w-3 h-3" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-emerald-400">
-                              <MessageCircle className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {sections.includes('negotiations') && (
-              <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Flame className="w-4 h-4 text-orange-400" /> Negociações Quentes
-                  </h2>
-                  <Button variant="ghost" size="sm" className="text-xs text-orange-400" onClick={() => navigate('/negociacoes')}>
-                    Ver todas <ChevronRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </div>
-                {hotNegotiations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">Nenhuma negociação ativa</p>
-                ) : (
-                  <div className="space-y-2">
-                    {hotNegotiations.map((neg) => {
-                      const chance = neg.closingProbability;
-                      return (
-                        <div key={neg.id} className="p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all cursor-pointer" onClick={() => navigate('/negociacoes')}>
-                          <div className="flex items-start justify-between">
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-foreground truncate">{neg.client_name}</p>
-                              <p className="text-xs text-muted-foreground truncate">{neg.property_address}</p>
-                            </div>
-                            <Badge variant="outline" className={`shrink-0 text-[10px] ${getProbabilityColor(chance)}`}>
-                              {chance}%
-                            </Badge>
-                          </div>
-                          <div className="mt-2">
-                            <Progress value={chance} className={`h-1.5 ${getProbabilityProgressColor(chance)}`} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Goal + Funnel Row */}
-          {!focusMode && (
-            <div className="grid lg:grid-cols-2 gap-4">
-              {sections.includes('goal') && (
-                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5">
-                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <Target className="w-4 h-4 text-primary" /> Meta do Mês
-                  </h2>
-                  {metaValue > 0 ? (
-                    <div className="space-y-4">
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">{primaryGoal?.title || 'Meta Mensal'}</p>
-                        <p className="text-3xl font-bold text-foreground">{formatCurrency(metaRealizado)}</p>
-                        <p className="text-xs text-muted-foreground">de {formatCurrency(metaValue)}</p>
-                      </div>
-                      <Progress value={Math.min(metaPercent, 100)} className="h-3" />
-                      <div className="flex justify-between text-xs">
-                        <span className={cn("font-semibold", metaPercent >= 100 ? 'text-emerald-400' : 'text-primary')}>{Math.round(metaPercent)}% concluído</span>
-                        <span className="text-muted-foreground">
-                          {metaRealizado >= metaValue
-                            ? `Meta superada em ${formatCurrency(metaRealizado - metaValue)}`
-                            : `Faltam: ${formatCurrency(metaValue - metaRealizado)}`
-                          }
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center space-y-3">
-                      <p className="text-3xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
-                      <p className="text-xs text-muted-foreground">VGV do mês • {monthSales.length} vendas</p>
-                      <p className="text-xs text-muted-foreground">Nenhuma meta definida</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {sections.includes('funnel') && (
-                <div className="rounded-xl border border-border bg-card/50 p-5">
-                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-4">
-                    <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas
-                  </h2>
-                  <div className="space-y-3">
-                    {funnelData.map(item => (
-                      <div key={item.label} className="flex items-center gap-3">
-                        <span className="text-xs text-muted-foreground w-24 text-right">{item.label}</span>
-                        <div className="flex-1 bg-muted/30 rounded-full h-6 overflow-hidden">
-                          <div
-                            className={`h-full ${item.color} rounded-full flex items-center justify-end pr-2 transition-all`}
-                            style={{ width: `${Math.max((item.value / maxFunnel) * 100, 8)}%` }}
-                          >
-                            <span className="text-[10px] font-bold text-white">{item.value}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Tasks + Ranking Row */}
-          <div className={cn("grid gap-4", !focusMode ? "lg:grid-cols-3" : "lg:grid-cols-1")}>
-            {sections.includes('tasks') && (
-              <div className={cn("rounded-xl border border-border bg-card/50 p-4", !focusMode ? "lg:col-span-2" : "")}>
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                  <CheckSquare className="w-4 h-4 text-primary" /> Tarefas Prioritárias
+          {/* ========== 4. AGENDA + NEGOTIATIONS ROW ========== */}
+          <div className="grid lg:grid-cols-2 gap-4">
+            {/* Agenda do Dia */}
+            <div className="rounded-xl border border-border bg-card/50 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-primary" /> Agenda do Dia
                 </h2>
-                {priorityTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">Nenhuma tarefa pendente 🎉</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {priorityTasks.map(task => {
-                      const isDone = checkedTasks.has(task.id);
-                      const typeColors: Record<string, string> = {
-                        negotiation: 'text-orange-400', followup: 'text-amber-400', event: 'text-blue-400',
-                      };
-                      return (
-                        <div key={task.id} className={cn(
-                          "flex items-center gap-3 p-2.5 rounded-lg transition-all",
-                          isDone ? "opacity-50" : "hover:bg-muted/30"
-                        )}>
-                          <button onClick={() => toggleTask(task.id)} className="shrink-0">
-                            {isDone ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4 text-muted-foreground" />}
-                          </button>
-                          <p className={cn("text-sm flex-1", isDone && "line-through text-muted-foreground")}>{task.label}</p>
-                          <span className={cn("text-[10px] font-medium", typeColors[task.type] || 'text-muted-foreground')}>
-                            {task.type === 'negotiation' ? '🔥' : task.type === 'followup' ? '💬' : '📅'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={() => navigate('/agenda')}>
+                  Ver agenda completa <ChevronRight className="w-3 h-3 ml-1" />
+                </Button>
               </div>
-            )}
-
-            {!focusMode && sections.includes('ranking') && (
-              <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                  <Trophy className="w-4 h-4 text-amber-400" /> Ranking da Equipe
-                </h2>
+              {todayEvents.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">Nenhum compromisso hoje</p>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate('/agenda')}>
+                    Abrir agenda
+                  </Button>
+                </div>
+              ) : (
                 <div className="space-y-2">
-                  {brokerRankings.map((r, idx) => {
-                    const isMe = r.id === brokerId;
-                    const medals = ['🥇', '🥈', '🥉'];
+                  {todayEvents.slice(0, 5).map(event => {
+                    const color = eventTypeColors[event.event_type] || '#3b82f6';
                     return (
-                      <div key={r.id} className={cn(
-                        "flex items-center gap-3 p-2 rounded-lg transition-all",
-                        isMe ? "bg-primary/10 border border-primary/20" : "hover:bg-muted/20"
-                      )}>
-                        <span className="text-sm w-6 text-center">{idx < 3 ? medals[idx] : `${idx + 1}º`}</span>
-                        <span className={cn("text-sm flex-1 truncate", isMe && "font-semibold text-primary")}>
-                          {isMe ? 'Você' : r.name.split(' ')[0]}
+                      <div key={event.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate('/agenda')}>
+                        <span className="text-xs font-mono text-muted-foreground w-12 shrink-0">
+                          {event.start_time?.slice(0, 5) || '—'}
                         </span>
-                        <span className="text-xs font-medium text-muted-foreground">{formatCurrency(r.vgv)}</span>
+                        <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate" style={{ color }}>{event.title}</p>
+                          {event.client_name && <p className="text-xs text-muted-foreground truncate">{event.client_name}</p>}
+                        </div>
                       </div>
                     );
                   })}
-                  {brokerRankings.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-4">Sem dados do ranking</p>
-                  )}
                 </div>
+              )}
+            </div>
+
+            {/* Negociações Quentes */}
+            <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-orange-400" /> Negociações Quentes
+                </h2>
+                <Button variant="ghost" size="sm" className="text-xs text-orange-400" onClick={() => navigate('/negociacoes')}>
+                  Ver todas <ChevronRight className="w-3 h-3 ml-1" />
+                </Button>
+              </div>
+              {hotNegotiations.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Nenhuma negociação ativa</p>
+              ) : (
+                <div className="space-y-2">
+                  {hotNegotiations.map((neg) => {
+                    const chance = neg.closingProbability;
+                    return (
+                      <div key={neg.id} className="p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/60 transition-all cursor-pointer" onClick={() => navigate('/negociacoes')}>
+                        <div className="flex items-start justify-between">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">Cliente: {neg.client_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">Imóvel: {neg.property_address}</p>
+                          </div>
+                          <Badge variant="outline" className={`shrink-0 text-[10px] ${getProbabilityColor(chance)}`}>
+                            {chance}%
+                          </Badge>
+                        </div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <Progress value={chance} className={`h-1.5 flex-1 ${getProbabilityProgressColor(chance)}`} />
+                          <span className="text-[10px] text-muted-foreground shrink-0">Probabilidade: {chance}%</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ========== 5. META DO MÊS - MOTIVATIONAL BLOCK ========== */}
+          <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6">
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-5">
+              <TrendingUp className="w-4 h-4 text-primary" /> Meta do Mês
+            </h2>
+            {metaValue > 0 ? (
+              <div className="space-y-4">
+                <div className="text-center">
+                  <p className="text-4xl lg:text-5xl font-bold text-foreground">{formatCurrency(metaRealizado)}</p>
+                  <p className="text-sm text-muted-foreground mt-1">de {formatCurrency(metaValue)}</p>
+                </div>
+                <Progress value={Math.min(metaPercent, 100)} className="h-4" />
+                <div className="flex justify-between text-sm">
+                  <span className={cn("font-semibold", metaPercent >= 100 ? 'text-emerald-400' : 'text-primary')}>
+                    {Math.round(metaPercent)}% concluído
+                  </span>
+                  <span className="text-muted-foreground">
+                    {metaRealizado >= metaValue
+                      ? `🚀 Meta superada em ${formatCurrency(metaRealizado - metaValue)}`
+                      : `Faltam ${formatCurrency(metaFaltam)}`
+                    }
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center space-y-3">
+                <p className="text-4xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
+                <p className="text-sm text-muted-foreground">VGV do mês • {monthSales.length} venda{monthSales.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-muted-foreground">Nenhuma meta definida para este mês</p>
               </div>
             )}
           </div>
+
         </div>
       </main>
     </div>
   );
 };
-
-// KPI Card component
-const KPIIndicator = ({ label, value, subtitle, icon: Icon, color, borderColor, onClick }: {
-  label: string;
-  value: string;
-  subtitle: string;
-  icon: React.ElementType;
-  color: string;
-  borderColor: string;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "rounded-xl border bg-card/50 p-3 lg:p-4 text-left transition-all hover:scale-[1.02] active:scale-95",
-      borderColor
-    )}
-  >
-    <div className="flex items-center justify-between mb-1">
-      <p className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
-      <Icon className={cn("w-4 h-4 lg:w-5 lg:h-5 opacity-70", color)} />
-    </div>
-    <p className={cn("text-lg lg:text-xl font-bold text-foreground truncate")}>{value}</p>
-    <p className="text-[10px] lg:text-xs text-muted-foreground truncate mt-0.5">{subtitle}</p>
-  </button>
-);
 
 export default CorretorDashboard;
