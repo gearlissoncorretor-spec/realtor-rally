@@ -40,7 +40,7 @@ serve(async (req) => {
     // Get broker info (user_id, team_id)
     const { data: broker, error: brokerError } = await supabaseClient
       .from('brokers')
-      .select('id, user_id, created_by, team_id')
+      .select('id, user_id, created_by, team_id, name')
       .eq('id', broker_id)
       .single()
 
