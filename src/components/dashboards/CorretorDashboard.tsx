@@ -353,6 +353,9 @@ const CorretorDashboard = () => {
             )}
           </div>
 
+          {/* ========== 6. ORIGEM DOS CLIENTES ========== */}
+          <ClientOriginsChart brokerId={brokerId} />
+
         </div>
       </main>
     </div>
