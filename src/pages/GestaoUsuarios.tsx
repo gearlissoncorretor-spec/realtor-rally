@@ -78,7 +78,7 @@ const GestaoUsuarios = () => {
           id: profileRow.id,
           full_name: linkedBroker?.name || profileRow.full_name,
           nickname: (profileRow as any).nickname || undefined,
-          email: linkedBroker?.email || profileRow.email,
+          email: profileRow.email,
           phone: linkedBroker?.phone || (profileRow as any).phone || undefined,
           birth_date: linkedBroker?.birthday || (profileRow as any).birth_date || undefined,
           avatar_url: linkedBroker?.avatar_url || profileRow.avatar_url || undefined,
