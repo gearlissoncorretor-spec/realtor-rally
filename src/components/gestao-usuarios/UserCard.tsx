@@ -27,6 +27,7 @@ export interface UserData {
   created_at?: string;
   last_login_at?: string;
   broker_id?: string;
+  broker_email?: string;
 }
 
 interface UserCardProps {
