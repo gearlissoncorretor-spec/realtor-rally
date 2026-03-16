@@ -12,16 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -31,29 +24,40 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.slice('Bearer '.length).trim();
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
-    if (authError || !user) {
+    const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    const token = authHeader.slice('Bearer '.length).trim();
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    const requesterId = claimsData?.claims?.sub;
+
+    if (claimsError || !requesterId) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { data: isAdmin } = await supabaseClient
-      .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+    const [adminRole, diretorRole, gerenteRole, superAdminRole] = await Promise.all([
+      adminClient.rpc('has_role', { _user_id: requesterId, _role: 'admin' }),
+      adminClient.rpc('has_role', { _user_id: requesterId, _role: 'diretor' }),
+      adminClient.rpc('has_role', { _user_id: requesterId, _role: 'gerente' }),
+      adminClient.rpc('is_super_admin', { _user_id: requesterId }),
+    ]);
 
-    const { data: isDiretor } = await supabaseClient
-      .rpc('has_role', { _user_id: user.id, _role: 'diretor' });
-
-    const { data: isGerente } = await supabaseClient
-      .rpc('has_role', { _user_id: user.id, _role: 'gerente' });
-
-    const { data: isSuperAdmin } = await supabaseClient
-      .rpc('is_super_admin', { _user_id: user.id });
-
-    if (!isAdmin && !isDiretor && !isGerente && !isSuperAdmin) {
+    if (!adminRole.data && !diretorRole.data && !gerenteRole.data && !superAdminRole.data) {
       return new Response(
         JSON.stringify({ error: 'Sem permissão para resetar senhas' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -76,21 +80,45 @@ serve(async (req) => {
       );
     }
 
-    // Update user password using admin API
-    const { error: updateError } = await supabaseClient.auth.admin.updateUserById(
-      userId,
-      { password }
-    );
+    const { data: targetUserData, error: targetUserError } = await adminClient.auth.admin.getUserById(userId);
+
+    if (targetUserError || !targetUserData.user) {
+      return new Response(
+        JSON.stringify({ error: 'Usuário alvo não encontrado' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const updatedUserMetadata = {
+      ...(targetUserData.user.user_metadata ?? {}),
+      must_change_password: true,
+      temp_password_set_at: new Date().toISOString(),
+    };
+
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
+      password,
+      user_metadata: updatedUserMetadata,
+    });
 
     if (updateError) {
       throw updateError;
     }
 
+    console.log('Temporary password updated', {
+      requesterId,
+      targetUserId: userId,
+      targetEmail: targetUserData.user.email,
+    });
+
     return new Response(
-      JSON.stringify({ success: true, message: 'Password updated successfully' }),
+      JSON.stringify({
+        success: true,
+        message: 'Password updated successfully',
+        email: targetUserData.user.email,
+        mustChangePassword: true,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Error updating password:', error);
     return new Response(

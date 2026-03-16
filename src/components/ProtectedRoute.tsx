@@ -98,6 +98,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth" replace />;
   }
 
+  const mustChangePassword = Boolean((user.user_metadata as Record<string, unknown> | undefined)?.must_change_password);
+
+  if (mustChangePassword && location.pathname !== '/reset-password') {
+    return <Navigate to="/reset-password" replace />;
+  }
+
   // Redirect users without company to onboarding (unless already on onboarding)
   if (!allowWithoutCompany && profile && !profile.company_id && !isSuperAdmin()) {
     return <Navigate to="/onboarding" replace />;

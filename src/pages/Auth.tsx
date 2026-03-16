@@ -25,7 +25,11 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      if (profile && !profile.company_id) {
+      const mustChangePassword = Boolean((user.user_metadata as Record<string, unknown> | undefined)?.must_change_password);
+
+      if (mustChangePassword) {
+        navigate("/reset-password", { replace: true });
+      } else if (profile && !profile.company_id) {
         navigate("/onboarding", { replace: true });
       } else {
         navigate("/", { replace: true });

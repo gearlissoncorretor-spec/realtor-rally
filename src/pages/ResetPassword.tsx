@@ -47,12 +47,18 @@ const ResetPassword = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({
+        password,
+        data: {
+          must_change_password: false,
+          temp_password_set_at: null,
+        },
+      });
       if (error) throw error;
 
       setSuccess(true);
       toast({ title: "Senha atualizada!", description: "Sua senha foi redefinida com sucesso." });
-      setTimeout(() => navigate("/auth"), 3000);
+      setTimeout(() => navigate("/"), 2000);
     } catch (error: any) {
       toast({ title: "Erro", description: error.message || "Não foi possível redefinir a senha.", variant: "destructive" });
     } finally {
