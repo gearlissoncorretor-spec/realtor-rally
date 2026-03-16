@@ -291,18 +291,55 @@ const GestaoUsuarios = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reset Password Confirmation */}
-      <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
+      {/* Reset Password Dialog */}
+      <AlertDialog open={resetOpen} onOpenChange={(open) => { if (!open) handleCloseReset(); else setResetOpen(true); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Resetar senha</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja resetar a senha de <strong>{resetUser?.full_name}</strong>? Uma nova senha temporária será gerada.
+            <AlertDialogTitle>
+              {resetSuccess ? '✅ Senha Resetada com Sucesso' : 'Resetar Senha'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div>
+                {resetSuccess && generatedPassword ? (
+                  <div className="space-y-4 mt-2">
+                    <p className="text-sm text-muted-foreground">
+                      A senha temporária de <strong className="text-foreground">{resetUser?.full_name}</strong> foi gerada. 
+                      Compartilhe com o usuário para que ele acesse o sistema e cadastre uma nova senha.
+                    </p>
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted border">
+                      <code className="flex-1 text-lg font-mono font-bold text-foreground tracking-wider select-all">
+                        {generatedPassword}
+                      </code>
+                      <Button variant="ghost" size="sm" onClick={handleCopyPassword} className="shrink-0">
+                        {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+                        {copied ? 'Copiado!' : 'Copiar'}
+                      </Button>
+                    </div>
+                    <div className="text-xs text-muted-foreground bg-warning/10 border border-warning/20 rounded-lg p-3">
+                      <strong className="text-warning">⚠️ Importante:</strong> Esta senha será exibida apenas uma vez. 
+                      Anote ou copie antes de fechar esta janela.
+                    </div>
+                  </div>
+                ) : (
+                  <p>
+                    Deseja resetar a senha de <strong>{resetUser?.full_name}</strong>? Uma nova senha temporária será gerada e exibida na tela.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResetPassword}>Resetar Senha</AlertDialogAction>
+            {resetSuccess ? (
+              <AlertDialogAction onClick={handleCloseReset}>Fechar</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel disabled={resetLoading}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleResetPassword} disabled={resetLoading}>
+                  {resetLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {resetLoading ? 'Gerando...' : 'Resetar Senha'}
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
