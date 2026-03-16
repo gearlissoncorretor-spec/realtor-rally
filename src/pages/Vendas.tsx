@@ -29,7 +29,7 @@ const currentYear = new Date().getFullYear();
 
 const Vendas = () => {
   const { toast } = useToast();
-  const { isDiretor } = useAuth();
+  const { isDiretor, isGerente } = useAuth();
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -298,14 +298,18 @@ const Vendas = () => {
 
               <SalesMetricsCards sales={searchFilteredSales} />
 
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2">
-                  <SalesInsightsPanel sales={searchFilteredSales} brokers={brokers} />
+              {(isDiretor() || isGerente()) ? (
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  <div className="xl:col-span-2">
+                    <SalesInsightsPanel sales={searchFilteredSales} brokers={brokers} />
+                  </div>
+                  <div>
+                    <TopBrokersRanking sales={searchFilteredSales} brokers={brokers} />
+                  </div>
                 </div>
-                <div>
-                  <TopBrokersRanking sales={searchFilteredSales} brokers={brokers} />
-                </div>
-              </div>
+              ) : (
+                <SalesInsightsPanel sales={searchFilteredSales} brokers={brokers} />
+              )}
 
               <Card className="overflow-hidden border-border/50 shadow-sm">
                 <div className="px-5 py-4 border-b border-border/50 bg-muted/20 flex items-center justify-between">
