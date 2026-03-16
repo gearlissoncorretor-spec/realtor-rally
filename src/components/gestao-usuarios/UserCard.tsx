@@ -26,6 +26,7 @@ export interface UserData {
   role: string;
   created_at?: string;
   last_login_at?: string;
+  broker_id?: string;
 }
 
 interface UserCardProps {
