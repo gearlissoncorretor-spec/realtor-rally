@@ -780,22 +780,41 @@ const Comissoes = () => {
             </div>
 
             {/* Value config */}
-            <div className="grid grid-cols-2 gap-4">
+            {isBrokerView ? (
+              /* Broker: enters commission value directly */}
               <div className="space-y-1.5">
-                <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor da Comissão</Label>
-                <CurrencyInput value={newBaseValue} onChange={setNewBaseValue} className="h-9" />
+                <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor da sua Comissão *</Label>
+                <CurrencyInput value={newDirectCommissionValue} onChange={setNewDirectCommissionValue} className="h-9" />
+                <p className="text-[10px] text-muted-foreground">Digite o valor que você vai receber</p>
               </div>
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1 text-xs"><Percent className="w-3 h-3" /> % (se aplicável)</Label>
-                <Input type="number" value={newPercentage} onChange={(e) => setNewPercentage(Number(e.target.value))}
-                  step="0.1" min="0" max="100" className="h-9" />
-              </div>
-            </div>
+            ) : (
+              /* Manager: base value + percentage */
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor Base (VGC)</Label>
+                    <CurrencyInput value={newBaseValue} onChange={setNewBaseValue} className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><Percent className="w-3 h-3" /> % Comissão</Label>
+                    <Input type="number" value={newPercentage} onChange={(e) => setNewPercentage(Number(e.target.value))}
+                      step="0.1" min="0" max="100" className="h-9" />
+                  </div>
+                </div>
 
-            {newBaseValue > 0 && newPercentage !== 100 && (
+                {newBaseValue > 0 && newPercentage !== 100 && (
+                  <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Valor Calculado</p>
+                    <p className="text-2xl font-black text-success">{formatCurrency(newCommissionValue)}</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {isBrokerView && newDirectCommissionValue > 0 && (
               <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Valor Calculado</p>
-                <p className="text-2xl font-black text-success">{formatCurrency(newCommissionValue)}</p>
+                <p className="text-xs text-muted-foreground mb-1">Sua Comissão</p>
+                <p className="text-2xl font-black text-success">{formatCurrency(newDirectCommissionValue)}</p>
               </div>
             )}
 
