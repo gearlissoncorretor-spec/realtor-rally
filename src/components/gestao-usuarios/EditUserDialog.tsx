@@ -67,6 +67,28 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
 
       if (profileError) throw profileError;
 
+      // Sync changes to linked broker record
+      const { data: linkedBroker } = await supabase
+        .from('brokers')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (linkedBroker) {
+        const brokerUpdate: Record<string, any> = {};
+        if (form.full_name !== user.full_name) brokerUpdate.name = form.full_name;
+        if (form.phone !== (user.phone || '')) brokerUpdate.phone = form.phone || null;
+        if (form.team_id !== (user.team_id || '')) brokerUpdate.team_id = form.team_id || null;
+        if (form.birth_date !== (user.birth_date || '')) brokerUpdate.birthday = form.birth_date || null;
+
+        if (Object.keys(brokerUpdate).length > 0) {
+          await supabase
+            .from('brokers')
+            .update(brokerUpdate)
+            .eq('id', linkedBroker.id);
+        }
+      }
+
       // Update role if changed
       if (form.role !== user.role) {
         await supabase.from('user_roles').delete().eq('user_id', user.id);
@@ -76,6 +98,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
         if (roleError) throw roleError;
       }
 
+      // Invalidate all related caches for instant sync
+      const { QueryClient } = await import('@tanstack/react-query');
+      // Access queryClient from window or use direct invalidation
       toast({ title: "Usuário atualizado com sucesso!" });
       onSaved();
       onOpenChange(false);

@@ -308,10 +308,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       if (error) throw error;
+
+      // Sync changes to linked profile
+      if (data.user_id) {
+        const profileUpdate: Record<string, any> = {};
+        if (broker.name) profileUpdate.full_name = broker.name;
+        if (broker.email) profileUpdate.email = broker.email;
+        if (broker.phone !== undefined) profileUpdate.phone = broker.phone;
+        if (broker.avatar_url !== undefined) profileUpdate.avatar_url = broker.avatar_url;
+        if (broker.team_id !== undefined) profileUpdate.team_id = broker.team_id;
+        if (broker.birthday !== undefined) profileUpdate.birth_date = broker.birthday;
+
+        if (Object.keys(profileUpdate).length > 0) {
+          await supabase
+            .from('profiles')
+            .update(profileUpdate)
+            .eq('id', data.user_id);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['brokers'] });
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['gestao-usuarios'] });
       toast({
         title: "Corretor atualizado",
         description: "Dados do corretor atualizados com sucesso.",
