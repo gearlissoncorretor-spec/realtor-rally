@@ -201,6 +201,7 @@ const GestaoUsuarios = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Você precisa estar autenticado');
 
+      // 1. Reset the password
       const response = await fetch('https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/update-user-password', {
         method: 'POST',
         headers: {
@@ -213,9 +214,34 @@ const GestaoUsuarios = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Erro ao resetar senha');
 
+      // 2. Send credentials via email
+      try {
+        const emailResponse = await fetch('https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/send-credentials', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            email: resetUser.email,
+            password: tempPass,
+            full_name: resetUser.full_name,
+            role: resetUser.role,
+            is_password_reset: true,
+          }),
+        });
+
+        const emailResult = await emailResponse.json();
+        if (emailResponse.ok) {
+          toast({ title: 'Email enviado', description: emailResult.note || `Credenciais enviadas para ${resetUser.email}` });
+        }
+      } catch (emailErr) {
+        console.warn('Falha ao enviar email de credenciais:', emailErr);
+      }
+
       setGeneratedPassword(tempPass);
       setResetSuccess(true);
-      toast({ title: 'Senha resetada com sucesso!', description: 'A senha temporária foi gerada. Compartilhe com o usuário.' });
+      toast({ title: 'Senha resetada com sucesso!', description: 'A senha temporária foi gerada e enviada por email.' });
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     } finally {
