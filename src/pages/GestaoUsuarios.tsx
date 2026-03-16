@@ -198,8 +198,20 @@ const GestaoUsuarios = () => {
     const tempPass = generateTempPassword();
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error('Sessão expirada. Faça login novamente para resetar a senha.');
+      }
+
+      const functionHeaders = {
+        Authorization: `Bearer ${accessToken}`,
+      };
+
       const { error: resetError } = await supabase.functions.invoke('update-user-password', {
         body: { userId: resetUser.id, password: tempPass },
+        headers: functionHeaders,
       });
 
       if (resetError) throw resetError;
@@ -217,6 +229,7 @@ const GestaoUsuarios = () => {
             role: resetUser.role,
             is_password_reset: true,
           },
+          headers: functionHeaders,
         });
 
         if (emailError) throw emailError;

@@ -18,14 +18,20 @@ serve(async (req) => {
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false
-        }
+          persistSession: false,
+        },
       }
     );
 
-    // Verify admin status
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header ausente ou inválido' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.slice('Bearer '.length).trim();
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
@@ -35,7 +41,6 @@ serve(async (req) => {
       );
     }
 
-    // Check if user has admin, diretor or gerente role
     const { data: isAdmin } = await supabaseClient
       .rpc('has_role', { _user_id: user.id, _role: 'admin' });
 
