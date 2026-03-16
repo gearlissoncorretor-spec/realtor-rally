@@ -112,11 +112,18 @@ const UserCard: React.FC<UserCardProps> = ({
                 <UserIcon className="h-3.5 w-3.5" /> Dados Básicos
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                   <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-muted-foreground">Email:</span>
-                  <span className="truncate">{user.email}</span>
+                  <span className="text-muted-foreground">Email de login:</span>
+                  <span className="truncate font-medium">{user.email}</span>
                 </div>
+                {user.broker_email && user.broker_email.toLowerCase() !== user.email.toLowerCase() && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-muted-foreground">Email pessoal:</span>
+                    <span className="truncate">{user.broker_email}</span>
+                  </div>
+                )}
                 {user.phone && (
                   <div className="flex items-center gap-2">
                     <Phone className="h-3.5 w-3.5 text-muted-foreground" />
