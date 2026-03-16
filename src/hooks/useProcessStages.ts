@@ -49,7 +49,8 @@ export const useProcessStages = () => {
           title,
           color,
           order_index: maxOrder + 1,
-          is_default: false
+          is_default: false,
+          company_id: profile?.company_id || null
         })
         .select()
         .single();
