@@ -781,14 +781,12 @@ const Comissoes = () => {
 
             {/* Value config */}
             {isBrokerView ? (
-              /* Broker: enters commission value directly */}
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor da sua Comissão *</Label>
                 <CurrencyInput value={newDirectCommissionValue} onChange={setNewDirectCommissionValue} className="h-9" />
                 <p className="text-[10px] text-muted-foreground">Digite o valor que você vai receber</p>
               </div>
             ) : (
-              /* Manager: base value + percentage */
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
