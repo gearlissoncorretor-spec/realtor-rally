@@ -279,7 +279,7 @@ const FollowUpPage = () => {
            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="w-full text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                Follow Up
+                Follow-up / Clientes
               </h1>
               <p className="text-muted-foreground mt-1">
                 Acompanhamento de leads e clientes em prospecção

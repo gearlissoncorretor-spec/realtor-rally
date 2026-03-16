@@ -12,7 +12,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/metas': 'Metas',
   '/meta-gestao': 'Meta Gestão',
   '/negociacoes': 'Negociações',
-  '/follow-up': 'Follow Up',
+  '/follow-up': 'Follow-up / Clientes',
   '/atividades': 'Atividades',
   '/tarefas-kanban': 'Tarefas',
   '/acompanhamento': 'Status Vendas',
