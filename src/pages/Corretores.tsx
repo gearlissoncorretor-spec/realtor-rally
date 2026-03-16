@@ -383,6 +383,7 @@ const Corretores = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<'ativos' | 'inativos'>('ativos');
+  const [teamFilter, setTeamFilter] = useState<string>("all");
   const [performanceFilter, setPerformanceFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("recent");
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
