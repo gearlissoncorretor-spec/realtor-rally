@@ -103,29 +103,11 @@ export const PasswordManager = () => {
 
     setResetLoading(userId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('Você precisa estar autenticado');
-      }
+      const { error } = await supabase.functions.invoke('update-user-password', {
+        body: { userId, password },
+      });
 
-      const response = await fetch(
-        'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/update-user-password',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ userId, password }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao atualizar senha');
-      }
+      if (error) throw error;
 
       toast({
         title: "Senha alterada",
