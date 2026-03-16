@@ -90,6 +90,7 @@ const GestaoUsuarios = () => {
           created_at: profileRow.created_at || undefined,
           last_login_at: (profileRow as any).last_login_at || undefined,
           broker_id: linkedBroker?.id,
+          broker_email: linkedBroker?.email || undefined,
         };
       });
 
