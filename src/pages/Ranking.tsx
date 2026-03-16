@@ -480,20 +480,22 @@ const AnimatedPodium = ({ brokers, currentUserId }: { brokers: BrokerRanking[]; 
                 {formatCurrencyCompact(broker.revenue)}
               </p>
 
-              {/* Podium base with glass effect + reflection */}
+              {/* Podium base with My Broker blue + reflection */}
               <div className={cn(
                 "w-26 md:w-36 rounded-2xl border flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:scale-[1.03] glass-pedestal pedestal-reflection",
                 config.height,
                 config.border
               )} style={{
-                boxShadow: `0 12px 40px -4px ${config.glowColor}, inset 0 1px 0 rgba(255,255,255,0.08)`,
-                background: `linear-gradient(to top, ${config.glowColor.replace(')', ', 0.15)')}, transparent)`,
+                boxShadow: isFirst
+                  ? `0 12px 40px -4px ${config.glowColor}, 0 0 25px rgba(255,200,0,0.3), 0 20px 40px rgba(15,78,216,0.35)`
+                  : `0 12px 40px -4px ${config.glowColor}, 0 20px 40px rgba(15,78,216,0.35)`,
+                background: config.pedestalBg,
               }}>
                 {isFirst && (
                   <div className="absolute inset-0 shimmer-effect" />
                 )}
                 {/* Glass shine overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.06] via-transparent to-transparent rounded-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.12] via-transparent to-transparent rounded-2xl" />
                 <span className={cn("font-black relative z-10 animate-number-count", config.numColor, config.numSize)} style={{ animationDelay: '0.3s' }}>
                   {broker.position}
                 </span>
