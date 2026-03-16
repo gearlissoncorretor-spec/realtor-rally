@@ -156,8 +156,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
               <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
             </div>
             <div className="col-span-2 space-y-1.5">
-              <Label>Email</Label>
-              <Input value={form.email} disabled className="opacity-60" />
+              <Label>Email (login e cadastro)</Label>
+              <Input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
+              <p className="text-[11px] text-muted-foreground">Alterar aqui atualiza o email de login, perfil e cadastro do corretor.</p>
             </div>
             <div className="space-y-1.5">
               <Label>Data de Nascimento</Label>
