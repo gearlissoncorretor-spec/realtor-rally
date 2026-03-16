@@ -252,7 +252,7 @@ const Comissoes = () => {
   const resetCreateForm = () => {
     setNewBrokerId(""); setNewSaleId(""); setNewBaseValue(0); setNewPercentage(5);
     setNewCommissionType("venda"); setNewPaymentMethod(""); setNewInstallments(1);
-    setNewDueDate(""); setNewObservations(""); setNewDescription("");
+    setNewDueDate(""); setNewObservations(""); setNewDescription(""); setNewDirectCommissionValue(0);
   };
 
   const handleCreate = async () => {
