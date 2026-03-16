@@ -418,7 +418,7 @@ const GestaoUsuarios = () => {
             ) : (
               <>
                 <AlertDialogCancel disabled={resetLoading}>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleResetPassword} disabled={resetLoading}>
+                <AlertDialogAction onClick={(e) => { e.preventDefault(); handleResetPassword(); }} disabled={resetLoading}>
                   {resetLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {resetLoading ? 'Gerando...' : 'Resetar Senha'}
                 </AlertDialogAction>
