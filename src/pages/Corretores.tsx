@@ -1,5 +1,6 @@
-// Corretores - Lista de corretores ordenada por data de criação
+// Corretores - Lista de corretores com abas Ativos/Inativos
 import Navigation from "@/components/Navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -381,6 +382,7 @@ const Corretores = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<'ativos' | 'inativos'>('ativos');
   const [teamFilter, setTeamFilter] = useState<string>("all");
   const [performanceFilter, setPerformanceFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("recent");
@@ -465,8 +467,13 @@ const Corretores = () => {
     return map;
   }, [brokers, sales]);
 
+  // Split brokers by active tab first
+  const activeBrokers = useMemo(() => brokers.filter(b => b.status !== 'inativo'), [brokers]);
+  const inactiveBrokers = useMemo(() => brokers.filter(b => b.status === 'inativo'), [brokers]);
+  const tabBrokers = activeTab === 'ativos' ? activeBrokers : inactiveBrokers;
+
   const filteredBrokers = useMemo(() => {
-    let result = brokers.filter(broker => {
+    let result = tabBrokers.filter(broker => {
       const matchesSearch = broker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         broker.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === "all" || broker.status === statusFilter;
@@ -502,7 +509,7 @@ const Corretores = () => {
     });
 
     return result;
-  }, [brokers, searchTerm, statusFilter, teamFilter, performanceFilter, sortBy, brokerRanks, currentMonthStats, getBrokerStats, getMetaProgress]);
+  }, [tabBrokers, searchTerm, statusFilter, teamFilter, performanceFilter, sortBy, brokerRanks, currentMonthStats, getBrokerStats, getMetaProgress]);
 
   const kpis = useMemo(() => {
     const total = brokers.length;
@@ -669,110 +676,171 @@ const Corretores = () => {
           </div>
         )}
 
-        {/* Filters */}
+        {/* Tabs + Content */}
         {!isLoading && brokers.length > 0 && (
-          <Card className="p-3 mb-6 border-border/40">
-            <div className="flex flex-col lg:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Buscar corretor..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 border-border/40 bg-background" />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[130px] border-border/40 bg-background"><SelectValue placeholder="Status" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="ativo">Ativos</SelectItem>
-                    <SelectItem value="inativo">Inativos</SelectItem>
-                    <SelectItem value="ferias">Férias</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={teamFilter} onValueChange={setTeamFilter}>
-                  <SelectTrigger className="w-[160px] border-border/40 bg-background"><SelectValue placeholder="Equipe" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas equipes</SelectItem>
-                    <SelectItem value="no-team">Sem equipe</SelectItem>
-                    {teams.map(team => (
-                      <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={performanceFilter} onValueChange={setPerformanceFilter}>
-                  <SelectTrigger className="w-[170px] border-border/40 bg-background"><SelectValue placeholder="Performance" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="top">Top vendedores</SelectItem>
-                    <SelectItem value="below-meta">Abaixo da meta</SelectItem>
-                    <SelectItem value="no-sales">Sem vendas no mês</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[170px] border-border/40 bg-background">
-                    <div className="flex items-center gap-1.5">
-                      <ArrowUpDown className="w-3 h-3" />
-                      <SelectValue placeholder="Ordenar" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">Nome</SelectItem>
-                    <SelectItem value="revenue">Maior faturamento</SelectItem>
-                    <SelectItem value="sales">Mais vendas</SelectItem>
-                    <SelectItem value="meta">Melhor meta</SelectItem>
-                    <SelectItem value="recent">Mais recente</SelectItem>
-                  </SelectContent>
-                </Select>
-                {hasActiveFilters && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 text-muted-foreground hover:text-foreground">
-                    <XCircle className="w-4 h-4 mr-1" /> Limpar
-                  </Button>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'ativos' | 'inativos')} className="space-y-4">
+            <TabsList className="bg-muted/50">
+              <TabsTrigger value="ativos" className="gap-1.5">
+                <UserCheck className="w-3.5 h-3.5" />
+                Ativos
+                <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 h-4">{activeBrokers.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="inativos" className="gap-1.5">
+                <UserX className="w-3.5 h-3.5" />
+                Inativos
+                {inactiveBrokers.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 h-4">{inactiveBrokers.length}</Badge>
                 )}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Filters */}
+            <Card className="p-3 border-border/40">
+              <div className="flex flex-col lg:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input placeholder="Buscar corretor..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 border-border/40 bg-background" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {activeTab === 'ativos' && (
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-[130px] border-border/40 bg-background"><SelectValue placeholder="Status" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="ativo">Ativos</SelectItem>
+                        <SelectItem value="ferias">Férias</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Select value={teamFilter} onValueChange={setTeamFilter}>
+                    <SelectTrigger className="w-[160px] border-border/40 bg-background"><SelectValue placeholder="Equipe" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas equipes</SelectItem>
+                      <SelectItem value="no-team">Sem equipe</SelectItem>
+                      {teams.map(team => (
+                        <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {activeTab === 'ativos' && (
+                    <>
+                      <Select value={performanceFilter} onValueChange={setPerformanceFilter}>
+                        <SelectTrigger className="w-[170px] border-border/40 bg-background"><SelectValue placeholder="Performance" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="top">Top vendedores</SelectItem>
+                          <SelectItem value="below-meta">Abaixo da meta</SelectItem>
+                          <SelectItem value="no-sales">Sem vendas no mês</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-[170px] border-border/40 bg-background">
+                          <div className="flex items-center gap-1.5">
+                            <ArrowUpDown className="w-3 h-3" />
+                            <SelectValue placeholder="Ordenar" />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="name">Nome</SelectItem>
+                          <SelectItem value="revenue">Maior faturamento</SelectItem>
+                          <SelectItem value="sales">Mais vendas</SelectItem>
+                          <SelectItem value="meta">Melhor meta</SelectItem>
+                          <SelectItem value="recent">Mais recente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </>
+                  )}
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 text-muted-foreground hover:text-foreground">
+                      <XCircle className="w-4 h-4 mr-1" /> Limpar
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+
+            <TabsContent value="ativos" className="mt-0">
+              {filteredBrokers.length === 0 ? (
+                <Card className="p-8 text-center border-border/40">
+                  <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground">Nenhum corretor encontrado com os filtros aplicados.</p>
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-2">Limpar filtros</Button>
+                </Card>
+              ) : viewMode === 'cards' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredBrokers.map(renderBrokerItem)}
+                </div>
+              ) : (
+                <Card className="border-border/40 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableHead>Corretor</TableHead>
+                        <TableHead className="w-[90px]">Status</TableHead>
+                        <TableHead className="w-[130px]">Equipe</TableHead>
+                        <TableHead className="w-[80px] text-center">Vendas Mês</TableHead>
+                        <TableHead className="w-[80px] text-center">Vendas Total</TableHead>
+                        <TableHead className="w-[130px] text-right">VGV Mês</TableHead>
+                        <TableHead className="w-[130px] text-right hidden lg:table-cell">VGV Total</TableHead>
+                        <TableHead className="w-[160px]">Meta</TableHead>
+                        <TableHead className="hidden xl:table-cell w-[160px]">Badges</TableHead>
+                        <TableHead className="w-[120px] text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredBrokers.map(renderBrokerItem)}
+                    </TableBody>
+                  </Table>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="inativos" className="mt-0">
+              {filteredBrokers.length === 0 ? (
+                <Card className="p-8 text-center border-border/40">
+                  <UserX className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground">Nenhum corretor inativo encontrado.</p>
+                </Card>
+              ) : viewMode === 'cards' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredBrokers.map(renderBrokerItem)}
+                </div>
+              ) : (
+                <Card className="border-border/40 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableHead>Corretor</TableHead>
+                        <TableHead className="w-[90px]">Status</TableHead>
+                        <TableHead className="w-[130px]">Equipe</TableHead>
+                        <TableHead className="w-[80px] text-center">Vendas Mês</TableHead>
+                        <TableHead className="w-[80px] text-center">Vendas Total</TableHead>
+                        <TableHead className="w-[130px] text-right">VGV Mês</TableHead>
+                        <TableHead className="w-[130px] text-right hidden lg:table-cell">VGV Total</TableHead>
+                        <TableHead className="w-[160px]">Meta</TableHead>
+                        <TableHead className="hidden xl:table-cell w-[160px]">Badges</TableHead>
+                        <TableHead className="w-[120px] text-right">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredBrokers.map(renderBrokerItem)}
+                    </TableBody>
+                  </Table>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
 
-        {/* Content */}
-        {isLoading ? (
-          <CorretoresSkeleton />
-        ) : brokers.length === 0 ? (
+        {isLoading && <CorretoresSkeleton />}
+        
+        {!isLoading && brokers.length === 0 && (
           <Card className="p-12 text-center border-dashed border-2 border-border/50">
             <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum corretor cadastrado</h3>
             <p className="text-sm text-muted-foreground mb-4">Comece adicionando o primeiro corretor da sua equipe.</p>
             <Button onClick={handleNewBroker}><Plus className="w-4 h-4 mr-2" /> Adicionar Corretor</Button>
-          </Card>
-        ) : filteredBrokers.length === 0 ? (
-          <Card className="p-8 text-center border-border/40">
-            <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground">Nenhum corretor encontrado com os filtros aplicados.</p>
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="mt-2">Limpar filtros</Button>
-          </Card>
-        ) : viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filteredBrokers.map(renderBrokerItem)}
-          </div>
-        ) : (
-          <Card className="border-border/40 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30 hover:bg-muted/30">
-                  <TableHead>Corretor</TableHead>
-                  <TableHead className="w-[90px]">Status</TableHead>
-                  <TableHead className="w-[130px]">Equipe</TableHead>
-                  <TableHead className="w-[80px] text-center">Vendas Mês</TableHead>
-                  <TableHead className="w-[80px] text-center">Vendas Total</TableHead>
-                  <TableHead className="w-[130px] text-right">VGV Mês</TableHead>
-                  <TableHead className="w-[130px] text-right hidden lg:table-cell">VGV Total</TableHead>
-                  <TableHead className="w-[160px]">Meta</TableHead>
-                  <TableHead className="hidden xl:table-cell w-[160px]">Badges</TableHead>
-                  <TableHead className="w-[120px] text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredBrokers.map(renderBrokerItem)}
-              </TableBody>
-            </Table>
           </Card>
         )}
       </div>
@@ -793,15 +861,25 @@ const Corretores = () => {
       <AlertDialog open={!!deleteConfirmBroker} onOpenChange={() => setDeleteConfirmBroker(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Corretor</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o corretor <strong>{deleteConfirmBroker?.name}</strong>? Esta ação não pode ser desfeita.
+            <AlertDialogTitle>Excluir Corretor Permanentemente</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>Tem certeza que deseja excluir o corretor <strong>{deleteConfirmBroker?.name}</strong>?</p>
+                <ul className="text-xs space-y-1 text-muted-foreground list-disc list-inside">
+                  <li>O nome será removido de todas as telas do sistema</li>
+                  <li>As <strong className="text-foreground">vendas serão preservadas</strong> no histórico</li>
+                  <li>Esta ação <strong className="text-destructive">não pode ser desfeita</strong></li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">
+                  💡 Para apenas ocultar da lista principal, use <strong className="text-foreground">Inativar</strong> em vez de excluir.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteBroker} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
-              {isDeleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Excluindo...</> : <><Trash2 className="w-4 h-4 mr-2" />Excluir</>}
+              {isDeleting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Excluindo...</> : <><Trash2 className="w-4 h-4 mr-2" />Excluir Permanentemente</>}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
