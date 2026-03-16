@@ -34,6 +34,9 @@ const GestaoUsuarios = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [resetUser, setResetUser] = useState<UserData | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const canManage = isAdmin() || isDiretor() || isGerente();
   const currentRole = getUserRole();
