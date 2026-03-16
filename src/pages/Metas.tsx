@@ -298,12 +298,46 @@ const Metas = () => {
             </TabsList>
 
             <TabsContent value="metas" className="space-y-6 mt-6">
+              {/* Team Tabs for Directors */}
+              {isDirectorView && teamsWithBrokers.length > 0 && (
+                <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
+                  <div className="inline-flex h-11 bg-card border border-border shadow-sm rounded-xl p-1 gap-0.5 min-w-max">
+                    <button
+                      onClick={() => setSelectedTeamId('all')}
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors",
+                        selectedTeamId === 'all'
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      <Users className="w-4 h-4 inline-block mr-1.5" />
+                      Todas as Equipes
+                    </button>
+                    {teamsWithBrokers.map((team) => (
+                      <button
+                        key={team.id}
+                        onClick={() => setSelectedTeamId(team.id)}
+                        className={cn(
+                          "px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors",
+                          selectedTeamId === team.id
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        {team.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Broker Tabs */}
-              {accessibleBrokers.length > 0 ? (
+              {visibleBrokers.length > 0 ? (
                 <Tabs value={selectedBrokerId} onValueChange={setSelectedBrokerId} className="w-full">
                   <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
                     <TabsList className="inline-flex h-11 bg-card border border-border shadow-sm rounded-xl p-1 gap-0.5 min-w-max">
-                      {accessibleBrokers.map((broker) => (
+                      {visibleBrokers.map((broker) => (
                         <TabsTrigger
                           key={broker.id}
                           value={broker.id}
@@ -315,7 +349,7 @@ const Metas = () => {
                     </TabsList>
                   </div>
 
-                  {accessibleBrokers.map((broker) => (
+                  {visibleBrokers.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
                       
                       {/* KPI Cards */}
