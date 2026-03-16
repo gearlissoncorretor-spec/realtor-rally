@@ -55,7 +55,22 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
     
     setLoading(true);
     try {
-      // Update profile
+      const emailChanged = form.email.trim().toLowerCase() !== user.email.trim().toLowerCase();
+
+      // If email changed, update via edge function (syncs auth + profiles + brokers)
+      if (emailChanged) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        if (!accessToken) throw new Error('Sessão expirada. Faça login novamente.');
+
+        const { error: emailError } = await supabase.functions.invoke('update-user-email', {
+          body: { userId: user.id, newEmail: form.email.trim() },
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (emailError) throw emailError;
+      }
+
+      // Update profile (excluding email, handled above)
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -64,6 +79,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
           phone: form.phone || null,
           birth_date: form.birth_date || null,
           team_id: form.team_id || null,
+          ...(emailChanged ? { email: form.email.trim() } : {}),
         })
         .eq('id', user.id);
 
@@ -84,6 +100,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
         if (form.phone !== (user.phone || '')) brokerUpdate.phone = form.phone || null;
         if (form.team_id !== (user.team_id || '')) brokerUpdate.team_id = form.team_id || null;
         if (form.birth_date !== (user.birth_date || '')) brokerUpdate.birthday = form.birth_date || null;
+        if (emailChanged) brokerUpdate.email = form.email.trim();
 
         if (Object.keys(brokerUpdate).length > 0) {
           const { error: brokerUpdateError } = await supabase
