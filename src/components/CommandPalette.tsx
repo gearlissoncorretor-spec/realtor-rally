@@ -27,7 +27,7 @@ const screens = [
   { label: "Ranking", href: "/ranking", icon: Trophy, group: "Principal" },
   { label: "Vendas", href: "/vendas", icon: Home, group: "Comercial" },
   { label: "Negociações", href: "/negociacoes", icon: Handshake, group: "Comercial" },
-  { label: "Follow Up", href: "/follow-up", icon: Users, group: "Comercial" },
+  { label: "Follow-up / Clientes", href: "/follow-up", icon: Users, group: "Comercial" },
   { label: "Status Vendas", href: "/acompanhamento", icon: DollarSign, group: "Comercial" },
   { label: "Metas", href: "/metas", icon: Target, group: "Produtividade" },
   { label: "Meta Gestão", href: "/meta-gestao", icon: PieChart, group: "Produtividade" },
