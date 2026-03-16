@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   DollarSign, Search, Filter, CheckCircle2, Clock, XCircle,
   CreditCard, Users, Calendar, Plus, AlertTriangle, Percent,
-  Download, ChevronDown, ChevronUp, User,
+  Download, ChevronDown, ChevronUp, User, Wallet, HandCoins, Trash2,
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useCommissions, Commission, CommissionInsert } from "@/hooks/useCommissions";
@@ -29,8 +29,8 @@ import { useToast } from "@/hooks/use-toast";
 import InstallmentTimeline from "@/components/commissions/InstallmentTimeline";
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  pendente: { label: "Pendente", color: "bg-warning/10 text-warning border-warning/20", icon: Clock },
-  pago: { label: "Pago", color: "bg-success/10 text-success border-success/20", icon: CheckCircle2 },
+  pendente: { label: "A Receber", color: "bg-warning/10 text-warning border-warning/20", icon: Clock },
+  pago: { label: "Recebida", color: "bg-success/10 text-success border-success/20", icon: CheckCircle2 },
   parcial: { label: "Parcial", color: "bg-info/10 text-info border-info/20", icon: CreditCard },
   cancelado: { label: "Cancelado", color: "bg-destructive/10 text-destructive border-destructive/20", icon: XCircle },
 };
@@ -43,6 +43,9 @@ const paymentMethodLabels: Record<string, string> = {
 const commissionTypeLabels: Record<string, { label: string; color: string }> = {
   venda: { label: "Venda", color: "bg-primary/10 text-primary border-primary/20" },
   captacao: { label: "Captação", color: "bg-accent/10 text-accent-foreground border-accent/20" },
+  indicacao: { label: "Indicação", color: "bg-success/10 text-success border-success/20" },
+  bonus: { label: "Bônus", color: "bg-warning/10 text-warning border-warning/20" },
+  outro: { label: "Outro", color: "bg-muted text-muted-foreground border-border" },
 };
 
 const isOverdue = (c: Commission): boolean => {
@@ -62,12 +65,19 @@ const months = [
 ];
 
 const Comissoes = () => {
-  const { commissions, loading, updateCommission, createCommission } = useCommissions();
+  const { commissions, loading, updateCommission, createCommission, deleteCommission } = useCommissions();
   const { brokers } = useBrokers();
   const { sales } = useSales();
-  const { isDiretor, isAdmin, isGerente } = useAuth();
+  const { isDiretor, isAdmin, isGerente, isCorretor, user } = useAuth();
   const { toast } = useToast();
   const canManage = isDiretor() || isAdmin() || isGerente();
+  const isBrokerView = isCorretor() && !canManage;
+
+  // Find broker for current user
+  const currentBroker = useMemo(() => {
+    if (!user) return null;
+    return brokers.find(b => b.user_id === user.id) || null;
+  }, [brokers, user]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -101,9 +111,10 @@ const Comissoes = () => {
   const [newInstallments, setNewInstallments] = useState(1);
   const [newDueDate, setNewDueDate] = useState("");
   const [newObservations, setNewObservations] = useState("");
+  const [newDescription, setNewDescription] = useState("");
 
   // Active tab
-  const [activeTab, setActiveTab] = useState("lista");
+  const [activeTab, setActiveTab] = useState(isBrokerView ? "a_receber" : "lista");
 
   // Enrich commissions
   const enrichedCommissions = useMemo(() => {
@@ -117,7 +128,6 @@ const Comissoes = () => {
   // Period + status + search filter
   const filtered = useMemo(() => {
     return enrichedCommissions.filter(c => {
-      // Period filter
       const cDate = new Date(c.created_at);
       if (filterYear !== 'all' && cDate.getFullYear() !== Number(filterYear)) return false;
       if (filterMonth !== 'all' && (cDate.getMonth() + 1) !== Number(filterMonth)) return false;
@@ -128,13 +138,14 @@ const Comissoes = () => {
         const lower = searchTerm.toLowerCase();
         const brokerMatch = c.broker?.name?.toLowerCase().includes(lower);
         const clientMatch = c.sale?.client_name?.toLowerCase().includes(lower);
-        if (!brokerMatch && !clientMatch) return false;
+        const descMatch = c.description?.toLowerCase().includes(lower);
+        if (!brokerMatch && !clientMatch && !descMatch) return false;
       }
       return true;
     });
   }, [enrichedCommissions, statusFilter, searchTerm, filterMonth, filterYear]);
 
-  // KPIs from filtered
+  // KPIs
   const totalCommission = filtered.reduce((s, c) => s + Number(c.commission_value), 0);
   const totalPaid = filtered.filter(c => c.status === 'pago').reduce((s, c) => s + Number(c.commission_value), 0);
   const totalPending = filtered.filter(c => c.status === 'pendente' || c.status === 'parcial').reduce((s, c) => s + Number(c.commission_value), 0);
@@ -155,19 +166,22 @@ const Comissoes = () => {
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
   }, [filtered]);
 
+  // Split for broker view
+  const comissoesAReceber = useMemo(() => filtered.filter(c => c.status === 'pendente' || c.status === 'parcial'), [filtered]);
+  const comissoesRecebidas = useMemo(() => filtered.filter(c => c.status === 'pago'), [filtered]);
+
   // Export CSV
   const handleExportCSV = useCallback(() => {
-    const header = ['Corretor', 'Cliente', 'Tipo', 'Valor Base', '% Comissão', 'Valor Comissão', 'Status', 'Parcelas', 'Pagas', 'Vencimento', 'Pagamento', 'Observações'];
+    const header = ['Corretor', 'Cliente', 'Tipo', 'Descrição', 'Valor Base', '% Comissão', 'Valor Comissão', 'Status', 'Vencimento', 'Pagamento', 'Observações'];
     const rows = filtered.map(c => [
       c.broker?.name || '',
       c.sale?.client_name || '',
       commissionTypeLabels[c.commission_type]?.label || c.commission_type,
+      c.description || '',
       Number(c.base_value).toFixed(2),
       c.commission_percentage.toString(),
       Number(c.commission_value).toFixed(2),
       statusConfig[c.status]?.label || c.status,
-      c.installments.toString(),
-      c.paid_installments.toString(),
       c.due_date || '',
       c.payment_date || '',
       c.observations || '',
@@ -183,6 +197,30 @@ const Comissoes = () => {
     URL.revokeObjectURL(url);
     toast({ title: 'Exportado!', description: `${filtered.length} comissões exportadas.` });
   }, [filtered, filterYear, filterMonth, toast]);
+
+  // Mark as received
+  const handleMarkReceived = async (c: Commission) => {
+    try {
+      await updateCommission({
+        id: c.id,
+        status: 'pago',
+        received_at: new Date().toISOString(),
+        payment_date: new Date().toISOString().split('T')[0],
+      } as any);
+      toast({ title: '✅ Comissão recebida!', description: 'A comissão foi marcada como recebida.' });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível atualizar.', variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteCommission = async (id: string) => {
+    try {
+      await deleteCommission(id);
+      toast({ title: 'Comissão excluída', description: 'A comissão foi removida.' });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível excluir.', variant: 'destructive' });
+    }
+  };
 
   const openEdit = (c: Commission) => {
     setEditingCommission(c);
@@ -202,6 +240,7 @@ const Comissoes = () => {
         payment_date: editPaymentDate || null,
         due_date: editDueDate || null,
         paid_installments: editPaidInstallments,
+        received_at: editStatus === 'pago' ? new Date().toISOString() : null,
       } as any);
       setEditingCommission(null);
     } finally {
@@ -212,26 +251,33 @@ const Comissoes = () => {
   const resetCreateForm = () => {
     setNewBrokerId(""); setNewSaleId(""); setNewBaseValue(0); setNewPercentage(5);
     setNewCommissionType("venda"); setNewPaymentMethod(""); setNewInstallments(1);
-    setNewDueDate(""); setNewObservations("");
+    setNewDueDate(""); setNewObservations(""); setNewDescription("");
   };
 
   const handleCreate = async () => {
-    if (!newBrokerId || !newSaleId || newBaseValue <= 0) {
-      toast({ title: "Campos obrigatórios", description: "Preencha corretor, venda e valor base.", variant: "destructive" });
+    const brokerId = isBrokerView ? currentBroker?.id : newBrokerId;
+    if (!brokerId || newBaseValue <= 0) {
+      toast({ title: "Campos obrigatórios", description: "Preencha o valor da comissão.", variant: "destructive" });
       return;
     }
     setSaving(true);
     try {
       const commissionValue = (newBaseValue * newPercentage) / 100;
       const data: CommissionInsert = {
-        sale_id: newSaleId, broker_id: newBrokerId,
-        commission_percentage: newPercentage, commission_value: commissionValue,
-        base_value: newBaseValue, commission_type: newCommissionType,
-        payment_method: newPaymentMethod || null, installments: newInstallments,
-        due_date: newDueDate || null, observations: newObservations || null,
+        sale_id: newSaleId || null,
+        broker_id: brokerId,
+        commission_percentage: newPercentage,
+        commission_value: commissionValue,
+        base_value: newBaseValue,
+        commission_type: newCommissionType,
+        description: newDescription || null,
+        payment_method: newPaymentMethod || null,
+        installments: newInstallments,
+        due_date: newDueDate || null,
+        observations: newObservations || null,
       };
       await createCommission(data);
-      toast({ title: "Comissão criada", description: "Comissão registrada com sucesso." });
+      toast({ title: "Comissão registrada", description: "Comissão cadastrada com sucesso." });
       setShowCreateDialog(false);
       resetCreateForm();
     } catch {
@@ -243,20 +289,121 @@ const Comissoes = () => {
 
   const newCommissionValue = (newBaseValue * newPercentage) / 100;
   const brokerSalesForSelect = useMemo(() => {
-    if (!newBrokerId) return sales;
-    return sales.filter(s => s.broker_id === newBrokerId);
-  }, [newBrokerId, sales]);
+    const bid = isBrokerView ? currentBroker?.id : newBrokerId;
+    if (!bid) return sales;
+    return sales.filter(s => s.broker_id === bid);
+  }, [isBrokerView, currentBroker, newBrokerId, sales]);
+
+  // Commission card component
+  const CommissionCard = ({ c, showBroker = true }: { c: typeof enrichedCommissions[0]; showBroker?: boolean }) => {
+    const overdue = isOverdue(c);
+    const config = statusConfig[c.status] || statusConfig.pendente;
+    const StatusIcon = config.icon;
+    const typeConfig = commissionTypeLabels[c.commission_type] || commissionTypeLabels.venda;
+
+    return (
+      <Card className={cn(
+        "p-4 border-border/50 transition-all hover:shadow-md",
+        overdue && "border-destructive/30 bg-destructive/5",
+        c.status === 'pago' && "opacity-90"
+      )}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {showBroker && c.broker && (
+                <span className="font-semibold text-sm text-foreground truncate">{c.broker.name}</span>
+              )}
+              <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", config.color)}>
+                <StatusIcon className="w-3 h-3 mr-0.5" />{config.label}
+              </Badge>
+              <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", typeConfig.color)}>
+                {typeConfig.label}
+              </Badge>
+              {overdue && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-destructive/10 text-destructive border-destructive/20">
+                  <AlertTriangle className="w-3 h-3 mr-0.5" />Atrasada
+                </Badge>
+              )}
+            </div>
+
+            {c.description && (
+              <p className="text-sm text-foreground">{c.description}</p>
+            )}
+
+            <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+              {c.sale && <span>Cliente: {c.sale.client_name}</span>}
+              {c.due_date && (
+                <span className={cn("flex items-center gap-0.5", overdue && "text-destructive font-medium")}>
+                  <Calendar className="w-3 h-3" />
+                  Previsão: {new Date(c.due_date).toLocaleDateString('pt-BR')}
+                </span>
+              )}
+              {c.status === 'pago' && c.received_at && (
+                <span className="text-success flex items-center gap-0.5">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Recebido: {new Date(c.received_at).toLocaleDateString('pt-BR')}
+                </span>
+              )}
+              {c.observations && <span className="italic">"{c.observations}"</span>}
+            </div>
+          </div>
+
+          <div className="text-right shrink-0 space-y-1">
+            <p className="text-lg font-black text-foreground">{formatCurrency(Number(c.commission_value))}</p>
+            {c.base_value > 0 && (
+              <p className="text-[10px] text-muted-foreground">Base: {formatCurrency(Number(c.base_value))} · {c.commission_percentage}%</p>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+          {c.status !== 'pago' && c.status !== 'cancelado' && (
+            <Button
+              size="sm"
+              className="gap-1.5 bg-success hover:bg-success/90 text-success-foreground"
+              onClick={(e) => { e.stopPropagation(); handleMarkReceived(c); }}
+            >
+              <HandCoins className="w-4 h-4" />
+              Já Recebi
+            </Button>
+          )}
+          {canManage && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={(e) => { e.stopPropagation(); openEdit(c); }}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              Editar
+            </Button>
+          )}
+          {(canManage || (isBrokerView && c.status !== 'pago')) && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="gap-1 text-destructive hover:text-destructive ml-auto"
+              onClick={(e) => { e.stopPropagation(); handleDeleteCommission(c.id); }}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      </Card>
+    );
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+            {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
           </div>
           <div className="space-y-3">
-            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         </div>
       </div>
@@ -271,24 +418,24 @@ const Comissoes = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h1 className="text-xl lg:text-2xl font-black text-foreground flex items-center gap-2">
-              <DollarSign className="w-6 h-6 text-success" />
-              Controle de Comissões
+              <Wallet className="w-6 h-6 text-success" />
+              {isBrokerView ? 'Minhas Comissões' : 'Controle de Comissões'}
             </h1>
-            <p className="text-xs text-muted-foreground">Gerencie os comissionamentos dos corretores</p>
+            <p className="text-xs text-muted-foreground">
+              {isBrokerView ? 'Acompanhe seus valores a receber e recebidos' : 'Gerencie os comissionamentos dos corretores'}
+            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-1.5">
               <Download className="w-4 h-4" /> Exportar
             </Button>
-            {canManage && (
-              <Button onClick={() => setShowCreateDialog(true)} size="sm" className="gap-1.5">
-                <Plus className="w-4 h-4" /> Nova Comissão
-              </Button>
-            )}
+            <Button onClick={() => setShowCreateDialog(true)} size="sm" className="gap-1.5">
+              <Plus className="w-4 h-4" /> Nova Comissão
+            </Button>
           </div>
         </div>
 
-        {/* Overdue alert banner */}
+        {/* Overdue alert */}
         {overdueCount > 0 && (
           <div className="flex items-center gap-3 p-3 mb-4 rounded-lg border border-destructive/30 bg-destructive/5">
             <AlertTriangle className="w-5 h-5 text-destructive shrink-0" />
@@ -302,12 +449,11 @@ const Comissoes = () => {
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { icon: DollarSign, label: "Total Comissões", value: formatCurrency(totalCommission), color: "text-primary", bg: "bg-primary/10" },
-            { icon: CheckCircle2, label: "Total Pago", value: formatCurrency(totalPaid), color: "text-success", bg: "bg-success/10" },
-            { icon: Clock, label: "Pendente", value: formatCurrency(totalPending), color: "text-warning", bg: "bg-warning/10" },
-            { icon: AlertTriangle, label: "Atrasadas", value: overdueCount.toString(), color: overdueCount > 0 ? "text-destructive" : "text-muted-foreground", bg: overdueCount > 0 ? "bg-destructive/10" : "bg-muted/10" },
+            { icon: DollarSign, label: "Total Geral", value: formatCurrency(totalCommission), color: "text-primary", bg: "bg-primary/10" },
+            { icon: Clock, label: "A Receber", value: formatCurrency(totalPending), color: "text-warning", bg: "bg-warning/10" },
+            { icon: CheckCircle2, label: "Recebidas", value: formatCurrency(totalPaid), color: "text-success", bg: "bg-success/10" },
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
@@ -328,200 +474,168 @@ const Comissoes = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar por corretor ou cliente..." value={searchTerm}
+            <Input placeholder="Buscar..." value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9" />
           </div>
           <Select value={filterMonth} onValueChange={setFilterMonth}>
             <SelectTrigger className="w-[140px] h-9">
-              <Calendar className="w-3.5 h-3.5 mr-1" />
-              <SelectValue />
+              <Calendar className="w-3.5 h-3.5 mr-1" /><SelectValue />
             </SelectTrigger>
             <SelectContent>
               {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterYear} onValueChange={setFilterYear}>
-            <SelectTrigger className="w-[110px] h-9">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-[110px] h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
               {years.map(y => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px] h-9">
-              <Filter className="w-3.5 h-3.5 mr-1" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="parcial">Parcial</SelectItem>
-              <SelectItem value="pago">Pago</SelectItem>
-              <SelectItem value="cancelado">Cancelado</SelectItem>
-              <SelectItem value="atrasado">⚠️ Atrasadas</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
-        {/* Tabs: Lista / Resumo por Corretor */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="lista" className="gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Comissões</TabsTrigger>
-            <TabsTrigger value="corretores" className="gap-1.5"><Users className="w-3.5 h-3.5" /> Por Corretor</TabsTrigger>
-          </TabsList>
+        {/* Content */}
+        {isBrokerView ? (
+          /* ===== BROKER VIEW: A Receber / Recebidas ===== */
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="a_receber" className="gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> A Receber ({comissoesAReceber.length})
+              </TabsTrigger>
+              <TabsTrigger value="recebidas" className="gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Recebidas ({comissoesRecebidas.length})
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Commission list */}
-          <TabsContent value="lista">
-            <Card className="overflow-hidden border-border/50">
-              <div className="divide-y divide-border">
-                {filtered.length === 0 ? (
-                  <div className="text-center py-16">
-                    <DollarSign className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground font-medium">Nenhuma comissão encontrada</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">Ajuste os filtros ou cadastre uma nova comissão</p>
-                  </div>
+            <TabsContent value="a_receber">
+              {comissoesAReceber.length === 0 ? (
+                <Card className="p-10 text-center border-border/50">
+                  <Clock className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão a receber</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Cadastre uma nova comissão para acompanhar</p>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {comissoesAReceber.map(c => (
+                    <CommissionCard key={c.id} c={c} showBroker={false} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="recebidas">
+              {comissoesRecebidas.length === 0 ? (
+                <Card className="p-10 text-center border-border/50">
+                  <CheckCircle2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão recebida</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Quando você marcar "Já Recebi", a comissão aparecerá aqui</p>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {comissoesRecebidas.map(c => (
+                    <CommissionCard key={c.id} c={c} showBroker={false} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        ) : (
+          /* ===== MANAGER VIEW: Lista / Por Corretor ===== */
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="lista" className="gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Comissões</TabsTrigger>
+              <TabsTrigger value="corretores" className="gap-1.5"><Users className="w-3.5 h-3.5" /> Por Corretor</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="lista">
+              <div className="flex gap-2 mb-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[150px] h-9">
+                    <Filter className="w-3.5 h-3.5 mr-1" /><SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="pendente">A Receber</SelectItem>
+                    <SelectItem value="parcial">Parcial</SelectItem>
+                    <SelectItem value="pago">Recebida</SelectItem>
+                    <SelectItem value="cancelado">Cancelado</SelectItem>
+                    <SelectItem value="atrasado">⚠️ Atrasadas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {filtered.length === 0 ? (
+                <Card className="p-10 text-center border-border/50">
+                  <DollarSign className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão encontrada</p>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {filtered.map(c => (
+                    <CommissionCard key={c.id} c={c} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="corretores">
+              <div className="space-y-3">
+                {brokerSummary.length === 0 ? (
+                  <Card className="p-10 text-center border-border/50">
+                    <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-muted-foreground font-medium">Nenhum corretor com comissões no período</p>
+                  </Card>
                 ) : (
-                  filtered.map((c) => {
-                    const broker = c.broker;
-                    const sale = c.sale;
-                    const overdue = isOverdue(c);
-                    const config = statusConfig[c.status] || statusConfig.pendente;
-                    const StatusIcon = config.icon;
-                    const initials = broker?.name?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
-                    const installmentText = c.installments > 1 ? `${c.paid_installments}/${c.installments} parcelas` : 'À vista';
+                  brokerSummary.map(({ broker, total, paid, pending, count }) => {
+                    const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+                    const isExpanded = expandedBroker === broker.id;
+                    const brokerCommissions = filtered.filter(c => c.broker_id === broker.id);
 
                     return (
-                      <div key={c.id}
-                        className={cn(
-                          "flex items-center gap-3 p-3 md:p-4 hover:bg-accent/30 transition-colors cursor-pointer",
-                          overdue && "bg-destructive/5 hover:bg-destructive/10"
+                      <Card key={broker.id} className="border-border/50 overflow-hidden">
+                        <div
+                          className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/30 transition-colors"
+                          onClick={() => setExpandedBroker(isExpanded ? null : broker.id)}
+                        >
+                          <Avatar className="h-10 w-10 ring-2 ring-border/50 shrink-0">
+                            <AvatarImage src={broker.avatar_url || ''} />
+                            <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm text-foreground truncate">{broker.name}</p>
+                            <p className="text-xs text-muted-foreground">{count} comissão(ões)</p>
+                          </div>
+                          <div className="flex gap-4 items-center text-right">
+                            <div>
+                              <p className="text-[10px] text-muted-foreground">Total</p>
+                              <p className="text-sm font-bold text-foreground">{formatCurrency(total)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-success">Recebido</p>
+                              <p className="text-sm font-bold text-success">{formatCurrency(paid)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-warning">A Receber</p>
+                              <p className="text-sm font-bold text-warning">{formatCurrency(pending)}</p>
+                            </div>
+                            {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="border-t border-border p-3 space-y-2">
+                            {brokerCommissions.map(c => (
+                              <CommissionCard key={c.id} c={c} showBroker={false} />
+                            ))}
+                          </div>
                         )}
-                        onClick={() => canManage && openEdit(c)}
-                      >
-                        <Avatar className="h-10 w-10 ring-2 ring-border/50 shrink-0">
-                          <AvatarImage src={broker?.avatar_url || ''} />
-                          <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-sm text-foreground truncate">{broker?.name || 'Corretor'}</p>
-                            <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", config.color)}>
-                              <StatusIcon className="w-3 h-3 mr-0.5" />{config.label}
-                            </Badge>
-                            {overdue && (
-                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-destructive/10 text-destructive border-destructive/20">
-                                <AlertTriangle className="w-3 h-3 mr-0.5" />Atrasada
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                            <span>{sale?.client_name || 'Cliente'}</span>
-                            <span>·</span>
-                            <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", (commissionTypeLabels[c.commission_type] || commissionTypeLabels.venda).color)}>
-                              {(commissionTypeLabels[c.commission_type] || commissionTypeLabels.venda).label}
-                            </Badge>
-                            <span>·</span>
-                            <span>{c.commission_percentage}%</span>
-                            <span>·</span>
-                            <span>{installmentText}</span>
-                            {c.due_date && (
-                              <>
-                                <span>·</span>
-                                <span className={cn("flex items-center gap-0.5", overdue && "text-destructive font-medium")}>
-                                  <Calendar className="w-3 h-3" />
-                                  {new Date(c.due_date).toLocaleDateString('pt-BR')}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="font-bold text-sm text-foreground">{formatCurrency(Number(c.commission_value))}</p>
-                          <p className="text-[10px] text-muted-foreground">Base: {formatCurrency(Number(c.base_value))}</p>
-                        </div>
-                      </div>
+                      </Card>
                     );
                   })
                 )}
               </div>
-            </Card>
-          </TabsContent>
-
-          {/* Broker summary */}
-          <TabsContent value="corretores">
-            <div className="space-y-3">
-              {brokerSummary.length === 0 ? (
-                <Card className="p-10 text-center border-border/50">
-                  <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground font-medium">Nenhum corretor com comissões no período</p>
-                </Card>
-              ) : (
-                brokerSummary.map(({ broker, total, paid, pending, count }) => {
-                  const initials = broker.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
-                  const isExpanded = expandedBroker === broker.id;
-                  const brokerCommissions = filtered.filter(c => c.broker_id === broker.id);
-
-                  return (
-                    <Card key={broker.id} className="border-border/50 overflow-hidden">
-                      <div
-                        className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/30 transition-colors"
-                        onClick={() => setExpandedBroker(isExpanded ? null : broker.id)}
-                      >
-                        <Avatar className="h-10 w-10 ring-2 ring-border/50 shrink-0">
-                          <AvatarImage src={broker.avatar_url || ''} />
-                          <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-foreground truncate">{broker.name}</p>
-                          <p className="text-xs text-muted-foreground">{count} comissão(ões)</p>
-                        </div>
-                        <div className="flex gap-4 items-center text-right">
-                          <div>
-                            <p className="text-[10px] text-muted-foreground">Total</p>
-                            <p className="text-sm font-bold text-foreground">{formatCurrency(total)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-success">Pago</p>
-                            <p className="text-sm font-bold text-success">{formatCurrency(paid)}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-warning">Pendente</p>
-                            <p className="text-sm font-bold text-warning">{formatCurrency(pending)}</p>
-                          </div>
-                          {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                        </div>
-                      </div>
-
-                      {isExpanded && (
-                        <div className="border-t border-border divide-y divide-border/50">
-                          {brokerCommissions.map(c => {
-                            const sale = c.sale;
-                            const config = statusConfig[c.status] || statusConfig.pendente;
-                            const StatusIcon = config.icon;
-                            return (
-                              <div key={c.id}
-                                className="flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-accent/20 transition-colors cursor-pointer"
-                                onClick={() => canManage && openEdit(c)}
-                              >
-                                <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 shrink-0", config.color)}>
-                                  <StatusIcon className="w-3 h-3 mr-0.5" />{config.label}
-                                </Badge>
-                                <span className="text-muted-foreground truncate flex-1">{sale?.client_name || 'Cliente'}</span>
-                                <span className="text-muted-foreground">{c.commission_percentage}%</span>
-                                <span className="font-bold text-foreground">{formatCurrency(Number(c.commission_value))}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </Card>
-                  );
-                })
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
 
       {/* Edit Commission Dialog */}
@@ -546,9 +660,9 @@ const Comissoes = () => {
                 <Select value={editStatus} onValueChange={setEditStatus}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="pendente">A Receber</SelectItem>
                     <SelectItem value="parcial">Parcialmente Pago</SelectItem>
-                    <SelectItem value="pago">Pago</SelectItem>
+                    <SelectItem value="pago">Recebida</SelectItem>
                     <SelectItem value="cancelado">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>
@@ -570,12 +684,23 @@ const Comissoes = () => {
               </div>
 
               {editingCommission.installments > 1 && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Parcelas pagas ({editingCommission.installments} total)</Label>
-                  <Input type="number" value={editPaidInstallments}
-                    onChange={(e) => setEditPaidInstallments(Number(e.target.value))}
-                    min={0} max={editingCommission.installments} />
-                </div>
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Parcelas pagas ({editingCommission.installments} total)</Label>
+                    <Input type="number" value={editPaidInstallments}
+                      onChange={(e) => setEditPaidInstallments(Number(e.target.value))}
+                      min={0} max={editingCommission.installments} />
+                  </div>
+                  <div className="border-t border-border pt-3">
+                    <p className="text-xs font-semibold text-foreground mb-2">Timeline de Parcelas</p>
+                    <InstallmentTimeline
+                      commissionId={editingCommission.id}
+                      commissionValue={Number(editingCommission.commission_value)}
+                      installmentCount={editingCommission.installments}
+                      canManage={canManage}
+                    />
+                  </div>
+                </>
               )}
 
               {isOverdue(editingCommission) && (
@@ -584,19 +709,6 @@ const Comissoes = () => {
                   <p className="text-xs text-destructive font-medium">
                     Atrasada desde {new Date(editingCommission.due_date!).toLocaleDateString('pt-BR')}
                   </p>
-                </div>
-              )}
-
-              {/* Installment Timeline */}
-              {editingCommission.installments > 1 && (
-                <div className="border-t border-border pt-3">
-                  <p className="text-xs font-semibold text-foreground mb-2">Timeline de Parcelas</p>
-                  <InstallmentTimeline
-                    commissionId={editingCommission.id}
-                    commissionValue={Number(editingCommission.commission_value)}
-                    installmentCount={editingCommission.installments}
-                    canManage={canManage}
-                  />
                 </div>
               )}
             </div>
@@ -613,32 +725,83 @@ const Comissoes = () => {
 
       {/* Create Commission Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={(open) => { if (!open) { setShowCreateDialog(false); resetCreateForm(); } }}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-success" />
-              Nova Comissão Manual
+              {isBrokerView ? 'Registrar Comissão' : 'Nova Comissão'}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Broker selector (manager view only) */}
+            {!isBrokerView && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">Corretor *</Label>
+                <Select value={newBrokerId} onValueChange={setNewBrokerId}>
+                  <SelectTrigger className="text-sm"><SelectValue placeholder="Selecione o corretor..." /></SelectTrigger>
+                  <SelectContent>
+                    {brokers.filter(b => b.status === 'ativo').map(b => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Description */}
             <div className="space-y-1.5">
-              <Label className="text-xs">Corretor *</Label>
-              <Select value={newBrokerId} onValueChange={setNewBrokerId}>
-                <SelectTrigger className="text-sm"><SelectValue placeholder="Selecione o corretor..." /></SelectTrigger>
+              <Label className="text-xs">Descrição / Origem da Comissão *</Label>
+              <Input
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Ex: Venda do imóvel Rua X, indicação, bônus..."
+                className="h-9"
+              />
+            </div>
+
+            {/* Commission type */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Tipo da Comissão</Label>
+              <Select value={newCommissionType} onValueChange={setNewCommissionType}>
+                <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {brokers.filter(b => b.status === 'ativo').map(b => (
-                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                  ))}
+                  <SelectItem value="venda">Venda</SelectItem>
+                  <SelectItem value="captacao">Captação</SelectItem>
+                  <SelectItem value="indicacao">Indicação</SelectItem>
+                  <SelectItem value="bonus">Bônus</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Value config */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor da Comissão</Label>
+                <CurrencyInput value={newBaseValue} onChange={setNewBaseValue} className="h-9" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1 text-xs"><Percent className="w-3 h-3" /> % (se aplicável)</Label>
+                <Input type="number" value={newPercentage} onChange={(e) => setNewPercentage(Number(e.target.value))}
+                  step="0.1" min="0" max="100" className="h-9" />
+              </div>
+            </div>
+
+            {newBaseValue > 0 && newPercentage !== 100 && (
+              <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Valor Calculado</p>
+                <p className="text-2xl font-black text-success">{formatCurrency(newCommissionValue)}</p>
+              </div>
+            )}
+
+            {/* Sale link (optional) */}
             <div className="space-y-1.5">
-              <Label className="text-xs">Venda Vinculada *</Label>
+              <Label className="text-xs">Vincular a Negociação/Venda (opcional)</Label>
               <Select value={newSaleId} onValueChange={setNewSaleId}>
-                <SelectTrigger className="text-sm"><SelectValue placeholder="Selecione a venda..." /></SelectTrigger>
+                <SelectTrigger className="text-sm"><SelectValue placeholder="Nenhuma vinculação" /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">Nenhuma</SelectItem>
                   {brokerSalesForSelect.map(s => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.client_name} — {formatCurrency(Number(s.property_value))}
@@ -648,36 +811,15 @@ const Comissoes = () => {
               </Select>
             </div>
 
+            {/* Due date */}
             <div className="space-y-1.5">
-              <Label className="text-xs">Origem da Comissão</Label>
-              <Select value={newCommissionType} onValueChange={setNewCommissionType}>
-                <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="venda">Venda</SelectItem>
-                  <SelectItem value="captacao">Captação</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-xs flex items-center gap-1">
+                <Calendar className="w-3 h-3" /> Data Prevista para Recebimento (opcional)
+              </Label>
+              <Input type="date" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} className="h-9" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor Base</Label>
-                <CurrencyInput value={newBaseValue} onChange={setNewBaseValue} className="h-9" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1 text-xs"><Percent className="w-3 h-3" /> % Comissão</Label>
-                <Input type="number" value={newPercentage} onChange={(e) => setNewPercentage(Number(e.target.value))}
-                  step="0.1" min="0" max="100" className="h-9" />
-              </div>
-            </div>
-
-            {newBaseValue > 0 && (
-              <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Valor da Comissão</p>
-                <p className="text-2xl font-black text-success">{formatCurrency(newCommissionValue)}</p>
-              </div>
-            )}
-
+            {/* Payment method */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-1 text-xs"><CreditCard className="w-3 h-3" /> Pagamento</Label>
@@ -700,17 +842,11 @@ const Comissoes = () => {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> Data Prevista para Recebimento
-              </Label>
-              <Input type="date" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} className="h-9" />
-            </div>
-
+            {/* Observations */}
             <div className="space-y-1.5">
               <Label className="text-xs">Observações</Label>
               <Textarea value={newObservations} onChange={(e) => setNewObservations(e.target.value)}
-                placeholder="Observações sobre o comissionamento..." rows={2} />
+                placeholder="Observações adicionais..." rows={2} />
             </div>
           </div>
 

@@ -634,6 +634,7 @@ export type Database = {
           company_id: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           due_date: string | null
           id: string
           installments: number | null
@@ -641,7 +642,8 @@ export type Database = {
           paid_installments: number | null
           payment_date: string | null
           payment_method: string | null
-          sale_id: string
+          received_at: string | null
+          sale_id: string | null
           status: string
           updated_at: string
         }
@@ -654,6 +656,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           due_date?: string | null
           id?: string
           installments?: number | null
@@ -661,7 +664,8 @@ export type Database = {
           paid_installments?: number | null
           payment_date?: string | null
           payment_method?: string | null
-          sale_id: string
+          received_at?: string | null
+          sale_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -674,6 +678,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           due_date?: string | null
           id?: string
           installments?: number | null
@@ -681,7 +686,8 @@ export type Database = {
           paid_installments?: number | null
           payment_date?: string | null
           payment_method?: string | null
-          sale_id?: string
+          received_at?: string | null
+          sale_id?: string | null
           status?: string
           updated_at?: string
         }
