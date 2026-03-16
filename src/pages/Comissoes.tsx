@@ -106,6 +106,7 @@ const Comissoes = () => {
   const [newSaleId, setNewSaleId] = useState("");
   const [newBaseValue, setNewBaseValue] = useState(0);
   const [newPercentage, setNewPercentage] = useState(5);
+  const [newDirectCommissionValue, setNewDirectCommissionValue] = useState(0);
   const [newCommissionType, setNewCommissionType] = useState("venda");
   const [newPaymentMethod, setNewPaymentMethod] = useState("");
   const [newInstallments, setNewInstallments] = useState(1);
