@@ -79,6 +79,7 @@ const UserCard: React.FC<UserCardProps> = ({
                   <span className="text-xs text-muted-foreground">({user.nickname})</span>
                 )}
               </div>
+              <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
               <div className="flex items-center gap-2 flex-wrap mt-0.5">
                 <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", roleBadgeStyles[user.role])}>
                   {roleLabels[user.role] || user.role}
