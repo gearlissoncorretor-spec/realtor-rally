@@ -106,6 +106,7 @@ const Comissoes = () => {
   const [newSaleId, setNewSaleId] = useState("");
   const [newBaseValue, setNewBaseValue] = useState(0);
   const [newPercentage, setNewPercentage] = useState(5);
+  const [newDirectCommissionValue, setNewDirectCommissionValue] = useState(0);
   const [newCommissionType, setNewCommissionType] = useState("venda");
   const [newPaymentMethod, setNewPaymentMethod] = useState("");
   const [newInstallments, setNewInstallments] = useState(1);
@@ -251,24 +252,27 @@ const Comissoes = () => {
   const resetCreateForm = () => {
     setNewBrokerId(""); setNewSaleId(""); setNewBaseValue(0); setNewPercentage(5);
     setNewCommissionType("venda"); setNewPaymentMethod(""); setNewInstallments(1);
-    setNewDueDate(""); setNewObservations(""); setNewDescription("");
+    setNewDueDate(""); setNewObservations(""); setNewDescription(""); setNewDirectCommissionValue(0);
   };
 
   const handleCreate = async () => {
     const brokerId = isBrokerView ? currentBroker?.id : newBrokerId;
-    if (!brokerId || newBaseValue <= 0) {
+    
+    // For broker view: direct commission value; for manager view: base * percentage
+    const finalCommissionValue = isBrokerView ? newDirectCommissionValue : (newBaseValue * newPercentage) / 100;
+    
+    if (!brokerId || finalCommissionValue <= 0) {
       toast({ title: "Campos obrigatórios", description: "Preencha o valor da comissão.", variant: "destructive" });
       return;
     }
     setSaving(true);
     try {
-      const commissionValue = (newBaseValue * newPercentage) / 100;
       const data: CommissionInsert = {
         sale_id: newSaleId && newSaleId !== 'none' ? newSaleId : null,
         broker_id: brokerId,
-        commission_percentage: newPercentage,
-        commission_value: commissionValue,
-        base_value: newBaseValue,
+        commission_percentage: isBrokerView ? 100 : newPercentage,
+        commission_value: finalCommissionValue,
+        base_value: isBrokerView ? finalCommissionValue : newBaseValue,
         commission_type: newCommissionType,
         description: newDescription || null,
         payment_method: newPaymentMethod || null,
@@ -776,22 +780,39 @@ const Comissoes = () => {
             </div>
 
             {/* Value config */}
-            <div className="grid grid-cols-2 gap-4">
+            {isBrokerView ? (
               <div className="space-y-1.5">
-                <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor da Comissão</Label>
-                <CurrencyInput value={newBaseValue} onChange={setNewBaseValue} className="h-9" />
+                <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor da sua Comissão *</Label>
+                <CurrencyInput value={newDirectCommissionValue} onChange={setNewDirectCommissionValue} className="h-9" />
+                <p className="text-[10px] text-muted-foreground">Digite o valor que você vai receber</p>
               </div>
-              <div className="space-y-1.5">
-                <Label className="flex items-center gap-1 text-xs"><Percent className="w-3 h-3" /> % (se aplicável)</Label>
-                <Input type="number" value={newPercentage} onChange={(e) => setNewPercentage(Number(e.target.value))}
-                  step="0.1" min="0" max="100" className="h-9" />
-              </div>
-            </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><DollarSign className="w-3 h-3" /> Valor Base (VGC)</Label>
+                    <CurrencyInput value={newBaseValue} onChange={setNewBaseValue} className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1 text-xs"><Percent className="w-3 h-3" /> % Comissão</Label>
+                    <Input type="number" value={newPercentage} onChange={(e) => setNewPercentage(Number(e.target.value))}
+                      step="0.1" min="0" max="100" className="h-9" />
+                  </div>
+                </div>
 
-            {newBaseValue > 0 && newPercentage !== 100 && (
+                {newBaseValue > 0 && newPercentage !== 100 && (
+                  <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Valor Calculado</p>
+                    <p className="text-2xl font-black text-success">{formatCurrency(newCommissionValue)}</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {isBrokerView && newDirectCommissionValue > 0 && (
               <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Valor Calculado</p>
-                <p className="text-2xl font-black text-success">{formatCurrency(newCommissionValue)}</p>
+                <p className="text-xs text-muted-foreground mb-1">Sua Comissão</p>
+                <p className="text-2xl font-black text-success">{formatCurrency(newDirectCommissionValue)}</p>
               </div>
             )}
 
