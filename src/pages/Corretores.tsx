@@ -467,8 +467,13 @@ const Corretores = () => {
     return map;
   }, [brokers, sales]);
 
+  // Split brokers by active tab first
+  const activeBrokers = useMemo(() => brokers.filter(b => b.status !== 'inativo'), [brokers]);
+  const inactiveBrokers = useMemo(() => brokers.filter(b => b.status === 'inativo'), [brokers]);
+  const tabBrokers = activeTab === 'ativos' ? activeBrokers : inactiveBrokers;
+
   const filteredBrokers = useMemo(() => {
-    let result = brokers.filter(broker => {
+    let result = tabBrokers.filter(broker => {
       const matchesSearch = broker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         broker.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === "all" || broker.status === statusFilter;
@@ -504,7 +509,7 @@ const Corretores = () => {
     });
 
     return result;
-  }, [brokers, searchTerm, statusFilter, teamFilter, performanceFilter, sortBy, brokerRanks, currentMonthStats, getBrokerStats, getMetaProgress]);
+  }, [tabBrokers, searchTerm, statusFilter, teamFilter, performanceFilter, sortBy, brokerRanks, currentMonthStats, getBrokerStats, getMetaProgress]);
 
   const kpis = useMemo(() => {
     const total = brokers.length;
