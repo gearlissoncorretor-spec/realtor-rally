@@ -264,7 +264,7 @@ const Comissoes = () => {
     try {
       const commissionValue = (newBaseValue * newPercentage) / 100;
       const data: CommissionInsert = {
-        sale_id: newSaleId || null,
+        sale_id: newSaleId && newSaleId !== 'none' ? newSaleId : null,
         broker_id: brokerId,
         commission_percentage: newPercentage,
         commission_value: commissionValue,
@@ -801,7 +801,7 @@ const Comissoes = () => {
               <Select value={newSaleId} onValueChange={setNewSaleId}>
                 <SelectTrigger className="text-sm"><SelectValue placeholder="Nenhuma vinculação" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
                   {brokerSalesForSelect.map(s => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.client_name} — {formatCurrency(Number(s.property_value))}
