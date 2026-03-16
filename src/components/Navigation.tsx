@@ -66,7 +66,7 @@ const Navigation = () => {
     { href: "/ranking", label: "Ranking", icon: Trophy, screen: "ranking" },
     { href: "/vendas", label: "Vendas", icon: Home, screen: "vendas" },
     { href: "/negociacoes", label: "Negociações", icon: Handshake, screen: "negociacoes" },
-    { href: "/follow-up", label: "Follow Up", icon: Users, screen: "follow-up" },
+    { href: "/follow-up", label: "Follow-up / Clientes", icon: Users, screen: "follow-up" },
     { href: "/metas", label: "Metas", icon: Target, screen: "metas" },
     { href: "/meta-gestao", label: "Meta Gestão", icon: PieChart, screen: "meta-gestao" },
     { href: "/tarefas-kanban", label: "Tarefas & Atividades", icon: Columns3, screen: "tarefas-kanban" },
