@@ -1,5 +1,6 @@
-// Corretores - Lista de corretores ordenada por data de criação
+// Corretores - Lista de corretores com abas Ativos/Inativos
 import Navigation from "@/components/Navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
