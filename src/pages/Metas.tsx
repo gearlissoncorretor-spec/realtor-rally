@@ -56,6 +56,7 @@ const Metas = () => {
   const { tasks: allTasks } = useAllGoalTasks();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
@@ -65,6 +66,7 @@ const Metas = () => {
   const rawRole = getUserRole();
   const userRole = rawRole === 'admin' ? 'diretor' : rawRole;
   const canManageGoals = ['diretor', 'gerente'].includes(userRole);
+  const isDirectorView = isDiretor() || isAdmin();
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
   const userTeamId = profile?.team_id || currentBroker?.team_id;
@@ -87,11 +89,24 @@ const Metas = () => {
     return [];
   }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin]);
 
+  // Teams that have brokers assigned
+  const teamsWithBrokers = useMemo(() => {
+    if (!isDirectorView) return [];
+    const teamIds = new Set(accessibleBrokers.map(b => b.team_id).filter(Boolean));
+    return teams.filter(t => teamIds.has(t.id));
+  }, [teams, accessibleBrokers, isDirectorView]);
+
+  // Brokers filtered by selected team (for directors)
+  const visibleBrokers = useMemo(() => {
+    if (!isDirectorView || selectedTeamId === 'all') return accessibleBrokers;
+    return accessibleBrokers.filter(b => b.team_id === selectedTeamId);
+  }, [accessibleBrokers, selectedTeamId, isDirectorView]);
+
   useEffect(() => {
-    if (accessibleBrokers.length > 0 && !selectedBrokerId) {
-      setSelectedBrokerId(accessibleBrokers[0].id);
+    if (visibleBrokers.length > 0 && (!selectedBrokerId || !visibleBrokers.find(b => b.id === selectedBrokerId))) {
+      setSelectedBrokerId(visibleBrokers[0].id);
     }
-  }, [accessibleBrokers, selectedBrokerId]);
+  }, [visibleBrokers, selectedBrokerId]);
 
   const goToPreviousMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
   const goToNextMonth = () => {
@@ -101,7 +116,7 @@ const Metas = () => {
 
   const filteredGoals = useMemo(() => {
     if (!selectedBrokerId) return [];
-    const selectedBrokerData = accessibleBrokers.find(b => b.id === selectedBrokerId);
+    const selectedBrokerData = visibleBrokers.find(b => b.id === selectedBrokerId);
     return goals.filter(goal => {
       const matchesBroker = goal.broker_id === selectedBrokerId || 
         (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id) ||
@@ -112,7 +127,7 @@ const Metas = () => {
       const goalEnd = new Date(goal.end_date);
       return matchesBroker && goalStart <= monthEnd && goalEnd >= monthStart;
     });
-  }, [goals, selectedBrokerId, selectedMonth, accessibleBrokers]);
+  }, [goals, selectedBrokerId, selectedMonth, visibleBrokers]);
 
   const stats = useMemo(() => {
     const active = filteredGoals.filter(g => g.status === 'active').length;
