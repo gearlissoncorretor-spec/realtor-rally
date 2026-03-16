@@ -101,8 +101,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
       }
 
       // Invalidate all related caches for instant sync
-      const { QueryClient } = await import('@tanstack/react-query');
-      // Access queryClient from window or use direct invalidation
+      queryClient.invalidateQueries({ queryKey: ['brokers'] });
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
       toast({ title: "Usuário atualizado com sucesso!" });
       onSaved();
       onOpenChange(false);
