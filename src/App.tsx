@@ -12,6 +12,7 @@ import { AppUpdateManager } from "@/components/AppUpdateManager";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 import { OfflineProvider } from "@/components/OfflineIndicator";
 import InstallPrompt from "@/components/InstallPrompt";
+import { GlobalStickyNotes } from "@/components/sticky-notes/GlobalStickyNotes";
 import "./App.css";
 
 // Lazy-loaded pages
@@ -71,6 +72,7 @@ const AuthenticatedLayout = () => {
   return (
     <DataProvider>
       <RealtimeSyncProvider />
+      <GlobalStickyNotes />
       <Outlet />
     </DataProvider>
   );

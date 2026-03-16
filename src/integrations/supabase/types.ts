@@ -1797,6 +1797,62 @@ export type Database = {
           },
         ]
       }
+      sticky_notes: {
+        Row: {
+          color: string
+          company_id: string | null
+          content: string
+          created_at: string
+          id: string
+          is_minimized: boolean
+          is_pinned: boolean
+          position_x: number | null
+          position_y: number | null
+          title: string
+          updated_at: string
+          user_id: string
+          visibility_mode: string
+        }
+        Insert: {
+          color?: string
+          company_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_minimized?: boolean
+          is_pinned?: boolean
+          position_x?: number | null
+          position_y?: number | null
+          title?: string
+          updated_at?: string
+          user_id: string
+          visibility_mode?: string
+        }
+        Update: {
+          color?: string
+          company_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_minimized?: boolean
+          is_pinned?: boolean
+          position_x?: number | null
+          position_y?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visibility_mode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sticky_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string | null

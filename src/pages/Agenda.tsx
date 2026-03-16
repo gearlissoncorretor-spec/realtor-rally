@@ -23,6 +23,7 @@ import AgendaActivitiesPanel from '@/components/calendar/AgendaActivitiesPanel';
 import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import OverdueEventsAlert from '@/components/calendar/OverdueEventsAlert';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { AgendaStickyNotes } from '@/components/sticky-notes/AgendaStickyNotes';
 
 type ViewMode = 'month' | 'week' | 'day';
 type FilterMode = 'todos' | 'minha' | 'equipe';
@@ -308,9 +309,15 @@ const Agenda = () => {
               )}
             </div>
 
-            {/* Desktop Activities Panel */}
+            {/* Desktop Activities Panel + Sticky Notes */}
             {!isMobile && (
-              <AgendaActivitiesPanel events={events} currentDate={currentDate} onEventClick={handleEventClick} />
+              <div className="flex flex-col gap-4 w-[280px] shrink-0">
+                <AgendaActivitiesPanel events={events} currentDate={currentDate} onEventClick={handleEventClick} />
+                <AgendaStickyNotes />
+              </div>
+            )}
+            {isMobile && (
+              <AgendaStickyNotes />
             )}
           </div>
         </div>
