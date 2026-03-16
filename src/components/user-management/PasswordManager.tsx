@@ -103,8 +103,18 @@ export const PasswordManager = () => {
 
     setResetLoading(userId);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error('Sessão expirada. Faça login novamente para alterar a senha.');
+      }
+
       const { error } = await supabase.functions.invoke('update-user-password', {
         body: { userId, password },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       if (error) throw error;
