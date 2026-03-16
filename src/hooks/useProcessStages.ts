@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface ProcessStage {
   id: string;
@@ -16,6 +17,7 @@ export const useProcessStages = () => {
   const [stages, setStages] = useState<ProcessStage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   const fetchStages = async () => {
     try {
@@ -47,7 +49,8 @@ export const useProcessStages = () => {
           title,
           color,
           order_index: maxOrder + 1,
-          is_default: false
+          is_default: false,
+          company_id: profile?.company_id || null
         })
         .select()
         .single();
