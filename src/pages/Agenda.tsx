@@ -23,6 +23,7 @@ import AgendaActivitiesPanel from '@/components/calendar/AgendaActivitiesPanel';
 import GoogleCalendarConnect from '@/components/calendar/GoogleCalendarConnect';
 import OverdueEventsAlert from '@/components/calendar/OverdueEventsAlert';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { AgendaStickyNotes } from '@/components/sticky-notes/AgendaStickyNotes';
 
 type ViewMode = 'month' | 'week' | 'day';
 type FilterMode = 'todos' | 'minha' | 'equipe';
