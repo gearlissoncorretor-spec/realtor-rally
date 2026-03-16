@@ -257,19 +257,22 @@ const Comissoes = () => {
 
   const handleCreate = async () => {
     const brokerId = isBrokerView ? currentBroker?.id : newBrokerId;
-    if (!brokerId || newBaseValue <= 0) {
+    
+    // For broker view: direct commission value; for manager view: base * percentage
+    const finalCommissionValue = isBrokerView ? newDirectCommissionValue : (newBaseValue * newPercentage) / 100;
+    
+    if (!brokerId || finalCommissionValue <= 0) {
       toast({ title: "Campos obrigatórios", description: "Preencha o valor da comissão.", variant: "destructive" });
       return;
     }
     setSaving(true);
     try {
-      const commissionValue = (newBaseValue * newPercentage) / 100;
       const data: CommissionInsert = {
         sale_id: newSaleId && newSaleId !== 'none' ? newSaleId : null,
         broker_id: brokerId,
-        commission_percentage: newPercentage,
-        commission_value: commissionValue,
-        base_value: newBaseValue,
+        commission_percentage: isBrokerView ? 100 : newPercentage,
+        commission_value: finalCommissionValue,
+        base_value: isBrokerView ? finalCommissionValue : newBaseValue,
         commission_type: newCommissionType,
         description: newDescription || null,
         payment_method: newPaymentMethod || null,
