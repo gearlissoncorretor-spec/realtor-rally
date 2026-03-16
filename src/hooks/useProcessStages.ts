@@ -17,6 +17,7 @@ export const useProcessStages = () => {
   const [stages, setStages] = useState<ProcessStage[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   const fetchStages = async () => {
     try {
