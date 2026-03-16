@@ -223,6 +223,7 @@ const GestaoUsuarios = () => {
       try {
         const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-credentials', {
           body: {
+            user_id: resetUser.id,
             email: resetUser.email,
             password: tempPass,
             full_name: resetUser.full_name,
