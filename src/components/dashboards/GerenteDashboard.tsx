@@ -719,6 +719,9 @@ const GerenteDashboard = () => {
               )}
             </div>
           )}
+
+          {/* ORIGEM DOS CLIENTES */}
+          <ClientOriginsChart />
         </div>
       </main>
     </div>
