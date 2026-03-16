@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Users } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import UserFilters from '@/components/gestao-usuarios/UserFilters';
 import UserCard, { type UserData } from '@/components/gestao-usuarios/UserCard';
 import CreateUserDialog from '@/components/gestao-usuarios/CreateUserDialog';
