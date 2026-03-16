@@ -72,6 +72,7 @@ const AuthenticatedLayout = () => {
   return (
     <DataProvider>
       <RealtimeSyncProvider />
+      <GlobalStickyNotes />
       <Outlet />
     </DataProvider>
   );
