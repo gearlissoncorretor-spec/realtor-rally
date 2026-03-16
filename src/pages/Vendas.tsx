@@ -29,7 +29,7 @@ const currentYear = new Date().getFullYear();
 
 const Vendas = () => {
   const { toast } = useToast();
-  const { isDiretor } = useAuth();
+  const { isDiretor, isGerente } = useAuth();
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
