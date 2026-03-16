@@ -264,7 +264,7 @@ const Comissoes = () => {
     try {
       const commissionValue = (newBaseValue * newPercentage) / 100;
       const data: CommissionInsert = {
-        sale_id: newSaleId || null,
+        sale_id: newSaleId && newSaleId !== 'none' ? newSaleId : null,
         broker_id: brokerId,
         commission_percentage: newPercentage,
         commission_value: commissionValue,
