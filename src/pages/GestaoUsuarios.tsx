@@ -198,52 +198,42 @@ const GestaoUsuarios = () => {
     const tempPass = generateTempPassword();
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Você precisa estar autenticado');
-
-      // 1. Reset the password
-      const response = await fetch('https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/update-user-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ userId: resetUser.id, password: tempPass }),
+      const { error: resetError } = await supabase.functions.invoke('update-user-password', {
+        body: { userId: resetUser.id, password: tempPass },
       });
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Erro ao resetar senha');
+      if (resetError) throw resetError;
 
-      // 2. Send credentials via email
+      setGeneratedPassword(tempPass);
+      setResetSuccess(true);
+      setResetOpen(true);
+
       try {
-        const emailResponse = await fetch('https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/send-credentials', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
+        const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-credentials', {
+          body: {
             email: resetUser.email,
             password: tempPass,
             full_name: resetUser.full_name,
             role: resetUser.role,
             is_password_reset: true,
-          }),
+          },
         });
 
-        const emailResult = await emailResponse.json();
-        if (emailResponse.ok) {
-          toast({ title: 'Email enviado', description: emailResult.note || `Credenciais enviadas para ${resetUser.email}` });
-        }
-      } catch (emailErr) {
-        console.warn('Falha ao enviar email de credenciais:', emailErr);
-      }
+        if (emailError) throw emailError;
 
-      setGeneratedPassword(tempPass);
-      setResetSuccess(true);
-      toast({ title: 'Senha resetada com sucesso!', description: 'A senha temporária foi gerada e enviada por email.' });
+        toast({
+          title: 'Senha resetada com sucesso!',
+          description: emailResult?.note || 'A senha temporária foi gerada e o email foi enviado.',
+        });
+      } catch (emailErr: any) {
+        console.warn('Falha ao enviar email de credenciais:', emailErr);
+        toast({
+          title: 'Senha resetada com sucesso!',
+          description: 'A senha temporária foi gerada, mas o email não pôde ser enviado automaticamente.',
+        });
+      }
     } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+      toast({ title: 'Erro', description: err.message || 'Não foi possível resetar a senha.', variant: 'destructive' });
     } finally {
       setResetLoading(false);
     }
@@ -418,10 +408,10 @@ const GestaoUsuarios = () => {
             ) : (
               <>
                 <AlertDialogCancel disabled={resetLoading}>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={(e) => { e.preventDefault(); handleResetPassword(); }} disabled={resetLoading}>
+                <Button type="button" onClick={handleResetPassword} disabled={resetLoading}>
                   {resetLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {resetLoading ? 'Gerando...' : 'Resetar Senha'}
-                </AlertDialogAction>
+                </Button>
               </>
             )}
           </AlertDialogFooter>
