@@ -801,7 +801,7 @@ const Comissoes = () => {
               <Select value={newSaleId} onValueChange={setNewSaleId}>
                 <SelectTrigger className="text-sm"><SelectValue placeholder="Nenhuma vinculação" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
                   {brokerSalesForSelect.map(s => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.client_name} — {formatCurrency(Number(s.property_value))}
