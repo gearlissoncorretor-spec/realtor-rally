@@ -298,9 +298,12 @@ const Negociacoes = () => {
       status: 'confirmada',
       notes: `Venda originada da negociação. ${data.notes || ''} ${selectedForSale.observations || ''}`.trim(),
       vendedor: data.vendedor,
-      captador: data.captador,
+      captador: data.sale_type === 'revenda' ? data.captador : undefined,
       gerente: data.gerente,
       origem: data.origem,
+      sale_type: data.sale_type,
+      estilo: data.estilo,
+      produto: data.produto,
     });
 
     // Update negotiation status to venda_concluida
