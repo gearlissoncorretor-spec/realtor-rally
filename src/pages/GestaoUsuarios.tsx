@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Copy, Check } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Users } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import UserFilters from '@/components/gestao-usuarios/UserFilters';
 import UserCard, { type UserData } from '@/components/gestao-usuarios/UserCard';
 import CreateUserDialog from '@/components/gestao-usuarios/CreateUserDialog';
@@ -34,6 +36,9 @@ const GestaoUsuarios = () => {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [resetUser, setResetUser] = useState<UserData | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const canManage = isAdmin() || isDiretor() || isGerente();
   const currentRole = getUserRole();
@@ -133,23 +138,58 @@ const GestaoUsuarios = () => {
 
   const handleResetPassword = async () => {
     if (!resetUser) return;
+    setResetLoading(true);
+    const tempPass = generateTempPassword();
     try {
-      const { error } = await supabase.functions.invoke('update-user-password', {
-        body: { userId: resetUser.id, newPassword: generateTempPassword() }
-      });
-      if (error) throw error;
-      toast({ title: "Senha resetada", description: "Uma nova senha temporária foi gerada." });
-      setResetOpen(false);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Você precisa estar autenticado');
+
+      const response = await fetch(
+        'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/update-user-password',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ userId: resetUser.id, password: tempPass }),
+        }
+      );
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Erro ao resetar senha');
+
+      setGeneratedPassword(tempPass);
+      setResetSuccess(true);
+      toast({ title: "Senha resetada com sucesso!", description: "A senha temporária foi gerada. Compartilhe com o usuário." });
     } catch (err: any) {
       toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+    } finally {
+      setResetLoading(false);
     }
   };
 
   const generateTempPassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
     let pass = '';
-    for (let i = 0; i < 12; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    for (let i = 0; i < 10; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
     return pass;
+  };
+
+  const [copied, setCopied] = useState(false);
+  const handleCopyPassword = () => {
+    if (generatedPassword) {
+      navigator.clipboard.writeText(generatedPassword);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCloseReset = () => {
+    setResetOpen(false);
+    setResetSuccess(false);
+    setGeneratedPassword(null);
+    setResetUser(null);
+    setCopied(false);
   };
 
   const allowedRoles = isAdmin() ? ['admin', 'diretor', 'gerente', 'corretor'] 
@@ -252,18 +292,55 @@ const GestaoUsuarios = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Reset Password Confirmation */}
-      <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
+      {/* Reset Password Dialog */}
+      <AlertDialog open={resetOpen} onOpenChange={(open) => { if (!open) handleCloseReset(); else setResetOpen(true); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Resetar senha</AlertDialogTitle>
-            <AlertDialogDescription>
-              Deseja resetar a senha de <strong>{resetUser?.full_name}</strong>? Uma nova senha temporária será gerada.
+            <AlertDialogTitle>
+              {resetSuccess ? '✅ Senha Resetada com Sucesso' : 'Resetar Senha'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div>
+                {resetSuccess && generatedPassword ? (
+                  <div className="space-y-4 mt-2">
+                    <p className="text-sm text-muted-foreground">
+                      A senha temporária de <strong className="text-foreground">{resetUser?.full_name}</strong> foi gerada. 
+                      Compartilhe com o usuário para que ele acesse o sistema e cadastre uma nova senha.
+                    </p>
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted border">
+                      <code className="flex-1 text-lg font-mono font-bold text-foreground tracking-wider select-all">
+                        {generatedPassword}
+                      </code>
+                      <Button variant="ghost" size="sm" onClick={handleCopyPassword} className="shrink-0">
+                        {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+                        {copied ? 'Copiado!' : 'Copiar'}
+                      </Button>
+                    </div>
+                    <div className="text-xs text-muted-foreground bg-warning/10 border border-warning/20 rounded-lg p-3">
+                      <strong className="text-warning">⚠️ Importante:</strong> Esta senha será exibida apenas uma vez. 
+                      Anote ou copie antes de fechar esta janela.
+                    </div>
+                  </div>
+                ) : (
+                  <p>
+                    Deseja resetar a senha de <strong>{resetUser?.full_name}</strong>? Uma nova senha temporária será gerada e exibida na tela.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResetPassword}>Resetar Senha</AlertDialogAction>
+            {resetSuccess ? (
+              <AlertDialogAction onClick={handleCloseReset}>Fechar</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel disabled={resetLoading}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleResetPassword} disabled={resetLoading}>
+                  {resetLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {resetLoading ? 'Gerando...' : 'Resetar Senha'}
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
