@@ -35,19 +35,22 @@ serve(async (req) => {
       );
     }
 
-    // Check if user has admin or diretor role using has_role function
-    const { data: isAdmin, error: adminError } = await supabaseClient
+    // Check if user has admin, diretor or gerente role
+    const { data: isAdmin } = await supabaseClient
       .rpc('has_role', { _user_id: user.id, _role: 'admin' });
 
-    const { data: isDiretor, error: diretorError } = await supabaseClient
+    const { data: isDiretor } = await supabaseClient
       .rpc('has_role', { _user_id: user.id, _role: 'diretor' });
 
-    const { data: isSuperAdmin, error: superAdminError } = await supabaseClient
+    const { data: isGerente } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'gerente' });
+
+    const { data: isSuperAdmin } = await supabaseClient
       .rpc('is_super_admin', { _user_id: user.id });
 
-    if (!isAdmin && !isDiretor && !isSuperAdmin) {
+    if (!isAdmin && !isDiretor && !isGerente && !isSuperAdmin) {
       return new Response(
-        JSON.stringify({ error: 'Forbidden - Admin access required' }),
+        JSON.stringify({ error: 'Sem permissão para resetar senhas' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
