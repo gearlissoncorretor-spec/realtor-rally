@@ -26,15 +26,17 @@ export interface Commission {
 }
 
 export interface CommissionInsert {
-  sale_id: string;
+  sale_id?: string | null;
   broker_id: string;
   commission_percentage: number;
   commission_value: number;
   base_value: number;
   commission_type?: string;
+  description?: string | null;
   status?: string;
   payment_date?: string | null;
   due_date?: string | null;
+  received_at?: string | null;
   payment_method?: string | null;
   installments?: number;
   paid_installments?: number;
