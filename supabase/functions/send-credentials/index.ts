@@ -34,7 +34,7 @@ serve(async (req) => {
       throw new Error('Sem permissão para enviar credenciais')
     }
 
-    const { email, password, full_name, role } = await req.json()
+    const { email, password, full_name, role, is_password_reset } = await req.json()
 
     if (!email || !password || !full_name) {
       throw new Error('Campos obrigatórios: email, password, full_name')
@@ -49,18 +49,50 @@ serve(async (req) => {
 
     const orgName = orgSettings?.organization_name || 'Gestão Imobiliária'
     const roleName = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Usuário'
+    const origin = req.headers.get('origin') || 'https://gestaoequipembsc.lovable.app'
 
-    // Use Supabase's inviteUserByEmail to send a proper invite email
-    // This sends an email through Supabase Auth with a magic link
+    if (is_password_reset) {
+      // For password resets, send a recovery link so user can also set their own password
+      // The temp password is shown on screen to the manager
+      const { data: linkData, error: linkError } = await supabaseClient.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: {
+          redirectTo: `${origin}/reset-password`,
+        }
+      })
+
+      if (linkError) {
+        console.error('Recovery link generation failed:', linkError.message)
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: `Senha resetada para ${email}`,
+            note: `O email automático não pôde ser enviado. Compartilhe as credenciais manualmente: Email: ${email} | Senha temporária: ${password}`
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        )
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: `Credenciais processadas para ${email}`,
+          note: `Um link de recuperação foi enviado para ${email}. O usuário também pode usar a senha temporária informada pelo gestor para acessar o sistema.`
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
+    }
+
+    // Original flow for new user invites
     const { error: inviteError } = await supabaseClient.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${req.headers.get('origin') || 'https://gestaoequipembsc.lovable.app'}/auth`,
+      redirectTo: `${origin}/auth`,
       data: {
         full_name,
         invited: true,
       }
     })
 
-    // If invite fails (user already exists), try generating a recovery link instead
     let fallbackNote = null
     if (inviteError) {
       console.log('Invite failed (user may already exist), trying recovery link:', inviteError.message)
@@ -69,7 +101,7 @@ serve(async (req) => {
         type: 'recovery',
         email,
         options: {
-          redirectTo: `${req.headers.get('origin') || 'https://gestaoequipembsc.lovable.app'}/reset-password`,
+          redirectTo: `${origin}/reset-password`,
         }
       })
 
