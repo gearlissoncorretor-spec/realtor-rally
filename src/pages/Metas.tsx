@@ -142,7 +142,7 @@ const Metas = () => {
   }, [filteredGoals]);
 
   const selectedGoal = selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null;
-  const selectedBroker = accessibleBrokers.find(b => b.id === selectedBrokerId);
+  const selectedBroker = visibleBrokers.find(b => b.id === selectedBrokerId);
 
   const handleEdit = (goal: Goal) => {
     setEditingGoal(goal);
