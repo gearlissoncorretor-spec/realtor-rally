@@ -552,7 +552,7 @@ const Metas = () => {
                                           <td className="py-3.5 px-4">
                                             <div className="space-y-1.5">
                                               <div className="flex justify-between text-xs">
-                                                <span className="text-muted-foreground">{getPeriodLabel(goal.period_type)}</span>
+                                                <span className="text-muted-foreground">{getGoalPeriodLabel(goal.period_type)}</span>
                                                 <span className={cn(
                                                   "font-bold tabular-nums",
                                                   progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-red-500"
