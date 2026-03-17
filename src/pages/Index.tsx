@@ -227,13 +227,15 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
   // Meta do mês - calcula com dados reais de targets
   const monthlyGoal = useMemo(() => {
-    const currentTarget = targets.find(t => t.month === selectedMonth && t.year === selectedYear);
+    if (!targets || targets.length === 0) {
+      return { percent: "—", trend: "neutral" as const, change: 0 };
+    }
+    const currentTarget = targets.find((t: any) => t.month === selectedMonth && t.year === selectedYear);
     if (!currentTarget || !currentTarget.target_value) {
       return { percent: "—", trend: "neutral" as const, change: 0 };
     }
-    const achieved = totalVGV;
     const target = currentTarget.target_value;
-    const percent = Math.min((achieved / target) * 100, 999).toFixed(0);
+    const percent = Math.min((totalVGV / target) * 100, 999).toFixed(0);
     return {
       percent: `${percent}%`,
       trend: Number(percent) >= 100 ? "up" as const : Number(percent) >= 50 ? "neutral" as const : "down" as const,
