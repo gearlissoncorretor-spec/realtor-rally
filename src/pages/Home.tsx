@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Index from '@/pages/Index';
 import CorretorDashboard from '@/components/dashboards/CorretorDashboard';
+import BirthdayPopup from '@/components/BirthdayPopup';
 
 const Home = () => {
   const { profile, loading, getUserRole } = useAuth();
@@ -32,16 +33,25 @@ const Home = () => {
 
   const role = getUserRole();
 
-  switch (role) {
-    case 'diretor':
-    case 'admin':
-    case 'gerente':
-      return <Index />;
-    case 'corretor':
-      return <CorretorDashboard />;
-    default:
-      return <Index />;
-  }
+  const dashboard = (() => {
+    switch (role) {
+      case 'diretor':
+      case 'admin':
+      case 'gerente':
+        return <Index />;
+      case 'corretor':
+        return <CorretorDashboard />;
+      default:
+        return <Index />;
+    }
+  })();
+
+  return (
+    <>
+      <BirthdayPopup />
+      {dashboard}
+    </>
+  );
 };
 
 export default Home;
