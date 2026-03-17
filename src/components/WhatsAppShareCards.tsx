@@ -25,15 +25,15 @@ const MOTIVATIONAL_PHRASES = [
 
 const getRandomPhrase = () => MOTIVATIONAL_PHRASES[Math.floor(Math.random() * MOTIVATIONAL_PHRASES.length)];
 
-const openWhatsApp = (text: string, phone?: string) => {
+const buildWhatsAppUrl = (text: string, phone?: string) => {
   const encoded = encodeURIComponent(text);
-  const url = phone
+  return phone
     ? `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encoded}`
     : `https://wa.me/?text=${encoded}`;
-  window.open(url, '_blank');
 };
 
 // ─── Shared image generation + WhatsApp send logic ────────────
+// Opens window SYNCHRONOUSLY to avoid popup blocker, then redirects after generation
 
 const useCardImageSend = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -45,6 +45,10 @@ const useCardImageSend = () => {
     phone?: string
   ) => {
     setIsGenerating(true);
+
+    // Open window IMMEDIATELY (synchronous from click) to avoid popup blocker
+    const whatsappWindow = window.open('about:blank', '_blank');
+
     try {
       const { data, error } = await supabase.functions.invoke('generate-whatsapp-card', {
         body: { cardType, ...payload },
@@ -56,15 +60,27 @@ const useCardImageSend = () => {
       if (data?.imageUrl) {
         const textWithImage =
           whatsappTextFallback + `\n\n📸 Veja o card: ${data.imageUrl}`;
-        openWhatsApp(textWithImage, phone);
+        if (whatsappWindow) {
+          whatsappWindow.location.href = buildWhatsAppUrl(textWithImage, phone);
+        } else {
+          window.open(buildWhatsAppUrl(textWithImage, phone), '_blank');
+        }
         toast.success('Card gerado e link adicionado à mensagem!');
       } else {
-        openWhatsApp(whatsappTextFallback, phone);
+        if (whatsappWindow) {
+          whatsappWindow.location.href = buildWhatsAppUrl(whatsappTextFallback, phone);
+        } else {
+          window.open(buildWhatsAppUrl(whatsappTextFallback, phone), '_blank');
+        }
       }
     } catch (err: any) {
       console.error('Error generating card:', err);
       toast.error('Erro ao gerar card. Enviando mensagem de texto.');
-      openWhatsApp(whatsappTextFallback, phone);
+      if (whatsappWindow) {
+        whatsappWindow.location.href = buildWhatsAppUrl(whatsappTextFallback, phone);
+      } else {
+        window.open(buildWhatsAppUrl(whatsappTextFallback, phone), '_blank');
+      }
     } finally {
       setIsGenerating(false);
     }
