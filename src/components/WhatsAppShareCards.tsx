@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { MessageSquare, Trophy, Target, Flame, Share2, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
-import { GoalCardTemplate, RankingCardTemplate, SaleCardTemplate } from './whatsapp-cards/CardTemplates';
+import { GoalCardTemplate, RankingCardTemplate, SaleCardTemplate, HiddenCardWrapper } from './whatsapp-cards/CardTemplates';
 import { useCardShare } from './whatsapp-cards/useCardShare';
 
 const MOTIVATIONAL_PHRASES = [
@@ -62,15 +62,17 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
 
   return (
     <>
-      <GoalCardTemplate
-        ref={cardRef}
-        brokerName={brokerName || 'Corretor'}
-        avatarUrl={brokerAvatarUrl}
-        goalTitle={goalTitle}
-        currentValue={currentValue}
-        targetValue={targetValue}
-        motivationalPhrase={phrase}
-      />
+      <HiddenCardWrapper>
+        <GoalCardTemplate
+          ref={cardRef}
+          brokerName={brokerName || 'Corretor'}
+          avatarUrl={brokerAvatarUrl}
+          goalTitle={goalTitle}
+          currentValue={currentValue}
+          targetValue={targetValue}
+          motivationalPhrase={phrase}
+        />
+      </HiddenCardWrapper>
       <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8" />
         <CardContent className="p-4 space-y-3">
@@ -136,15 +138,17 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
 
   return (
     <>
-      <RankingCardTemplate
-        ref={cardRef}
-        brokerName={brokerName}
-        avatarUrl={brokerAvatarUrl}
-        position={position}
-        totalSales={totalSales}
-        vgv={vgv}
-        motivationalPhrase={phrase}
-      />
+      <HiddenCardWrapper>
+        <RankingCardTemplate
+          ref={cardRef}
+          brokerName={brokerName}
+          avatarUrl={brokerAvatarUrl}
+          position={position}
+          totalSales={totalSales}
+          vgv={vgv}
+          motivationalPhrase={phrase}
+        />
+      </HiddenCardWrapper>
       <Card className="relative overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
         <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -translate-y-6 translate-x-6" />
         <CardContent className="p-4 space-y-3">
@@ -207,15 +211,17 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
 
   return (
     <>
-      <SaleCardTemplate
-        ref={cardRef}
-        brokerName={brokerName}
-        avatarUrl={brokerAvatarUrl}
-        clientName={clientName}
-        propertyValue={propertyValue}
-        propertyType={propertyType}
-        motivationalPhrase={phrase}
-      />
+      <HiddenCardWrapper>
+        <SaleCardTemplate
+          ref={cardRef}
+          brokerName={brokerName}
+          avatarUrl={brokerAvatarUrl}
+          clientName={clientName}
+          propertyValue={propertyValue}
+          propertyType={propertyType}
+          motivationalPhrase={phrase}
+        />
+      </HiddenCardWrapper>
       <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-green-500/5">
         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
         <CardContent className="p-4 space-y-3">

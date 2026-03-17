@@ -37,9 +37,7 @@ const cardBase: React.CSSProperties = {
   flexDirection: 'column',
   justifyContent: 'space-between',
   fontFamily: "'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif",
-  position: 'absolute',
-  left: '-9999px',
-  top: '-9999px',
+  boxSizing: 'border-box',
 };
 
 const avatarStyle: React.CSSProperties = {
@@ -51,7 +49,9 @@ const avatarStyle: React.CSSProperties = {
 };
 
 const avatarFallback: React.CSSProperties = {
-  ...avatarStyle,
+  width: 72,
+  height: 72,
+  borderRadius: '50%',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -59,6 +59,7 @@ const avatarFallback: React.CSSProperties = {
   color: '#fff',
   fontSize: 28,
   fontWeight: 700,
+  border: '3px solid rgba(255,255,255,0.3)',
 };
 
 const getInitials = (name: string) => {
@@ -74,6 +75,23 @@ const AvatarElement: React.FC<{ name: string; url?: string | null }> = ({ name, 
   }
   return <div style={avatarFallback}>{getInitials(name)}</div>;
 };
+
+/** Wrapper that hides the card off-screen but keeps it in DOM for capture */
+export const HiddenCardWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div
+    style={{
+      position: 'absolute',
+      left: '-9999px',
+      top: '-9999px',
+      overflow: 'hidden',
+      height: 0,
+      pointerEvents: 'none',
+    }}
+    aria-hidden="true"
+  >
+    {children}
+  </div>
+);
 
 // ─── Goal Card Template ───────────────────────────────────────
 
@@ -91,19 +109,17 @@ export const GoalCardTemplate = React.forwardRef<HTMLDivElement, GoalCardData>(
           color: '#fff',
         }}
       >
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <AvatarElement name={brokerName} url={avatarUrl} />
           <div>
-            <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' as const }}>
               🎯 Lembrete de Meta
             </div>
             <div style={{ fontSize: 24, fontWeight: 700, marginTop: 4 }}>{brokerName}</div>
           </div>
         </div>
 
-        {/* Main content */}
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center' as const }}>
           <div style={{ fontSize: 16, opacity: 0.8 }}>Falta apenas</div>
           <div style={{ fontSize: 42, fontWeight: 800, color: '#22c55e', margin: '8px 0' }}>
             {formatCurrency(Math.max(remaining, 0))}
@@ -114,7 +130,6 @@ export const GoalCardTemplate = React.forwardRef<HTMLDivElement, GoalCardData>(
           </div>
         </div>
 
-        {/* Progress */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, opacity: 0.7, marginBottom: 6 }}>
             <span>{formatCurrency(currentValue)}</span>
@@ -127,22 +142,19 @@ export const GoalCardTemplate = React.forwardRef<HTMLDivElement, GoalCardData>(
                 width: `${progress}%`,
                 background: 'linear-gradient(90deg, #22c55e, #4ade80)',
                 borderRadius: 5,
-                transition: 'width 0.3s',
               }}
             />
           </div>
-          <div style={{ textAlign: 'center', fontSize: 18, fontWeight: 700, marginTop: 8, color: '#4ade80' }}>
+          <div style={{ textAlign: 'center' as const, fontSize: 18, fontWeight: 700, marginTop: 8, color: '#4ade80' }}>
             {progress.toFixed(0)}%
           </div>
         </div>
 
-        {/* Motivational phrase */}
-        <div style={{ fontSize: 14, fontStyle: 'italic', opacity: 0.8, textAlign: 'center', lineHeight: 1.5 }}>
+        <div style={{ fontSize: 14, fontStyle: 'italic', opacity: 0.8, textAlign: 'center' as const, lineHeight: 1.5 }}>
           "{motivationalPhrase}"
         </div>
 
-        {/* Footer */}
-        <div style={{ fontSize: 11, opacity: 0.4, textAlign: 'center', letterSpacing: 3, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 11, opacity: 0.4, textAlign: 'center' as const, letterSpacing: 3, textTransform: 'uppercase' as const }}>
           Axis CRM
         </div>
       </div>
@@ -166,34 +178,34 @@ export const RankingCardTemplate = React.forwardRef<HTMLDivElement, RankingCardD
           color: '#fff',
         }}
       >
-        <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center' }}>
+        <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' as const, textAlign: 'center' as const }}>
           🏆 Ranking Semanal
         </div>
 
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center' as const }}>
           <div style={{ fontSize: 64, margin: '0 auto' }}>{medal}</div>
-          <div style={{ margin: '12px auto' }}>
+          <div style={{ margin: '12px auto', display: 'flex', justifyContent: 'center' }}>
             <AvatarElement name={brokerName} url={avatarUrl} />
           </div>
           <div style={{ fontSize: 28, fontWeight: 800 }}>{brokerName}</div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: 40 }}>
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center' as const }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: '#f59e0b' }}>{totalSales}</div>
             <div style={{ fontSize: 13, opacity: 0.7 }}>Vendas</div>
           </div>
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center' as const }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: '#22c55e' }}>{formatCurrency(vgv)}</div>
             <div style={{ fontSize: 13, opacity: 0.7 }}>VGV</div>
           </div>
         </div>
 
-        <div style={{ fontSize: 14, fontStyle: 'italic', opacity: 0.8, textAlign: 'center', lineHeight: 1.5 }}>
+        <div style={{ fontSize: 14, fontStyle: 'italic', opacity: 0.8, textAlign: 'center' as const, lineHeight: 1.5 }}>
           "{motivationalPhrase}"
         </div>
 
-        <div style={{ fontSize: 11, opacity: 0.4, textAlign: 'center', letterSpacing: 3, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 11, opacity: 0.4, textAlign: 'center' as const, letterSpacing: 3, textTransform: 'uppercase' as const }}>
           Axis CRM
         </div>
       </div>
@@ -215,7 +227,7 @@ export const SaleCardTemplate = React.forwardRef<HTMLDivElement, SaleCardData>(
           color: '#fff',
         }}
       >
-        <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center' }}>
+        <div style={{ fontSize: 14, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase' as const, textAlign: 'center' as const }}>
           🎉 Venda Fechada!
         </div>
 
@@ -227,7 +239,7 @@ export const SaleCardTemplate = React.forwardRef<HTMLDivElement, SaleCardData>(
           </div>
         </div>
 
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center' as const }}>
           <div style={{ fontSize: 16, opacity: 0.8 }}>Cliente: {clientName}</div>
           {propertyType && <div style={{ fontSize: 14, opacity: 0.6, marginTop: 4 }}>Tipo: {propertyType}</div>}
           <div style={{ fontSize: 48, fontWeight: 800, color: '#86efac', margin: '12px 0' }}>
@@ -235,11 +247,11 @@ export const SaleCardTemplate = React.forwardRef<HTMLDivElement, SaleCardData>(
           </div>
         </div>
 
-        <div style={{ fontSize: 14, fontStyle: 'italic', opacity: 0.8, textAlign: 'center', lineHeight: 1.5 }}>
+        <div style={{ fontSize: 14, fontStyle: 'italic', opacity: 0.8, textAlign: 'center' as const, lineHeight: 1.5 }}>
           "{motivationalPhrase}"
         </div>
 
-        <div style={{ fontSize: 11, opacity: 0.4, textAlign: 'center', letterSpacing: 3, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 11, opacity: 0.4, textAlign: 'center' as const, letterSpacing: 3, textTransform: 'uppercase' as const }}>
           Axis CRM
         </div>
       </div>
