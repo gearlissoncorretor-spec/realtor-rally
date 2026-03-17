@@ -54,7 +54,7 @@ const Instalar = () => {
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center space-y-2">
             <Smartphone className="w-16 h-16 text-primary mx-auto" />
-            <h1 className="text-3xl font-bold text-foreground">Instalar Axis</h1>
+            <h1 className="text-3xl font-bold text-foreground">Instalar Gestão Master</h1>
             <p className="text-muted-foreground">
               Instale o app no seu celular para acesso rápido e notificações em tempo real
             </p>
