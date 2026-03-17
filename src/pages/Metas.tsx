@@ -451,9 +451,9 @@ const Metas = () => {
                                         <div className="min-w-0 flex-1">
                                           <p className="font-semibold text-foreground truncate">{goal.title}</p>
                                           <div className="flex items-center gap-2 mt-1">
-                                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                              {getTypeLabel(goal.target_type)}
-                                            </Badge>
+                                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                                {getGoalTypeLabel(goal.target_type)}
+                                              </Badge>
                                             <Badge variant={statusInfo.variant} className={cn("text-[10px] px-1.5 py-0", statusInfo.className)}>
                                               {statusInfo.label}
                                             </Badge>
