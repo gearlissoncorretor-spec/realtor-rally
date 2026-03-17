@@ -66,7 +66,7 @@ const ResetPassword = () => {
     }
   };
 
-  const orgName = settings?.organization_name || 'Axis';
+  const orgName = settings?.organization_name || 'Gestão Master';
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
