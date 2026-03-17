@@ -72,10 +72,10 @@ const TEMPERATURE_OPTIONS = [
 ];
 
 const Negociacoes = () => {
-  const { user, isCorretor } = useAuth();
+  const { user, profile, isCorretor } = useAuth();
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
-  const { createSale, sales } = useData();
+  const { createSale, sales, refreshSales } = useData();
   const { createFollowUp } = useFollowUps();
   const { flowStatuses, getStatusByValue } = useNegotiationStatuses();
   
