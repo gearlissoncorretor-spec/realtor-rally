@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { MessageSquare, Trophy, Target, Flame, Share2, Download, Loader2, Image as ImageIcon } from 'lucide-react';
-import { formatCurrency, formatPercentage } from '@/utils/formatting';
+import { MessageSquare, Trophy, Target, Flame, Share2, Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -33,13 +33,44 @@ const openWhatsApp = (text: string, phone?: string) => {
   window.open(url, '_blank');
 };
 
-const downloadBase64Image = (base64Url: string, filename: string) => {
-  const link = document.createElement('a');
-  link.href = base64Url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+// ─── Shared image generation + WhatsApp send logic ────────────
+
+const useCardImageSend = () => {
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generateAndSend = async (
+    cardType: string,
+    payload: Record<string, any>,
+    whatsappTextFallback: string,
+    phone?: string
+  ) => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-whatsapp-card', {
+        body: { cardType, ...payload },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.imageUrl) {
+        const textWithImage =
+          whatsappTextFallback + `\n\n📸 Veja o card: ${data.imageUrl}`;
+        openWhatsApp(textWithImage, phone);
+        toast.success('Card gerado e link adicionado à mensagem!');
+      } else {
+        openWhatsApp(whatsappTextFallback, phone);
+      }
+    } catch (err: any) {
+      console.error('Error generating card:', err);
+      toast.error('Erro ao gerar card. Enviando mensagem de texto.');
+      openWhatsApp(whatsappTextFallback, phone);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return { isGenerating, generateAndSend };
 };
 
 // ─── Goal Reminder Card ───────────────────────────────────────
@@ -57,8 +88,7 @@ interface GoalReminderProps {
 export const GoalReminderCard: React.FC<GoalReminderProps> = ({
   goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerPhone,
 }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const { isGenerating, generateAndSend } = useCardImageSend();
 
   const progress = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const isCurrency = ['revenue', 'vgv', 'vgc', 'commission'].includes(targetType);
@@ -72,32 +102,19 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
     `${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
 
-  const generateCardImage = async () => {
-    setIsGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-whatsapp-card', {
-        body: {
-          brokerName: brokerName || 'Corretor',
-          goalTitle,
-          currentValue,
-          targetValue,
-          motivationalPhrase: phrase.replace(/^[^\s]+ /, ''), // remove emoji prefix
-        },
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      if (data?.imageUrl) {
-        setGeneratedImage(data.imageUrl);
-        toast.success('Card gerado com sucesso! Faça o download para compartilhar.');
-      }
-    } catch (err: any) {
-      console.error('Error generating card:', err);
-      toast.error(err?.message || 'Erro ao gerar o card. Tente novamente.');
-    } finally {
-      setIsGenerating(false);
-    }
+  const handleSend = () => {
+    generateAndSend(
+      'goal',
+      {
+        brokerName: brokerName || 'Corretor',
+        goalTitle,
+        currentValue,
+        targetValue,
+        motivationalPhrase: phrase.replace(/^[^\s]+ /, ''),
+      },
+      whatsappText,
+      brokerPhone
+    );
   };
 
   return (
@@ -120,50 +137,19 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
         <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
         <p className="text-xs text-primary font-medium">{phrase}</p>
 
-        {/* Generated image preview */}
-        {generatedImage && (
-          <div className="space-y-2">
-            <img
-              src={generatedImage}
-              alt="Card motivacional gerado"
-              className="w-full rounded-lg border border-border shadow-sm"
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => downloadBase64Image(generatedImage, `meta-${brokerName || 'card'}.png`)}
-            >
-              <Download className="h-4 w-4" />
-              Baixar Imagem
-            </Button>
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 gap-2"
-            onClick={generateCardImage}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <ImageIcon className="h-4 w-4" />
-            )}
-            {isGenerating ? 'Gerando...' : 'Gerar Card'}
-          </Button>
-          <Button
-            size="sm"
-            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => openWhatsApp(whatsappText, brokerPhone)}
-          >
+        <Button
+          size="sm"
+          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleSend}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
             <MessageSquare className="h-4 w-4" />
-            WhatsApp
-          </Button>
-        </div>
+          )}
+          {isGenerating ? 'Gerando card...' : 'Enviar pelo WhatsApp'}
+        </Button>
       </CardContent>
     </Card>
   );
@@ -182,6 +168,7 @@ interface RankingShareProps {
 export const RankingShareCard: React.FC<RankingShareProps> = ({
   brokerName, position, totalSales, vgv, brokerPhone,
 }) => {
+  const { isGenerating, generateAndSend } = useCardImageSend();
   const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
   const phrase = getRandomPhrase();
 
@@ -191,6 +178,21 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
     `💰 VGV: ${formatCurrency(vgv)}\n\n` +
     `${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
+
+  const handleSend = () => {
+    generateAndSend(
+      'ranking',
+      {
+        brokerName,
+        position,
+        totalSales,
+        vgv,
+        motivationalPhrase: phrase.replace(/^[^\s]+ /, ''),
+      },
+      whatsappText,
+      brokerPhone
+    );
+  };
 
   return (
     <Card className="relative overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
@@ -208,9 +210,18 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
           </div>
         </div>
         <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">{phrase}</p>
-        <Button size="sm" className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => openWhatsApp(whatsappText, brokerPhone)}>
-          <MessageSquare className="h-4 w-4" />
-          Compartilhar no WhatsApp
+        <Button
+          size="sm"
+          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleSend}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MessageSquare className="h-4 w-4" />
+          )}
+          {isGenerating ? 'Gerando card...' : 'Compartilhar no WhatsApp'}
         </Button>
       </CardContent>
     </Card>
@@ -230,6 +241,7 @@ interface SaleCelebrationProps {
 export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
   brokerName, clientName, propertyValue, propertyType, brokerPhone,
 }) => {
+  const { isGenerating, generateAndSend } = useCardImageSend();
   const phrase = getRandomPhrase();
 
   const whatsappText = `🎉 *VENDA FECHADA!*\n\n` +
@@ -239,6 +251,21 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
     `💰 Valor: ${formatCurrency(propertyValue)}\n\n` +
     `${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
+
+  const handleSend = () => {
+    generateAndSend(
+      'sale',
+      {
+        brokerName,
+        clientName,
+        propertyValue,
+        propertyType,
+        motivationalPhrase: phrase.replace(/^[^\s]+ /, ''),
+      },
+      whatsappText,
+      brokerPhone
+    );
+  };
 
   return (
     <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-green-500/5">
@@ -255,9 +282,18 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
           <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(propertyValue)}</p>
         </div>
         <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{phrase}</p>
-        <Button size="sm" className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={() => openWhatsApp(whatsappText, brokerPhone)}>
-          <MessageSquare className="h-4 w-4" />
-          Celebrar no WhatsApp
+        <Button
+          size="sm"
+          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleSend}
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MessageSquare className="h-4 w-4" />
+          )}
+          {isGenerating ? 'Gerando card...' : 'Celebrar no WhatsApp'}
         </Button>
       </CardContent>
     </Card>
@@ -301,7 +337,7 @@ export const WhatsAppShareDialog: React.FC<WhatsAppShareDialogProps> = ({
             Compartilhar no WhatsApp
           </DialogTitle>
           <DialogDescription>
-            Gere um card visual ou envie uma mensagem de texto pelo WhatsApp.
+            Clique em enviar para gerar um card visual com IA e compartilhar pelo WhatsApp.
           </DialogDescription>
         </DialogHeader>
 
