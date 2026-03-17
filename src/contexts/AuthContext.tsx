@@ -154,6 +154,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setTeamHierarchy(null);
       }
+
+      // Fetch role permissions for the company
+      if (profileData.company_id) {
+        const { data: permData } = await supabase
+          .from('role_permissions')
+          .select('role, screen, can_view, can_create, can_edit, can_delete')
+          .eq('company_id', profileData.company_id);
+        
+        if (permData) {
+          setRolePermissions(permData.map((p: any) => ({
+            role: p.role,
+            screen: p.screen,
+            can_view: p.can_view,
+            can_create: p.can_create,
+            can_edit: p.can_edit,
+            can_delete: p.can_delete,
+          })));
+        }
+      }
       
       return true;
     } catch (error) {
