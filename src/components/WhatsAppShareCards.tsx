@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { MessageSquare, Trophy, Target, Flame, Share2, Loader2, Download, Image } from 'lucide-react';
+import { Trophy, Target, Flame, Share2, Loader2, Image } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
 import { useCardShare } from './whatsapp-cards/useCardShare';
@@ -38,21 +38,14 @@ interface GoalReminderProps {
 }
 
 export const GoalReminderCard: React.FC<GoalReminderProps> = ({
-  goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerPhone,
+  goalTitle, targetValue, currentValue, targetType, endDate, brokerName,
 }) => {
-  const { isGenerating, generatedImageUrl, generateCard, shareWhatsApp } = useCardShare();
+  const { isGenerating, generatedImageUrl, generateCard } = useCardShare();
 
   const progress = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const isCurrency = ['revenue', 'vgv', 'vgc', 'commission'].includes(targetType);
   const fmt = (v: number) => isCurrency ? formatCurrency(v) : v.toLocaleString('pt-BR');
   const phrase = getRandomPhrase();
-
-  const whatsappText = `🎯 *LEMBRETE DE META*\n\n` +
-    `📌 ${goalTitle}\n` +
-    `📊 Progresso: ${fmt(currentValue)} / ${fmt(targetValue)} (${progress.toFixed(0)}%)\n` +
-    `📅 Prazo: ${new Date(endDate).toLocaleDateString('pt-BR')}\n\n` +
-    `💪 ${phrase}\n\n` +
-    `_Enviado via Axis CRM_`;
 
   const handleGenerate = () => {
     generateCard('goal', {
@@ -84,33 +77,21 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
         <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
         <p className="text-xs text-primary font-medium">💪 {phrase}</p>
 
-        {/* Generated image preview */}
         {generatedImageUrl && (
           <div className="rounded-lg overflow-hidden border">
             <img src={generatedImageUrl} alt="Card gerado" className="w-full" />
           </div>
         )}
 
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 gap-2"
-            onClick={handleGenerate}
-            disabled={isGenerating}
-          >
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-            {isGenerating ? 'Gerando...' : 'Gerar Card'}
-          </Button>
-          <Button
-            size="sm"
-            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => shareWhatsApp(whatsappText, brokerPhone)}
-          >
-            <MessageSquare className="h-4 w-4" />
-            WhatsApp
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          className="w-full gap-2"
+          onClick={handleGenerate}
+          disabled={isGenerating}
+        >
+          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+          {isGenerating ? 'Gerando card...' : generatedImageUrl ? 'Gerar Novo Card' : 'Gerar Card'}
+        </Button>
       </CardContent>
     </Card>
   );
@@ -128,18 +109,11 @@ interface RankingShareProps {
 }
 
 export const RankingShareCard: React.FC<RankingShareProps> = ({
-  brokerName, position, totalSales, vgv, brokerPhone,
+  brokerName, position, totalSales, vgv,
 }) => {
-  const { isGenerating, generatedImageUrl, generateCard, shareWhatsApp } = useCardShare();
+  const { isGenerating, generatedImageUrl, generateCard } = useCardShare();
   const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
   const phrase = getRandomPhrase();
-
-  const whatsappText = `🏆 *RANKING SEMANAL*\n\n` +
-    `${medal} *${brokerName}*\n` +
-    `📈 Vendas: ${totalSales}\n` +
-    `💰 VGV: ${formatCurrency(vgv)}\n\n` +
-    `💪 ${phrase}\n\n` +
-    `_Enviado via Axis CRM_`;
 
   const handleGenerate = () => {
     generateCard('ranking', {
@@ -174,26 +148,15 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
           </div>
         )}
 
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 gap-2"
-            onClick={handleGenerate}
-            disabled={isGenerating}
-          >
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-            {isGenerating ? 'Gerando...' : 'Gerar Card'}
-          </Button>
-          <Button
-            size="sm"
-            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => shareWhatsApp(whatsappText, brokerPhone)}
-          >
-            <MessageSquare className="h-4 w-4" />
-            WhatsApp
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          className="w-full gap-2"
+          onClick={handleGenerate}
+          disabled={isGenerating}
+        >
+          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+          {isGenerating ? 'Gerando card...' : generatedImageUrl ? 'Gerar Novo Card' : 'Gerar Card'}
+        </Button>
       </CardContent>
     </Card>
   );
@@ -211,18 +174,10 @@ interface SaleCelebrationProps {
 }
 
 export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
-  brokerName, clientName, propertyValue, propertyType, brokerPhone,
+  brokerName, clientName, propertyValue, propertyType,
 }) => {
-  const { isGenerating, generatedImageUrl, generateCard, shareWhatsApp } = useCardShare();
+  const { isGenerating, generatedImageUrl, generateCard } = useCardShare();
   const phrase = getRandomPhrase();
-
-  const whatsappText = `🎉 *VENDA FECHADA!*\n\n` +
-    `👤 Corretor: *${brokerName}*\n` +
-    `🏠 Cliente: ${clientName}\n` +
-    (propertyType ? `🏗️ Tipo: ${propertyType}\n` : '') +
-    `💰 Valor: ${formatCurrency(propertyValue)}\n\n` +
-    `💪 ${phrase}\n\n` +
-    `_Enviado via Axis CRM_`;
 
   const handleGenerate = () => {
     generateCard('sale', {
@@ -256,26 +211,15 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
           </div>
         )}
 
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1 gap-2"
-            onClick={handleGenerate}
-            disabled={isGenerating}
-          >
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-            {isGenerating ? 'Gerando...' : 'Gerar Card'}
-          </Button>
-          <Button
-            size="sm"
-            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => shareWhatsApp(whatsappText, brokerPhone)}
-          >
-            <MessageSquare className="h-4 w-4" />
-            WhatsApp
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          className="w-full gap-2"
+          onClick={handleGenerate}
+          disabled={isGenerating}
+        >
+          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+          {isGenerating ? 'Gerando card...' : generatedImageUrl ? 'Gerar Novo Card' : 'Gerar Card'}
+        </Button>
       </CardContent>
     </Card>
   );
@@ -307,18 +251,18 @@ export const WhatsAppShareDialog: React.FC<WhatsAppShareDialogProps> = ({
         {trigger || (
           <Button variant="outline" size="sm" className="gap-2">
             <Share2 className="h-4 w-4" />
-            Compartilhar via WhatsApp
+            Gerar Cards
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-green-600" />
-            Compartilhar no WhatsApp
+            <Image className="h-5 w-5 text-primary" />
+            Gerar Cards
           </DialogTitle>
           <DialogDescription>
-            Clique em "Gerar Card" para criar a imagem, depois envie pelo WhatsApp.
+            Clique em "Gerar Card" para criar a imagem. O download será feito automaticamente.
           </DialogDescription>
         </DialogHeader>
 

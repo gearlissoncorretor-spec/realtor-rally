@@ -2,13 +2,6 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const buildWhatsAppUrl = (text: string, phone?: string) => {
-  const encoded = encodeURIComponent(text);
-  return phone
-    ? `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encoded}`
-    : `https://wa.me/?text=${encoded}`;
-};
-
 export const useCardShare = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -31,14 +24,19 @@ export const useCardShare = () => {
       if (data?.imageUrl) {
         setGeneratedImageUrl(data.imageUrl);
 
-        // Auto-download
+        // Auto-download as JPEG
+        const response = await fetch(data.imageUrl);
+        const blob = await response.blob();
+        const jpegBlob = new Blob([blob], { type: 'image/jpeg' });
+        const blobUrl = URL.createObjectURL(jpegBlob);
+
         const link = document.createElement('a');
-        link.href = data.imageUrl;
-        link.download = `axis-card-${cardType}-${Date.now()}.png`;
-        link.target = '_blank';
+        link.href = blobUrl;
+        link.download = `axis-card-${cardType}-${Date.now()}.jpg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
 
         toast.success('Card gerado e download iniciado!');
       } else {
@@ -52,12 +50,5 @@ export const useCardShare = () => {
     }
   }, []);
 
-  const shareWhatsApp = useCallback((whatsappText: string, phone?: string) => {
-    const text = generatedImageUrl
-      ? `${whatsappText}\n\n📸 Veja o card: ${generatedImageUrl}`
-      : whatsappText;
-    window.open(buildWhatsAppUrl(text, phone), '_blank');
-  }, [generatedImageUrl]);
-
-  return { isGenerating, generatedImageUrl, generateCard, shareWhatsApp };
+  return { isGenerating, generatedImageUrl, generateCard };
 };
