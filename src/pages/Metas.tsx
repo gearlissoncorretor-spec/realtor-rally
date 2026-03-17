@@ -545,9 +545,9 @@ const Metas = () => {
                                             </div>
                                           </td>
                                           <td className="py-3.5 px-4">
-                                            <Badge variant="secondary" className="text-xs font-medium">
-                                              {getTypeLabel(goal.target_type)}
-                                            </Badge>
+                                              <Badge variant="secondary" className="text-xs font-medium">
+                                                {getGoalTypeLabel(goal.target_type)}
+                                              </Badge>
                                           </td>
                                           <td className="py-3.5 px-4">
                                             <div className="space-y-1.5">
