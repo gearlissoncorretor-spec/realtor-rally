@@ -62,15 +62,17 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
 
   return (
     <>
-      <GoalCardTemplate
-        ref={cardRef}
-        brokerName={brokerName || 'Corretor'}
-        avatarUrl={brokerAvatarUrl}
-        goalTitle={goalTitle}
-        currentValue={currentValue}
-        targetValue={targetValue}
-        motivationalPhrase={phrase}
-      />
+      <HiddenCardWrapper>
+        <GoalCardTemplate
+          ref={cardRef}
+          brokerName={brokerName || 'Corretor'}
+          avatarUrl={brokerAvatarUrl}
+          goalTitle={goalTitle}
+          currentValue={currentValue}
+          targetValue={targetValue}
+          motivationalPhrase={phrase}
+        />
+      </HiddenCardWrapper>
       <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8" />
         <CardContent className="p-4 space-y-3">
