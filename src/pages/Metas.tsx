@@ -152,6 +152,54 @@ const Metas = () => {
   const selectedGoal = selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null;
   const selectedBroker = visibleBrokers.find(b => b.id === selectedBrokerId);
 
+  // WhatsApp share data
+  const whatsAppGoals = useMemo(() => {
+    return filteredGoals.filter(g => g.status === 'active').map(g => ({
+      goalTitle: g.title,
+      targetValue: g.target_value,
+      currentValue: g.current_value,
+      targetType: g.target_type,
+      endDate: g.end_date,
+      brokerName: selectedBroker?.name,
+      brokerPhone: selectedBroker?.phone || undefined,
+    }));
+  }, [filteredGoals, selectedBroker]);
+
+  const whatsAppRankings = useMemo(() => {
+    const brokerSales = accessibleBrokers.map(b => {
+      const bSales = allSales.filter(s => s.broker_id === b.id);
+      return {
+        brokerName: b.name,
+        position: 0,
+        totalSales: bSales.length,
+        vgv: bSales.reduce((sum, s) => sum + (s.vgv || 0), 0),
+        brokerPhone: b.phone || undefined,
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+    return brokerSales.map((b, i) => ({ ...b, position: i + 1 })).slice(0, 10);
+  }, [accessibleBrokers, allSales]);
+
+  const whatsAppSales = useMemo(() => {
+    const recentSales = allSales
+      .filter(s => {
+        const d = s.sale_date || s.created_at;
+        if (!d) return false;
+        const diff = (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24);
+        return diff <= 7;
+      })
+      .slice(0, 10);
+    return recentSales.map(s => {
+      const broker = brokers.find(b => b.id === s.broker_id);
+      return {
+        brokerName: broker?.name || 'Corretor',
+        clientName: s.client_name,
+        propertyValue: s.property_value,
+        propertyType: s.property_type,
+        brokerPhone: broker?.phone || undefined,
+      };
+    });
+  }, [allSales, brokers]);
+
   const handleEdit = (goal: Goal) => {
     setEditingGoal(goal);
     setSelectedGoalId(goal.id);
