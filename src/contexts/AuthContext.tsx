@@ -323,6 +323,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return false;
   };
 
+  const hasPermission = (screen: string, action: 'view' | 'create' | 'edit' | 'delete'): boolean => {
+    // Admins, directors, super_admins have full access
+    if (userRole === 'super_admin' || userRole === 'admin' || userRole === 'diretor') return true;
+
+    const perm = rolePermissions.find(p => p.role === (userRole ?? 'corretor') && p.screen === screen);
+    if (!perm) return false;
+
+    const actionMap = { view: 'can_view', create: 'can_create', edit: 'can_edit', delete: 'can_delete' } as const;
+    return perm[actionMap[action]];
+  };
+
   const isSuperAdmin = (): boolean => {
     return userRole === 'super_admin';
   };
