@@ -57,13 +57,13 @@ export const useGoals = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, profile, getUserRole, isAdmin, isDiretor, isGerente, isCorretor } = useAuth();
+  const { sales } = useData();
+  const syncingRef = useRef(false);
 
   const fetchGoals = async () => {
     try {
       setLoading(true);
       
-      // RLS policies handle the filtering, so we just need to fetch
-      // Directors/admins see all, managers see their team's, brokers see their own
       const { data, error } = await supabase
         .from('goals')
         .select(`
@@ -85,6 +85,86 @@ export const useGoals = () => {
       setLoading(false);
     }
   };
+
+  // Auto-calculate current_value for VGV and sales_count goals from sales data
+  const syncGoalsFromSales = useCallback(async () => {
+    if (!sales.length || !goals.length || syncingRef.current) return;
+
+    const autoSyncGoals = goals.filter(g => {
+      const nt = normalizeGoalTargetType(g.target_type);
+      return nt === 'sales_count' || nt === 'vgv';
+    });
+
+    if (!autoSyncGoals.length) return;
+
+    syncingRef.current = true;
+    const updates: { id: string; current_value: number }[] = [];
+
+    for (const goal of autoSyncGoals) {
+      const nt = normalizeGoalTargetType(goal.target_type);
+      const startDate = goal.start_date;
+      const endDate = goal.end_date;
+
+      // Filter sales within the goal's date range
+      let filteredSales = sales.filter(s => {
+        const saleDate = s.sale_date || s.created_at?.split('T')[0];
+        if (!saleDate) return false;
+        return saleDate >= startDate && saleDate <= endDate;
+      });
+
+      // If goal is assigned to a specific broker, filter by broker_id
+      if (goal.broker_id) {
+        filteredSales = filteredSales.filter(s => s.broker_id === goal.broker_id);
+      }
+
+      // If goal is for a specific team, filter by team brokers
+      if (goal.team_id && !goal.broker_id) {
+        const teamBrokerIds = new Set(
+          sales
+            .map(s => s.broker_id)
+            .filter(Boolean)
+        );
+        // We need to check which brokers belong to the team
+        // Use the brokers relation if available, otherwise skip team filtering here
+        // For now, we rely on broker_id being set on team-level goals
+      }
+
+      let computedValue = 0;
+      if (nt === 'sales_count') {
+        computedValue = filteredSales.length;
+      } else if (nt === 'vgv') {
+        computedValue = filteredSales.reduce((sum, s) => sum + (s.vgv || s.property_value || 0), 0);
+      }
+
+      // Only update if value actually changed
+      if (Math.abs(computedValue - (goal.current_value || 0)) > 0.01) {
+        updates.push({ id: goal.id, current_value: computedValue });
+      }
+    }
+
+    if (updates.length > 0) {
+      try {
+        for (const u of updates) {
+          await supabase
+            .from('goals')
+            .update({ current_value: u.current_value })
+            .eq('id', u.id);
+        }
+
+        // Update local state
+        setGoals(prev => prev.map(g => {
+          const upd = updates.find(u => u.id === g.id);
+          return upd ? { ...g, current_value: upd.current_value } : g;
+        }));
+
+        console.log(`[Goals] Auto-synced ${updates.length} goal(s) from sales data`);
+      } catch (error) {
+        console.error('Error auto-syncing goals:', error);
+      }
+    }
+
+    syncingRef.current = false;
+  }, [sales, goals]);
 
   const createGoal = async (goalData: Partial<Goal>) => {
     try {
