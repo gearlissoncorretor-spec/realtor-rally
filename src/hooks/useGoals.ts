@@ -121,9 +121,8 @@ export const useGoals = () => {
         teamId = profile.team_id;
       }
 
-      const insertData = {
+      const insertData: Record<string, any> = {
         title: goalData.title || '',
-        description: goalData.description,
         target_value: goalData.target_value || 0,
         current_value: goalData.current_value || 0,
         target_type: goalData.target_type || 'sales_count',
@@ -131,11 +130,17 @@ export const useGoals = () => {
         start_date: goalData.start_date || new Date().toISOString().split('T')[0],
         end_date: goalData.end_date || new Date().toISOString().split('T')[0],
         status: goalData.status || 'active',
-        assigned_to: goalData.assigned_to,
-        team_id: teamId,
-        broker_id: goalData.broker_id,
         created_by: user?.id,
       };
+
+      // Only include optional fields if they have values
+      if (goalData.description) insertData.description = goalData.description;
+      if (goalData.assigned_to) insertData.assigned_to = goalData.assigned_to;
+      if (teamId) insertData.team_id = teamId;
+      if (goalData.broker_id) insertData.broker_id = goalData.broker_id;
+      if (goalData.show_in_ranking !== undefined) insertData.show_in_ranking = goalData.show_in_ranking;
+      if (goalData.show_in_tv !== undefined) insertData.show_in_tv = goalData.show_in_tv;
+      if (goalData.unit_label) insertData.unit_label = goalData.unit_label;
 
       const { data, error } = await supabase
         .from('goals')
