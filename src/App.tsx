@@ -44,6 +44,7 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const Comissoes = lazy(() => import("@/pages/Comissoes"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const Landing = lazy(() => import("@/pages/Landing"));
+const Cadastro = lazy(() => import("@/pages/Cadastro"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
