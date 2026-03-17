@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
 import { Pause, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import { useGoals, Goal } from '@/hooks/useGoals';
 import { useAllGoalTasks } from '@/hooks/useAllGoalTasks';
 import { useBrokers } from '@/hooks/useBrokers';
@@ -33,6 +34,7 @@ import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
 import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
 import { MetasSkeleton } from '@/components/skeletons/MetasSkeleton';
+import { WhatsAppShareDialog } from '@/components/WhatsAppShareCards';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -59,6 +61,7 @@ const Metas = () => {
   const { brokers, loading: brokersLoading } = useBrokers();
   const { teams, loading: teamsLoading } = useTeams();
   const { tasks: allTasks } = useAllGoalTasks();
+  const { sales: allSales } = useData();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
   const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
@@ -149,6 +152,54 @@ const Metas = () => {
   const selectedGoal = selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null;
   const selectedBroker = visibleBrokers.find(b => b.id === selectedBrokerId);
 
+  // WhatsApp share data
+  const whatsAppGoals = useMemo(() => {
+    return filteredGoals.filter(g => g.status === 'active').map(g => ({
+      goalTitle: g.title,
+      targetValue: g.target_value,
+      currentValue: g.current_value,
+      targetType: g.target_type,
+      endDate: g.end_date,
+      brokerName: selectedBroker?.name,
+      brokerPhone: selectedBroker?.phone || undefined,
+    }));
+  }, [filteredGoals, selectedBroker]);
+
+  const whatsAppRankings = useMemo(() => {
+    const brokerSales = accessibleBrokers.map(b => {
+      const bSales = allSales.filter(s => s.broker_id === b.id);
+      return {
+        brokerName: b.name,
+        position: 0,
+        totalSales: bSales.length,
+        vgv: bSales.reduce((sum, s) => sum + (s.vgv || 0), 0),
+        brokerPhone: b.phone || undefined,
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+    return brokerSales.map((b, i) => ({ ...b, position: i + 1 })).slice(0, 10);
+  }, [accessibleBrokers, allSales]);
+
+  const whatsAppSales = useMemo(() => {
+    const recentSales = allSales
+      .filter(s => {
+        const d = s.sale_date || s.created_at;
+        if (!d) return false;
+        const diff = (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24);
+        return diff <= 7;
+      })
+      .slice(0, 10);
+    return recentSales.map(s => {
+      const broker = brokers.find(b => b.id === s.broker_id);
+      return {
+        brokerName: broker?.name || 'Corretor',
+        clientName: s.client_name,
+        propertyValue: s.property_value,
+        propertyType: s.property_type,
+        brokerPhone: broker?.phone || undefined,
+      };
+    });
+  }, [allSales, brokers]);
+
   const handleEdit = (goal: Goal) => {
     setEditingGoal(goal);
     setSelectedGoalId(goal.id);
@@ -233,20 +284,29 @@ const Metas = () => {
               </div>
             </div>
             
-            {/* Month Selector */}
-            <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
-              <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg">
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span className="font-semibold text-foreground capitalize">
-                  {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
-                </span>
+            <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-end">
+              {/* WhatsApp Share */}
+              <WhatsAppShareDialog
+                goals={whatsAppGoals}
+                rankings={whatsAppRankings}
+                sales={whatsAppSales}
+              />
+
+              {/* Month Selector */}
+              <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
+                <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg">
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span className="font-semibold text-foreground capitalize">
+                    {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg">
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg">
-                <ChevronRight className="w-4 h-4" />
-              </Button>
             </div>
           </div>
 
