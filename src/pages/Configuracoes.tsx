@@ -33,6 +33,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
 import SlackSettings from "@/components/SlackSettings";
+import { RolePermissionsManager } from "@/components/RolePermissionsManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
