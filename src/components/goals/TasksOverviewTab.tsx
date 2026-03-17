@@ -30,8 +30,8 @@ import BrokerDailyTasks from './BrokerDailyTasks';
 import { CreateTaskDialog } from './CreateTaskDialog';
 
 const TasksOverviewTab = () => {
-  const { tasks, loading, updateTask } = useAllGoalTasks();
-  const { goals, createGoal } = useGoals();
+  const { tasks, loading, updateTask, createTask } = useAllGoalTasks();
+  const { goals } = useGoals();
   const { brokers } = useBrokers();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');

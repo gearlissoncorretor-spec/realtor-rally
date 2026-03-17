@@ -18,6 +18,7 @@ import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeams } from '@/hooks/useTeams';
 import { useGoalTypes } from '@/hooks/useGoalTypes';
+import { normalizeGoalTargetType } from '@/lib/goals';
 
 interface CreateGoalDialogProps {
   open: boolean;
