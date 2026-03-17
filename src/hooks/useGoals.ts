@@ -144,7 +144,7 @@ export const useGoals = () => {
 
       const { data, error } = await supabase
         .from('goals')
-        .insert([insertData])
+        .insert([insertData as any])
         .select()
         .single();
 
