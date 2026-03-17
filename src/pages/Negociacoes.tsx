@@ -72,10 +72,10 @@ const TEMPERATURE_OPTIONS = [
 ];
 
 const Negociacoes = () => {
-  const { user, isCorretor } = useAuth();
+  const { user, profile, isCorretor } = useAuth();
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
-  const { createSale, sales } = useData();
+  const { createSale, sales, refreshSales } = useData();
   const { createFollowUp } = useFollowUps();
   const { flowStatuses, getStatusByValue } = useNegotiationStatuses();
   
@@ -282,42 +282,50 @@ const Negociacoes = () => {
   const handleConfirmSale = async (data: SaleConversionData) => {
     if (!selectedForSale) return;
 
-    // Create sale record
-    await createSale({
-      broker_id: selectedForSale.broker_id,
-      client_name: selectedForSale.client_name,
-      client_email: selectedForSale.client_email,
-      client_phone: selectedForSale.client_phone,
-      property_address: selectedForSale.property_address,
-      property_type: selectedForSale.property_type as 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural',
-      property_value: selectedForSale.negotiated_value,
-      vgv: data.vgv,
-      vgc: data.vgc,
-      sale_date: data.sale_date,
-      contract_date: data.contract_date,
-      status: 'confirmada',
-      notes: `Venda originada da negociação. ${data.notes || ''} ${selectedForSale.observations || ''}`.trim(),
-      vendedor: data.vendedor,
-      captador: data.sale_type === 'revenda' ? data.captador : undefined,
-      gerente: data.gerente,
-      origem: data.origem,
-      sale_type: data.sale_type,
-      estilo: data.estilo,
-      produto: data.produto,
-    });
+    try {
+      // Create sale record with company_id
+      await createSale({
+        broker_id: selectedForSale.broker_id,
+        client_name: selectedForSale.client_name,
+        client_email: selectedForSale.client_email,
+        client_phone: selectedForSale.client_phone,
+        property_address: selectedForSale.property_address,
+        property_type: (selectedForSale.property_type || 'apartamento') as 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural',
+        property_value: selectedForSale.negotiated_value,
+        vgv: data.vgv,
+        vgc: data.vgc,
+        sale_date: data.sale_date,
+        contract_date: data.contract_date,
+        status: 'confirmada',
+        notes: `Venda originada da negociação. ${data.notes || ''} ${selectedForSale.observations || ''}`.trim(),
+        vendedor: data.vendedor,
+        captador: data.sale_type === 'revenda' ? data.captador : undefined,
+        gerente: data.gerente,
+        origem: data.origem,
+        sale_type: data.sale_type,
+        estilo: data.estilo,
+        produto: data.produto,
+        company_id: profile?.company_id || undefined,
+      });
 
-    // Update negotiation status to venda_concluida
-    await updateNegotiation({ id: selectedForSale.id, status: 'venda_concluida' });
-    
-    // Trigger celebration
-    setCelebrationData({
-      brokerName: getBrokerName(selectedForSale.broker_id),
-      clientName: selectedForSale.client_name,
-      saleValue: data.vgv,
-    });
-    setCelebrationOpen(true);
-    
-    setSelectedForSale(null);
+      // Update negotiation status to venda_concluida
+      await updateNegotiation({ id: selectedForSale.id, status: 'venda_concluida' });
+      
+      // Force refresh sales data for dashboard
+      refreshSales();
+
+      // Trigger celebration
+      setCelebrationData({
+        brokerName: getBrokerName(selectedForSale.broker_id),
+        clientName: selectedForSale.client_name,
+        saleValue: data.vgv,
+      });
+      setCelebrationOpen(true);
+      
+      setSelectedForSale(null);
+    } catch (error) {
+      console.error('Erro ao converter negociação em venda:', error);
+    }
   };
 
   // Handle PERDA action
