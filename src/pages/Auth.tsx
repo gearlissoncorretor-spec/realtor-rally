@@ -103,7 +103,7 @@ const Auth = () => {
     }
   };
 
-  const orgName = settings?.organization_name || 'Axis';
+  const orgName = settings?.organization_name || 'Gestão Master';
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const initial = orgName.charAt(0).toUpperCase();
 

@@ -87,7 +87,7 @@ serve(async (req) => {
         break;
       }
       default: {
-        message = data.message || 'Notificação do Gestão Axis';
+        message = data.message || 'Notificação do Gestão Master';
       }
     }
 
@@ -122,7 +122,7 @@ serve(async (req) => {
       body: JSON.stringify({
         channel: channelId,
         text: message,
-        username: 'Gestão Axis',
+        username: 'Gestão Master',
         icon_emoji: ':chart_with_upwards_trend:',
       }),
     });

@@ -96,7 +96,7 @@ export const SlackSettings = () => {
         <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
           Conectado
         </Badge>
-        <span className="text-xs text-muted-foreground">Bot: Gestão Axis</span>
+        <span className="text-xs text-muted-foreground">Bot: Gestão Master</span>
       </div>
 
       <div className="space-y-1.5">

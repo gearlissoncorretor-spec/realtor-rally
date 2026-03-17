@@ -79,13 +79,13 @@ const PLANS = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Ricardo Mendes", role: "Diretor Comercial", company: "Mendes Imóveis", quote: "O Axis transformou nossa gestão. Antes usávamos planilhas e perdíamos negociações. Hoje temos visão completa em tempo real.", stars: 5 },
+  { name: "Ricardo Mendes", role: "Diretor Comercial", company: "Mendes Imóveis", quote: "O Gestão Master transformou nossa gestão. Antes usávamos planilhas e perdíamos negociações. Hoje temos visão completa em tempo real.", stars: 5 },
   { name: "Carla Fonseca", role: "Gerente de Equipe", company: "Premium Imobiliária", quote: "O ranking com gamificação aumentou a produtividade dos meus corretores em 40%. Eles adoram competir de forma saudável.", stars: 5 },
   { name: "André Oliveira", role: "CEO", company: "Oliveira & Associados", quote: "Migrei de outro sistema em 1 dia. A importação de dados foi simples e o suporte me ajudou em tudo. Recomendo demais.", stars: 5 },
 ];
 
 const FAQS = [
-  { q: "Preciso instalar alguma coisa?", a: "Não! O Axis funciona 100% no navegador e também pode ser instalado como app no celular (PWA). Nenhuma configuração técnica necessária." },
+  { q: "Preciso instalar alguma coisa?", a: "Não! O Gestão Master funciona 100% no navegador e também pode ser instalado como app no celular (PWA). Nenhuma configuração técnica necessária." },
   { q: "Posso usar no celular?", a: "Sim! O sistema é totalmente responsivo e pode ser instalado como aplicativo no seu celular, funcionando como um app nativo." },
   { q: "Meus dados estão seguros?", a: "Totalmente. Cada imobiliária tem seus dados isolados (multi-tenant), com criptografia e backups automáticos. Nenhum dado vaza entre empresas." },
   { q: "Como migro meus dados?", a: "Você pode importar dados via Excel/CSV diretamente pelo sistema. O processo é simples e guiado passo a passo." },
@@ -112,7 +112,7 @@ const Landing = () => {
       {/* ── NAV ── */}
       <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Axis</span>
+          <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Gestão Master</span>
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#features" className="hover:text-white transition">Recursos</a>
             <a href="#pricing" className="hover:text-white transition">Preços</a>
@@ -205,7 +205,7 @@ const Landing = () => {
           <FadeIn>
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Chega de <span className="text-red-400">caos</span>. Bem-vindo ao <span className="text-blue-400">controle</span>.</h2>
-              <p className="text-white/40 max-w-xl mx-auto">Problemas comuns que imobiliárias enfrentam — e como o Axis resolve cada um.</p>
+              <p className="text-white/40 max-w-xl mx-auto">Problemas comuns que imobiliárias enfrentam — e como o Gestão Master resolve cada um.</p>
             </div>
           </FadeIn>
           <div className="grid md:grid-cols-2 gap-6">
@@ -262,7 +262,7 @@ const Landing = () => {
           <FadeIn>
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Veja o sistema em ação</h2>
-              <p className="text-white/40">Explore as principais telas do Axis</p>
+              <p className="text-white/40">Explore as principais telas do Gestão Master</p>
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -360,7 +360,7 @@ const Landing = () => {
           <FadeIn>
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">O que dizem nossos clientes</h2>
-              <p className="text-white/40">Imobiliárias que transformaram sua operação com o Axis.</p>
+              <p className="text-white/40">Imobiliárias que transformaram sua operação com o Gestão Master.</p>
             </div>
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-6">
@@ -424,7 +424,7 @@ const Landing = () => {
               <div className="relative">
                 <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Pronto para transformar sua gestão?</h2>
                 <p className="text-white/50 mb-8 max-w-md mx-auto">
-                  Junte-se a mais de 150 imobiliárias que já usam o Axis para vender mais e melhor.
+                  Junte-se a mais de 150 imobiliárias que já usam o Gestão Master para vender mais e melhor.
                 </p>
                 <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 h-14 text-base font-semibold rounded-xl shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:shadow-[0_0_50px_rgba(59,130,246,0.6)] transition-all gap-2"
                   onClick={goSignup}>
@@ -442,7 +442,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid sm:grid-cols-3 gap-8 mb-8">
             <div>
-              <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Axis</span>
+              <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Gestão Master</span>
               <p className="text-white/30 text-sm mt-2">A evolução da gestão imobiliária.</p>
             </div>
             <div>

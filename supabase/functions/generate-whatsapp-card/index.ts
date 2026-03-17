@@ -71,7 +71,7 @@ ${fmtBRL(currentValue)} / ${fmtBRL(targetValue)}
 Frase motivacional (destaque):
 "${motivationalPhrase}"
 
-Rodapé: Axis CRM
+Rodapé: Gestão Master
 
 Rules:
 - visually highlight the remaining value
@@ -106,7 +106,7 @@ VGV: ${fmtBRL(vgv || 0)}
 
 "${motivationalPhrase}"
 
-Rodapé: Axis CRM
+Rodapé: Gestão Master
 
 Rules:
 - highlight the position and broker name prominently
@@ -137,7 +137,7 @@ Valor: ${fmtBRL(propertyValue || 0)}
 
 "${motivationalPhrase}"
 
-Rodapé: Axis CRM
+Rodapé: Gestão Master
 
 Rules:
 - highlight the sale value prominently

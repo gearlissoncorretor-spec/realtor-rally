@@ -54,7 +54,7 @@ const Instalar = () => {
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center space-y-2">
             <Smartphone className="w-16 h-16 text-primary mx-auto" />
-            <h1 className="text-3xl font-bold text-foreground">Instalar Axis</h1>
+            <h1 className="text-3xl font-bold text-foreground">Instalar Gestão Master</h1>
             <p className="text-muted-foreground">
               Instale o app no seu celular para acesso rápido e notificações em tempo real
             </p>
@@ -65,9 +65,9 @@ const Instalar = () => {
               <CardContent className="flex items-center gap-4 p-6">
                 <CheckCircle2 className="w-10 h-10 text-green-500 shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground">App já instalado!</h3>
+                    <h3 className="font-semibold text-foreground">App já instalado!</h3>
                   <p className="text-sm text-muted-foreground">
-                    O Axis já está instalado no seu dispositivo. Acesse pela tela inicial.
+                    O Gestão Master já está instalado no seu dispositivo. Acesse pela tela inicial.
                   </p>
                 </div>
               </CardContent>
@@ -103,7 +103,7 @@ const Instalar = () => {
                 <div className="text-center">
                   <h3 className="font-semibold text-foreground">Instalar aplicativo</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Clique no botão abaixo para instalar o Axis no seu dispositivo
+                    Clique no botão abaixo para instalar o Gestão Master no seu dispositivo
                   </p>
                 </div>
                 <Button size="lg" onClick={handleInstall} disabled={!deferredPrompt} className="w-full max-w-xs">

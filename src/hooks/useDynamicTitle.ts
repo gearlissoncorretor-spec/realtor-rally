@@ -32,8 +32,8 @@ export const useDynamicTitle = () => {
   const { settings } = useOrganizationSettings();
 
   useEffect(() => {
-    const orgName = settings?.organization_name || 'Axis';
-    const pageTitle = PAGE_TITLES[location.pathname] || 'Axis';
+    const orgName = settings?.organization_name || 'Gestão Master';
+    const pageTitle = PAGE_TITLES[location.pathname] || 'Gestão Master';
     document.title = `${orgName} | ${pageTitle}`;
   }, [location.pathname, settings?.organization_name]);
 
