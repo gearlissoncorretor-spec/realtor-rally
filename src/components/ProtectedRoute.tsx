@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 import { AccessDeniedMessage } from '@/components/AccessDeniedMessage';
 import LoadingFallback from '@/components/LoadingFallback';
+import { PATH_TO_SCREEN, roleHasScreenAccess } from '@/lib/roleScreens';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,38 +15,6 @@ interface ProtectedRouteProps {
 }
 
 const LOADING_TIMEOUT = 3000;
-
-const PATH_TO_SCREEN: Record<string, string> = {
-  '/': 'dashboard',
-  '/vendas': 'vendas',
-  '/corretores': 'corretores',
-  '/equipes': 'equipes',
-  '/ranking': 'ranking',
-  '/metas': 'metas',
-  '/acompanhamento': 'acompanhamento',
-  '/relatorios': 'relatorios',
-  '/x1': 'x1',
-  '/dashboard-equipes': 'dashboard-equipes',
-  '/central-gestor': 'central-gestor',
-  '/tarefas-kanban': 'tarefas-kanban',
-  '/atividades': 'atividades',
-  '/negociacoes': 'negociacoes',
-  '/follow-up': 'follow-up',
-  '/meta-gestao': 'meta-gestao',
-  '/configuracoes': 'configuracoes',
-  '/agenda': 'agenda',
-  '/instalar': 'instalar',
-  '/gestao-usuarios': 'gestao-usuarios',
-  '/comissoes': 'comissoes',
-};
-
-const ROLE_SCREENS: Record<string, string[]> = {
-  diretor: ['*'],
-  admin: ['*'],
-  super_admin: ['*'],
-  gerente: ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios'],
-  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'comissoes', 'configuracoes', 'agenda', 'instalar'],
-};
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
@@ -149,8 +118,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (screenToCheck) {
     const hasScreenAccess = hasAccess(screenToCheck);
-    const roleScreens = ROLE_SCREENS[userRole] || [];
-    const hasRoleAccess = roleScreens.includes('*') || roleScreens.includes(screenToCheck);
+    const hasRoleAccess = roleHasScreenAccess(userRole, screenToCheck);
     
     if (!hasRoleAccess || !hasScreenAccess) {
       const defaultRoute = getDefaultRoute();

@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 /**
  * Hook para centralizar cálculos de métricas do dashboard
  */
-function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null) {
+function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null, targets?: any[]) {
   // Filtro de vendas baseado no período - EXCLUI DISTRATOS dos cálculos
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
@@ -225,12 +225,23 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     inactiveBrokers,
   };
 
-  // Meta do mês
-  const monthlyGoal = {
-    percent: "78%",
-    trend: "up" as const,
-    change: 5.2
-  };
+  // Meta do mês - calcula com dados reais de targets
+  const monthlyGoal = useMemo(() => {
+    if (!targets || targets.length === 0) {
+      return { percent: "—", trend: "neutral" as const, change: 0 };
+    }
+    const currentTarget = targets.find((t: any) => t.month === selectedMonth && t.year === selectedYear);
+    if (!currentTarget || !currentTarget.target_value) {
+      return { percent: "—", trend: "neutral" as const, change: 0 };
+    }
+    const target = currentTarget.target_value;
+    const percent = Math.min((totalVGV / target) * 100, 999).toFixed(0);
+    return {
+      percent: `${percent}%`,
+      trend: Number(percent) >= 100 ? "up" as const : Number(percent) >= 50 ? "neutral" as const : "down" as const,
+      change: Number(percent) - 100,
+    };
+  }, [targets, selectedMonth, selectedYear, totalVGV]);
 
   return {
     filteredSales,
@@ -243,7 +254,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 }
 
 const DiretorDashboardPage = () => {
-  const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
+  const { brokers, sales, targets, brokersLoading, salesLoading, brokersError, salesError } = useData();
   const { displayName, subtitle } = useContextualIdentity();
   const { isDiretor, isAdmin } = useAuth();
   const { teams } = useTeams();
@@ -273,7 +284,7 @@ const DiretorDashboardPage = () => {
     brokerRankings,
     quickStats,
     monthlyGoal
-  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null);
+  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets);
 
   // Per-team breakdown for directors
   const teamBreakdown = useMemo(() => {
