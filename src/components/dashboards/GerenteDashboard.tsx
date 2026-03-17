@@ -721,7 +721,7 @@ const GerenteDashboard = () => {
           )}
 
           {/* ORIGEM DOS CLIENTES */}
-          <ClientOriginsChart />
+          <OriginAnalyticsDashboard />
         </div>
       </main>
     </div>
