@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export interface GoalType {
@@ -17,6 +18,7 @@ export interface GoalType {
 
 export function useGoalTypes() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
 
   const { data: goalTypes = [], isLoading } = useQuery({
     queryKey: ['goal_types'],
@@ -33,11 +35,15 @@ export function useGoalTypes() {
 
   const createGoalType = useMutation({
     mutationFn: async (goalType: Partial<GoalType>) => {
+      const insertData: Record<string, unknown> = {
+        ...goalType,
+        company_id: profile?.company_id,
+      };
       const { data, error } = await supabase
         .from('goal_types')
-        .insert(goalType as any)
+        .insert(insertData as any)
         .select()
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data as unknown as GoalType;
     },

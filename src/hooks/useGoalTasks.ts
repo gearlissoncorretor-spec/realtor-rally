@@ -36,24 +36,27 @@ export const useGoalTasks = (goalId?: string) => {
 
   const createTask = async (taskData: Partial<GoalTask>) => {
     try {
-      const insertData = {
+      if (!profile?.company_id) throw new Error('company_id not found');
+
+      const insertData: Record<string, unknown> = {
         title: taskData.title || '',
         task_type: taskData.task_type || 'action',
-        description: taskData.description,
         status: taskData.status || 'pending',
         priority: taskData.priority || 'medium',
-        due_date: taskData.due_date,
-        assigned_to: taskData.assigned_to,
         goal_id: goalId!,
         created_by: user?.id,
-        company_id: profile?.company_id || undefined,
+        company_id: profile.company_id,
       };
+
+      if (taskData.description) insertData.description = taskData.description;
+      if (taskData.due_date) insertData.due_date = taskData.due_date;
+      if (taskData.assigned_to) insertData.assigned_to = taskData.assigned_to;
 
       const { data, error } = await supabase
         .from('goal_tasks')
-        .insert([insertData])
+        .insert(insertData as any)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
