@@ -442,6 +442,27 @@ const Metas = () => {
                             </div>
                           ) : (
                             <>
+                              {/* Motivational Banner per Goal */}
+                              {filteredGoals.filter(g => g.status === 'active' && g.target_value - g.current_value > 0).length > 0 && (
+                                <div className="divide-y divide-border/30">
+                                  {filteredGoals
+                                    .filter(g => g.status === 'active' && g.target_value - g.current_value > 0)
+                                    .map(goal => (
+                                      <div key={`motivation-${goal.id}`} className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-500/20">
+                                        <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
+                                        <p className="text-sm font-medium text-foreground">
+                                          <span className="font-bold">{broker.name.split(' ')[0]}</span>
+                                          {' — '}
+                                          <span className="text-amber-600 dark:text-amber-400">
+                                            Falta {formatValue(goal.target_value - goal.current_value, goal.target_type)} para {goal.title}! 🔥
+                                          </span>
+                                        </p>
+                                      </div>
+                                    ))
+                                  }
+                                </div>
+                              )}
+
                               {/* Mobile: Goal Cards */}
                               <div className="sm:hidden divide-y divide-border">
                                 {filteredGoals.map(goal => {
