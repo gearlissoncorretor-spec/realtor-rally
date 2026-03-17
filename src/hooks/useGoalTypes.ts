@@ -34,7 +34,7 @@ export function useGoalTypes() {
   const createGoalType = useMutation({
     mutationFn: async (goalType: Partial<GoalType>) => {
       const { data, error } = await supabase
-        .from('goal_types' as any)
+        .from('goal_types')
         .insert(goalType as any)
         .select()
         .single();
