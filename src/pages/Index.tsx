@@ -254,7 +254,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 }
 
 const DiretorDashboardPage = () => {
-  const { brokers, sales, brokersLoading, salesLoading, brokersError, salesError } = useData();
+  const { brokers, sales, targets, brokersLoading, salesLoading, brokersError, salesError } = useData();
   const { displayName, subtitle } = useContextualIdentity();
   const { isDiretor, isAdmin } = useAuth();
   const { teams } = useTeams();
@@ -284,7 +284,7 @@ const DiretorDashboardPage = () => {
     brokerRankings,
     quickStats,
     monthlyGoal
-  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null);
+  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets);
 
   // Per-team breakdown for directors
   const teamBreakdown = useMemo(() => {
