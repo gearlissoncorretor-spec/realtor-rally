@@ -65,9 +65,9 @@ const Instalar = () => {
               <CardContent className="flex items-center gap-4 p-6">
                 <CheckCircle2 className="w-10 h-10 text-green-500 shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-foreground">App já instalado!</h3>
+                    <h3 className="font-semibold text-foreground">App já instalado!</h3>
                   <p className="text-sm text-muted-foreground">
-                    O Axis já está instalado no seu dispositivo. Acesse pela tela inicial.
+                    O Gestão Master já está instalado no seu dispositivo. Acesse pela tela inicial.
                   </p>
                 </div>
               </CardContent>
