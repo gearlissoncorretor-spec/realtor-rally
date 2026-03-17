@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
 import { Pause, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import { useGoals, Goal } from '@/hooks/useGoals';
 import { useAllGoalTasks } from '@/hooks/useAllGoalTasks';
 import { useBrokers } from '@/hooks/useBrokers';
