@@ -60,6 +60,7 @@ const Navigation = () => {
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
   const [commandOpen, setCommandOpen] = useState(false);
+  const pendingCount = usePendingUsersCount();
 
   const allNavItems: NavItem[] = [
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
