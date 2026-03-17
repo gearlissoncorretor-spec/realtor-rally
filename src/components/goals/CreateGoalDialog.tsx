@@ -77,12 +77,16 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     }
   }, [preSelectedBrokerId, open]);
 
-  // Set default type when goalTypes load
-  React.useEffect(() => {
-    if (goalTypes.length > 0 && !formData.target_type_id) {
-      setFormData(prev => ({ ...prev, target_type_id: goalTypes[0].id }));
-    }
+  const supportedGoalTypes = useMemo(() => {
+    return goalTypes.filter(goalType => normalizeGoalTargetType(goalType.name));
   }, [goalTypes]);
+
+  // Set default type when supported goal types load
+  React.useEffect(() => {
+    if (supportedGoalTypes.length > 0 && !formData.target_type_id) {
+      setFormData(prev => ({ ...prev, target_type_id: supportedGoalTypes[0].id }));
+    }
+  }, [supportedGoalTypes, formData.target_type_id]);
 
   const userRole = getUserRole();
   const isDirector = userRole === 'diretor' || userRole === 'admin' || userRole === 'super_admin';
@@ -91,8 +95,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
   const [dateError, setDateError] = useState(false);
 
   const selectedGoalType = useMemo(() => {
-    return goalTypes.find(t => t.id === formData.target_type_id);
-  }, [goalTypes, formData.target_type_id]);
+    return supportedGoalTypes.find(t => t.id === formData.target_type_id);
+  }, [supportedGoalTypes, formData.target_type_id]);
 
   const valueFormat = selectedGoalType?.value_format || 'integer';
 
@@ -101,7 +105,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     switch (selectedGoalType.value_format) {
       case 'currency': return 'Ex: R$ 500.000,00';
       case 'percentage': return 'Ex: 75%';
-      case 'integer': return `Ex: 10 ${selectedGoalType.name.toLowerCase().includes('venda') ? 'vendas' : 'unidades'}`;
+      case 'integer': return `Ex: 10 ${getGoalTypeLabel(selectedGoalType.name).toLowerCase()}`;
       default: return '';
     }
   }, [selectedGoalType]);
