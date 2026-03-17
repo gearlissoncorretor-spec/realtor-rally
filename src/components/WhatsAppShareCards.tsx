@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,87 +7,23 @@ import { Progress } from '@/components/ui/progress';
 import { MessageSquare, Trophy, Target, Flame, Share2, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { GoalCardTemplate, RankingCardTemplate, SaleCardTemplate } from './whatsapp-cards/CardTemplates';
+import { useCardShare } from './whatsapp-cards/useCardShare';
 
 const MOTIVATIONAL_PHRASES = [
-  "🔥 Cada dia é uma nova chance de superar seus limites!",
-  "💪 Sucesso é a soma de pequenos esforços repetidos dia após dia.",
-  "🚀 O topo não é lotado — continue subindo!",
-  "⭐ Você não chegou até aqui para parar agora.",
-  "🎯 Foco na meta, o resto é paisagem!",
-  "💎 Disciplina é escolher entre o que você quer agora e o que você mais quer.",
-  "🏆 Campeões treinam, perdedores reclamam.",
-  "🔑 A diferença entre o ordinário e o extraordinário é aquele pequeno extra.",
-  "⚡ Sua energia contagia! Continue inspirando!",
-  "🌟 Grandes resultados exigem grandes atitudes!",
+  "Cada dia é uma nova chance de superar seus limites!",
+  "Sucesso é a soma de pequenos esforços repetidos dia após dia.",
+  "O topo não é lotado — continue subindo!",
+  "Você não chegou até aqui para parar agora.",
+  "Foco na meta, o resto é paisagem!",
+  "Disciplina é escolher entre o que você quer agora e o que você mais quer.",
+  "Campeões treinam, perdedores reclamam.",
+  "A diferença entre o ordinário e o extraordinário é aquele pequeno extra.",
+  "Sua energia contagia! Continue inspirando!",
+  "Grandes resultados exigem grandes atitudes!",
 ];
 
 const getRandomPhrase = () => MOTIVATIONAL_PHRASES[Math.floor(Math.random() * MOTIVATIONAL_PHRASES.length)];
-
-const buildWhatsAppUrl = (text: string, phone?: string) => {
-  const encoded = encodeURIComponent(text);
-  return phone
-    ? `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encoded}`
-    : `https://wa.me/?text=${encoded}`;
-};
-
-// ─── Shared image generation + WhatsApp send logic ────────────
-// Opens window SYNCHRONOUSLY to avoid popup blocker, then redirects after generation
-
-const useCardImageSend = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const generateAndSend = async (
-    cardType: string,
-    payload: Record<string, any>,
-    whatsappTextFallback: string,
-    phone?: string
-  ) => {
-    setIsGenerating(true);
-
-    // Open window IMMEDIATELY (synchronous from click) to avoid popup blocker
-    const whatsappWindow = window.open('about:blank', '_blank');
-
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-whatsapp-card', {
-        body: { cardType, ...payload },
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-
-      if (data?.imageUrl) {
-        const textWithImage =
-          whatsappTextFallback + `\n\n📸 Veja o card: ${data.imageUrl}`;
-        if (whatsappWindow) {
-          whatsappWindow.location.href = buildWhatsAppUrl(textWithImage, phone);
-        } else {
-          window.open(buildWhatsAppUrl(textWithImage, phone), '_blank');
-        }
-        toast.success('Card gerado e link adicionado à mensagem!');
-      } else {
-        if (whatsappWindow) {
-          whatsappWindow.location.href = buildWhatsAppUrl(whatsappTextFallback, phone);
-        } else {
-          window.open(buildWhatsAppUrl(whatsappTextFallback, phone), '_blank');
-        }
-      }
-    } catch (err: any) {
-      console.error('Error generating card:', err);
-      toast.error('Erro ao gerar card. Enviando mensagem de texto.');
-      if (whatsappWindow) {
-        whatsappWindow.location.href = buildWhatsAppUrl(whatsappTextFallback, phone);
-      } else {
-        window.open(buildWhatsAppUrl(whatsappTextFallback, phone), '_blank');
-      }
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  return { isGenerating, generateAndSend };
-};
 
 // ─── Goal Reminder Card ───────────────────────────────────────
 
@@ -99,12 +35,14 @@ interface GoalReminderProps {
   endDate: string;
   brokerName?: string;
   brokerPhone?: string;
+  brokerAvatarUrl?: string | null;
 }
 
 export const GoalReminderCard: React.FC<GoalReminderProps> = ({
-  goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerPhone,
+  goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerPhone, brokerAvatarUrl,
 }) => {
-  const { isGenerating, generateAndSend } = useCardImageSend();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { isGenerating, generateAndShare } = useCardShare();
 
   const progress = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const isCurrency = ['revenue', 'vgv', 'vgc', 'commission'].includes(targetType);
@@ -115,59 +53,54 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
     `📌 ${goalTitle}\n` +
     `📊 Progresso: ${fmt(currentValue)} / ${fmt(targetValue)} (${progress.toFixed(0)}%)\n` +
     `📅 Prazo: ${new Date(endDate).toLocaleDateString('pt-BR')}\n\n` +
-    `${phrase}\n\n` +
+    `💪 ${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
 
   const handleSend = () => {
-    generateAndSend(
-      'goal',
-      {
-        brokerName: brokerName || 'Corretor',
-        goalTitle,
-        currentValue,
-        targetValue,
-        motivationalPhrase: phrase.replace(/^[^\s]+ /, ''),
-      },
-      whatsappText,
-      brokerPhone
-    );
+    generateAndShare(cardRef.current, whatsappText, brokerPhone);
   };
 
   return (
-    <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8" />
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Target className="h-5 w-5 text-primary" />
-          <span className="font-bold text-sm text-foreground">Lembrete de Meta</span>
-          {brokerName && <Badge variant="outline" className="ml-auto text-xs">{brokerName}</Badge>}
-        </div>
-        <p className="font-semibold text-foreground">{goalTitle}</p>
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{fmt(currentValue)} / {fmt(targetValue)}</span>
-            <span>{progress.toFixed(0)}%</span>
+    <>
+      <GoalCardTemplate
+        ref={cardRef}
+        brokerName={brokerName || 'Corretor'}
+        avatarUrl={brokerAvatarUrl}
+        goalTitle={goalTitle}
+        currentValue={currentValue}
+        targetValue={targetValue}
+        motivationalPhrase={phrase}
+      />
+      <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8" />
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-primary" />
+            <span className="font-bold text-sm text-foreground">Lembrete de Meta</span>
+            {brokerName && <Badge variant="outline" className="ml-auto text-xs">{brokerName}</Badge>}
           </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-        <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
-        <p className="text-xs text-primary font-medium">{phrase}</p>
-
-        <Button
-          size="sm"
-          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-          onClick={handleSend}
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MessageSquare className="h-4 w-4" />
-          )}
-          {isGenerating ? 'Gerando card...' : 'Enviar pelo WhatsApp'}
-        </Button>
-      </CardContent>
-    </Card>
+          <p className="font-semibold text-foreground">{goalTitle}</p>
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{fmt(currentValue)} / {fmt(targetValue)}</span>
+              <span>{progress.toFixed(0)}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+          <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
+          <p className="text-xs text-primary font-medium">💪 {phrase}</p>
+          <Button
+            size="sm"
+            className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={handleSend}
+            disabled={isGenerating}
+          >
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
+            {isGenerating ? 'Gerando card...' : 'Enviar pelo WhatsApp'}
+          </Button>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
@@ -179,12 +112,14 @@ interface RankingShareProps {
   totalSales: number;
   vgv: number;
   brokerPhone?: string;
+  brokerAvatarUrl?: string | null;
 }
 
 export const RankingShareCard: React.FC<RankingShareProps> = ({
-  brokerName, position, totalSales, vgv, brokerPhone,
+  brokerName, position, totalSales, vgv, brokerPhone, brokerAvatarUrl,
 }) => {
-  const { isGenerating, generateAndSend } = useCardImageSend();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { isGenerating, generateAndShare } = useCardShare();
   const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
   const phrase = getRandomPhrase();
 
@@ -192,55 +127,51 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
     `${medal} *${brokerName}*\n` +
     `📈 Vendas: ${totalSales}\n` +
     `💰 VGV: ${formatCurrency(vgv)}\n\n` +
-    `${phrase}\n\n` +
+    `💪 ${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
 
   const handleSend = () => {
-    generateAndSend(
-      'ranking',
-      {
-        brokerName,
-        position,
-        totalSales,
-        vgv,
-        motivationalPhrase: phrase.replace(/^[^\s]+ /, ''),
-      },
-      whatsappText,
-      brokerPhone
-    );
+    generateAndShare(cardRef.current, whatsappText, brokerPhone);
   };
 
   return (
-    <Card className="relative overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
-      <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -translate-y-6 translate-x-6" />
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          <span className="font-bold text-sm text-foreground">Ranking Semanal</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{medal}</span>
-          <div>
-            <p className="font-bold text-foreground">{brokerName}</p>
-            <p className="text-xs text-muted-foreground">{totalSales} vendas · {formatCurrency(vgv)}</p>
+    <>
+      <RankingCardTemplate
+        ref={cardRef}
+        brokerName={brokerName}
+        avatarUrl={brokerAvatarUrl}
+        position={position}
+        totalSales={totalSales}
+        vgv={vgv}
+        motivationalPhrase={phrase}
+      />
+      <Card className="relative overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -translate-y-6 translate-x-6" />
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-500" />
+            <span className="font-bold text-sm text-foreground">Ranking Semanal</span>
           </div>
-        </div>
-        <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">{phrase}</p>
-        <Button
-          size="sm"
-          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-          onClick={handleSend}
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MessageSquare className="h-4 w-4" />
-          )}
-          {isGenerating ? 'Gerando card...' : 'Compartilhar no WhatsApp'}
-        </Button>
-      </CardContent>
-    </Card>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{medal}</span>
+            <div>
+              <p className="font-bold text-foreground">{brokerName}</p>
+              <p className="text-xs text-muted-foreground">{totalSales} vendas · {formatCurrency(vgv)}</p>
+            </div>
+          </div>
+          <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">💪 {phrase}</p>
+          <Button
+            size="sm"
+            className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={handleSend}
+            disabled={isGenerating}
+          >
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
+            {isGenerating ? 'Gerando card...' : 'Compartilhar no WhatsApp'}
+          </Button>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
@@ -252,12 +183,14 @@ interface SaleCelebrationProps {
   propertyValue: number;
   propertyType?: string;
   brokerPhone?: string;
+  brokerAvatarUrl?: string | null;
 }
 
 export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
-  brokerName, clientName, propertyValue, propertyType, brokerPhone,
+  brokerName, clientName, propertyValue, propertyType, brokerPhone, brokerAvatarUrl,
 }) => {
-  const { isGenerating, generateAndSend } = useCardImageSend();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { isGenerating, generateAndShare } = useCardShare();
   const phrase = getRandomPhrase();
 
   const whatsappText = `🎉 *VENDA FECHADA!*\n\n` +
@@ -265,54 +198,50 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
     `🏠 Cliente: ${clientName}\n` +
     (propertyType ? `🏗️ Tipo: ${propertyType}\n` : '') +
     `💰 Valor: ${formatCurrency(propertyValue)}\n\n` +
-    `${phrase}\n\n` +
+    `💪 ${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
 
   const handleSend = () => {
-    generateAndSend(
-      'sale',
-      {
-        brokerName,
-        clientName,
-        propertyValue,
-        propertyType,
-        motivationalPhrase: phrase.replace(/^[^\s]+ /, ''),
-      },
-      whatsappText,
-      brokerPhone
-    );
+    generateAndShare(cardRef.current, whatsappText, brokerPhone);
   };
 
   return (
-    <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-green-500/5">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Flame className="h-5 w-5 text-emerald-500" />
-          <span className="font-bold text-sm text-foreground">🎉 Venda Fechada!</span>
-        </div>
-        <div className="space-y-1">
-          <p className="font-bold text-foreground">{brokerName}</p>
-          <p className="text-sm text-muted-foreground">Cliente: {clientName}</p>
-          {propertyType && <p className="text-xs text-muted-foreground">Tipo: {propertyType}</p>}
-          <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(propertyValue)}</p>
-        </div>
-        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{phrase}</p>
-        <Button
-          size="sm"
-          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-          onClick={handleSend}
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MessageSquare className="h-4 w-4" />
-          )}
-          {isGenerating ? 'Gerando card...' : 'Celebrar no WhatsApp'}
-        </Button>
-      </CardContent>
-    </Card>
+    <>
+      <SaleCardTemplate
+        ref={cardRef}
+        brokerName={brokerName}
+        avatarUrl={brokerAvatarUrl}
+        clientName={clientName}
+        propertyValue={propertyValue}
+        propertyType={propertyType}
+        motivationalPhrase={phrase}
+      />
+      <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-green-500/5">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Flame className="h-5 w-5 text-emerald-500" />
+            <span className="font-bold text-sm text-foreground">🎉 Venda Fechada!</span>
+          </div>
+          <div className="space-y-1">
+            <p className="font-bold text-foreground">{brokerName}</p>
+            <p className="text-sm text-muted-foreground">Cliente: {clientName}</p>
+            {propertyType && <p className="text-xs text-muted-foreground">Tipo: {propertyType}</p>}
+            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(propertyValue)}</p>
+          </div>
+          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">💪 {phrase}</p>
+          <Button
+            size="sm"
+            className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={handleSend}
+            disabled={isGenerating}
+          >
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
+            {isGenerating ? 'Gerando card...' : 'Celebrar no WhatsApp'}
+          </Button>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 
@@ -353,7 +282,7 @@ export const WhatsAppShareDialog: React.FC<WhatsAppShareDialogProps> = ({
             Compartilhar no WhatsApp
           </DialogTitle>
           <DialogDescription>
-            Clique em enviar para gerar um card visual com IA e compartilhar pelo WhatsApp.
+            Clique em enviar para gerar um card visual e compartilhar pelo WhatsApp.
           </DialogDescription>
         </DialogHeader>
 
