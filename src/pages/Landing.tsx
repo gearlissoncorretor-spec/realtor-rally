@@ -85,7 +85,7 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  { q: "Preciso instalar alguma coisa?", a: "Não! O Axis funciona 100% no navegador e também pode ser instalado como app no celular (PWA). Nenhuma configuração técnica necessária." },
+  { q: "Preciso instalar alguma coisa?", a: "Não! O Gestão Master funciona 100% no navegador e também pode ser instalado como app no celular (PWA). Nenhuma configuração técnica necessária." },
   { q: "Posso usar no celular?", a: "Sim! O sistema é totalmente responsivo e pode ser instalado como aplicativo no seu celular, funcionando como um app nativo." },
   { q: "Meus dados estão seguros?", a: "Totalmente. Cada imobiliária tem seus dados isolados (multi-tenant), com criptografia e backups automáticos. Nenhum dado vaza entre empresas." },
   { q: "Como migro meus dados?", a: "Você pode importar dados via Excel/CSV diretamente pelo sistema. O processo é simples e guiado passo a passo." },
