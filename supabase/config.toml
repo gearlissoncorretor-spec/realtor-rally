@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.generate-whatsapp-card]
 verify_jwt = false
+
+[functions.origin-insights]
+verify_jwt = false
