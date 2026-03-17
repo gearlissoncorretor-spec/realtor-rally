@@ -131,6 +131,7 @@ export const useGoals = () => {
         end_date: goalData.end_date || new Date().toISOString().split('T')[0],
         status: goalData.status || 'active',
         created_by: user?.id,
+        company_id: profile?.company_id || undefined,
       };
 
       // Only include optional fields if they have values

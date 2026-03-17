@@ -22,7 +22,7 @@ export function useGoalTypes() {
     queryKey: ['goal_types'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('goal_types' as any)
+        .from('goal_types')
         .select('*')
         .eq('is_active', true)
         .order('order_index');
@@ -34,7 +34,7 @@ export function useGoalTypes() {
   const createGoalType = useMutation({
     mutationFn: async (goalType: Partial<GoalType>) => {
       const { data, error } = await supabase
-        .from('goal_types' as any)
+        .from('goal_types')
         .insert(goalType as any)
         .select()
         .single();

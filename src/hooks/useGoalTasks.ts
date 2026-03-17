@@ -7,7 +7,7 @@ import { GoalTask } from './useGoals';
 export const useGoalTasks = (goalId?: string) => {
   const [tasks, setTasks] = useState<GoalTask[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const fetchTasks = async (id?: string) => {
     if (!id) return;
@@ -46,6 +46,7 @@ export const useGoalTasks = (goalId?: string) => {
         assigned_to: taskData.assigned_to,
         goal_id: goalId!,
         created_by: user?.id,
+        company_id: profile?.company_id || undefined,
       };
 
       const { data, error } = await supabase
