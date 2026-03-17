@@ -56,6 +56,7 @@ const Configuracoes = () => {
     teams: false,
     teamMembers: false,
     screenAccess: false,
+    rolePermissions: false,
     userManagement: false,
     slack: false,
   });
