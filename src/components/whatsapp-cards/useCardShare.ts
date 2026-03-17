@@ -19,44 +19,60 @@ export const useCardShare = () => {
   ) => {
     if (!cardRef) {
       toast.error('Card não encontrado.');
+      window.open(buildWhatsAppUrl(whatsappText, phone), '_blank');
       return;
     }
 
     setIsGenerating(true);
 
     try {
-      // Make the card visible temporarily for rendering
-      const originalPosition = cardRef.style.position;
-      const originalLeft = cardRef.style.left;
-      const originalTop = cardRef.style.top;
+      // The card is hidden via a wrapper with overflow:hidden + h-0.
+      // We need to temporarily make it visible for html-to-image to capture it.
+      const wrapper = cardRef.parentElement;
+      
+      if (wrapper) {
+        wrapper.style.overflow = 'visible';
+        wrapper.style.height = 'auto';
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '0';
+        wrapper.style.zIndex = '-1';
+      }
 
-      // Ensure it's in the DOM and renderable
-      cardRef.style.position = 'fixed';
-      cardRef.style.left = '-9999px';
-      cardRef.style.top = '0';
+      // Give browser a frame to layout
+      await new Promise(r => setTimeout(r, 100));
 
       // Generate PNG
       const dataUrl = await toPng(cardRef, {
         quality: 0.95,
         pixelRatio: 2,
         cacheBust: true,
+        width: 600,
+        height: 600,
       });
 
-      // Restore position
-      cardRef.style.position = originalPosition;
-      cardRef.style.left = originalLeft;
-      cardRef.style.top = originalTop;
+      // Hide wrapper again
+      if (wrapper) {
+        wrapper.style.overflow = 'hidden';
+        wrapper.style.height = '0';
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '-9999px';
+        wrapper.style.zIndex = '';
+      }
 
       // Auto-download the image
       const link = document.createElement('a');
       link.download = `axis-card-${Date.now()}.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
-      // Open WhatsApp
+      // Open WhatsApp after a short delay
       setTimeout(() => {
         window.open(buildWhatsAppUrl(whatsappText, phone), '_blank');
-      }, 500);
+      }, 600);
 
       toast.success('Card gerado! Anexe a imagem baixada na conversa do WhatsApp.');
     } catch (err) {
