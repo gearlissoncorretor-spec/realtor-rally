@@ -101,9 +101,9 @@ const BirthdayPopup = () => {
 
           {/* Icon row */}
           <div className="relative z-10 mb-4 flex items-center justify-center gap-2">
-            <Star className="h-5 w-5 text-yellow-300 animate-bounce" style={{ animationDelay: '0s' }} />
-            <Cake className="h-10 w-10 text-white drop-shadow-lg" />
-            <Star className="h-5 w-5 text-yellow-300 animate-bounce" style={{ animationDelay: '0.3s' }} />
+            <Star className="h-5 w-5 text-warning animate-bounce" style={{ animationDelay: '0s' }} />
+            <Cake className="h-10 w-10 text-primary-foreground drop-shadow-lg" />
+            <Star className="h-5 w-5 text-warning animate-bounce" style={{ animationDelay: '0.3s' }} />
           </div>
 
           {/* Title */}
