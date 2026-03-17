@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { roleHasScreenAccess } from "@/lib/roleScreens";
+import { usePendingUsersCount } from "@/hooks/useRolePermissions";
 import AuthButton from "@/components/AuthButton";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useContextualIdentity } from "@/hooks/useContextualIdentity";
@@ -59,6 +60,7 @@ const Navigation = () => {
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
   const [commandOpen, setCommandOpen] = useState(false);
+  const pendingCount = usePendingUsersCount();
 
   const allNavItems: NavItem[] = [
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
@@ -182,6 +184,7 @@ const Navigation = () => {
   const renderNavLink = (item: NavItem, onClick?: () => void) => {
     const Icon = item.icon;
     const isActive = location.pathname === item.href;
+    const showBadge = item.screen === 'gestao-usuarios' && pendingCount > 0;
     return (
       <Link
         key={item.href}
@@ -202,6 +205,11 @@ const Navigation = () => {
           isActive ? "text-primary" : "text-muted-foreground/70 group-hover:text-foreground"
         )} />
         <span className="truncate">{item.label}</span>
+        {showBadge && (
+          <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center">
+            {pendingCount}
+          </Badge>
+        )}
       </Link>
     );
   };

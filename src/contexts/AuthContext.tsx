@@ -30,6 +30,15 @@ interface TeamHierarchy {
   team_members: string[];
 }
 
+interface RolePermissionCache {
+  role: string;
+  screen: string;
+  can_view: boolean;
+  can_create: boolean;
+  can_edit: boolean;
+  can_delete: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -43,6 +52,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasAccess: (screen: string) => boolean;
+  hasPermission: (screen: string, action: 'view' | 'create' | 'edit' | 'delete') => boolean;
   isAdmin: () => boolean;
   isDiretor: () => boolean;
   isGerente: () => boolean;
@@ -73,6 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [teamHierarchy, setTeamHierarchy] = useState<TeamHierarchy | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rolePermissions, setRolePermissions] = useState<RolePermissionCache[]>([]);
 
   const clearError = () => setError(null);
 
@@ -142,6 +153,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setTeamHierarchy(hierarchyData[0]);
       } else {
         setTeamHierarchy(null);
+      }
+
+      // Fetch role permissions for the company
+      if (profileData.company_id) {
+        const { data: permData } = await supabase
+          .from('role_permissions')
+          .select('role, screen, can_view, can_create, can_edit, can_delete')
+          .eq('company_id', profileData.company_id);
+        
+        if (permData) {
+          setRolePermissions(permData.map((p: any) => ({
+            role: p.role,
+            screen: p.screen,
+            can_view: p.can_view,
+            can_create: p.can_create,
+            can_edit: p.can_edit,
+            can_delete: p.can_delete,
+          })));
+        }
       }
       
       return true;
@@ -275,6 +305,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserRole(null);
       setTeamHierarchy(null);
       setCompany(null);
+      setRolePermissions([]);
       setLoading(false);
     }
   };
@@ -291,6 +322,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return false;
+  };
+
+  const hasPermission = (screen: string, action: 'view' | 'create' | 'edit' | 'delete'): boolean => {
+    // Admins, directors, super_admins have full access
+    if (userRole === 'super_admin' || userRole === 'admin' || userRole === 'diretor') return true;
+
+    const perm = rolePermissions.find(p => p.role === (userRole ?? 'corretor') && p.screen === screen);
+    if (!perm) return false;
+
+    const actionMap = { view: 'can_view', create: 'can_create', edit: 'can_edit', delete: 'can_delete' } as const;
+    return perm[actionMap[action]];
   };
 
   const isSuperAdmin = (): boolean => {
@@ -381,6 +423,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     resetPassword,
     signOut,
     hasAccess,
+    hasPermission,
     isAdmin,
     isDiretor,
     isGerente,

@@ -33,6 +33,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
 import SlackSettings from "@/components/SlackSettings";
+import { RolePermissionsManager } from "@/components/RolePermissionsManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -55,6 +56,7 @@ const Configuracoes = () => {
     teams: false,
     teamMembers: false,
     screenAccess: false,
+    rolePermissions: false,
     userManagement: false,
     slack: false,
   });
@@ -257,6 +259,19 @@ const Configuracoes = () => {
                 onToggle={() => toggleSection('screenAccess')}
               >
                 <ScreenAccessManager />
+              </CollapsibleSection>
+            )}
+
+            {/* Role Permissions Matrix - Admins and Directors */}
+            {(isAdmin() || isDiretor()) && (
+              <CollapsibleSection
+                title="Permissões por Perfil"
+                icon={<Shield className="h-5 w-5 text-primary" />}
+                description="Configure ações permitidas (ver, criar, editar, excluir) por perfil e tela"
+                isOpen={openSections.rolePermissions}
+                onToggle={() => toggleSection('rolePermissions')}
+              >
+                <RolePermissionsManager />
               </CollapsibleSection>
             )}
 
