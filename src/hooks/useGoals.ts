@@ -366,6 +366,13 @@ export const useGoals = () => {
     }
   }, [user]);
 
+  // Auto-sync goal progress when sales data changes
+  useEffect(() => {
+    if (!loading && goals.length > 0 && sales.length > 0) {
+      syncGoalsFromSales();
+    }
+  }, [sales, loading]);
+
   return {
     goals,
     loading,
