@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, Flame, Share2, Loader2, Image } from 'lucide-react';
+import { Trophy, Target, Flame, Share2, Image } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
-import { useCardShare } from './whatsapp-cards/useCardShare';
+import { generateGoalCard, generateRankingCard, generateSaleCard } from './whatsapp-cards/canvasCardGenerator';
 
 const MOTIVATIONAL_PHRASES = [
   "Cada dia é uma nova chance de superar seus limites!",
@@ -40,15 +40,13 @@ interface GoalReminderProps {
 export const GoalReminderCard: React.FC<GoalReminderProps> = ({
   goalTitle, targetValue, currentValue, targetType, endDate, brokerName,
 }) => {
-  const { isGenerating, generatedImageUrl, generateCard } = useCardShare();
-
   const progress = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const isCurrency = ['revenue', 'vgv', 'vgc', 'commission'].includes(targetType);
   const fmt = (v: number) => isCurrency ? formatCurrency(v) : v.toLocaleString('pt-BR');
   const phrase = getRandomPhrase();
 
   const handleGenerate = () => {
-    generateCard('goal', {
+    generateGoalCard({
       brokerName: brokerName || 'Corretor',
       goalTitle,
       currentValue,
@@ -76,21 +74,9 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
         </div>
         <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
         <p className="text-xs text-primary font-medium">💪 {phrase}</p>
-
-        {generatedImageUrl && (
-          <div className="rounded-lg overflow-hidden border">
-            <img src={generatedImageUrl} alt="Card gerado" className="w-full" />
-          </div>
-        )}
-
-        <Button
-          size="sm"
-          className="w-full gap-2"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-        >
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-          {isGenerating ? 'Gerando card...' : generatedImageUrl ? 'Gerar Novo Card' : 'Gerar Card'}
+        <Button size="sm" className="w-full gap-2" onClick={handleGenerate}>
+          <Image className="h-4 w-4" />
+          Gerar Card
         </Button>
       </CardContent>
     </Card>
@@ -111,12 +97,11 @@ interface RankingShareProps {
 export const RankingShareCard: React.FC<RankingShareProps> = ({
   brokerName, position, totalSales, vgv,
 }) => {
-  const { isGenerating, generatedImageUrl, generateCard } = useCardShare();
   const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
   const phrase = getRandomPhrase();
 
   const handleGenerate = () => {
-    generateCard('ranking', {
+    generateRankingCard({
       brokerName,
       position,
       totalSales,
@@ -141,21 +126,9 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
           </div>
         </div>
         <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">💪 {phrase}</p>
-
-        {generatedImageUrl && (
-          <div className="rounded-lg overflow-hidden border">
-            <img src={generatedImageUrl} alt="Card gerado" className="w-full" />
-          </div>
-        )}
-
-        <Button
-          size="sm"
-          className="w-full gap-2"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-        >
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-          {isGenerating ? 'Gerando card...' : generatedImageUrl ? 'Gerar Novo Card' : 'Gerar Card'}
+        <Button size="sm" className="w-full gap-2" onClick={handleGenerate}>
+          <Image className="h-4 w-4" />
+          Gerar Card
         </Button>
       </CardContent>
     </Card>
@@ -176,11 +149,10 @@ interface SaleCelebrationProps {
 export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
   brokerName, clientName, propertyValue, propertyType,
 }) => {
-  const { isGenerating, generatedImageUrl, generateCard } = useCardShare();
   const phrase = getRandomPhrase();
 
   const handleGenerate = () => {
-    generateCard('sale', {
+    generateSaleCard({
       brokerName,
       clientName,
       propertyValue,
@@ -204,21 +176,9 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
           <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(propertyValue)}</p>
         </div>
         <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">💪 {phrase}</p>
-
-        {generatedImageUrl && (
-          <div className="rounded-lg overflow-hidden border">
-            <img src={generatedImageUrl} alt="Card gerado" className="w-full" />
-          </div>
-        )}
-
-        <Button
-          size="sm"
-          className="w-full gap-2"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-        >
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
-          {isGenerating ? 'Gerando card...' : generatedImageUrl ? 'Gerar Novo Card' : 'Gerar Card'}
+        <Button size="sm" className="w-full gap-2" onClick={handleGenerate}>
+          <Image className="h-4 w-4" />
+          Gerar Card
         </Button>
       </CardContent>
     </Card>
@@ -262,7 +222,7 @@ export const WhatsAppShareDialog: React.FC<WhatsAppShareDialogProps> = ({
             Gerar Cards
           </DialogTitle>
           <DialogDescription>
-            Clique em "Gerar Card" para criar a imagem. O download será feito automaticamente.
+            Clique em "Gerar Card" para criar e baixar a imagem automaticamente.
           </DialogDescription>
         </DialogHeader>
 
