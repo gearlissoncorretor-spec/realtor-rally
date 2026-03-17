@@ -87,7 +87,7 @@ serve(async (req) => {
         break;
       }
       default: {
-        message = data.message || 'Notificação do Gestão Axis';
+        message = data.message || 'Notificação do Gestão Master';
       }
     }
 
