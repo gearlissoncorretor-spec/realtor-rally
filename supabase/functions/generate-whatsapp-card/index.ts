@@ -137,7 +137,7 @@ Valor: ${fmtBRL(propertyValue || 0)}
 
 "${motivationalPhrase}"
 
-Rodapé: Axis CRM
+Rodapé: Gestão Master
 
 Rules:
 - highlight the sale value prominently
