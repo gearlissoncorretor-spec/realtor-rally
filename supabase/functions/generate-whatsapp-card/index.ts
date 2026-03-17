@@ -220,12 +220,12 @@ Rules:
     const base64Data = base64Url.replace(/^data:image\/\w+;base64,/, "");
     const imageBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
-    const fileName = `whatsapp-cards/${cardType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
+    const fileName = `whatsapp-cards/${cardType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("media")
       .upload(fileName, imageBytes, {
-        contentType: "image/png",
+        contentType: "image/jpeg",
         upsert: false,
       });
 
