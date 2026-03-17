@@ -30,6 +30,15 @@ interface TeamHierarchy {
   team_members: string[];
 }
 
+interface RolePermissionCache {
+  role: string;
+  screen: string;
+  can_view: boolean;
+  can_create: boolean;
+  can_edit: boolean;
+  can_delete: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -43,6 +52,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasAccess: (screen: string) => boolean;
+  hasPermission: (screen: string, action: 'view' | 'create' | 'edit' | 'delete') => boolean;
   isAdmin: () => boolean;
   isDiretor: () => boolean;
   isGerente: () => boolean;
