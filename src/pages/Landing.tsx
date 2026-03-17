@@ -205,7 +205,7 @@ const Landing = () => {
           <FadeIn>
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Chega de <span className="text-red-400">caos</span>. Bem-vindo ao <span className="text-blue-400">controle</span>.</h2>
-              <p className="text-white/40 max-w-xl mx-auto">Problemas comuns que imobiliárias enfrentam — e como o Axis resolve cada um.</p>
+              <p className="text-white/40 max-w-xl mx-auto">Problemas comuns que imobiliárias enfrentam — e como o Gestão Master resolve cada um.</p>
             </div>
           </FadeIn>
           <div className="grid md:grid-cols-2 gap-6">
