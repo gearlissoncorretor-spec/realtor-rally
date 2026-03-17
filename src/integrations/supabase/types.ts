@@ -1393,6 +1393,7 @@ export type Database = {
           loss_reason: string | null
           negotiated_value: number
           observations: string | null
+          origem: string | null
           property_address: string
           property_type: string
           start_date: string
@@ -1412,6 +1413,7 @@ export type Database = {
           loss_reason?: string | null
           negotiated_value: number
           observations?: string | null
+          origem?: string | null
           property_address: string
           property_type?: string
           start_date?: string
@@ -1431,6 +1433,7 @@ export type Database = {
           loss_reason?: string | null
           negotiated_value?: number
           observations?: string | null
+          origem?: string | null
           property_address?: string
           property_type?: string
           start_date?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.negotiations ADD COLUMN IF NOT EXISTS origem text DEFAULT NULL;
