@@ -33,16 +33,25 @@ const Home = () => {
 
   const role = getUserRole();
 
-  switch (role) {
-    case 'diretor':
-    case 'admin':
-    case 'gerente':
-      return <Index />;
-    case 'corretor':
-      return <CorretorDashboard />;
-    default:
-      return <Index />;
-  }
+  const dashboard = (() => {
+    switch (role) {
+      case 'diretor':
+      case 'admin':
+      case 'gerente':
+        return <Index />;
+      case 'corretor':
+        return <CorretorDashboard />;
+      default:
+        return <Index />;
+    }
+  })();
+
+  return (
+    <>
+      <BirthdayPopup />
+      {dashboard}
+    </>
+  );
 };
 
 export default Home;
