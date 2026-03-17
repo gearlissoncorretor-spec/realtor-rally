@@ -424,7 +424,7 @@ const Landing = () => {
               <div className="relative">
                 <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Pronto para transformar sua gestão?</h2>
                 <p className="text-white/50 mb-8 max-w-md mx-auto">
-                  Junte-se a mais de 150 imobiliárias que já usam o Axis para vender mais e melhor.
+                  Junte-se a mais de 150 imobiliárias que já usam o Gestão Master para vender mais e melhor.
                 </p>
                 <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 h-14 text-base font-semibold rounded-xl shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:shadow-[0_0_50px_rgba(59,130,246,0.6)] transition-all gap-2"
                   onClick={goSignup}>
