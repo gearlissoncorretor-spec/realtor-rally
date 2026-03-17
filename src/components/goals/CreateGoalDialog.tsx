@@ -144,8 +144,9 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
     setLoading(true);
     try {
-      const targetTypeName = selectedGoalType?.name || formData.custom_target_type || 'sales_count';
-      const normalizedTargetType = normalizeGoalTargetType(targetTypeName) || 'sales_count';
+      if (!selectedGoalType) return;
+
+      const normalizedTargetType = normalizeGoalTargetType(selectedGoalType.name) || 'sales_count';
 
       await onCreate({
         title: formData.title,
