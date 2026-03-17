@@ -422,6 +422,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     resetPassword,
     signOut,
     hasAccess,
+    hasPermission,
     isAdmin,
     isDiretor,
     isGerente,
