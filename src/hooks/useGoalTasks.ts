@@ -7,7 +7,7 @@ import { GoalTask } from './useGoals';
 export const useGoalTasks = (goalId?: string) => {
   const [tasks, setTasks] = useState<GoalTask[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const fetchTasks = async (id?: string) => {
     if (!id) return;
