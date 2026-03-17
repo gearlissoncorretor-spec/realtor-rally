@@ -166,7 +166,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
       setFormData({
         title: '', description: '', target_value: 0,
-        target_type_id: goalTypes[0]?.id || '', custom_target_type: '',
+        target_type_id: supportedGoalTypes[0]?.id || '', custom_target_type: '',
         period_type: 'monthly', start_date: new Date(), end_date: new Date(),
         assigned_to: '', team_id: '', broker_id: '', scope: 'broker',
         show_in_ranking: false, show_in_tv: false,
