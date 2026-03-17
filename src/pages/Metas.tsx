@@ -159,42 +159,8 @@ const Metas = () => {
     try { await deleteGoal(deleteGoalId); setDeleteGoalId(null); } catch {}
   };
 
-  const formatValue = (value: number, type: string) => {
-    switch (type) {
-      case 'revenue': case 'vgv': case 'vgc': case 'commission': 
-      case 'VGV (Valor Geral de Vendas)': case 'VGC (Valor Geral de Comissão)':
-      case 'Receita': case 'Comissão Individual':
-        return formatCurrency(value);
-      default: return formatNumber(value);
-    }
-  };
-
   const formatValueCompact = (value: number, type: string) => {
-    switch (type) {
-      case 'revenue': case 'vgv': case 'vgc': case 'commission':
-      case 'VGV (Valor Geral de Vendas)': case 'VGC (Valor Geral de Comissão)':
-      case 'Receita': case 'Comissão Individual':
-        return formatCurrencyCompact(value);
-      default: return formatNumber(value);
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      sales_count: 'Vendas', captacao: 'Captação', contratacao: 'Contratação',
-      revenue: 'Receita', vgv: 'VGV', vgc: 'VGC', commission: 'Comissão',
-      atendimentos: 'Atendimentos',
-    };
-    return labels[type] || type;
-  };
-
-  const getPeriodLabel = (period: string) => {
-    const labels: Record<string, string> = {
-      daily: 'Diária', weekly: 'Semanal', monthly: 'Mensal',
-      quarterly: 'Trimestral', semester: 'Semestral', yearly: 'Anual',
-      custom: 'Personalizado',
-    };
-    return labels[period] || period;
+    return formatValue(value, type);
   };
 
   const getProgress = (goal: Goal) => {

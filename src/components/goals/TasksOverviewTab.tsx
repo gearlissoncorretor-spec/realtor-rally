@@ -92,34 +92,16 @@ const TasksOverviewTab = () => {
 
   const handleCreateTask = async (taskData: Partial<GoalTask>) => {
     if (!taskData.goal_id) return;
-    
+
     const selectedGoal = goals.find(g => g.id === taskData.goal_id);
     if (!selectedGoal) return;
 
-    const { supabase } = await import('@/integrations/supabase/client');
-    const { data, error } = await supabase
-      .from('goal_tasks')
-      .insert([{
-        goal_id: taskData.goal_id,
-        title: taskData.title,
-        description: taskData.description,
-        task_type: taskData.task_type,
-        task_category: taskData.task_category,
-        priority: taskData.priority,
-        due_date: taskData.due_date,
-        target_quantity: taskData.target_quantity || 0,
-        completed_quantity: taskData.completed_quantity || 0,
-        status: 'pending',
-        assigned_to: selectedGoal.assigned_to || selectedGoal.broker_id,
-      }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    window.location.reload();
-    
-    return data;
+    return createTask({
+      ...taskData,
+      goal_id: taskData.goal_id,
+      status: 'pending',
+      assigned_to: selectedGoal.assigned_to,
+    });
   };
 
   const getPriorityColor = (priority: string) => {

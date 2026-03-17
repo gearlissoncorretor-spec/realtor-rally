@@ -97,7 +97,8 @@ export const useGoals = () => {
       }
 
       const userRole = getUserRole();
-      
+      const normalizedTargetType = normalizeGoalTargetType(goalData.target_type) || 'sales_count';
+
       // For managers, automatically set team_id to their team if not specified
       let teamId = goalData.team_id;
       if (userRole === 'gerente' && !teamId && profile?.team_id) {
@@ -110,7 +111,7 @@ export const useGoals = () => {
         title: goalData.title || '',
         target_value: goalData.target_value || 0,
         current_value: goalData.current_value || 0,
-        target_type: goalData.target_type || 'sales_count',
+        target_type: normalizedTargetType,
         period_type: goalData.period_type || 'monthly',
         start_date: goalData.start_date || new Date().toISOString().split('T')[0],
         end_date: goalData.end_date || new Date().toISOString().split('T')[0],
