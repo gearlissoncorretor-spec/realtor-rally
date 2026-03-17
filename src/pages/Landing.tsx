@@ -442,7 +442,7 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid sm:grid-cols-3 gap-8 mb-8">
             <div>
-              <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Axis</span>
+              <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Gestão Master</span>
               <p className="text-white/30 text-sm mt-2">A evolução da gestão imobiliária.</p>
             </div>
             <div>
