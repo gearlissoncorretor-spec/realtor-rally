@@ -262,7 +262,7 @@ const Landing = () => {
           <FadeIn>
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Veja o sistema em ação</h2>
-              <p className="text-white/40">Explore as principais telas do Axis</p>
+              <p className="text-white/40">Explore as principais telas do Gestão Master</p>
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
