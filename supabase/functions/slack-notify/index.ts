@@ -122,7 +122,7 @@ serve(async (req) => {
       body: JSON.stringify({
         channel: channelId,
         text: message,
-        username: 'Gestão Axis',
+        username: 'Gestão Master',
         icon_emoji: ':chart_with_upwards_trend:',
       }),
     });
