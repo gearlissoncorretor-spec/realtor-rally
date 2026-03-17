@@ -183,6 +183,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Criar Nova Meta</DialogTitle>
+          <DialogDescription>Defina os detalhes da meta para corretor, equipe ou imobiliária.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
