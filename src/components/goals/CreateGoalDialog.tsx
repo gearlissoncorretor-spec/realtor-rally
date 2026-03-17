@@ -18,6 +18,7 @@ import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTeams } from '@/hooks/useTeams';
 import { useGoalTypes } from '@/hooks/useGoalTypes';
+import { getGoalTypeLabel, normalizeGoalTargetType } from '@/lib/goals';
 
 interface CreateGoalDialogProps {
   open: boolean;
@@ -76,12 +77,16 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     }
   }, [preSelectedBrokerId, open]);
 
-  // Set default type when goalTypes load
-  React.useEffect(() => {
-    if (goalTypes.length > 0 && !formData.target_type_id) {
-      setFormData(prev => ({ ...prev, target_type_id: goalTypes[0].id }));
-    }
+  const supportedGoalTypes = useMemo(() => {
+    return goalTypes.filter(goalType => normalizeGoalTargetType(goalType.name));
   }, [goalTypes]);
+
+  // Set default type when supported goal types load
+  React.useEffect(() => {
+    if (supportedGoalTypes.length > 0 && !formData.target_type_id) {
+      setFormData(prev => ({ ...prev, target_type_id: supportedGoalTypes[0].id }));
+    }
+  }, [supportedGoalTypes, formData.target_type_id]);
 
   const userRole = getUserRole();
   const isDirector = userRole === 'diretor' || userRole === 'admin' || userRole === 'super_admin';
@@ -90,8 +95,8 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
   const [dateError, setDateError] = useState(false);
 
   const selectedGoalType = useMemo(() => {
-    return goalTypes.find(t => t.id === formData.target_type_id);
-  }, [goalTypes, formData.target_type_id]);
+    return supportedGoalTypes.find(t => t.id === formData.target_type_id);
+  }, [supportedGoalTypes, formData.target_type_id]);
 
   const valueFormat = selectedGoalType?.value_format || 'integer';
 
@@ -100,7 +105,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
     switch (selectedGoalType.value_format) {
       case 'currency': return 'Ex: R$ 500.000,00';
       case 'percentage': return 'Ex: 75%';
-      case 'integer': return `Ex: 10 ${selectedGoalType.name.toLowerCase().includes('venda') ? 'vendas' : 'unidades'}`;
+      case 'integer': return `Ex: 10 ${getGoalTypeLabel(selectedGoalType.name).toLowerCase()}`;
       default: return '';
     }
   }, [selectedGoalType]);
@@ -139,14 +144,16 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
     setLoading(true);
     try {
-      const targetTypeName = selectedGoalType?.name || formData.custom_target_type || 'custom';
+      if (!selectedGoalType) return;
+
+      const normalizedTargetType = normalizeGoalTargetType(selectedGoalType.name) || 'sales_count';
 
       await onCreate({
         title: formData.title,
         description: formData.description || undefined,
         target_value: formData.target_value,
         current_value: 0,
-        target_type: targetTypeName as Goal['target_type'],
+        target_type: normalizedTargetType as Goal['target_type'],
         period_type: formData.period_type as Goal['period_type'],
         start_date: formData.start_date.toISOString().split('T')[0],
         end_date: formData.end_date.toISOString().split('T')[0],
@@ -159,7 +166,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
 
       setFormData({
         title: '', description: '', target_value: 0,
-        target_type_id: goalTypes[0]?.id || '', custom_target_type: '',
+        target_type_id: supportedGoalTypes[0]?.id || '', custom_target_type: '',
         period_type: 'monthly', start_date: new Date(), end_date: new Date(),
         assigned_to: '', team_id: '', broker_id: '', scope: 'broker',
         show_in_ranking: false, show_in_tv: false,
@@ -212,7 +219,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               />
             </div>
 
-            {/* Goal Type - Dynamic from DB */}
+            {/* Goal Type - constrained to supported DB/backend types */}
             <div>
               <Label>Tipo de Meta *</Label>
               <Select
@@ -230,26 +237,19 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   <SelectValue placeholder="Selecionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {goalTypes.map(t => (
+                  {supportedGoalTypes.map(t => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.name}
+                      {getGoalTypeLabel(t.name)}
                       <span className="ml-2 text-xs text-muted-foreground">
                         ({t.value_format === 'currency' ? 'R$' : t.value_format === 'percentage' ? '%' : 'Nº'})
                       </span>
                     </SelectItem>
                   ))}
-                  <SelectItem value="custom">+ Criar Novo Tipo</SelectItem>
                 </SelectContent>
               </Select>
-              {formData.target_type_id === 'custom' && (
-                <Input
-                  className="mt-2"
-                  value={formData.custom_target_type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, custom_target_type: e.target.value }))}
-                  placeholder="Ex: Visitas, Ligações, Propostas..."
-                  required
-                />
-              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Apenas tipos compatíveis com o cálculo e validação atuais são exibidos aqui.
+              </p>
             </div>
 
             {/* Target Value - Smart formatting */}

@@ -33,10 +33,15 @@ import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
 import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
 import { MetasSkeleton } from '@/components/skeletons/MetasSkeleton';
-import { formatCurrency, formatCurrencyCompact, formatNumber } from '@/utils/formatting';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import {
+  formatGoalValue as formatValue,
+  getGoalPeriodLabel,
+  getGoalTypeLabel,
+  isCurrencyGoalType,
+} from '@/lib/goals';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -154,42 +159,8 @@ const Metas = () => {
     try { await deleteGoal(deleteGoalId); setDeleteGoalId(null); } catch {}
   };
 
-  const formatValue = (value: number, type: string) => {
-    switch (type) {
-      case 'revenue': case 'vgv': case 'vgc': case 'commission': 
-      case 'VGV (Valor Geral de Vendas)': case 'VGC (Valor Geral de Comissão)':
-      case 'Receita': case 'Comissão Individual':
-        return formatCurrency(value);
-      default: return formatNumber(value);
-    }
-  };
-
   const formatValueCompact = (value: number, type: string) => {
-    switch (type) {
-      case 'revenue': case 'vgv': case 'vgc': case 'commission':
-      case 'VGV (Valor Geral de Vendas)': case 'VGC (Valor Geral de Comissão)':
-      case 'Receita': case 'Comissão Individual':
-        return formatCurrencyCompact(value);
-      default: return formatNumber(value);
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      sales_count: 'Vendas', captacao: 'Captação', contratacao: 'Contratação',
-      revenue: 'Receita', vgv: 'VGV', vgc: 'VGC', commission: 'Comissão',
-      atendimentos: 'Atendimentos',
-    };
-    return labels[type] || type;
-  };
-
-  const getPeriodLabel = (period: string) => {
-    const labels: Record<string, string> = {
-      daily: 'Diária', weekly: 'Semanal', monthly: 'Mensal',
-      quarterly: 'Trimestral', semester: 'Semestral', yearly: 'Anual',
-      custom: 'Personalizado',
-    };
-    return labels[period] || period;
+    return formatValue(value, type);
   };
 
   const getProgress = (goal: Goal) => {
@@ -480,9 +451,9 @@ const Metas = () => {
                                         <div className="min-w-0 flex-1">
                                           <p className="font-semibold text-foreground truncate">{goal.title}</p>
                                           <div className="flex items-center gap-2 mt-1">
-                                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                              {getTypeLabel(goal.target_type)}
-                                            </Badge>
+                                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                                {getGoalTypeLabel(goal.target_type)}
+                                              </Badge>
                                             <Badge variant={statusInfo.variant} className={cn("text-[10px] px-1.5 py-0", statusInfo.className)}>
                                               {statusInfo.label}
                                             </Badge>
@@ -574,14 +545,14 @@ const Metas = () => {
                                             </div>
                                           </td>
                                           <td className="py-3.5 px-4">
-                                            <Badge variant="secondary" className="text-xs font-medium">
-                                              {getTypeLabel(goal.target_type)}
-                                            </Badge>
+                                              <Badge variant="secondary" className="text-xs font-medium">
+                                                {getGoalTypeLabel(goal.target_type)}
+                                              </Badge>
                                           </td>
                                           <td className="py-3.5 px-4">
                                             <div className="space-y-1.5">
                                               <div className="flex justify-between text-xs">
-                                                <span className="text-muted-foreground">{getPeriodLabel(goal.period_type)}</span>
+                                                <span className="text-muted-foreground">{getGoalPeriodLabel(goal.period_type)}</span>
                                                 <span className={cn(
                                                   "font-bold tabular-nums",
                                                   progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-red-500"

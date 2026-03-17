@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,14 +17,14 @@ interface CreateTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (task: Partial<GoalTask>) => Promise<GoalTask>;
-  goals: any[];
+  goals: Array<{ id: string; title: string; status?: string }>;
 }
 
 export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
   open,
   onOpenChange,
   onCreate,
-  goals
+  goals,
 }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,7 +39,17 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
     completed_quantity: 0,
   });
 
-  const activeGoals = goals.filter(g => g.status === 'active');
+  const availableGoals = useMemo(() => {
+    if (goals.length <= 1) return goals;
+    return goals.filter(goal => goal.status === 'active');
+  }, [goals]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (availableGoals.length === 1) {
+      setFormData(prev => ({ ...prev, goal_id: availableGoals[0].id }));
+    }
+  }, [availableGoals, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,9 +69,8 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
         completed_quantity: formData.completed_quantity,
       });
 
-      // Reset form
       setFormData({
-        goal_id: '',
+        goal_id: availableGoals.length === 1 ? availableGoals[0].id : '',
         title: '',
         description: '',
         task_type: 'action',
@@ -71,7 +80,7 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
         target_quantity: 0,
         completed_quantity: 0,
       });
-      
+
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating task:', error);
@@ -85,9 +94,9 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Criar Nova Tarefa</DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            Adicione uma nova tarefa a uma meta ativa
-          </p>
+          <DialogDescription>
+            Adicione uma nova tarefa vinculada a uma meta disponível.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,10 +107,10 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
               onValueChange={(value) => setFormData(prev => ({ ...prev, goal_id: value }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione uma meta ativa" />
+                <SelectValue placeholder="Selecione uma meta" />
               </SelectTrigger>
               <SelectContent>
-                {activeGoals.map(goal => (
+                {availableGoals.map(goal => (
                   <SelectItem key={goal.id} value={goal.id}>
                     {goal.title}
                   </SelectItem>
@@ -135,9 +144,9 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="task_category">Categoria da Tarefa</Label>
-              <Select 
-                value={formData.task_category} 
-                onValueChange={(value) => 
+              <Select
+                value={formData.task_category}
+                onValueChange={(value) =>
                   setFormData(prev => ({ ...prev, task_category: value }))
                 }
               >
@@ -173,9 +182,9 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="task_type">Tipo de Tarefa</Label>
-              <Select 
-                value={formData.task_type} 
-                onValueChange={(value: GoalTask['task_type']) => 
+              <Select
+                value={formData.task_type}
+                onValueChange={(value: GoalTask['task_type']) =>
                   setFormData(prev => ({ ...prev, task_type: value }))
                 }
               >
@@ -193,9 +202,9 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
 
             <div>
               <Label htmlFor="priority">Prioridade</Label>
-              <Select 
-                value={formData.priority} 
-                onValueChange={(value: GoalTask['priority']) => 
+              <Select
+                value={formData.priority}
+                onValueChange={(value: GoalTask['priority']) =>
                   setFormData(prev => ({ ...prev, priority: value }))
                 }
               >
@@ -219,13 +228,13 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.due_date && "text-muted-foreground"
+                    'w-full justify-start text-left font-normal',
+                    !formData.due_date && 'text-muted-foreground'
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {formData.due_date ? (
-                    format(formData.due_date, "dd/MM/yyyy", { locale: ptBR })
+                    format(formData.due_date, 'dd/MM/yyyy', { locale: ptBR })
                   ) : (
                     <span>Selecione uma data (opcional)</span>
                   )}
@@ -244,15 +253,15 @@ export const CreateTaskDialog: React.FC<CreateTaskDialogProps> = ({
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || availableGoals.length === 0}>
               {loading ? 'Criando...' : 'Criar Tarefa'}
             </Button>
           </div>

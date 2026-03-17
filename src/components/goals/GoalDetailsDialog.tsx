@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Target, Calendar, TrendingUp, Plus, CheckCircle2, Clock, AlertTriangle, Zap, Trophy } from 'lucide-react';
-import { Goal, useGoals } from '@/hooks/useGoals';
+import { Target, Calendar, TrendingUp, Plus, CheckCircle2, Clock, AlertTriangle, Zap } from 'lucide-react';
+import { Goal } from '@/hooks/useGoals';
 import { useGoalTasks } from '@/hooks/useGoalTasks';
 import { GoalTaskCard } from './GoalTaskCard';
 import { CreateTaskDialog } from './CreateTaskDialog';
-import { formatCurrency, formatCurrencyCompact, formatNumber } from '@/utils/formatting';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { formatGoalValueCompact, getGoalPeriodLabel, getGoalTypeLabel } from '@/lib/goals';
 
 interface GoalDetailsDialogProps {
   goal: Goal;
@@ -27,39 +25,21 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
   goal,
   open,
   onOpenChange,
-  onUpdate,
   canEdit,
 }) => {
   const { tasks, createTask, updateTask, deleteTask } = useGoalTasks(goal.id);
-  const { goals } = useGoals();
   const [showCreateTask, setShowCreateTask] = useState(false);
-  
+
   const progress = goal.target_value > 0 ? (goal.current_value / goal.target_value) * 100 : 0;
   const isOverdue = new Date(goal.end_date) < new Date() && goal.status === 'active';
   const daysLeft = differenceInDays(new Date(goal.end_date), new Date());
   const remaining = Math.max(0, goal.target_value - goal.current_value);
   const dailyNeeded = daysLeft > 0 && remaining > 0 ? remaining / daysLeft : null;
-  
+
   const completedTasks = tasks.filter(t => t.status === 'completed');
   const pendingTasks = tasks.filter(t => t.status === 'pending');
   const inProgressTasks = tasks.filter(t => t.status === 'in_progress');
   const urgentTasks = tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed');
-
-  const isCurrency = ['revenue', 'vgv', 'vgc', 'commission',
-    'VGV (Valor Geral de Vendas)', 'VGC (Valor Geral de Comissão)',
-    'Receita', 'Comissão Individual'].includes(goal.target_type);
-
-  const formatValue = (value: number) => isCurrency ? formatCurrency(value) : formatNumber(value);
-  const formatValueShort = (value: number) => isCurrency ? formatCurrencyCompact(value) : formatNumber(value);
-
-  const getTypeLabel = () => {
-    const labels: Record<string, string> = {
-      sales_count: 'Vendas', captacao: 'Captação', contratacao: 'Contratação',
-      revenue: 'Receita', vgv: 'VGV', vgc: 'VGC', commission: 'Comissão',
-      atendimentos: 'Atendimentos',
-    };
-    return labels[goal.target_type] || goal.target_type;
-  };
 
   const progressColor = progress >= 90 ? 'text-emerald-500' : progress >= 50 ? 'text-amber-500' : 'text-red-500';
   const strokeColor = progress >= 90 ? 'stroke-emerald-500' : progress >= 50 ? 'stroke-amber-500' : 'stroke-red-500';
@@ -75,9 +55,14 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
               </div>
               <div>
                 <span className="block">{goal.title}</span>
-                <span className="text-xs font-normal text-muted-foreground">{getTypeLabel()} · {goal.period_type === 'monthly' ? 'Mensal' : goal.period_type}</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {getGoalTypeLabel(goal.target_type)} · {getGoalPeriodLabel(goal.period_type)}
+                </span>
               </div>
             </DialogTitle>
+            <DialogDescription>
+              Acompanhe o progresso da meta e organize as tarefas relacionadas.
+            </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="overview" className="space-y-6">
@@ -94,65 +79,64 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
-              {/* Hero Progress Section */}
               <div className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-2xl bg-gradient-to-br from-muted/40 to-muted/10 border border-border/50">
-                {/* Radial */}
                 <div className="relative w-36 h-36 shrink-0">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="42" fill="none" strokeWidth="6" className="stroke-muted/20" />
-                    <circle 
-                      cx="50" cy="50" r="42" fill="none" strokeWidth="6"
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      fill="none"
+                      strokeWidth="6"
                       strokeLinecap="round"
-                      className={cn("transition-all duration-1000 ease-out", strokeColor)}
+                      className={cn('transition-all duration-1000 ease-out', strokeColor)}
                       strokeDasharray={`${Math.min(progress, 100) * 2.64} 264`}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className={cn("text-3xl font-bold", progressColor)}>{Math.min(progress, 100).toFixed(0)}%</span>
-                    <Badge variant={progress >= 100 ? "default" : isOverdue ? "destructive" : "secondary"} className="text-[10px] mt-1">
-                      {goal.status === 'completed' ? 'Concluída' : 
-                       goal.status === 'paused' ? 'Pausada' :
-                       isOverdue ? 'Vencida' : 'Ativa'}
+                    <span className={cn('text-3xl font-bold', progressColor)}>{Math.min(progress, 100).toFixed(0)}%</span>
+                    <Badge variant={progress >= 100 ? 'default' : isOverdue ? 'destructive' : 'secondary'} className="text-[10px] mt-1">
+                      {goal.status === 'completed' ? 'Concluída' :
+                        goal.status === 'paused' ? 'Pausada' :
+                        isOverdue ? 'Vencida' : 'Ativa'}
                     </Badge>
                   </div>
                 </div>
-                
-                {/* Stats Grid */}
+
                 <div className="flex-1 grid grid-cols-2 gap-3 w-full">
                   <div className="bg-background/80 rounded-xl p-3 border border-border/50">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Atual</p>
-                    <p className="text-lg font-bold text-foreground mt-0.5">{formatValueShort(goal.current_value)}</p>
+                    <p className="text-lg font-bold text-foreground mt-0.5">{formatGoalValueCompact(goal.current_value, goal.target_type)}</p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-border/50">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Meta</p>
-                    <p className="text-lg font-bold text-foreground mt-0.5">{formatValueShort(goal.target_value)}</p>
+                    <p className="text-lg font-bold text-foreground mt-0.5">{formatGoalValueCompact(goal.target_value, goal.target_type)}</p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-border/50">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Restante</p>
-                    <p className={cn("text-lg font-bold mt-0.5", remaining <= 0 ? "text-emerald-500" : "text-foreground")}>
-                      {remaining <= 0 ? '✅ Atingida' : formatValueShort(remaining)}
+                    <p className={cn('text-lg font-bold mt-0.5', remaining <= 0 ? 'text-emerald-500' : 'text-foreground')}>
+                      {remaining <= 0 ? '✅ Atingida' : formatGoalValueCompact(remaining, goal.target_type)}
                     </p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-border/50">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Prazo</p>
-                    <p className={cn("text-lg font-bold mt-0.5", isOverdue ? "text-red-500" : daysLeft <= 7 ? "text-amber-500" : "text-foreground")}>
+                    <p className={cn('text-lg font-bold mt-0.5', isOverdue ? 'text-red-500' : daysLeft <= 7 ? 'text-amber-500' : 'text-foreground')}>
                       {isOverdue ? 'Vencida' : `${daysLeft}d`}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Smart Insight */}
               {dailyNeeded && goal.status === 'active' && (
                 <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
                   <TrendingUp className="w-5 h-5 text-amber-500 shrink-0" />
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Para atingir a meta, é necessário <span className="font-bold">{formatValueShort(dailyNeeded)}</span> por dia nos próximos <span className="font-bold">{daysLeft} dias</span>.
+                    Para atingir a meta, é necessário <span className="font-bold">{formatGoalValueCompact(dailyNeeded, goal.target_type)}</span> por dia nos próximos <span className="font-bold">{daysLeft} dias</span>.
                   </p>
                 </div>
               )}
 
-              {/* Goal Info */}
               <div className="space-y-3">
                 {goal.description && (
                   <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
@@ -160,12 +144,12 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
                     <p className="text-sm text-foreground">{goal.description}</p>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
                     { label: 'Início', value: format(new Date(goal.start_date), 'dd/MM/yyyy', { locale: ptBR }), icon: Calendar },
                     { label: 'Término', value: format(new Date(goal.end_date), 'dd/MM/yyyy', { locale: ptBR }), icon: Calendar },
-                    { label: 'Tipo', value: getTypeLabel(), icon: Target },
+                    { label: 'Tipo', value: getGoalTypeLabel(goal.target_type), icon: Target },
                     { label: 'Criada em', value: format(new Date(goal.created_at), 'dd/MM/yyyy', { locale: ptBR }), icon: Clock },
                   ].map((item, i) => (
                     <div key={i} className="p-3 rounded-xl bg-muted/20 border border-border/30">
@@ -179,7 +163,6 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
                 </div>
               </div>
 
-              {/* Tasks Summary */}
               {tasks.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
@@ -188,9 +171,9 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
                     { label: 'Pendentes', count: pendingTasks.length, color: 'text-muted-foreground', bg: 'bg-muted/30', icon: Clock },
                     { label: 'Urgentes', count: urgentTasks.length, color: 'text-red-500', bg: 'bg-red-500/10', icon: AlertTriangle },
                   ].map((item, i) => (
-                    <div key={i} className={cn("p-3 rounded-xl border border-border/30 text-center", item.bg)}>
-                      <item.icon className={cn("w-5 h-5 mx-auto mb-1", item.color)} />
-                      <p className={cn("text-2xl font-bold", item.color)}>{item.count}</p>
+                    <div key={i} className={cn('p-3 rounded-xl border border-border/30 text-center', item.bg)}>
+                      <item.icon className={cn('w-5 h-5 mx-auto mb-1', item.color)} />
+                      <p className={cn('text-2xl font-bold', item.color)}>{item.count}</p>
                       <p className="text-[10px] text-muted-foreground font-medium">{item.label}</p>
                     </div>
                   ))}
@@ -278,7 +261,7 @@ export const GoalDetailsDialog: React.FC<GoalDetailsDialogProps> = ({
           open={showCreateTask}
           onOpenChange={setShowCreateTask}
           onCreate={createTask}
-          goals={goals}
+          goals={[goal]}
         />
       )}
     </>

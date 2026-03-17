@@ -11,7 +11,7 @@ export const useAllGoalTasks = () => {
 
   const fetchAllTasks = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const rawRole = getUserRole();
@@ -31,26 +31,82 @@ export const useAllGoalTasks = () => {
         `)
         .order('created_at', { ascending: false });
 
-      // Filter based on user role
       if (userRole === 'corretor') {
-        // Brokers see only their own tasks
         query = query.eq('assigned_to', user.id);
       }
-      // Directors and managers can see all tasks (RLS will handle the filtering)
 
       const { data, error } = await query;
 
       if (error) throw error;
-      setTasks(data as GoalTask[] || []);
+      setTasks((data as GoalTask[]) || []);
     } catch (error) {
       console.error('Error fetching tasks:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível carregar as tarefas.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível carregar as tarefas.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createTask = async (taskData: Partial<GoalTask>) => {
+    try {
+      if (!user) throw new Error('user not found');
+      if (!profile?.company_id) throw new Error('company_id not found');
+      if (!taskData.goal_id) throw new Error('goal_id not found');
+
+      const insertData: Record<string, unknown> = {
+        title: taskData.title || '',
+        task_type: taskData.task_type || 'action',
+        status: taskData.status || 'pending',
+        priority: taskData.priority || 'medium',
+        goal_id: taskData.goal_id,
+        created_by: user.id,
+        company_id: profile.company_id,
+      };
+
+      if (taskData.description) insertData.description = taskData.description;
+      if (taskData.task_category) insertData.task_category = taskData.task_category;
+      if (taskData.due_date) insertData.due_date = taskData.due_date;
+      if (taskData.assigned_to) insertData.assigned_to = taskData.assigned_to;
+      if (typeof taskData.target_quantity === 'number') insertData.target_quantity = taskData.target_quantity;
+      if (typeof taskData.completed_quantity === 'number') insertData.completed_quantity = taskData.completed_quantity;
+
+      const { data, error } = await supabase
+        .from('goal_tasks')
+        .insert(insertData as never)
+        .select(`
+          *,
+          goals (
+            id,
+            title,
+            broker_id,
+            team_id,
+            assigned_to
+          )
+        `)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error('No data returned');
+
+      setTasks(prev => [data as GoalTask, ...prev]);
+      toast({
+        title: 'Sucesso',
+        description: 'Tarefa criada com sucesso!',
+      });
+
+      return data as GoalTask;
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível criar a tarefa.',
+        variant: 'destructive',
+      });
+      throw error;
     }
   };
 
@@ -65,34 +121,37 @@ export const useAllGoalTasks = () => {
 
       if (error) throw error;
 
-      setTasks(prev => prev.map(task => 
+      setTasks(prev => prev.map(task =>
         task.id === id ? { ...task, ...data } : task
       ));
 
       toast({
-        title: "Sucesso",
-        description: "Tarefa atualizada com sucesso!",
+        title: 'Sucesso',
+        description: 'Tarefa atualizada com sucesso!',
       });
 
       return data;
     } catch (error) {
       console.error('Error updating task:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível atualizar a tarefa.",
-        variant: "destructive",
+        title: 'Erro',
+        description: 'Não foi possível atualizar a tarefa.',
+        variant: 'destructive',
       });
       throw error;
     }
   };
 
   useEffect(() => {
-    fetchAllTasks();
+    if (user) {
+      fetchAllTasks();
+    }
   }, [user]);
 
   return {
     tasks,
     loading,
+    createTask,
     updateTask,
     refreshTasks: fetchAllTasks,
   };

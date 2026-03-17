@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import {
+  formatGoalValue,
+  getGoalPeriodLabel,
+  getGoalTypeLabel,
+  normalizeGoalTargetType,
+} from '@/lib/goals';
 
 export interface Goal {
   id: string;
@@ -26,39 +32,7 @@ export interface Goal {
   tasks?: GoalTask[];
 }
 
-// Shared constants for goal types and labels
-export const GOAL_TYPE_LABELS: Record<string, string> = {
-  sales_count: 'Vendas',
-  captacao: 'Captação',
-  contratacao: 'Contratação',
-  revenue: 'Receita',
-  vgv: 'VGV',
-  vgc: 'VGC',
-  commission: 'Comissão',
-  atendimentos: 'Atendimentos',
-};
-
-export const GOAL_PERIOD_LABELS: Record<string, string> = {
-  daily: 'Diária',
-  weekly: 'Semanal',
-  monthly: 'Mensal',
-  quarterly: 'Trimestral',
-  semester: 'Semestral',
-  yearly: 'Anual',
-  custom: 'Personalizado',
-};
-
-export const getGoalTypeLabel = (type: string): string => GOAL_TYPE_LABELS[type] || type;
-export const getGoalPeriodLabel = (period: string): string => GOAL_PERIOD_LABELS[period] || period;
-
-export const formatGoalValue = (value: number, type: string): string => {
-  switch (type) {
-    case 'revenue': case 'vgv': case 'vgc': case 'commission':
-      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-    default:
-      return value.toLocaleString('pt-BR');
-  }
-};
+export { formatGoalValue, getGoalPeriodLabel, getGoalTypeLabel };
 
 export interface GoalTask {
   id: string;
@@ -123,7 +97,8 @@ export const useGoals = () => {
       }
 
       const userRole = getUserRole();
-      
+      const normalizedTargetType = normalizeGoalTargetType(goalData.target_type) || 'sales_count';
+
       // For managers, automatically set team_id to their team if not specified
       let teamId = goalData.team_id;
       if (userRole === 'gerente' && !teamId && profile?.team_id) {
@@ -136,7 +111,7 @@ export const useGoals = () => {
         title: goalData.title || '',
         target_value: goalData.target_value || 0,
         current_value: goalData.current_value || 0,
-        target_type: goalData.target_type || 'sales_count',
+        target_type: normalizedTargetType,
         period_type: goalData.period_type || 'monthly',
         start_date: goalData.start_date || new Date().toISOString().split('T')[0],
         end_date: goalData.end_date || new Date().toISOString().split('T')[0],
