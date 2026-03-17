@@ -106,7 +106,7 @@ VGV: ${fmtBRL(vgv || 0)}
 
 "${motivationalPhrase}"
 
-Rodapé: Axis CRM
+Rodapé: Gestão Master
 
 Rules:
 - highlight the position and broker name prominently
