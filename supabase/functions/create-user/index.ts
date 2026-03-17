@@ -285,13 +285,41 @@ serve(async (req) => {
     // Create broker if role is corretor
     if (role === 'corretor') {
       console.log('Ensuring broker entry...')
-      const { data: existingBroker } = await supabaseClient
+      const { data: existingBrokerByUserId } = await supabaseClient
         .from('brokers')
         .select('id')
         .eq('user_id', authData.user.id)
         .maybeSingle()
 
-      if (!existingBroker) {
+      const { data: existingBrokerByEmail } = await supabaseClient
+        .from('brokers')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (existingBrokerByEmail && !existingBrokerByUserId) {
+        // Broker exists with this email but linked to different/no user - update it
+        const { error: brokerUpdateError } = await supabaseClient
+          .from('brokers')
+          .update({
+            user_id: authData.user.id,
+            name: resolvedName,
+            phone: phone || null,
+            team_id: team_id || null,
+            company_id: targetCompanyId || null,
+            status: status || 'ativo',
+          })
+          .eq('id', existingBrokerByEmail.id)
+
+        if (brokerUpdateError) {
+          console.error('Broker update error:', brokerUpdateError)
+          await supabaseClient.from('user_roles').delete().eq('user_id', authData.user.id)
+          await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
+          await supabaseClient.auth.admin.deleteUser(authData.user.id)
+          throw new Error(`❌ Erro ao vincular corretor existente: ${brokerUpdateError.message}`)
+        }
+        console.log('Existing broker linked to new user successfully')
+      } else if (!existingBrokerByUserId && !existingBrokerByEmail) {
         const { error: brokerInsertError } = await supabaseClient
           .from('brokers')
           .insert({
@@ -307,12 +335,11 @@ serve(async (req) => {
             status: status || 'ativo',
             team_id: team_id || null,
             company_id: targetCompanyId || null,
-            created_by: createdByUserId // Track who created the broker
+            created_by: createdByUserId
           })
 
         if (brokerInsertError) {
           console.error('Broker creation error:', brokerInsertError)
-          // If broker creation fails, delete role, profile and auth user
           await supabaseClient.from('user_roles').delete().eq('user_id', authData.user.id)
           await supabaseClient.from('profiles').delete().eq('id', authData.user.id)
           await supabaseClient.auth.admin.deleteUser(authData.user.id)
