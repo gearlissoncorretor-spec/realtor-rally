@@ -225,12 +225,21 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     inactiveBrokers,
   };
 
-  // Meta do mês
-  const monthlyGoal = {
-    percent: "78%",
-    trend: "up" as const,
-    change: 5.2
-  };
+  // Meta do mês - calcula com dados reais de targets
+  const monthlyGoal = useMemo(() => {
+    const currentTarget = targets.find(t => t.month === selectedMonth && t.year === selectedYear);
+    if (!currentTarget || !currentTarget.target_value) {
+      return { percent: "—", trend: "neutral" as const, change: 0 };
+    }
+    const achieved = totalVGV;
+    const target = currentTarget.target_value;
+    const percent = Math.min((achieved / target) * 100, 999).toFixed(0);
+    return {
+      percent: `${percent}%`,
+      trend: Number(percent) >= 100 ? "up" as const : Number(percent) >= 50 ? "neutral" as const : "down" as const,
+      change: Number(percent) - 100,
+    };
+  }, [targets, selectedMonth, selectedYear, totalVGV]);
 
   return {
     filteredSales,
