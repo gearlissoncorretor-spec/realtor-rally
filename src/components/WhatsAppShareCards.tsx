@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { MessageSquare, Trophy, Target, Flame, Share2, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
-import { GoalCardTemplate, RankingCardTemplate, SaleCardTemplate } from './whatsapp-cards/CardTemplates';
+import { GoalCardTemplate, RankingCardTemplate, SaleCardTemplate, HiddenCardWrapper } from './whatsapp-cards/CardTemplates';
 import { useCardShare } from './whatsapp-cards/useCardShare';
 
 const MOTIVATIONAL_PHRASES = [
