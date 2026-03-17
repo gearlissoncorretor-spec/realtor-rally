@@ -79,7 +79,7 @@ const PLANS = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Ricardo Mendes", role: "Diretor Comercial", company: "Mendes Imóveis", quote: "O Axis transformou nossa gestão. Antes usávamos planilhas e perdíamos negociações. Hoje temos visão completa em tempo real.", stars: 5 },
+  { name: "Ricardo Mendes", role: "Diretor Comercial", company: "Mendes Imóveis", quote: "O Gestão Master transformou nossa gestão. Antes usávamos planilhas e perdíamos negociações. Hoje temos visão completa em tempo real.", stars: 5 },
   { name: "Carla Fonseca", role: "Gerente de Equipe", company: "Premium Imobiliária", quote: "O ranking com gamificação aumentou a produtividade dos meus corretores em 40%. Eles adoram competir de forma saudável.", stars: 5 },
   { name: "André Oliveira", role: "CEO", company: "Oliveira & Associados", quote: "Migrei de outro sistema em 1 dia. A importação de dados foi simples e o suporte me ajudou em tudo. Recomendo demais.", stars: 5 },
 ];
