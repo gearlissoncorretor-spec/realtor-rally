@@ -211,15 +211,17 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
 
   return (
     <>
-      <SaleCardTemplate
-        ref={cardRef}
-        brokerName={brokerName}
-        avatarUrl={brokerAvatarUrl}
-        clientName={clientName}
-        propertyValue={propertyValue}
-        propertyType={propertyType}
-        motivationalPhrase={phrase}
-      />
+      <HiddenCardWrapper>
+        <SaleCardTemplate
+          ref={cardRef}
+          brokerName={brokerName}
+          avatarUrl={brokerAvatarUrl}
+          clientName={clientName}
+          propertyValue={propertyValue}
+          propertyType={propertyType}
+          motivationalPhrase={phrase}
+        />
+      </HiddenCardWrapper>
       <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-green-500/5">
         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
         <CardContent className="p-4 space-y-3">
