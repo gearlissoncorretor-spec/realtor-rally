@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { toPng } from 'html-to-image';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const buildWhatsAppUrl = (text: string, phone?: string) => {
@@ -11,78 +11,53 @@ const buildWhatsAppUrl = (text: string, phone?: string) => {
 
 export const useCardShare = () => {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
 
-  const generateAndShare = useCallback(async (
-    cardRef: HTMLDivElement | null,
-    whatsappText: string,
-    phone?: string,
+  const generateCard = useCallback(async (
+    cardType: string,
+    payload: Record<string, any>,
   ) => {
-    if (!cardRef) {
-      toast.error('Card não encontrado.');
-      window.open(buildWhatsAppUrl(whatsappText, phone), '_blank');
-      return;
-    }
-
     setIsGenerating(true);
+    setGeneratedImageUrl(null);
 
     try {
-      // The card is hidden via a wrapper with overflow:hidden + h-0.
-      // We need to temporarily make it visible for html-to-image to capture it.
-      const wrapper = cardRef.parentElement;
-      
-      if (wrapper) {
-        wrapper.style.overflow = 'visible';
-        wrapper.style.height = 'auto';
-        wrapper.style.position = 'fixed';
-        wrapper.style.left = '-9999px';
-        wrapper.style.top = '0';
-        wrapper.style.zIndex = '-1';
-      }
-
-      // Give browser a frame to layout
-      await new Promise(r => setTimeout(r, 100));
-
-      // Generate PNG
-      const dataUrl = await toPng(cardRef, {
-        quality: 0.95,
-        pixelRatio: 2,
-        cacheBust: true,
-        width: 600,
-        height: 600,
+      const { data, error } = await supabase.functions.invoke('generate-whatsapp-card', {
+        body: { cardType, ...payload },
       });
 
-      // Hide wrapper again
-      if (wrapper) {
-        wrapper.style.overflow = 'hidden';
-        wrapper.style.height = '0';
-        wrapper.style.position = 'absolute';
-        wrapper.style.left = '-9999px';
-        wrapper.style.top = '-9999px';
-        wrapper.style.zIndex = '';
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.imageUrl) {
+        setGeneratedImageUrl(data.imageUrl);
+
+        // Auto-download
+        const link = document.createElement('a');
+        link.href = data.imageUrl;
+        link.download = `axis-card-${cardType}-${Date.now()}.png`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success('Card gerado e download iniciado!');
+      } else {
+        throw new Error('Nenhuma imagem retornada');
       }
-
-      // Auto-download the image
-      const link = document.createElement('a');
-      link.download = `axis-card-${Date.now()}.png`;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Open WhatsApp after a short delay
-      setTimeout(() => {
-        window.open(buildWhatsAppUrl(whatsappText, phone), '_blank');
-      }, 600);
-
-      toast.success('Card gerado! Anexe a imagem baixada na conversa do WhatsApp.');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao gerar card:', err);
-      toast.error('Erro ao gerar card. Abrindo WhatsApp com texto.');
-      window.open(buildWhatsAppUrl(whatsappText, phone), '_blank');
+      toast.error(err.message || 'Erro ao gerar card. Tente novamente.');
     } finally {
       setIsGenerating(false);
     }
   }, []);
 
-  return { isGenerating, generateAndShare };
+  const shareWhatsApp = useCallback((whatsappText: string, phone?: string) => {
+    const text = generatedImageUrl
+      ? `${whatsappText}\n\n📸 Veja o card: ${generatedImageUrl}`
+      : whatsappText;
+    window.open(buildWhatsAppUrl(text, phone), '_blank');
+  }, [generatedImageUrl]);
+
+  return { isGenerating, generatedImageUrl, generateCard, shareWhatsApp };
 };

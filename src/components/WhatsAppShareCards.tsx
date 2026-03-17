@@ -1,13 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { MessageSquare, Trophy, Target, Flame, Share2, Loader2 } from 'lucide-react';
+import { MessageSquare, Trophy, Target, Flame, Share2, Loader2, Download, Image } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
-import { GoalCardTemplate, RankingCardTemplate, SaleCardTemplate, HiddenCardWrapper } from './whatsapp-cards/CardTemplates';
 import { useCardShare } from './whatsapp-cards/useCardShare';
 
 const MOTIVATIONAL_PHRASES = [
@@ -39,10 +38,9 @@ interface GoalReminderProps {
 }
 
 export const GoalReminderCard: React.FC<GoalReminderProps> = ({
-  goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerPhone, brokerAvatarUrl,
+  goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerPhone,
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const { isGenerating, generateAndShare } = useCardShare();
+  const { isGenerating, generatedImageUrl, generateCard, shareWhatsApp } = useCardShare();
 
   const progress = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const isCurrency = ['revenue', 'vgv', 'vgc', 'commission'].includes(targetType);
@@ -56,53 +54,65 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
     `💪 ${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
 
-  const handleSend = () => {
-    generateAndShare(cardRef.current, whatsappText, brokerPhone);
+  const handleGenerate = () => {
+    generateCard('goal', {
+      brokerName: brokerName || 'Corretor',
+      goalTitle,
+      currentValue,
+      targetValue,
+      motivationalPhrase: phrase,
+    });
   };
 
   return (
-    <>
-      <HiddenCardWrapper>
-        <GoalCardTemplate
-          ref={cardRef}
-          brokerName={brokerName || 'Corretor'}
-          avatarUrl={brokerAvatarUrl}
-          goalTitle={goalTitle}
-          currentValue={currentValue}
-          targetValue={targetValue}
-          motivationalPhrase={phrase}
-        />
-      </HiddenCardWrapper>
-      <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8" />
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
-            <span className="font-bold text-sm text-foreground">Lembrete de Meta</span>
-            {brokerName && <Badge variant="outline" className="ml-auto text-xs">{brokerName}</Badge>}
+    <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8" />
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Target className="h-5 w-5 text-primary" />
+          <span className="font-bold text-sm text-foreground">Lembrete de Meta</span>
+          {brokerName && <Badge variant="outline" className="ml-auto text-xs">{brokerName}</Badge>}
+        </div>
+        <p className="font-semibold text-foreground">{goalTitle}</p>
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{fmt(currentValue)} / {fmt(targetValue)}</span>
+            <span>{progress.toFixed(0)}%</span>
           </div>
-          <p className="font-semibold text-foreground">{goalTitle}</p>
-          <div className="space-y-1">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{fmt(currentValue)} / {fmt(targetValue)}</span>
-              <span>{progress.toFixed(0)}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-2" />
+        </div>
+        <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
+        <p className="text-xs text-primary font-medium">💪 {phrase}</p>
+
+        {/* Generated image preview */}
+        {generatedImageUrl && (
+          <div className="rounded-lg overflow-hidden border">
+            <img src={generatedImageUrl} alt="Card gerado" className="w-full" />
           </div>
-          <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
-          <p className="text-xs text-primary font-medium">💪 {phrase}</p>
+        )}
+
+        <div className="flex gap-2">
           <Button
             size="sm"
-            className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={handleSend}
+            variant="outline"
+            className="flex-1 gap-2"
+            onClick={handleGenerate}
             disabled={isGenerating}
           >
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
-            {isGenerating ? 'Gerando card...' : 'Enviar pelo WhatsApp'}
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+            {isGenerating ? 'Gerando...' : 'Gerar Card'}
           </Button>
-        </CardContent>
-      </Card>
-    </>
+          <Button
+            size="sm"
+            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => shareWhatsApp(whatsappText, brokerPhone)}
+          >
+            <MessageSquare className="h-4 w-4" />
+            WhatsApp
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -118,10 +128,9 @@ interface RankingShareProps {
 }
 
 export const RankingShareCard: React.FC<RankingShareProps> = ({
-  brokerName, position, totalSales, vgv, brokerPhone, brokerAvatarUrl,
+  brokerName, position, totalSales, vgv, brokerPhone,
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const { isGenerating, generateAndShare } = useCardShare();
+  const { isGenerating, generatedImageUrl, generateCard, shareWhatsApp } = useCardShare();
   const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
   const phrase = getRandomPhrase();
 
@@ -132,50 +141,61 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
     `💪 ${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
 
-  const handleSend = () => {
-    generateAndShare(cardRef.current, whatsappText, brokerPhone);
+  const handleGenerate = () => {
+    generateCard('ranking', {
+      brokerName,
+      position,
+      totalSales,
+      vgv,
+      motivationalPhrase: phrase,
+    });
   };
 
   return (
-    <>
-      <HiddenCardWrapper>
-        <RankingCardTemplate
-          ref={cardRef}
-          brokerName={brokerName}
-          avatarUrl={brokerAvatarUrl}
-          position={position}
-          totalSales={totalSales}
-          vgv={vgv}
-          motivationalPhrase={phrase}
-        />
-      </HiddenCardWrapper>
-      <Card className="relative overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
-        <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -translate-y-6 translate-x-6" />
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-500" />
-            <span className="font-bold text-sm text-foreground">Ranking Semanal</span>
+    <Card className="relative overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
+      <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -translate-y-6 translate-x-6" />
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-amber-500" />
+          <span className="font-bold text-sm text-foreground">Ranking Semanal</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{medal}</span>
+          <div>
+            <p className="font-bold text-foreground">{brokerName}</p>
+            <p className="text-xs text-muted-foreground">{totalSales} vendas · {formatCurrency(vgv)}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{medal}</span>
-            <div>
-              <p className="font-bold text-foreground">{brokerName}</p>
-              <p className="text-xs text-muted-foreground">{totalSales} vendas · {formatCurrency(vgv)}</p>
-            </div>
+        </div>
+        <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">💪 {phrase}</p>
+
+        {generatedImageUrl && (
+          <div className="rounded-lg overflow-hidden border">
+            <img src={generatedImageUrl} alt="Card gerado" className="w-full" />
           </div>
-          <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">💪 {phrase}</p>
+        )}
+
+        <div className="flex gap-2">
           <Button
             size="sm"
-            className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={handleSend}
+            variant="outline"
+            className="flex-1 gap-2"
+            onClick={handleGenerate}
             disabled={isGenerating}
           >
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
-            {isGenerating ? 'Gerando card...' : 'Compartilhar no WhatsApp'}
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+            {isGenerating ? 'Gerando...' : 'Gerar Card'}
           </Button>
-        </CardContent>
-      </Card>
-    </>
+          <Button
+            size="sm"
+            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => shareWhatsApp(whatsappText, brokerPhone)}
+          >
+            <MessageSquare className="h-4 w-4" />
+            WhatsApp
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -191,10 +211,9 @@ interface SaleCelebrationProps {
 }
 
 export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
-  brokerName, clientName, propertyValue, propertyType, brokerPhone, brokerAvatarUrl,
+  brokerName, clientName, propertyValue, propertyType, brokerPhone,
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const { isGenerating, generateAndShare } = useCardShare();
+  const { isGenerating, generatedImageUrl, generateCard, shareWhatsApp } = useCardShare();
   const phrase = getRandomPhrase();
 
   const whatsappText = `🎉 *VENDA FECHADA!*\n\n` +
@@ -205,49 +224,60 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
     `💪 ${phrase}\n\n` +
     `_Enviado via Axis CRM_`;
 
-  const handleSend = () => {
-    generateAndShare(cardRef.current, whatsappText, brokerPhone);
+  const handleGenerate = () => {
+    generateCard('sale', {
+      brokerName,
+      clientName,
+      propertyValue,
+      propertyType,
+      motivationalPhrase: phrase,
+    });
   };
 
   return (
-    <>
-      <HiddenCardWrapper>
-        <SaleCardTemplate
-          ref={cardRef}
-          brokerName={brokerName}
-          avatarUrl={brokerAvatarUrl}
-          clientName={clientName}
-          propertyValue={propertyValue}
-          propertyType={propertyType}
-          motivationalPhrase={phrase}
-        />
-      </HiddenCardWrapper>
-      <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-green-500/5">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <Flame className="h-5 w-5 text-emerald-500" />
-            <span className="font-bold text-sm text-foreground">🎉 Venda Fechada!</span>
+    <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-green-500/5">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Flame className="h-5 w-5 text-emerald-500" />
+          <span className="font-bold text-sm text-foreground">🎉 Venda Fechada!</span>
+        </div>
+        <div className="space-y-1">
+          <p className="font-bold text-foreground">{brokerName}</p>
+          <p className="text-sm text-muted-foreground">Cliente: {clientName}</p>
+          {propertyType && <p className="text-xs text-muted-foreground">Tipo: {propertyType}</p>}
+          <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(propertyValue)}</p>
+        </div>
+        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">💪 {phrase}</p>
+
+        {generatedImageUrl && (
+          <div className="rounded-lg overflow-hidden border">
+            <img src={generatedImageUrl} alt="Card gerado" className="w-full" />
           </div>
-          <div className="space-y-1">
-            <p className="font-bold text-foreground">{brokerName}</p>
-            <p className="text-sm text-muted-foreground">Cliente: {clientName}</p>
-            {propertyType && <p className="text-xs text-muted-foreground">Tipo: {propertyType}</p>}
-            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(propertyValue)}</p>
-          </div>
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">💪 {phrase}</p>
+        )}
+
+        <div className="flex gap-2">
           <Button
             size="sm"
-            className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-            onClick={handleSend}
+            variant="outline"
+            className="flex-1 gap-2"
+            onClick={handleGenerate}
             disabled={isGenerating}
           >
-            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
-            {isGenerating ? 'Gerando card...' : 'Celebrar no WhatsApp'}
+            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+            {isGenerating ? 'Gerando...' : 'Gerar Card'}
           </Button>
-        </CardContent>
-      </Card>
-    </>
+          <Button
+            size="sm"
+            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => shareWhatsApp(whatsappText, brokerPhone)}
+          >
+            <MessageSquare className="h-4 w-4" />
+            WhatsApp
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -288,7 +318,7 @@ export const WhatsAppShareDialog: React.FC<WhatsAppShareDialogProps> = ({
             Compartilhar no WhatsApp
           </DialogTitle>
           <DialogDescription>
-            Clique em enviar para gerar um card visual e compartilhar pelo WhatsApp.
+            Clique em "Gerar Card" para criar a imagem, depois envie pelo WhatsApp.
           </DialogDescription>
         </DialogHeader>
 
