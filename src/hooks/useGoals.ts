@@ -113,6 +113,15 @@ export const useGoals = () => {
 
   const createGoal = async (goalData: Partial<Goal>) => {
     try {
+      if (!profile?.company_id) {
+        toast({
+          title: "Erro",
+          description: "Empresa não identificada. Faça login novamente.",
+          variant: "destructive",
+        });
+        throw new Error('company_id not found');
+      }
+
       const userRole = getUserRole();
       
       // For managers, automatically set team_id to their team if not specified
@@ -121,7 +130,9 @@ export const useGoals = () => {
         teamId = profile.team_id;
       }
 
-      const insertData: Record<string, any> = {
+      // Build insert object - only include fields with actual values
+      // to avoid PostgREST 400 errors from undefined/null optional fields
+      const insertData: Record<string, unknown> = {
         title: goalData.title || '',
         target_value: goalData.target_value || 0,
         current_value: goalData.current_value || 0,
@@ -131,25 +142,26 @@ export const useGoals = () => {
         end_date: goalData.end_date || new Date().toISOString().split('T')[0],
         status: goalData.status || 'active',
         created_by: user?.id,
-        company_id: profile?.company_id || undefined,
+        company_id: profile.company_id,
+        show_in_ranking: goalData.show_in_ranking ?? false,
+        show_in_tv: goalData.show_in_tv ?? false,
       };
 
-      // Only include optional fields if they have values
+      // Only include optional FK fields if they have truthy values
       if (goalData.description) insertData.description = goalData.description;
       if (goalData.assigned_to) insertData.assigned_to = goalData.assigned_to;
       if (teamId) insertData.team_id = teamId;
       if (goalData.broker_id) insertData.broker_id = goalData.broker_id;
-      if (goalData.show_in_ranking !== undefined) insertData.show_in_ranking = goalData.show_in_ranking;
-      if (goalData.show_in_tv !== undefined) insertData.show_in_tv = goalData.show_in_tv;
       if (goalData.unit_label) insertData.unit_label = goalData.unit_label;
 
       const { data, error } = await supabase
         .from('goals')
-        .insert([insertData as any])
+        .insert(insertData as any)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('No data returned');
 
       setGoals(prev => [data, ...prev]);
       toast({
@@ -158,11 +170,13 @@ export const useGoals = () => {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating goal:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar a meta.",
+        description: error?.message?.includes('row-level security')
+          ? "Sem permissão para criar esta meta. Verifique seu perfil."
+          : "Não foi possível criar a meta.",
         variant: "destructive",
       });
       throw error;
