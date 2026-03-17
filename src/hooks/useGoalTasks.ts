@@ -46,6 +46,7 @@ export const useGoalTasks = (goalId?: string) => {
         assigned_to: taskData.assigned_to,
         goal_id: goalId!,
         created_by: user?.id,
+        company_id: profile?.company_id || undefined,
       };
 
       const { data, error } = await supabase
