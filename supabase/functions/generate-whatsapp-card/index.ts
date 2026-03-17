@@ -71,7 +71,7 @@ ${fmtBRL(currentValue)} / ${fmtBRL(targetValue)}
 Frase motivacional (destaque):
 "${motivationalPhrase}"
 
-Rodapé: Axis CRM
+Rodapé: Gestão Master
 
 Rules:
 - visually highlight the remaining value
