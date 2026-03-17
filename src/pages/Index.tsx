@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 /**
  * Hook para centralizar cálculos de métricas do dashboard
  */
-function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null) {
+function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null, targets?: any[]) {
   // Filtro de vendas baseado no período - EXCLUI DISTRATOS dos cálculos
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
