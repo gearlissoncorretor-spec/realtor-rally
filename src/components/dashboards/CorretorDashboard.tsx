@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ClientOriginsChart } from '@/components/dashboards/ClientOriginsChart';
+import { OriginAnalyticsDashboard } from '@/components/dashboards/OriginAnalyticsDashboard';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
@@ -354,7 +354,7 @@ const CorretorDashboard = () => {
           </div>
 
           {/* ========== 6. ORIGEM DOS CLIENTES ========== */}
-          <ClientOriginsChart brokerId={brokerId} />
+          <OriginAnalyticsDashboard brokerId={brokerId} compact />
 
         </div>
       </main>
