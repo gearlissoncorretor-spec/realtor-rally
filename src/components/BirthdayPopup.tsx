@@ -96,8 +96,8 @@ const BirthdayPopup = () => {
       >
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/90 via-primary to-accent/80 p-8 text-center shadow-2xl animate-scale-in">
           {/* Decorative circles */}
-          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-          <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-primary-foreground/10 blur-2xl" />
+          <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-primary-foreground/10 blur-2xl" />
 
           {/* Icon row */}
           <div className="relative z-10 mb-4 flex items-center justify-center gap-2">

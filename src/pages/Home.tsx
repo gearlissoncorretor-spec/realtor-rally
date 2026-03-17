@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Index from '@/pages/Index';
 import CorretorDashboard from '@/components/dashboards/CorretorDashboard';
+import BirthdayPopup from '@/components/BirthdayPopup';
 
 const Home = () => {
   const { profile, loading, getUserRole } = useAuth();
