@@ -118,8 +118,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   if (screenToCheck) {
     const hasScreenAccess = hasAccess(screenToCheck);
-    const roleScreens = ROLE_SCREENS[userRole] || [];
-    const hasRoleAccess = roleScreens.includes('*') || roleScreens.includes(screenToCheck);
+    const hasRoleAccess = roleHasScreenAccess(userRole, screenToCheck);
     
     if (!hasRoleAccess || !hasScreenAccess) {
       const defaultRoute = getDefaultRoute();
