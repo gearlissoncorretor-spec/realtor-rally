@@ -284,20 +284,29 @@ const Metas = () => {
               </div>
             </div>
             
-            {/* Month Selector */}
-            <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
-              <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg">
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span className="font-semibold text-foreground capitalize">
-                  {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
-                </span>
+            <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-end">
+              {/* WhatsApp Share */}
+              <WhatsAppShareDialog
+                goals={whatsAppGoals}
+                rankings={whatsAppRankings}
+                sales={whatsAppSales}
+              />
+
+              {/* Month Selector */}
+              <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
+                <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg">
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span className="font-semibold text-foreground capitalize">
+                    {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg">
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg">
-                <ChevronRight className="w-4 h-4" />
-              </Button>
             </div>
           </div>
 
