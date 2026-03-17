@@ -262,6 +262,19 @@ const Configuracoes = () => {
               </CollapsibleSection>
             )}
 
+            {/* Role Permissions Matrix - Admins and Directors */}
+            {(isAdmin() || isDiretor()) && (
+              <CollapsibleSection
+                title="Permissões por Perfil"
+                icon={<Shield className="h-5 w-5 text-primary" />}
+                description="Configure ações permitidas (ver, criar, editar, excluir) por perfil e tela"
+                isOpen={openSections.rolePermissions}
+                onToggle={() => toggleSection('rolePermissions')}
+              >
+                <RolePermissionsManager />
+              </CollapsibleSection>
+            )}
+
             {/* User Management - Admins */}
             {isAdmin() && (
               <CollapsibleSection
