@@ -138,15 +138,17 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
 
   return (
     <>
-      <RankingCardTemplate
-        ref={cardRef}
-        brokerName={brokerName}
-        avatarUrl={brokerAvatarUrl}
-        position={position}
-        totalSales={totalSales}
-        vgv={vgv}
-        motivationalPhrase={phrase}
-      />
+      <HiddenCardWrapper>
+        <RankingCardTemplate
+          ref={cardRef}
+          brokerName={brokerName}
+          avatarUrl={brokerAvatarUrl}
+          position={position}
+          totalSales={totalSales}
+          vgv={vgv}
+          motivationalPhrase={phrase}
+        />
+      </HiddenCardWrapper>
       <Card className="relative overflow-hidden border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
         <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/10 rounded-full -translate-y-6 translate-x-6" />
         <CardContent className="p-4 space-y-3">
