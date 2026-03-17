@@ -61,6 +61,7 @@ const Metas = () => {
   const { brokers, loading: brokersLoading } = useBrokers();
   const { teams, loading: teamsLoading } = useTeams();
   const { tasks: allTasks } = useAllGoalTasks();
+  const { sales: allSales } = useData();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
   const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
