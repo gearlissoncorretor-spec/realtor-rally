@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { roleHasScreenAccess } from "@/lib/roleScreens";
+import { usePendingUsersCount } from "@/hooks/useRolePermissions";
 import AuthButton from "@/components/AuthButton";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useContextualIdentity } from "@/hooks/useContextualIdentity";
