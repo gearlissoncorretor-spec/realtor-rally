@@ -103,7 +103,7 @@ const Instalar = () => {
                 <div className="text-center">
                   <h3 className="font-semibold text-foreground">Instalar aplicativo</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Clique no botão abaixo para instalar o Axis no seu dispositivo
+                    Clique no botão abaixo para instalar o Gestão Master no seu dispositivo
                   </p>
                 </div>
                 <Button size="lg" onClick={handleInstall} disabled={!deferredPrompt} className="w-full max-w-xs">
