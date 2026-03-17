@@ -305,6 +305,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserRole(null);
       setTeamHierarchy(null);
       setCompany(null);
+      setRolePermissions([]);
       setLoading(false);
     }
   };
