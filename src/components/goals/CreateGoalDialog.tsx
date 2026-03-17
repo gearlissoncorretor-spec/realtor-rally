@@ -219,7 +219,7 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
               />
             </div>
 
-            {/* Goal Type - Dynamic from DB */}
+            {/* Goal Type - constrained to supported DB/backend types */}
             <div>
               <Label>Tipo de Meta *</Label>
               <Select
@@ -237,26 +237,19 @@ export const CreateGoalDialog: React.FC<CreateGoalDialogProps> = ({
                   <SelectValue placeholder="Selecionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {goalTypes.map(t => (
+                  {supportedGoalTypes.map(t => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.name}
+                      {getGoalTypeLabel(t.name)}
                       <span className="ml-2 text-xs text-muted-foreground">
                         ({t.value_format === 'currency' ? 'R$' : t.value_format === 'percentage' ? '%' : 'Nº'})
                       </span>
                     </SelectItem>
                   ))}
-                  <SelectItem value="custom">+ Criar Novo Tipo</SelectItem>
                 </SelectContent>
               </Select>
-              {formData.target_type_id === 'custom' && (
-                <Input
-                  className="mt-2"
-                  value={formData.custom_target_type}
-                  onChange={(e) => setFormData(prev => ({ ...prev, custom_target_type: e.target.value }))}
-                  placeholder="Ex: Visitas, Ligações, Propostas..."
-                  required
-                />
-              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Apenas tipos compatíveis com o cálculo e validação atuais são exibidos aqui.
+              </p>
             </div>
 
             {/* Target Value - Smart formatting */}
