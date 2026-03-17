@@ -360,7 +360,7 @@ const Landing = () => {
           <FadeIn>
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">O que dizem nossos clientes</h2>
-              <p className="text-white/40">Imobiliárias que transformaram sua operação com o Axis.</p>
+              <p className="text-white/40">Imobiliárias que transformaram sua operação com o Gestão Master.</p>
             </div>
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-6">
