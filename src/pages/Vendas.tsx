@@ -456,6 +456,13 @@ const Vendas = () => {
         onClose={() => { setCommissionDialogOpen(false); setCommissionSaleData(null); }}
         saleData={commissionSaleData}
       />
+
+      <SalesExportDialog
+        isOpen={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        sales={sales}
+        brokers={brokers}
+      />
     </div>
   );
 };
