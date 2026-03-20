@@ -3,6 +3,7 @@ import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
 import CommissionDialog from "@/components/commissions/CommissionDialog";
+import SalesExportDialog from "@/components/sales/SalesExportDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import { TopBrokersRanking } from "@/components/sales/TopBrokersRanking";
 import { CaptacaoTab } from "@/components/sales/CaptacaoTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home } from "lucide-react";
+import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home, Download } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
@@ -38,6 +39,7 @@ const Vendas = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [commissionSaleData, setCommissionSaleData] = useState<{
     saleId: string; brokerId: string; brokerName: string; clientName: string;
     propertyValue: number; vgc: number; commissionRate: number;
@@ -209,6 +211,11 @@ const Vendas = () => {
                   />
                 </DialogContent>
               </Dialog>
+              
+              <Button variant="outline" className="gap-2 shadow-sm" size="default" onClick={() => setExportDialogOpen(true)}>
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Exportar</span>
+              </Button>
               
               <ExcelImport onImportComplete={() => refreshSales()} />
             </div>
@@ -448,6 +455,13 @@ const Vendas = () => {
         isOpen={commissionDialogOpen}
         onClose={() => { setCommissionDialogOpen(false); setCommissionSaleData(null); }}
         saleData={commissionSaleData}
+      />
+
+      <SalesExportDialog
+        isOpen={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        sales={sales}
+        brokers={brokers}
       />
     </div>
   );
