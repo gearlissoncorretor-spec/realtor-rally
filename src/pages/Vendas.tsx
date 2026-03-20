@@ -39,6 +39,7 @@ const Vendas = () => {
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [commissionSaleData, setCommissionSaleData] = useState<{
     saleId: string; brokerId: string; brokerName: string; clientName: string;
     propertyValue: number; vgc: number; commissionRate: number;
