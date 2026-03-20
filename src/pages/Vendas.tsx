@@ -212,6 +212,11 @@ const Vendas = () => {
                 </DialogContent>
               </Dialog>
               
+              <Button variant="outline" className="gap-2 shadow-sm" size="default" onClick={() => setExportDialogOpen(true)}>
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Exportar</span>
+              </Button>
+              
               <ExcelImport onImportComplete={() => refreshSales()} />
             </div>
           </div>
