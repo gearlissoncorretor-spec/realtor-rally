@@ -1471,7 +1471,6 @@ export type Database = {
           primary_color: string | null
           secondary_color: string | null
           spotlight_broker_id: string | null
-          support_phone: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1486,7 +1485,6 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           spotlight_broker_id?: string | null
-          support_phone?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1501,7 +1499,6 @@ export type Database = {
           primary_color?: string | null
           secondary_color?: string | null
           spotlight_broker_id?: string | null
-          support_phone?: string | null
           updated_at?: string | null
         }
         Relationships: [
