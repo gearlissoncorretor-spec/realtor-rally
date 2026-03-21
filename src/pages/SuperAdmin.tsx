@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Plus, Users, Shield, LogOut, Pencil, Trash2, Ban, CheckCircle2, Crown, Briefcase, User, TrendingUp, AlertTriangle, Search, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import Navigation from '@/components/Navigation';
 
 interface Company {
   id: string;
@@ -239,29 +240,31 @@ const SuperAdmin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary-foreground" />
+      <Navigation />
+      <div className="lg:ml-72 pt-16 lg:pt-0 min-h-screen">
+        {/* Header */}
+        <header className="border-b border-border/50 bg-card/80 backdrop-blur-xl sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                <Shield className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">Super Admin</h1>
+                <p className="text-xs text-muted-foreground">Painel de Gestão da Plataforma</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Super Admin</h1>
-              <p className="text-xs text-muted-foreground">Painel de Gestão da Plataforma</p>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button variant="outline" size="sm" onClick={signOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="outline" size="sm" onClick={signOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 lg:pb-8 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           <Card>
@@ -474,7 +477,7 @@ const SuperAdmin = () => {
             )}
           </CardContent>
         </Card>
-      </main>
+        </main>
 
       {/* ===== WIZARD: Nova Venda ===== */}
       <Dialog open={wizardOpen} onOpenChange={(open) => { if (!open) { setWizardOpen(false); resetWizard(); } }}>
@@ -669,6 +672,7 @@ const SuperAdmin = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };

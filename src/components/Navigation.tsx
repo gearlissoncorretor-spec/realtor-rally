@@ -21,7 +21,8 @@ import {
   ChevronDown,
   Search,
   LogOut,
-  RefreshCw
+  RefreshCw,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,7 @@ interface NavGroup {
 const Navigation = () => {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { hasAccess, isAdmin, getUserRole, profile, user, signOut } = useAuth();
+  const { hasAccess, isAdmin, isSuperAdmin, getUserRole, profile, user, signOut } = useAuth();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
   const { displayName, subtitle } = useContextualIdentity();
@@ -83,16 +84,23 @@ const Navigation = () => {
     { href: "/gestao-usuarios", label: "Gestão de Usuários", icon: Users, screen: "gestao-usuarios" },
     { href: "/configuracoes", label: "Configurações", icon: Settings, screen: "configuracoes" },
     { href: "/instalar", label: "Instalar App", icon: Download, screen: "instalar" },
+    { href: "/super-admin", label: "Super Admin", icon: Shield, screen: "super-admin" },
   ];
 
   const navItems = allNavItems.filter(item => {
     const userRole = getUserRole();
+    if (isSuperAdmin()) return item.screen === 'super-admin';
     if (isAdmin() || userRole === 'diretor') return true;
     if (item.screen === 'instalar') return true;
     return roleHasScreenAccess(userRole, item.screen) && hasAccess(item.screen);
   });
 
   const navGroups: NavGroup[] = [
+    {
+      label: "Super Admin",
+      defaultOpen: true,
+      items: navItems.filter(i => ['super-admin'].includes(i.screen)),
+    },
     {
       label: "Principal",
       defaultOpen: true,
@@ -388,7 +396,11 @@ const MobileBottomNav = () => {
     { href: "/metas", label: "Metas", icon: Target },
   ];
 
-  const bottomItems = role === 'corretor' ? corretorItems : defaultItems;
+  const bottomItems = role === 'super_admin'
+    ? [{ href: "/super-admin", label: "Super Admin", icon: Shield }]
+    : role === 'corretor'
+      ? corretorItems
+      : defaultItems;
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-xl border-t border-border/40 z-40 flex items-center justify-around px-2 safe-area-bottom">
