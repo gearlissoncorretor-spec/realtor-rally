@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import {
   BarChart3, Users, Kanban, Target, Trophy, DollarSign,
-  FileText, Calendar, ArrowRight, Check, Star, ChevronDown,
+  FileText, Calendar, Check, Star, ChevronDown,
   ChevronUp, Smartphone, Shield, Upload, Clock, Zap, Eye,
-  TrendingUp, Building2, Menu, X
+  TrendingUp, Building2, Menu, X, PhoneCall
 } from "lucide-react";
 import {
   Accordion,
@@ -101,11 +102,21 @@ const TABS = [
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { settings } = useOrganizationSettings();
   const [activeTab, setActiveTab] = useState(0);
   const [annual, setAnnual] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
 
-  const goSignup = () => navigate("/auth");
+  const goLogin = () => navigate("/auth");
+  const supportPhone = (settings?.support_phone || '').replace(/\D/g, '');
+  const supportMessage = 'Olá, gostaria de solicitar acesso ao sistema.';
+  const contactUrl = supportPhone
+    ? `https://wa.me/${supportPhone}?text=${encodeURIComponent(supportMessage)}`
+    : '';
+  const handleContactClick = () => {
+    if (!contactUrl) return;
+    window.open(contactUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
@@ -117,8 +128,10 @@ const Landing = () => {
             <a href="#features" className="hover:text-white transition">Recursos</a>
             <a href="#pricing" className="hover:text-white transition">Preços</a>
             <a href="#faq" className="hover:text-white transition">FAQ</a>
-            <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goSignup}>Entrar</Button>
-            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={goSignup}>Comece Grátis</Button>
+            <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goLogin}>Entrar</Button>
+            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={handleContactClick} disabled={!contactUrl}>
+              Entrar em contato
+            </Button>
           </div>
           <button className="md:hidden text-white/70" onClick={() => setMobileMenu(!mobileMenu)}>
             {mobileMenu ? <X /> : <Menu />}
@@ -132,7 +145,9 @@ const Landing = () => {
                 <a href="#features" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Recursos</a>
                 <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Preços</a>
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
-                <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={goSignup}>Comece Grátis</Button>
+                <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
+                  Entrar em contato
+                </Button>
               </div>
             </motion.div>
           )}
@@ -166,14 +181,14 @@ const Landing = () => {
           <FadeIn delay={0.3}>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-8 h-14 text-base font-semibold rounded-xl shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:shadow-[0_0_40px_rgba(59,130,246,0.5)] transition-all gap-2 w-full sm:w-auto"
-                onClick={goSignup}>
-                Comece Grátis <ArrowRight className="w-5 h-5" />
+                onClick={handleContactClick} disabled={!contactUrl}>
+                <PhoneCall className="w-5 h-5" /> Entrar em contato
               </Button>
               <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8 h-14 text-base rounded-xl gap-2 w-full sm:w-auto">
                 <Eye className="w-5 h-5" /> Ver demonstração
               </Button>
             </div>
-            <p className="text-white/30 text-sm mt-4">14 dias grátis • Sem cartão de crédito</p>
+            <p className="text-white/30 text-sm mt-4">Acesso mediante contato com suporte</p>
           </FadeIn>
         </div>
       </section>
@@ -341,7 +356,7 @@ const Landing = () => {
                       </li>
                     ))}
                   </ul>
-                  <Button onClick={goSignup}
+                  <Button onClick={handleContactClick} disabled={!contactUrl}
                     className={`w-full h-12 rounded-xl font-semibold ${
                       plan.popular ? "bg-blue-500 hover:bg-blue-600 text-white" : "bg-white/10 hover:bg-white/15 text-white"
                     }`}>
@@ -427,10 +442,10 @@ const Landing = () => {
                   Junte-se a mais de 150 imobiliárias que já usam o Gestão Master para vender mais e melhor.
                 </p>
                 <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 h-14 text-base font-semibold rounded-xl shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:shadow-[0_0_50px_rgba(59,130,246,0.6)] transition-all gap-2"
-                  onClick={goSignup}>
-                  Criar conta grátis <ArrowRight className="w-5 h-5" />
+                  onClick={handleContactClick} disabled={!contactUrl}>
+                  Entrar em contato <PhoneCall className="w-5 h-5" />
                 </Button>
-                <p className="text-white/30 text-sm mt-4">Cadastro em menos de 2 minutos • Sem cartão</p>
+                <p className="text-white/30 text-sm mt-4">Acesso mediante contato com suporte</p>
               </div>
             </div>
           </FadeIn>

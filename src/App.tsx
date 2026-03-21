@@ -44,7 +44,6 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const Comissoes = lazy(() => import("@/pages/Comissoes"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const Landing = lazy(() => import("@/pages/Landing"));
-const Cadastro = lazy(() => import("@/pages/Cadastro"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,7 +88,6 @@ const AppShell = () => (
       <Routes>
         <Route path="/landing" element={<LazyPage><Landing /></LazyPage>} />
         <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
-        <Route path="/cadastro" element={<LazyPage><Cadastro /></LazyPage>} />
         <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
         <Route path="/onboarding" element={<ProtectedRoute allowWithoutCompany><LazyPage><Onboarding /></LazyPage></ProtectedRoute>} />
         <Route element={<AuthenticatedLayout />}>

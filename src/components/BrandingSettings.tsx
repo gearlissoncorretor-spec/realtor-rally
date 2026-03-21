@@ -31,6 +31,7 @@ const BrandingSettings = () => {
     organization_tagline: 'Sistema Premium de Gestão Imobiliária',
     logo_url: '',
     logo_icon_url: '',
+    support_phone: '',
     primary_color: '#3b82f6',
     secondary_color: '#10b981',
   });
@@ -57,6 +58,7 @@ const BrandingSettings = () => {
         organization_tagline: settings.organization_tagline || 'Sistema Premium de Gestão Imobiliária',
         logo_url: settings.logo_url || '',
         logo_icon_url: settings.logo_icon_url || '',
+        support_phone: settings.support_phone || '',
         primary_color: settings.primary_color || '#3b82f6',
         secondary_color: (settings as any).secondary_color || '#10b981',
       });
@@ -69,6 +71,7 @@ const BrandingSettings = () => {
       organization_tagline: formData.organization_tagline,
       logo_url: formData.logo_url || null,
       logo_icon_url: formData.logo_icon_url || null,
+      support_phone: formData.support_phone || null,
       primary_color: formData.primary_color,
     } as any);
   };
@@ -225,6 +228,22 @@ const BrandingSettings = () => {
               />
               <p className="text-xs text-muted-foreground">
                 Texto exibido abaixo do nome na tela de login
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="support-phone" className="text-sm font-medium">Telefone de suporte</Label>
+              <Input
+                id="support-phone"
+                type="tel"
+                value={formData.support_phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, support_phone: e.target.value }))}
+                placeholder="5511999999999"
+              />
+              <p className="text-xs text-muted-foreground">
+                Formato com codigo do pais + DDD. Ex: 5511999999999
               </p>
             </div>
           </div>

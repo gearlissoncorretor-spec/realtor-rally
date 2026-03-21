@@ -5,20 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, ArrowLeft, Mail, UserPlus, ShieldCheck, Zap, Trophy, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck, Zap, Trophy, Sparkles } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [view, setView] = useState<"login" | "signup" | "forgot">("login");
+  const [view, setView] = useState<"login" | "forgot">("login");
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [signupForm, setSignupForm] = useState({ email: "", password: "", fullName: "" });
 
-  const { signIn, signUp, resetPassword, user, loading, profile } = useAuth();
+  const { signIn, resetPassword, user, loading, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
@@ -62,28 +61,6 @@ const Auth = () => {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (signupForm.password.length < 8) {
-      toast({ title: "Senha fraca", description: "A senha deve ter pelo menos 8 caracteres", variant: "destructive" });
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
-      if (error) {
-        toast({ title: "Erro no cadastro", description: error.message, variant: "destructive" });
-      } else {
-        toast({ title: "Conta criada!", description: "Verifique seu email para confirmar o cadastro." });
-        setView("login");
-      }
-    } catch {
-      toast({ title: "Erro", description: "Ocorreu um erro inesperado", variant: "destructive" });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail.trim()) return;
@@ -106,6 +83,15 @@ const Auth = () => {
   const orgName = settings?.organization_name || 'Gestão Master';
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const headingName = orgName.toUpperCase();
+  const supportPhone = (settings?.support_phone || '').replace(/\D/g, '');
+  const supportMessage = 'Olá, gostaria de solicitar acesso ao sistema.';
+  const contactUrl = supportPhone
+    ? `https://wa.me/${supportPhone}?text=${encodeURIComponent(supportMessage)}`
+    : '';
+  const handleContactClick = () => {
+    if (!contactUrl) return;
+    window.open(contactUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4 sm:p-6 bg-slate-950">
@@ -184,54 +170,6 @@ const Auth = () => {
                 </form>
               )}
             </div>
-          ) : view === "signup" ? (
-            <form onSubmit={handleSignup} className="space-y-5">
-              <div className="flex items-center gap-2 mb-2">
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
-                  onClick={() => setView("login")}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <h2 className="text-lg font-bold text-white">Criar conta</h2>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-white/90 font-medium text-sm">Nome completo</Label>
-                <Input value={signupForm.fullName} onChange={(e) => setSignupForm(p => ({ ...p, fullName: e.target.value }))}
-                  placeholder="Seu nome" required
-                  className="auth-input h-12" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-white/90 font-medium text-sm">Email</Label>
-                <Input type="email" value={signupForm.email} onChange={(e) => setSignupForm(p => ({ ...p, email: e.target.value }))}
-                  placeholder="seu@email.com" required
-                  className="auth-input h-12" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-white/90 font-medium text-sm">Senha</Label>
-                <div className="relative">
-                  <Input type={showPassword ? "text" : "password"} value={signupForm.password}
-                    onChange={(e) => setSignupForm(p => ({ ...p, password: e.target.value }))}
-                    placeholder="Mínimo 8 caracteres" required minLength={8}
-                    className="auth-input h-12 pr-12" />
-                  <Button type="button" variant="ghost" size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-white/10 text-white/70 hover:text-white rounded-lg"
-                    onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff className="h-4 w-4 transition-transform duration-300 rotate-180" /> : <Eye className="h-4 w-4 transition-transform duration-300" />}
-                  </Button>
-                </div>
-              </div>
-              <Button type="submit"
-                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2"
-                disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
-                {isSubmitting ? "Criando conta..." : "Criar conta"}
-              </Button>
-              <p className="text-center text-white/40 text-xs">
-                Já tem uma conta?{" "}
-                <button type="button" onClick={() => setView("login")} className="text-blue-400 hover:text-blue-300 font-medium">
-                  Fazer login
-                </button>
-              </p>
-            </form>
           ) : (
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="text-center mb-2">
@@ -285,11 +223,18 @@ const Auth = () => {
                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10" /></div>
                 <div className="relative flex justify-center text-xs"><span className="bg-transparent px-2 text-white/30">ou</span></div>
               </div>
-              <Button type="button" variant="outline"
+              <Button
+                type="button"
+                variant="outline"
                 className="w-full h-12 bg-white/5 border-white/20 text-white/70 hover:text-white hover:bg-white/10 rounded-xl font-semibold gap-2"
-                onClick={() => setView("signup")}>
-                <UserPlus className="w-4 h-4" /> Criar nova conta
+                onClick={handleContactClick}
+                disabled={!contactUrl}
+              >
+                📞 Entrar em contato
               </Button>
+              {!contactUrl && (
+                <p className="text-center text-white/40 text-xs">Telefone de suporte indisponível no momento.</p>
+              )}
               <Button type="button" variant="outline" disabled
                 className="w-full h-12 bg-white/5 border-white/10 text-white/40 rounded-xl font-semibold gap-2 cursor-not-allowed">
                 Login com Google (em breve)
