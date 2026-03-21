@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt'],
       manifest: {
-        name: 'Gestão Imobiliária',
-        short_name: 'Gestão Imob.',
+        name: 'Gestão Master',
+        short_name: 'Gestão Master',
         description: 'Sistema premium de gestão imobiliária com dashboard inteligente',
         theme_color: '#0ea5e9',
         background_color: '#09090b',

@@ -20,7 +20,7 @@ export const useContextualIdentity = (): ContextualIdentity => {
     // Diretor/Admin: Show organization name
     if (role === 'diretor' || role === 'admin') {
       return {
-        displayName: settings?.organization_name || 'Sua Imobiliária',
+        displayName: settings?.organization_name || 'Gestão Master',
         subtitle: settings?.organization_tagline || null,
         showOrgBranding: true,
       };
@@ -68,7 +68,7 @@ export const useContextualIdentity = (): ContextualIdentity => {
 
     // Default fallback
     return {
-      displayName: settings?.organization_name || 'Sistema',
+      displayName: settings?.organization_name || 'Gestão Master',
       subtitle: null,
       showOrgBranding: true,
     };
