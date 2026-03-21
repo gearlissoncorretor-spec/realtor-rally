@@ -28,7 +28,7 @@ const AnimatedBackground = () => {
       opacity: number;
     }> = [];
 
-    const particleCount = 50;
+    const particleCount = 52;
 
     // Initialize particles
     for (let i = 0; i < particleCount; i++) {
@@ -60,8 +60,8 @@ const AnimatedBackground = () => {
         // Draw particle
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${particle.opacity})`;
-        ctx.fill();
+         ctx.fillStyle = `rgba(140, 190, 255, ${particle.opacity})`;
+         ctx.fill();
 
         // Draw connections
         particles.slice(i + 1).forEach((otherParticle) => {
@@ -71,7 +71,7 @@ const AnimatedBackground = () => {
 
           if (distance < 150) {
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - distance / 150)})`;
+            ctx.strokeStyle = `rgba(120, 140, 255, ${0.12 * (1 - distance / 150)})`;
             ctx.lineWidth = 0.5;
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
@@ -94,7 +94,7 @@ const AnimatedBackground = () => {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"
-      style={{ background: 'linear-gradient(160deg, #0B1220 0%, #0f1d32 40%, #1E3A5F 100%)' }}
+      style={{ background: 'linear-gradient(160deg, #071226 0%, #0b1933 35%, #1a2250 70%, #3a1b5a 100%)' }}
     />
   );
 };

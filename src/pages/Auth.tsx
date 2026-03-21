@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, ArrowLeft, Mail, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Mail, UserPlus, ShieldCheck, Zap, Trophy, Sparkles } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
@@ -105,37 +105,43 @@ const Auth = () => {
 
   const orgName = settings?.organization_name || 'Gestão Master';
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
-  const initial = orgName.charAt(0).toUpperCase();
+  const headingName = orgName.toUpperCase();
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4 sm:p-6 bg-slate-950">
+      <div className="absolute inset-0 auth-shell" />
       <AnimatedBackground />
+      <div className="absolute inset-0 auth-grid" />
+      <div className="absolute inset-0 auth-spotlight animate-spotlight-pulse" />
+      <div className="absolute inset-0 auth-vignette" />
 
       <div className="relative z-10 w-full max-w-md animate-float-up">
         {/* Logo and Title */}
         <div className="text-center mb-10 space-y-4">
           {effectiveLogo ? (
-            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-3xl glass-card mb-2 hover-lift overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.15)] transition-shadow duration-500 hover:shadow-[0_0_60px_rgba(59,130,246,0.3)]">
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-3xl glass-card mb-2 hover-lift overflow-hidden shadow-[0_0_40px_rgba(99,102,241,0.18)] transition-shadow duration-500 hover:shadow-[0_0_70px_rgba(99,102,241,0.35)]">
               <img src={effectiveLogo} alt={orgName} className="w-full h-full object-contain p-3" />
             </div>
           ) : (
-            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-3xl glass-card mb-2 hover-lift border border-primary/20 shadow-[0_0_40px_rgba(59,130,246,0.15)]">
-              <span className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-                {initial}
-              </span>
+            <div className="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-3xl glass-card mb-2 hover-lift border border-blue-400/30 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                <Sparkles className="w-7 h-7 text-blue-300" />
+              </div>
             </div>
           )}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">{orgName}</h1>
-          <p className="text-blue-400 text-base sm:text-lg font-semibold tracking-wide leading-relaxed max-w-sm mx-auto">
-            Plataforma profissional para gestão de vendas imobiliárias
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-[0.12em] leading-tight">
+            {headingName}
+          </h1>
+          <p className="text-blue-300 text-base sm:text-lg font-semibold tracking-wide leading-relaxed max-w-sm mx-auto">
+            Sistema inteligente para gestão de vendas imobiliárias
           </p>
-          <p className="text-white/50 text-sm max-w-md mx-auto">
-            💡 Organize clientes, negociações e resultados em <strong className="text-white/70">um único sistema</strong>.
+          <p className="text-white/60 text-sm max-w-md mx-auto">
+            Organize clientes, negociações e resultados em <strong className="text-white/80">um único lugar</strong>.
           </p>
         </div>
 
         {/* Card */}
-        <div className="glass-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl hover-lift">
+        <div className="auth-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl hover-lift">
           {view === "forgot" ? (
             <div className="space-y-5">
               <div className="flex items-center gap-2 mb-2">
@@ -167,10 +173,10 @@ const Auth = () => {
                     <Label htmlFor="forgot-email" className="text-white/90 font-medium text-sm">Email</Label>
                     <Input id="forgot-email" type="email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
                       placeholder="seu@email.com" required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
+                      className="auth-input h-12" />
                   </div>
                   <Button type="submit"
-                    className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2"
+                    className="auth-primary-button w-full h-12 gap-2"
                     disabled={isSubmitting}>
                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
                     {isSubmitting ? "Enviando..." : "Enviar link de redefinição"}
@@ -191,13 +197,13 @@ const Auth = () => {
                 <Label className="text-white/90 font-medium text-sm">Nome completo</Label>
                 <Input value={signupForm.fullName} onChange={(e) => setSignupForm(p => ({ ...p, fullName: e.target.value }))}
                   placeholder="Seu nome" required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
+                  className="auth-input h-12" />
               </div>
               <div className="space-y-2">
                 <Label className="text-white/90 font-medium text-sm">Email</Label>
                 <Input type="email" value={signupForm.email} onChange={(e) => setSignupForm(p => ({ ...p, email: e.target.value }))}
                   placeholder="seu@email.com" required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
+                  className="auth-input h-12" />
               </div>
               <div className="space-y-2">
                 <Label className="text-white/90 font-medium text-sm">Senha</Label>
@@ -205,16 +211,16 @@ const Auth = () => {
                   <Input type={showPassword ? "text" : "password"} value={signupForm.password}
                     onChange={(e) => setSignupForm(p => ({ ...p, password: e.target.value }))}
                     placeholder="Mínimo 8 caracteres" required minLength={8}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12 pr-12" />
+                    className="auth-input h-12 pr-12" />
                   <Button type="button" variant="ghost" size="sm"
                     className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-white/10 text-white/70 hover:text-white rounded-lg"
                     onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-4 w-4 transition-transform duration-300 rotate-180" /> : <Eye className="h-4 w-4 transition-transform duration-300" />}
                   </Button>
                 </div>
               </div>
               <Button type="submit"
-                className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2"
+                className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] gap-2"
                 disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
                 {isSubmitting ? "Criando conta..." : "Criar conta"}
@@ -236,7 +242,7 @@ const Auth = () => {
                 <Input id="email" type="email" value={loginForm.email}
                   onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="seu@email.com" required
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12" />
+                  className="auth-input h-12" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-white/90 font-medium text-sm">Senha</Label>
@@ -244,11 +250,11 @@ const Auth = () => {
                   <Input id="password" type={showPassword ? "text" : "password"} value={loginForm.password}
                     onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                     placeholder="••••••••" required
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 rounded-xl h-12 pr-12" />
+                    className="auth-input h-12 pr-12" />
                   <Button type="button" variant="ghost" size="sm"
                     className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-white/10 text-white/70 hover:text-white rounded-lg"
                     onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-4 w-4 transition-transform duration-300 rotate-180" /> : <Eye className="h-4 w-4 transition-transform duration-300" />}
                   </Button>
                 </div>
               </div>
@@ -259,19 +265,34 @@ const Auth = () => {
                 </Button>
               </div>
               <Button type="submit"
-                className="w-full h-13 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 text-white font-bold text-base rounded-xl shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:shadow-[0_6px_30px_rgba(59,130,246,0.6)] transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] gap-2 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700"
+                className="auth-primary-button w-full h-13 gap-2"
                 disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>🚀</span>}
-                {isSubmitting ? "Entrando..." : "Entrar no Sistema"}
+                {isSubmitting ? "Entrando..." : "Entrar no sistema"}
               </Button>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-blue-300" /> Acesso seguro
+                </div>
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-indigo-300" /> Alta performance
+                </div>
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-amber-300" /> Usado por equipes de alta performance
+                </div>
+              </div>
               <div className="relative my-4">
                 <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10" /></div>
                 <div className="relative flex justify-center text-xs"><span className="bg-transparent px-2 text-white/30">ou</span></div>
               </div>
               <Button type="button" variant="outline"
-                className="w-full h-12 bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-xl font-semibold gap-2"
+                className="w-full h-12 bg-white/5 border-white/20 text-white/70 hover:text-white hover:bg-white/10 rounded-xl font-semibold gap-2"
                 onClick={() => setView("signup")}>
                 <UserPlus className="w-4 h-4" /> Criar nova conta
+              </Button>
+              <Button type="button" variant="outline" disabled
+                className="w-full h-12 bg-white/5 border-white/10 text-white/40 rounded-xl font-semibold gap-2 cursor-not-allowed">
+                Login com Google (em breve)
               </Button>
               <p className="text-center text-white/40 text-xs mt-4 italic">
                 Grandes vendas começam com organização.
