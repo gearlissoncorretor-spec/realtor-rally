@@ -2673,7 +2673,7 @@ const Ranking = () => {
           </div>
 
           {/* Right: Spotlight sidebar */}
-          {rankingType !== 'equipes' && (
+          {rankingType !== 'equipes' && rankingType !== 'atividades' && (
             <div className="w-full lg:w-72 shrink-0">
               <SpotlightBrokerSidebar
                 broker={spotlightBroker}
