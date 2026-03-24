@@ -18,7 +18,8 @@ import {
 import {
   Trophy, TrendingUp, TrendingDown, Tv, Flame, Medal, Star, X,
   Volume2, VolumeX, Crown, Zap, Target, DollarSign, Users,
-  ChevronUp, ChevronDown, Sparkles, Award, Building2, Settings
+  ChevronUp, ChevronDown, Sparkles, Award, Building2, Settings,
+  Activity, Phone, Home, Handshake, FileText, BarChart3
 } from "lucide-react";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useSpotlightBroker } from "@/hooks/useSpotlightBroker";
 import { useTVModeSound } from "@/components/TVModeSoundSettings";
+import { useActivityRanking, type ActivityRankingEntry, type ActivityWeight, saveActivityWeights } from "@/hooks/useActivityRanking";
 
 // ===== TYPES =====
 interface BrokerRanking {
@@ -59,7 +61,7 @@ interface TeamRanking {
   position: number;
 }
 
-type RankingType = 'vendas' | 'captacao' | 'equipes';
+type RankingType = 'vendas' | 'captacao' | 'equipes' | 'atividades';
 type TVRankingMode = 'alternate' | 'vendas' | 'captacao';
 
 // ===== MEDALS & ACHIEVEMENTS =====
