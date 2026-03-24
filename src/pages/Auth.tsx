@@ -83,7 +83,7 @@ const Auth = () => {
   const orgName = settings?.organization_name || 'Gestão Master';
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const headingName = orgName.toUpperCase();
-  const supportPhone = (settings?.support_phone || '').replace(/\D/g, '');
+  const supportPhone = ((settings as any)?.support_phone || '').replace(/\D/g, '');
   const supportMessage = 'Olá, gostaria de solicitar acesso ao sistema.';
   const contactUrl = supportPhone
     ? `https://wa.me/${supportPhone}?text=${encodeURIComponent(supportMessage)}`

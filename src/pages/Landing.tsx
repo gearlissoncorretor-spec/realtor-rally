@@ -108,7 +108,7 @@ const Landing = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
 
   const goLogin = () => navigate("/auth");
-  const supportPhone = (settings?.support_phone || '').replace(/\D/g, '');
+  const supportPhone = ((settings as any)?.support_phone || '').replace(/\D/g, '');
   const supportMessage = 'Olá, gostaria de solicitar acesso ao sistema.';
   const contactUrl = supportPhone
     ? `https://wa.me/${supportPhone}?text=${encodeURIComponent(supportMessage)}`
