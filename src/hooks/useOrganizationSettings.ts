@@ -8,9 +8,13 @@ export interface OrganizationSettings {
   organization_tagline: string | null;
   logo_url: string | null;
   logo_icon_url: string | null;
-  support_phone: string | null;
   primary_color: string;
   secondary_color: string | null;
+  spotlight_broker_id: string | null;
+  company_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by: string | null;
 }
 
 export const useOrganizationSettings = () => {
