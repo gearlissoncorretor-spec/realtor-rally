@@ -1708,6 +1708,17 @@ const Ranking = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Activity ranking hook  
+  const teamsForActivity = useMemo(() => teams.map(t => ({ id: t.id, name: t.name })), [teams]);
+  const { rankings: activityRankings, activityNames, activityWeights, isLoading: activityLoading, insight: activityInsight } = useActivityRanking(
+    brokers,
+    teamsForActivity,
+    activityPeriod,
+    selectedActivityType,
+    selectedTeam,
+    managerUserIds,
+  );
+
   // Role-based header
   const headerInfo = useMemo(() => {
     const role = getUserRole();
