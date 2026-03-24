@@ -2184,14 +2184,296 @@ const Ranking = () => {
           />
         )}
 
-        {/* Stats */}
-        <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : allBrokerRankings} activeBrokerCount={activeBrokerCount} />
+        {/* Stats - hide for activities */}
+        {rankingType !== 'atividades' && (
+          <StatsHeader brokers={rankingType === 'captacao' ? captacaoRankings : allBrokerRankings} activeBrokerCount={activeBrokerCount} />
+        )}
+
+        {/* Activity ranking filters */}
+        {rankingType === 'atividades' && (
+          <div className="space-y-4 mb-6">
+            {/* Activity period selector */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: 'week' as const, label: 'Semanal' },
+                { key: 'month' as const, label: 'Mensal' },
+                { key: 'year' as const, label: 'Anual' },
+              ].map(p => (
+                <Button
+                  key={p.key}
+                  variant={activityPeriod === p.key ? 'default' : 'ghost'}
+                  size="sm"
+                  className="text-xs h-7 px-3"
+                  onClick={() => setActivityPeriod(p.key)}
+                >
+                  {p.label}
+                </Button>
+              ))}
+            </div>
+
+            {/* Activity type selector */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedActivityType === 'all' ? 'default' : 'outline'}
+                size="sm"
+                className="text-xs h-8"
+                onClick={() => setSelectedActivityType('all')}
+              >
+                <BarChart3 className="w-3 h-3 mr-1" />
+                Todas
+              </Button>
+              {activityNames.map(name => {
+                const icons: Record<string, string> = {
+                  'Ligações': '📞', 'Visitas': '🏠', 'Atendimentos': '🤝',
+                  'Captações': '📋', 'Follow-ups': '🔄', 'Propostas': '📄',
+                };
+                return (
+                  <Button
+                    key={name}
+                    variant={selectedActivityType === name ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs h-8"
+                    onClick={() => setSelectedActivityType(name)}
+                  >
+                    <span className="mr-1">{icons[name] || '📊'}</span>
+                    {name}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Insight card */}
+            {activityInsight && (
+              <Card className="p-4 border-warning/20 bg-warning/5">
+                <div className="flex items-center gap-2 mb-1">
+                  <Flame className="w-4 h-4 text-warning" />
+                  <span className="text-xs font-bold text-warning uppercase tracking-wider">
+                    🔥 Corretor {activityPeriod === 'week' ? 'da Semana' : activityPeriod === 'month' ? 'do Mês' : 'do Ano'}
+                  </span>
+                </div>
+                <p className="text-sm text-foreground">{activityInsight.message}</p>
+              </Card>
+            )}
+
+            {/* Weight config for managers */}
+            {(isDiretor() || isAdmin() || isGerente()) && (
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setShowWeightConfig(!showWeightConfig)}
+                >
+                  <Settings className="w-3 h-3 mr-1" />
+                  Configurar pesos
+                </Button>
+                {showWeightConfig && (
+                  <Card className="p-4 mt-2 space-y-3">
+                    <p className="text-xs font-medium text-muted-foreground">Peso de cada atividade no ranking:</p>
+                    {activityWeights.map((w, i) => (
+                      <div key={w.name} className="flex items-center gap-3">
+                        <span className="text-sm w-24">{w.icon} {w.name}</span>
+                        <Select
+                          value={String(w.weight)}
+                          onValueChange={(v) => {
+                            const updated = [...activityWeights];
+                            updated[i] = { ...w, weight: Number(v) };
+                            saveActivityWeights(updated);
+                          }}
+                        >
+                          <SelectTrigger className="h-7 w-20 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5].map(n => (
+                              <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </Card>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Main content: Ranking + Spotlight sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left: Main ranking */}
           <div className="flex-1 min-w-0">
-            {rankingType === 'equipes' ? (
+            {rankingType === 'atividades' ? (
+              /* ===== ACTIVITY RANKING VIEW ===== */
+              <>
+                {/* Activity Podium */}
+                {activityRankings.length >= 1 && (
+                  <Card className="p-4 md:p-6 mb-6 border-border/30 overflow-hidden relative bg-gradient-to-br from-card via-card to-primary/[0.03]">
+                    <div className="relative mb-8">
+                      <ParticleEffect />
+                      <div className="flex items-end justify-center gap-4 md:gap-8 pt-8">
+                        {(() => {
+                          const top3 = activityRankings.slice(0, 3);
+                          const podiumOrder = [
+                            top3.find(b => b.position === 2),
+                            top3.find(b => b.position === 1),
+                            top3.find(b => b.position === 3),
+                          ].filter(Boolean) as ActivityRankingEntry[];
+
+                          const podiumConfigs = [
+                            { height: "h-32 md:h-40", avatarSize: "w-14 h-14 md:w-16 md:h-16", ring: "ring-slate-300/60", gradient: "from-[#0B3C8C]/30 via-[#0B3C8C]/15 to-transparent", border: "border-[#0F4ED8]/40", numColor: "text-slate-300/70", numSize: "text-4xl md:text-5xl", pedestalBg: "linear-gradient(180deg, #0F4ED8 0%, #0B3C8C 100%)" },
+                            { height: "h-44 md:h-56", avatarSize: "w-18 h-18 md:w-22 md:h-22", ring: "ring-yellow-400/70", gradient: "from-[#0F4ED8]/30 via-[#0B3C8C]/15 to-transparent", border: "border-yellow-400/40", numColor: "text-yellow-400/60", numSize: "text-5xl md:text-6xl", pedestalBg: "linear-gradient(180deg, #0F4ED8 0%, #0B3C8C 100%)" },
+                            { height: "h-24 md:h-32", avatarSize: "w-12 h-12 md:w-14 md:h-14", ring: "ring-orange-400/50", gradient: "from-[#0B3C8C]/25 via-[#0B3C8C]/10 to-transparent", border: "border-[#0F4ED8]/35", numColor: "text-slate-300/60", numSize: "text-3xl md:text-4xl", pedestalBg: "linear-gradient(180deg, #0F4ED8 0%, #0B3C8C 100%)" },
+                          ];
+
+                          return podiumOrder.map((entry, index) => {
+                            const isFirst = entry.position === 1;
+                            const initials = entry.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+                            const config = podiumConfigs[index];
+
+                            return (
+                              <div key={entry.id} className="flex flex-col items-center animate-fade-in" style={{ animationDelay: `${isFirst ? 0.4 : index === 0 ? 0.2 : 0.6}s` }}>
+                                {isFirst && (
+                                  <div className="relative mb-1 animate-medal-pulse">
+                                    <Crown className="w-8 h-8 md:w-10 md:h-10 text-warning drop-shadow-[0_0_14px_rgba(250,204,21,0.7)]" />
+                                  </div>
+                                )}
+                                <div className="relative mb-3">
+                                  {isFirst && (
+                                    <div className="absolute -inset-5 rounded-full blur-2xl animate-spotlight-pulse" style={{ background: `radial-gradient(circle, rgba(250,204,21,0.4), transparent 60%)` }} />
+                                  )}
+                                  <Avatar className={cn(
+                                    isFirst ? "w-16 h-16 md:w-20 md:h-20" : config.avatarSize,
+                                    "ring-4 shadow-2xl relative z-10",
+                                    config.ring,
+                                  )}>
+                                    <AvatarImage src={entry.avatar} alt={entry.name} className="object-cover" />
+                                    <AvatarFallback className={cn(
+                                      "font-black",
+                                      isFirst ? "bg-gradient-to-br from-yellow-500 to-amber-700 text-yellow-100 text-xl" :
+                                      entry.position === 2 ? "bg-gradient-to-br from-slate-500 to-slate-700 text-slate-100 text-lg" :
+                                      "bg-gradient-to-br from-orange-600 to-orange-800 text-orange-100 text-sm"
+                                    )}>
+                                      {initials}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </div>
+                                <p className={cn("font-bold text-center leading-tight text-foreground mb-0.5", isFirst ? "text-base md:text-lg" : "text-sm")}>
+                                  {entry.name.split(' ').slice(0, 2).join(' ')}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground mb-0.5">{entry.activityCount} atividades</p>
+                                <p className={cn(
+                                  "font-black mb-2 text-lg",
+                                  isFirst ? "text-warning drop-shadow-[0_0_12px_rgba(251,191,36,0.4)]" : "text-foreground"
+                                )}>
+                                  {entry.weightedScore} pts
+                                </p>
+                                <div className={cn(
+                                  "w-26 md:w-36 rounded-2xl border flex items-center justify-center relative overflow-hidden glass-pedestal",
+                                  config.height, config.border
+                                )} style={{ background: config.pedestalBg }}>
+                                  <div className="absolute inset-0 bg-gradient-to-b from-white/[0.12] via-transparent to-transparent rounded-2xl" />
+                                  <span className={cn("font-black relative z-10", config.numColor, config.numSize)}>
+                                    {entry.position}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Separator */}
+                <div className="gradient-separator my-6 mx-8 rounded-full" />
+
+                {/* Activity Leaderboard */}
+                <Card className="overflow-hidden border-border/50">
+                  <div className="p-4 border-b border-border bg-muted/30 flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-primary" />
+                    <h2 className="font-semibold text-foreground text-sm">Ranking de Atividades</h2>
+                    <Badge variant="secondary" className="ml-auto text-xs">{activityRankings.length} corretores</Badge>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    {activityRankings.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Activity className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-muted-foreground font-medium">Nenhuma atividade registrada no período</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Registre atividades na tela de Atividades Semanais</p>
+                      </div>
+                    ) : (
+                      activityRankings.map((entry) => {
+                        const initials = entry.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+                        const maxScore = activityRankings[0]?.weightedScore || 1;
+                        const progressPct = (entry.weightedScore / maxScore) * 100;
+                        const isCurrentUser = entry.userId === user?.id;
+
+                        return (
+                          <div key={entry.id} className={cn(
+                            "flex flex-col gap-2 p-3 md:p-4 rounded-xl border transition-all group",
+                            isCurrentUser
+                              ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
+                              : entry.position <= 3
+                              ? "bg-card/80 border-border/60 hover:border-primary/30"
+                              : "bg-card/50 border-border/50 hover:border-primary/20"
+                          )}>
+                            <div className="flex items-center gap-3">
+                              <PositionBadge position={entry.position} />
+                              <Avatar className="h-10 w-10 ring-2 ring-border/50">
+                                <AvatarImage src={entry.avatar} className="object-cover" />
+                                <AvatarFallback className="text-xs font-bold bg-muted">{initials}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-sm text-foreground truncate">{entry.name}</p>
+                                  {isCurrentUser && (
+                                    <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] px-1.5 py-0">⭐ VOCÊ</Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-xs text-muted-foreground">{entry.activityCount} atividades</span>
+                                  {entry.teamName && (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-border/60">{entry.teamName}</Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-black text-sm text-foreground">{entry.weightedScore} pts</p>
+                                {entry.position === 1 && (
+                                  <span className="text-[10px] text-warning font-bold">🔥 Top 1</span>
+                                )}
+                              </div>
+                            </div>
+                            {/* Progress bar */}
+                            <div className="ml-[52px]">
+                              <Progress value={progressPct} className="h-1.5" />
+                            </div>
+                            {/* Activity breakdown */}
+                            {selectedActivityType === 'all' && Object.keys(entry.breakdown).length > 0 && (
+                              <div className="ml-[52px] flex flex-wrap gap-1">
+                                {Object.entries(entry.breakdown).map(([name, count]) => {
+                                  const icons: Record<string, string> = {
+                                    'Ligações': '📞', 'Visitas': '🏠', 'Atendimentos': '🤝',
+                                    'Captações': '📋', 'Follow-ups': '🔄', 'Propostas': '📄',
+                                  };
+                                  return (
+                                    <span key={name} className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                      {icons[name] || '📊'} {name}: {count}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </Card>
+              </>
+            ) : rankingType === 'equipes' ? (
               /* ===== TEAM PODIUM VIEW ===== */
               <>
                 {teamRankings.length > 0 ? (
