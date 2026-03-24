@@ -58,7 +58,7 @@ const BrandingSettings = () => {
         organization_tagline: settings.organization_tagline || 'Sistema Premium de Gestão Imobiliária',
         logo_url: settings.logo_url || '',
         logo_icon_url: settings.logo_icon_url || '',
-        support_phone: settings.support_phone || '',
+        support_phone: (settings as any).support_phone || '',
         primary_color: settings.primary_color || '#3b82f6',
         secondary_color: (settings as any).secondary_color || '#10b981',
       });
