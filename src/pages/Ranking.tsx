@@ -1690,6 +1690,9 @@ const Ranking = () => {
   const { soundEnabled, setSoundEnabled, playVictory, stopCustomSound } = useRankingSounds();
   const { settings } = useOrganizationSettings();
   const { spotlightBrokerId, setSpotlightBroker, isUpdating: spotlightUpdating } = useSpotlightBroker();
+  const [selectedActivityType, setSelectedActivityType] = useState('all');
+  const [activityPeriod, setActivityPeriod] = useState<'week' | 'month' | 'year'>('month');
+  const [showWeightConfig, setShowWeightConfig] = useState(false);
 
   // Fetch manager user_ids to exclude from ranking (using security definer function)
   const { data: managerUserIds = [] } = useQuery({
