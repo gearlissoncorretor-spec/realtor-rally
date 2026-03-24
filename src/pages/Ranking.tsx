@@ -2110,6 +2110,15 @@ const Ranking = () => {
                   Equipes
                 </Button>
               )}
+              <Button
+                variant={rankingType === 'atividades' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setRankingType('atividades')}
+                className="text-xs h-7 px-3 rounded-md"
+              >
+                <Activity className="w-3.5 h-3.5 mr-1" />
+                Atividades
+              </Button>
             </div>
             <Button
               variant="ghost"
