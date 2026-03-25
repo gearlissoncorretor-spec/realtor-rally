@@ -244,6 +244,26 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
                       </Card>
                     );
                   })}
+                  
+                  {/* New Activity Card or Form */}
+                  {isAddingTask ? (
+                    <InlineActivityForm 
+                      onCreate={handleAddTask} 
+                      onCancel={() => setIsAddingTask(false)} 
+                    />
+                  ) : (
+                    <Card 
+                      onClick={() => setIsAddingTask(true)}
+                      className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-2 border-dashed border-emerald-300/50 dark:border-emerald-800/50 shadow-sm hover:shadow-md hover:border-emerald-500/50 transition-all hover:scale-[1.02] cursor-pointer flex flex-col items-center justify-center p-4 min-h-[100px] group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-2 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        <Plus className="w-6 h-6 text-emerald-600 group-hover:text-white" />
+                      </div>
+                      <span className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-500 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                        Nova Atividade
+                      </span>
+                    </Card>
+                  )}
                 </div>
               )}
 
