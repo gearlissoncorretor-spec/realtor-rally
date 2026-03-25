@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useWeeklyActivities } from "@/hooks/useWeeklyActivities";
 import { CreateActivityDialog } from "@/components/activities/CreateActivityDialog";
+import { InlineActivityForm } from "@/components/activities/InlineActivityForm";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -63,6 +64,7 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
   const [editValue, setEditValue] = useState<string>("");
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   const weekOptions = useMemo(() => getWeekOptions(), []);
 
