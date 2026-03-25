@@ -465,7 +465,10 @@ const Atividades = () => {
                         Atividades de {broker.name}
                       </CardTitle>
                       <Button 
-                        onClick={() => setCreateDialogOpen(true)}
+                        onClick={() => {
+                          setIsAddingTask(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-md w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" />
