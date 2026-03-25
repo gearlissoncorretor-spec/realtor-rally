@@ -274,7 +274,14 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
                     <ClipboardList className="w-5 h-5 text-emerald-600" />
                     Atividades de {broker.name}
                   </CardTitle>
-                  <Button onClick={() => setCreateDialogOpen(true)} className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-md w-full sm:w-auto">
+                  <Button 
+                    onClick={() => {
+                      setIsAddingTask(true);
+                      const grid = document.querySelector('.grid-cols-2');
+                      if (grid) grid.scrollIntoView({ behavior: 'smooth' });
+                    }} 
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-md w-full sm:w-auto"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Nova Tarefa
                   </Button>
