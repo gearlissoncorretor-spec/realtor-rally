@@ -28,7 +28,7 @@ const AVAILABLE_SCREENS = [
   { id: 'metas', label: 'Metas' },
   { id: 'meta-gestao', label: 'Meta Gestão' },
   { id: 'atividades', label: 'Atividades' },
-  { id: 'tarefas-kanban', label: 'Tarefas Kanban' },
+  
   { id: 'equipes', label: 'Equipes' },
   { id: 'dashboard-equipes', label: 'Dashboard Equipes' },
   { id: 'corretores', label: 'Corretores' },
