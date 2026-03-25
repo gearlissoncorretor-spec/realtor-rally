@@ -54,6 +54,7 @@ import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWeeklyActivities } from "@/hooks/useWeeklyActivities";
 import { CreateActivityDialog } from "@/components/activities/CreateActivityDialog";
+import { InlineActivityForm } from "@/components/activities/InlineActivityForm";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -85,6 +86,7 @@ const Atividades = () => {
   const [editValue, setEditValue] = useState<string>("");
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   const weekOptions = useMemo(() => getWeekOptions(), []);
 
@@ -432,6 +434,26 @@ const Atividades = () => {
                           </Card>
                         );
                       })}
+                      
+                      {/* New Activity Card or Form */}
+                      {isAddingTask ? (
+                        <InlineActivityForm 
+                          onCreate={handleAddTask} 
+                          onCancel={() => setIsAddingTask(false)} 
+                        />
+                      ) : (
+                        <Card 
+                          onClick={() => setIsAddingTask(true)}
+                          className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-2 border-dashed border-emerald-300/50 dark:border-emerald-800/50 shadow-sm hover:shadow-md hover:border-emerald-500/50 transition-all hover:scale-[1.02] cursor-pointer flex flex-col items-center justify-center p-4 min-h-[100px] group"
+                        >
+                          <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-2 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                            <Plus className="w-6 h-6 text-emerald-600 group-hover:text-white" />
+                          </div>
+                          <span className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-500 group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                            Nova Atividade
+                          </span>
+                        </Card>
+                      )}
                     </div>
                   )}
 
@@ -443,7 +465,10 @@ const Atividades = () => {
                         Atividades de {broker.name}
                       </CardTitle>
                       <Button 
-                        onClick={() => setCreateDialogOpen(true)}
+                        onClick={() => {
+                          setIsAddingTask(true);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-md w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" />
