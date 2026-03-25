@@ -32,7 +32,7 @@ const screens = [
   { label: "Metas", href: "/metas", icon: Target, group: "Produtividade" },
   { label: "Meta Gestão", href: "/meta-gestao", icon: PieChart, group: "Produtividade" },
   { label: "Atividades", href: "/atividades", icon: ClipboardList, group: "Produtividade" },
-  { label: "Tarefas", href: "/tarefas-kanban", icon: Columns3, group: "Produtividade" },
+  
   { label: "X1", href: "/x1", icon: Columns3, group: "Produtividade" },
   { label: "Agenda", href: "/agenda", icon: CalendarDays, group: "Produtividade" },
   { label: "Relatórios", href: "/relatorios", icon: TrendingUp, group: "Relatórios" },

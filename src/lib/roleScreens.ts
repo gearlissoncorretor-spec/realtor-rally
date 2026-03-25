@@ -9,13 +9,13 @@ export const ROLE_SCREENS: Record<string, string[]> = {
   gerente: [
     'dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up',
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
-    'ranking', 'acompanhamento', 'comissoes', 'relatorios', 'tarefas-kanban',
+    'ranking', 'acompanhamento', 'comissoes', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
     'dashboard-equipes',
   ],
   corretor: [
     'dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas',
-    'atividades', 'tarefas-kanban', 'comissoes', 'configuracoes',
+    'atividades', 'comissoes', 'configuracoes',
     'agenda', 'instalar',
   ],
 };
@@ -32,7 +32,7 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/x1': 'x1',
   '/dashboard-equipes': 'dashboard-equipes',
   '/central-gestor': 'central-gestor',
-  '/tarefas-kanban': 'tarefas-kanban',
+  
   '/atividades': 'atividades',
   '/negociacoes': 'negociacoes',
   '/follow-up': 'follow-up',
