@@ -73,7 +73,7 @@ const Navigation = () => {
     { href: "/follow-up", label: "Follow-up / Clientes", icon: Users, screen: "follow-up" },
     { href: "/metas", label: "Metas", icon: Target, screen: "metas" },
     { href: "/meta-gestao", label: "Meta Gestão", icon: PieChart, screen: "meta-gestao" },
-    { href: "/tarefas-kanban", label: "Tarefas & Atividades", icon: Columns3, screen: "tarefas-kanban" },
+    { href: "/atividades", label: "Atividades", icon: ClipboardList, screen: "atividades" },
     { href: "/acompanhamento", label: "Status Vendas", icon: DollarSign, screen: "acompanhamento" },
     { href: "/comissoes", label: "Comissões", icon: DollarSign, screen: "comissoes" },
     { href: "/relatorios", label: "Relatórios", icon: TrendingUp, screen: "relatorios" },
@@ -113,7 +113,7 @@ const Navigation = () => {
     },
     {
       label: "Produtividade",
-      items: navItems.filter(i => ['metas', 'meta-gestao', 'tarefas-kanban', 'x1'].includes(i.screen)),
+      items: navItems.filter(i => ['metas', 'meta-gestao', 'atividades', 'x1'].includes(i.screen)),
     },
     {
       label: "Relatórios",

@@ -14,7 +14,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/negociacoes': 'Negociações',
   '/follow-up': 'Follow-up / Clientes',
   '/atividades': 'Atividades',
-  '/tarefas-kanban': 'Tarefas',
+  
   '/acompanhamento': 'Status Vendas',
   '/relatorios': 'Relatórios',
   '/configuracoes': 'Configurações',

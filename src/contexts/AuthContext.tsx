@@ -374,7 +374,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       'follow-up': '/follow-up',
       'metas': '/metas',
       'atividades': '/atividades',
-      'tarefas-kanban': '/tarefas-kanban',
+      
       'corretores': '/corretores',
       'equipes': '/equipes',
       'ranking': '/ranking',

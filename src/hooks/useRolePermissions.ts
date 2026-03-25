@@ -23,7 +23,7 @@ const ALL_SCREENS = [
   { value: 'follow-up', label: 'Follow-up' },
   { value: 'metas', label: 'Metas' },
   { value: 'meta-gestao', label: 'Meta Gestão' },
-  { value: 'tarefas-kanban', label: 'Tarefas & Atividades' },
+  { value: 'atividades', label: 'Atividades' },
   { value: 'acompanhamento', label: 'Status Vendas' },
   { value: 'comissoes', label: 'Comissões' },
   { value: 'relatorios', label: 'Relatórios' },
