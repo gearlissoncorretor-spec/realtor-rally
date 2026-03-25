@@ -22,11 +22,11 @@ interface InlineActivityFormProps {
 }
 
 const CATEGORIES = [
-  { value: 'captacao', label: 'Captação', icon: <Building2 className="w-4 h-4" /> },
-  { value: 'atendimento', label: 'Atendimento', icon: <Users className="w-4 h-4" /> },
-  { value: 'ligacao', label: 'Ligações', icon: <Phone className="w-4 h-4" /> },
-  { value: 'visita', label: 'Visitas', icon: <MapPin className="w-4 h-4" /> },
-  { value: 'outro', label: 'Outro', icon: <ListTodo className="w-4 h-4" /> },
+  { value: 'captacao', label: 'Captação', icon: <Building2 className="w-5 h-5" /> },
+  { value: 'atendimento', label: 'Atendimento', icon: <Users className="w-5 h-5" /> },
+  { value: 'ligacao', label: 'Ligações', icon: <Phone className="w-5 h-5" /> },
+  { value: 'visita', label: 'Visitas', icon: <MapPin className="w-5 h-5" /> },
+  { value: 'outro', label: 'Outro', icon: <ListTodo className="w-5 h-5" /> },
 ];
 
 export const InlineActivityForm: React.FC<InlineActivityFormProps> = ({ onCreate, onCancel }) => {
