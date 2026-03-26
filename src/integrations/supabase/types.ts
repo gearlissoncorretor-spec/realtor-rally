@@ -1382,6 +1382,7 @@ export type Database = {
       }
       negotiations: {
         Row: {
+          bloco: string | null
           broker_id: string
           client_email: string | null
           client_name: string
@@ -1390,6 +1391,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          latitude: string | null
+          longitude: string | null
           loss_reason: string | null
           negotiated_value: number
           observations: string | null
@@ -1399,9 +1402,11 @@ export type Database = {
           start_date: string
           status: string
           temperature: string
+          unidade: string | null
           updated_at: string
         }
         Insert: {
+          bloco?: string | null
           broker_id: string
           client_email?: string | null
           client_name: string
@@ -1410,6 +1415,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          latitude?: string | null
+          longitude?: string | null
           loss_reason?: string | null
           negotiated_value: number
           observations?: string | null
@@ -1419,9 +1426,11 @@ export type Database = {
           start_date?: string
           status?: string
           temperature?: string
+          unidade?: string | null
           updated_at?: string
         }
         Update: {
+          bloco?: string | null
           broker_id?: string
           client_email?: string | null
           client_name?: string
@@ -1430,6 +1439,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          latitude?: string | null
+          longitude?: string | null
           loss_reason?: string | null
           negotiated_value?: number
           observations?: string | null
@@ -1439,6 +1450,7 @@ export type Database = {
           start_date?: string
           status?: string
           temperature?: string
+          unidade?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1735,6 +1747,7 @@ export type Database = {
       sales: {
         Row: {
           ano: number | null
+          bloco: string | null
           broker_id: string | null
           captador: string | null
           client_email: string | null
@@ -1748,6 +1761,7 @@ export type Database = {
           gerente: string | null
           id: string
           latitude: string | null
+          longitude: string | null
           mes: number | null
           notes: string | null
           origem: string | null
@@ -1761,6 +1775,7 @@ export type Database = {
           sale_type: string | null
           status: Database["public"]["Enums"]["sale_status"] | null
           tipo: string
+          unidade: string | null
           updated_at: string | null
           vendedor: string | null
           vgc: number
@@ -1768,6 +1783,7 @@ export type Database = {
         }
         Insert: {
           ano?: number | null
+          bloco?: string | null
           broker_id?: string | null
           captador?: string | null
           client_email?: string | null
@@ -1781,6 +1797,7 @@ export type Database = {
           gerente?: string | null
           id?: string
           latitude?: string | null
+          longitude?: string | null
           mes?: number | null
           notes?: string | null
           origem?: string | null
@@ -1794,6 +1811,7 @@ export type Database = {
           sale_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
           tipo?: string
+          unidade?: string | null
           updated_at?: string | null
           vendedor?: string | null
           vgc: number
@@ -1801,6 +1819,7 @@ export type Database = {
         }
         Update: {
           ano?: number | null
+          bloco?: string | null
           broker_id?: string | null
           captador?: string | null
           client_email?: string | null
@@ -1814,6 +1833,7 @@ export type Database = {
           gerente?: string | null
           id?: string
           latitude?: string | null
+          longitude?: string | null
           mes?: number | null
           notes?: string | null
           origem?: string | null
@@ -1827,6 +1847,7 @@ export type Database = {
           sale_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
           tipo?: string
+          unidade?: string | null
           updated_at?: string | null
           vendedor?: string | null
           vgc?: number
