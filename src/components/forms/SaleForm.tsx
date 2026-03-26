@@ -90,6 +90,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       ano: new Date().getFullYear(),
       mes: new Date().getMonth() + 1,
       latitude: '',
+      is_partnership: false,
     },
   });
 
