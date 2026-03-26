@@ -281,6 +281,15 @@ const GerenteDashboard = () => {
             </div>
           </div>
 
+          {/* AI Brain Insights */}
+          {!focusMode && profile?.company_id && (
+            <ManagerAIInsights 
+              companyId={profile.company_id} 
+              managerName={profile.full_name || 'Gestor'} 
+              teamId={teamHierarchy?.team_id}
+            />
+          )}
+
           {/* Mobile Quick Actions */}
           {isMobile && !focusMode && (
             <div className="grid grid-cols-4 gap-2">
