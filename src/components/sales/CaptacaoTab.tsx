@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Home, TrendingUp, DollarSign, BarChart3 } from "lucide-react";
+import { Search, Filter, Home, TrendingUp, DollarSign, BarChart3, Plus } from "lucide-react";
 import { useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
@@ -15,9 +15,10 @@ interface CaptacaoTabProps {
   sales: Sale[];
   brokers: Broker[];
   loading: boolean;
+  onRegisterSale?: () => void;
 }
 
-export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
+export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: CaptacaoTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
@@ -309,9 +310,17 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
             <Home className="w-4 h-4 text-primary" />
             <h3 className="font-semibold text-foreground text-sm">Captações Vendidas</h3>
           </div>
-          <Badge variant="outline" className="text-xs font-medium">
-            {filteredSales.length} {filteredSales.length === 1 ? 'registro' : 'registros'}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {onRegisterSale && (
+              <Button onClick={onRegisterSale} size="sm" className="h-8 gap-1.5 text-xs">
+                <Plus className="w-3.5 h-3.5" />
+                Cadastrar Venda
+              </Button>
+            )}
+            <Badge variant="outline" className="text-xs font-medium">
+              {filteredSales.length} {filteredSales.length === 1 ? 'registro' : 'registros'}
+            </Badge>
+          </div>
         </div>
 
         {filteredSales.length === 0 ? (
@@ -348,7 +357,7 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Vendedor</p>
-                        <p className="truncate font-medium">{sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</p>
+                        <p className="truncate font-medium">{sale.vendedor_nome || sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</p>
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">VGV</p>
@@ -383,7 +392,7 @@ export const CaptacaoTab = ({ sales, brokers, loading }: CaptacaoTabProps) => {
                       <td className="p-3 text-sm text-foreground max-w-[200px] truncate">{sale.property_address}</td>
                       <td className="p-3 text-sm text-foreground max-w-[150px] truncate">{sale.client_name}</td>
                       <td className="p-3 text-sm font-medium text-primary">{sale.captador || '-'}</td>
-                      <td className="p-3 text-sm text-foreground">{sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</td>
+                      <td className="p-3 text-sm text-foreground">{sale.vendedor_nome || sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</td>
                       <td className="p-3 text-sm font-bold text-foreground">{formatCurrency(Number(sale.vgv || sale.property_value || 0))}</td>
                       <td className="p-3 text-sm text-muted-foreground">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</td>
                     </tr>
