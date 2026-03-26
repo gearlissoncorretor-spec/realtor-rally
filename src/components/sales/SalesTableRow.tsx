@@ -87,6 +87,11 @@ export const SalesTableRow = ({ sale, broker, onView, onEdit, onDelete }: SalesT
         <div className="font-medium text-foreground truncate max-w-[150px]">
           {sale.client_name}
         </div>
+        {sale.tipo === 'captacao' && (
+          <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[10px] h-5 mt-1">
+            🔵 Captação
+          </Badge>
+        )}
       </td>
       
       {/* Imóvel */}

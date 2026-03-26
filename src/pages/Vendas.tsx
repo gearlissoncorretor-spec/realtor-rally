@@ -50,7 +50,8 @@ const Vendas = () => {
   const { brokers } = useBrokers();
 
   const availableYears = useMemo(() => {
-    const years = [...new Set(sales.map(sale => {
+    const vendaOnly = sales.filter(s => s.tipo !== 'captacao');
+    const years = [...new Set(vendaOnly.map(sale => {
       const d = new Date(sale.sale_date || sale.created_at || '');
       return d.getFullYear();
     }))].filter(y => !isNaN(y)).sort((a, b) => b - a);
@@ -68,8 +69,13 @@ const Vendas = () => {
     { value: 11, label: 'Novembro' }, { value: 12, label: 'Dezembro' },
   ];
 
+  // Filter only 'venda' type sales for the Vendas tab
+  const vendaSales = useMemo(() => {
+    return sales.filter(sale => sale.tipo !== 'captacao');
+  }, [sales]);
+
   const periodFilteredSales = useMemo(() => {
-    return sales.filter(sale => {
+    return vendaSales.filter(sale => {
       const d = new Date(sale.sale_date || sale.created_at || '');
       if (isNaN(d.getTime())) return false;
       if (selectedYear > 0 && d.getFullYear() !== selectedYear) return false;
@@ -77,7 +83,7 @@ const Vendas = () => {
       if (statusFilter !== 'all' && sale.status !== statusFilter) return false;
       return true;
     });
-  }, [sales, selectedYear, selectedMonth, statusFilter]);
+  }, [vendaSales, selectedYear, selectedMonth, statusFilter]);
 
   const searchFilteredSales = useMemo(() => {
     if (!searchTerm.trim()) return periodFilteredSales;
@@ -155,6 +161,7 @@ const Vendas = () => {
                     onSubmit={async (data) => {
                       try {
                         const saleData = {
+                          tipo: data.tipo!,
                           client_name: data.client_name!,
                           property_address: data.property_address!,
                           property_type: data.property_type!,
@@ -212,6 +219,7 @@ const Vendas = () => {
                     sale={selectedSale}
                     title={selectedSale ? "Editar Venda" : "Nova Venda"}
                     defaultSaleType={defaultSaleType}
+                    defaultTipo={defaultSaleType === 'revenda' ? 'captacao' : 'venda'}
                   />
                 </DialogContent>
               </Dialog>

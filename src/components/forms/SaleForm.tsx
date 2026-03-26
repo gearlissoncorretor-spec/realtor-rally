@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
+  tipo: z.enum(['venda', 'captacao']),
   broker_id: z.string().min(1, 'Selecione um corretor'),
   client_name: z.string().min(2, 'Nome do cliente deve ter pelo menos 2 caracteres'),
   client_email: z.string().email('Email inválido').optional().or(z.literal('')),
@@ -61,6 +62,7 @@ interface SaleFormProps {
   sale?: Sale;
   title: string;
   defaultSaleType?: 'lancamento' | 'revenda';
+  defaultTipo?: 'venda' | 'captacao';
 }
 
 export const SaleForm: React.FC<SaleFormProps> = ({
@@ -70,12 +72,14 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   sale,
   title,
   defaultSaleType,
+  defaultTipo = 'venda',
 }) => {
   const { brokers } = useData();
 
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
+      tipo: defaultTipo,
       broker_id: undefined,
       client_name: '',
       client_email: '',
@@ -120,6 +124,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       if (sale) {
         // Editing existing sale - populate form with sale data
         form.reset({
+          tipo: (sale.tipo as 'venda' | 'captacao') || 'venda',
           broker_id: sale.broker_id || undefined,
           client_name: sale.client_name || '',
           client_email: sale.client_email || '',
@@ -151,6 +156,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       } else {
         // New sale - reset to default values
         form.reset({
+          tipo: defaultTipo,
           broker_id: undefined,
           client_name: '',
           client_email: '',
@@ -395,6 +401,29 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               />
             </div>
             
+            {/* Tipo: Venda ou Captação */}
+            <FormField
+              control={form.control}
+              name="tipo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "venda"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="venda">🟢 Venda</SelectItem>
+                      <SelectItem value="captacao">🔵 Captação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
