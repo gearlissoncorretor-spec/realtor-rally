@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/button'; // Wait, Card is in '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, Lightbulb, Brain, ChevronDown, ChevronUp, AlertCircle, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
