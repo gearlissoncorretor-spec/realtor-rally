@@ -1770,6 +1770,7 @@ export type Database = {
           notes: string | null
           origem: string | null
           pagos: number | null
+          parceria_tipo: string | null
           process_stage_id: string | null
           produto: string | null
           property_address: string
@@ -1782,6 +1783,7 @@ export type Database = {
           unidade: string | null
           updated_at: string | null
           vendedor: string | null
+          vendedor_nome: string | null
           vgc: number
           vgv: number
         }
@@ -1807,6 +1809,7 @@ export type Database = {
           notes?: string | null
           origem?: string | null
           pagos?: number | null
+          parceria_tipo?: string | null
           process_stage_id?: string | null
           produto?: string | null
           property_address: string
@@ -1819,6 +1822,7 @@ export type Database = {
           unidade?: string | null
           updated_at?: string | null
           vendedor?: string | null
+          vendedor_nome?: string | null
           vgc: number
           vgv: number
         }
@@ -1844,6 +1848,7 @@ export type Database = {
           notes?: string | null
           origem?: string | null
           pagos?: number | null
+          parceria_tipo?: string | null
           process_stage_id?: string | null
           produto?: string | null
           property_address?: string
@@ -1856,6 +1861,7 @@ export type Database = {
           unidade?: string | null
           updated_at?: string | null
           vendedor?: string | null
+          vendedor_nome?: string | null
           vgc?: number
           vgv?: number
         }
