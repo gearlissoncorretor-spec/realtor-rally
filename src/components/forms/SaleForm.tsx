@@ -131,6 +131,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           ano: sale.ano || new Date().getFullYear(),
           mes: sale.mes || new Date().getMonth() + 1,
           latitude: sale.latitude || '',
+          is_partnership: !!sale.is_partnership,
         });
       } else {
         // New sale - reset to default values
