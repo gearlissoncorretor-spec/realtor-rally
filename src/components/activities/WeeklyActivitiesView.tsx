@@ -176,7 +176,7 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
     <div className="space-y-6">
       {/* Week Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 rounded-xl p-2 shadow-lg">
+        <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
           <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30">
             <ChevronLeft className="w-5 h-5" />
           </Button>
