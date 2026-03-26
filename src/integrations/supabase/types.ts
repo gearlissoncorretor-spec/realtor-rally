@@ -1760,6 +1760,7 @@ export type Database = {
           sale_date: string | null
           sale_type: string | null
           status: Database["public"]["Enums"]["sale_status"] | null
+          tipo: string
           updated_at: string | null
           vendedor: string | null
           vgc: number
@@ -1792,6 +1793,7 @@ export type Database = {
           sale_date?: string | null
           sale_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
+          tipo?: string
           updated_at?: string | null
           vendedor?: string | null
           vgc: number
@@ -1824,6 +1826,7 @@ export type Database = {
           sale_date?: string | null
           sale_type?: string | null
           status?: Database["public"]["Enums"]["sale_status"] | null
+          tipo?: string
           updated_at?: string | null
           vendedor?: string | null
           vgc?: number
