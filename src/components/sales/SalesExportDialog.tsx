@@ -440,7 +440,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
             ) : (
               <Card className="p-4 bg-muted/20 border-border/50">
                 <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <CheckCircle2 className="w-4 h-4 text-success" />
                   <span>Todas as <strong>{filteredSales.length}</strong> vendas filtradas serão exportadas.</span>
                 </div>
               </Card>
@@ -514,7 +514,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGV Total</p>
                 </div>
                 <div className="text-center p-2 rounded-lg bg-background/60">
-                  <p className="text-sm font-bold text-emerald-600">{formatCurrency(summary.totalVGC)}</p>
+                  <p className="text-sm font-bold text-success">{formatCurrency(summary.totalVGC)}</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">VGC Total</p>
                 </div>
                 <div className="text-center p-2 rounded-lg bg-background/60">
@@ -535,7 +535,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button onClick={exportExcel} disabled={isExporting || salesToExport.length === 0} className="h-14 gap-3 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button onClick={exportExcel} disabled={isExporting || salesToExport.length === 0} className="h-14 gap-3 bg-success hover:bg-success/90 text-success-foreground">
                 {isExporting ? <Loader2 className="w-5 h-5 animate-spin" /> : exportSuccess ? <CheckCircle2 className="w-5 h-5" /> : <FileSpreadsheet className="w-5 h-5" />}
                 <div className="text-left">
                   <p className="font-semibold text-sm">Exportar Excel</p>
@@ -543,7 +543,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
                 </div>
               </Button>
 
-              <Button onClick={exportPDF} disabled={isExporting || salesToExport.length === 0} className="h-14 gap-3 bg-red-600 hover:bg-red-700 text-white">
+              <Button onClick={exportPDF} disabled={isExporting || salesToExport.length === 0} className="h-14 gap-3 bg-destructive hover:bg-destructive/90 text-destructive-foreground">
                 {isExporting ? <Loader2 className="w-5 h-5 animate-spin" /> : exportSuccess ? <CheckCircle2 className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                 <div className="text-left">
                   <p className="font-semibold text-sm">Exportar PDF</p>
