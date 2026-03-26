@@ -163,6 +163,8 @@ const Vendas = () => {
                           estilo: data.estilo!,
                           produto: data.produto!,
                           captador: data.captador!,
+                          vendedor_nome: data.vendedor_nome || null,
+                          parceria_tipo: data.parceria_tipo || null,
                           gerente: data.gerente!,
                           latitude: data.latitude!,
                           sale_type: data.sale_type!,
