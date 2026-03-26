@@ -100,7 +100,7 @@ export const SalesTableRow = ({ sale, broker, onView, onEdit, onDelete }: SalesT
       {/* Corretor */}
       <td className="p-4">
         <div className="font-medium text-foreground">
-          {broker?.name || sale.vendedor || 'Sem corretor'}
+          {broker?.name || sale.vendedor_nome || sale.vendedor || 'Sem corretor'}
         </div>
       </td>
       

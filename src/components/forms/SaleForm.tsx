@@ -33,6 +33,8 @@ const saleSchema = z.object({
   produto: z.string().min(1, 'Produto é obrigatório'),
   captador: z.string().optional().default(''),
   vendedor_nome: z.string().optional().default(''),
+  vendedor_telefone: z.string().optional().default(''),
+  vendedor_creci: z.string().optional().default(''),
   parceria_tipo: z.enum(['Agência', 'Mercado']).optional(),
   gerente: z.string().min(1, 'Gerente é obrigatório'),
   pagos: z.number().min(0, 'Pagos deve ser maior ou igual a 0'),
@@ -91,6 +93,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       produto: '',
       captador: '',
       vendedor_nome: '',
+      vendedor_telefone: '',
+      vendedor_creci: '',
       parceria_tipo: undefined,
       gerente: '',
       pagos: 0,
@@ -134,6 +138,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           produto: sale.produto || '',
           captador: sale.captador || '',
           vendedor_nome: sale.vendedor_nome || '',
+          vendedor_telefone: sale.vendedor_telefone || '',
+          vendedor_creci: sale.vendedor_creci || '',
           parceria_tipo: (sale.parceria_tipo as 'Agência' | 'Mercado') || undefined,
           gerente: sale.gerente || '',
           pagos: Number(sale.pagos) || 0,
@@ -163,6 +169,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           produto: '',
           captador: '',
           vendedor_nome: '',
+          vendedor_telefone: '',
+          vendedor_creci: '',
           parceria_tipo: undefined,
           gerente: '',
           pagos: 0,
@@ -560,6 +568,34 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                         <FormLabel>Vendedor na Captação</FormLabel>
                         <FormControl>
                           <Input placeholder="Nome de quem vendeu" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="vendedor_telefone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone do Vendedor</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(00) 00000-0000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vendedor_creci"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CRECI do Vendedor</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Número do CRECI" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
