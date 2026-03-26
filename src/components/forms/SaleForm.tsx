@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
+  tipo: z.enum(['venda', 'captacao']),
   broker_id: z.string().min(1, 'Selecione um corretor'),
   client_name: z.string().min(2, 'Nome do cliente deve ter pelo menos 2 caracteres'),
   client_email: z.string().email('Email inválido').optional().or(z.literal('')),
@@ -61,6 +62,7 @@ interface SaleFormProps {
   sale?: Sale;
   title: string;
   defaultSaleType?: 'lancamento' | 'revenda';
+  defaultTipo?: 'venda' | 'captacao';
 }
 
 export const SaleForm: React.FC<SaleFormProps> = ({
@@ -70,6 +72,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   sale,
   title,
   defaultSaleType,
+  defaultTipo = 'venda',
 }) => {
   const { brokers } = useData();
 
