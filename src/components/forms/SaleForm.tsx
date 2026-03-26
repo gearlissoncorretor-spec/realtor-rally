@@ -573,6 +573,34 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                       </FormItem>
                     )}
                   />
+                  
+                  <FormField
+                    control={form.control}
+                    name="vendedor_telefone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone do Vendedor</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(00) 00000-0000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vendedor_creci"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CRECI do Vendedor</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Número do CRECI" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
                     name="parceria_tipo"
