@@ -35,7 +35,7 @@ const AVAILABLE_SCREENS = [
   { id: 'metas', label: 'Metas', description: 'Gestão de metas' },
   { id: 'meta-gestao', label: 'Metas Gestão', description: 'Dashboard estratégico de metas' },
   { id: 'atividades', label: 'Atividades', description: 'Atividades dos corretores' },
-  { id: 'tarefas-kanban', label: 'Tarefas Kanban', description: 'Gestão de tarefas' },
+  
   { id: 'equipes', label: 'Equipes', description: 'Gestão de equipes' },
   { id: 'dashboard-equipes', label: 'Dashboard Equipes', description: 'Dashboard por equipes' },
   { id: 'corretores', label: 'Corretores', description: 'Cadastro de corretores' },

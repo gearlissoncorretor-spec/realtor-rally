@@ -32,7 +32,7 @@ const AVAILABLE_SCREENS = [
   { id: 'equipes', label: 'Equipes', icon: Users },
   { id: 'ranking', label: 'Ranking', icon: TrendingUp },
   { id: 'acompanhamento', label: 'Acompanhamento', icon: Eye },
-  { id: 'tarefas-kanban', label: 'Tarefas Kanban', icon: BarChart },
+  
   { id: 'x1', label: 'X1', icon: TrendingUp },
   { id: 'dashboard-equipes', label: 'Dashboard Equipes', icon: BarChart },
   { id: 'agenda', label: 'Agenda', icon: Eye },
@@ -43,9 +43,9 @@ const AVAILABLE_SCREENS = [
 ];
 
 const DEFAULT_PERMISSIONS: Record<string, string[]> = {
-  diretor: ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'dashboard-equipes', 'relatorios', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
-  gerente: ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'tarefas-kanban', 'x1', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
-  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes', 'agenda', 'comissoes']
+  diretor: ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'x1', 'dashboard-equipes', 'relatorios', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
+  gerente: ['dashboard', 'central-gestor', 'vendas', 'negociacoes', 'follow-up', 'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes', 'ranking', 'acompanhamento', 'x1', 'configuracoes', 'agenda', 'comissoes', 'gestao-usuarios'],
+  corretor: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'configuracoes', 'agenda', 'comissoes']
 };
 
 const createUserSchema = z.object({
