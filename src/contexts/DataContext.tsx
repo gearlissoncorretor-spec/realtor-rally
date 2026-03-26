@@ -423,6 +423,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             property_value: data?.property_value,
             vgv: data?.vgv,
             sale_date: data?.sale_date,
+            is_partnership: data?.is_partnership ? 'Sim' : 'Não',
           },
         }).catch(console.error);
       });
