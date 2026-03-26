@@ -79,6 +79,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
+      tipo: defaultTipo,
       broker_id: undefined,
       client_name: '',
       client_email: '',
