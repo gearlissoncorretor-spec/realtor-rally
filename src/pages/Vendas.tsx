@@ -44,6 +44,7 @@ const Vendas = () => {
     saleId: string; brokerId: string; brokerName: string; clientName: string;
     propertyValue: number; vgc: number; commissionRate: number;
   } | null>(null);
+  const [defaultSaleType, setDefaultSaleType] = useState<'lancamento' | 'revenda'>('lancamento');
   
   const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
@@ -140,7 +141,7 @@ const Vendas = () => {
                 <DialogTrigger asChild>
                   <Button className="gap-2 shadow-sm" size="default">
                     <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Nova Venda</span>
+                    <span className="hidden sm:inline" onClick={() => setDefaultSaleType('lancamento')}>Nova Venda</span>
                     <span className="sm:hidden">Nova</span>
                   </Button>
                 </DialogTrigger>
@@ -210,6 +211,7 @@ const Vendas = () => {
                     }}
                     sale={selectedSale}
                     title={selectedSale ? "Editar Venda" : "Nova Venda"}
+                    defaultSaleType={defaultSaleType}
                   />
                 </DialogContent>
               </Dialog>
@@ -447,6 +449,7 @@ const Vendas = () => {
                 loading={loading} 
                 onRegisterSale={() => {
                   setSelectedSale(null);
+                  setDefaultSaleType('revenda');
                   setIsFormOpen(true);
                 }}
               />

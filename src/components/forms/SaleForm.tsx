@@ -58,6 +58,7 @@ interface SaleFormProps {
   onSubmit: (data: SaleFormData) => Promise<void>;
   sale?: Sale;
   title: string;
+  defaultSaleType?: 'lancamento' | 'revenda';
 }
 
 export const SaleForm: React.FC<SaleFormProps> = ({
@@ -66,6 +67,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   onSubmit,
   sale,
   title,
+  defaultSaleType,
 }) => {
   const { brokers } = useData();
 
@@ -82,7 +84,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       vgc: 0,
       status: 'pendente',
       notes: '',
-      sale_type: 'lancamento',
+      sale_type: defaultSaleType || 'lancamento',
       sale_date: new Date().toISOString().split('T')[0],
       origem: '',
       estilo: '',
@@ -154,7 +156,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           vgc: 0,
           status: 'pendente',
           notes: '',
-          sale_type: 'lancamento',
+          sale_type: defaultSaleType || 'lancamento',
           sale_date: new Date().toISOString().split('T')[0],
           origem: '',
           estilo: '',
