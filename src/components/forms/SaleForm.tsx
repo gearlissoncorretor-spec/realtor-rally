@@ -418,6 +418,29 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                   </FormItem>
                 )}
               />
+              
+              <FormField
+                control={form.control}
+                name="is_partnership"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Venda em Parceria
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Marque se esta venda foi realizada em parceria com outra imobiliária/corretor.
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
