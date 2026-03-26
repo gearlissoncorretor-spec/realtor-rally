@@ -161,6 +161,7 @@ const Vendas = () => {
                     onSubmit={async (data) => {
                       try {
                         const saleData = {
+                          tipo: data.tipo!,
                           client_name: data.client_name!,
                           property_address: data.property_address!,
                           property_type: data.property_type!,
