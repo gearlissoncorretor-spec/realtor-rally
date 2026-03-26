@@ -124,6 +124,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       if (sale) {
         // Editing existing sale - populate form with sale data
         form.reset({
+          tipo: (sale.tipo as 'venda' | 'captacao') || 'venda',
           broker_id: sale.broker_id || undefined,
           client_name: sale.client_name || '',
           client_email: sale.client_email || '',
@@ -155,6 +156,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       } else {
         // New sale - reset to default values
         form.reset({
+          tipo: defaultTipo,
           broker_id: undefined,
           client_name: '',
           client_email: '',
