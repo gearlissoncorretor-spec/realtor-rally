@@ -133,8 +133,8 @@ serve(async (req) => {
     }
 
     // Set default allowed_screens if not provided
-    const gerenteScreens = ['dashboard', 'central-gestor', 'vendas', 'corretores', 'equipes', 'ranking', 'metas', 'acompanhamento', 'relatorios', 'x1', 'dashboard-equipes', 'tarefas-kanban', 'atividades', 'negociacoes', 'follow-up', 'meta-gestao', 'configuracoes', 'agenda', 'comissoes', 'instalar']
-    const corretorScreens = ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'tarefas-kanban', 'configuracoes']
+    const gerenteScreens = ['dashboard', 'central-gestor', 'vendas', 'corretores', 'equipes', 'ranking', 'metas', 'acompanhamento', 'relatorios', 'x1', 'dashboard-equipes', 'atividades', 'negociacoes', 'follow-up', 'meta-gestao', 'configuracoes', 'agenda', 'comissoes', 'instalar']
+    const corretorScreens = ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'configuracoes']
     const finalAllowedScreens = allowed_screens || (role === 'corretor' ? corretorScreens : role === 'gerente' ? gerenteScreens : ['dashboard'])
 
     // Validate manager has team

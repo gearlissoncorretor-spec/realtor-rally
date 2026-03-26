@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
         allowed_screens: [
           "dashboard", "vendas", "corretores", "ranking", "acompanhamento",
           "relatorios", "configuracoes", "equipes", "metas", "central-gestor",
-          "tarefas-kanban", "atividades", "negociacoes", "follow-up",
+          "atividades", "negociacoes", "follow-up",
           "meta-gestao", "agenda", "instalar", "gestao-usuarios", "comissoes",
           "dashboard-equipes", "x1",
         ],
