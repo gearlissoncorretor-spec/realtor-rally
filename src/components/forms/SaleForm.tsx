@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
