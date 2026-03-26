@@ -357,7 +357,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Vendedor</p>
-                        <p className="truncate font-medium">{sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</p>
+                        <p className="truncate font-medium">{sale.vendedor_nome || sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</p>
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">VGV</p>
@@ -392,7 +392,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
                       <td className="p-3 text-sm text-foreground max-w-[200px] truncate">{sale.property_address}</td>
                       <td className="p-3 text-sm text-foreground max-w-[150px] truncate">{sale.client_name}</td>
                       <td className="p-3 text-sm font-medium text-primary">{sale.captador || '-'}</td>
-                      <td className="p-3 text-sm text-foreground">{sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</td>
+                      <td className="p-3 text-sm text-foreground">{sale.vendedor_nome || sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</td>
                       <td className="p-3 text-sm font-bold text-foreground">{formatCurrency(Number(sale.vgv || sale.property_value || 0))}</td>
                       <td className="p-3 text-sm text-muted-foreground">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</td>
                     </tr>
