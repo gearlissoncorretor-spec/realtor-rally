@@ -441,7 +441,15 @@ const Vendas = () => {
             </TabsContent>
 
             <TabsContent value="captacao" className="mt-4">
-              <CaptacaoTab sales={sales} brokers={brokers} loading={loading} />
+              <CaptacaoTab 
+                sales={sales} 
+                brokers={brokers} 
+                loading={loading} 
+                onRegisterSale={() => {
+                  setSelectedSale(null);
+                  setIsFormOpen(true);
+                }}
+              />
             </TabsContent>
           </Tabs>
         </div>
