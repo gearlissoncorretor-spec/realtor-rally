@@ -10,6 +10,7 @@ export interface OrganizationSettings {
   logo_icon_url: string | null;
   primary_color: string;
   secondary_color: string | null;
+  support_phone: string | null;
   spotlight_broker_id: string | null;
   company_id: string | null;
   created_at: string | null;

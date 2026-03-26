@@ -73,7 +73,8 @@ const BrandingSettings = () => {
       logo_icon_url: formData.logo_icon_url || null,
       support_phone: formData.support_phone || null,
       primary_color: formData.primary_color,
-    } as any);
+      secondary_color: formData.secondary_color,
+    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
