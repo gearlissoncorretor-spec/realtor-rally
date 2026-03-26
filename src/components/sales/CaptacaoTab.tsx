@@ -33,10 +33,10 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
     { value: 11, label: 'Novembro' }, { value: 12, label: 'Dezembro' },
   ];
 
-  // Filter only sales that have a captador set
+  // Filter only sales with tipo='captacao'
   const captacaoSales = useMemo(() => {
     return sales.filter(sale => {
-      if (!sale.captador || sale.captador.trim() === '') return false;
+      if (sale.tipo !== 'captacao') return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       
       const d = new Date(sale.sale_date || sale.created_at || '');
@@ -101,7 +101,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
 
     // Use captacaoSales (already year-filtered, but ignore month filter for the chart)
     const yearFilteredSales = sales.filter(sale => {
-      if (!sale.captador || sale.captador.trim() === '') return false;
+      if (sale.tipo !== 'captacao') return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       const d = new Date(sale.sale_date || sale.created_at || '');
       if (isNaN(d.getTime())) return false;
