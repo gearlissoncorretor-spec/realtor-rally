@@ -112,6 +112,7 @@ const DiretorDashboard = () => {
   // ─── Filtered sales ───
   const filteredSales = useMemo(() => {
     return (sales || []).filter(sale => {
+      if (sale.tipo === 'captacao') return false;
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
@@ -138,6 +139,7 @@ const DiretorDashboard = () => {
     if (prevMonth === 0) { prevMonth = 12; prevYear--; }
 
     return (sales || []).filter(sale => {
+      if (sale.tipo === 'captacao') return false;
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
