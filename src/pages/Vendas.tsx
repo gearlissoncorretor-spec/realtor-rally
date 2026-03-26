@@ -219,6 +219,7 @@ const Vendas = () => {
                     sale={selectedSale}
                     title={selectedSale ? "Editar Venda" : "Nova Venda"}
                     defaultSaleType={defaultSaleType}
+                    defaultTipo={defaultSaleType === 'revenda' ? 'captacao' : 'venda'}
                   />
                 </DialogContent>
               </Dialog>
