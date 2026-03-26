@@ -1783,7 +1783,9 @@ export type Database = {
           unidade: string | null
           updated_at: string | null
           vendedor: string | null
+          vendedor_creci: string | null
           vendedor_nome: string | null
+          vendedor_telefone: string | null
           vgc: number
           vgv: number
         }
@@ -1822,7 +1824,9 @@ export type Database = {
           unidade?: string | null
           updated_at?: string | null
           vendedor?: string | null
+          vendedor_creci?: string | null
           vendedor_nome?: string | null
+          vendedor_telefone?: string | null
           vgc: number
           vgv: number
         }
@@ -1861,7 +1865,9 @@ export type Database = {
           unidade?: string | null
           updated_at?: string | null
           vendedor?: string | null
+          vendedor_creci?: string | null
           vendedor_nome?: string | null
+          vendedor_telefone?: string | null
           vgc?: number
           vgv?: number
         }
