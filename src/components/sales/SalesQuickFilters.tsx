@@ -45,6 +45,13 @@ export const SalesQuickFilters = ({
       filterValue: 'cancelada',
       variant: 'destructive',
     },
+    { 
+      id: 'is_partnership-true', 
+      label: 'Parcerias', 
+      filterKey: 'is_partnership', 
+      filterValue: 'true',
+      variant: 'default',
+    },
   ];
 
   const isFilterActive = (filter: QuickFilter) => {

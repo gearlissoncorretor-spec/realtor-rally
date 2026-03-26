@@ -148,6 +148,9 @@ const SaleDetailsDialog: React.FC<SaleDetailsDialogProps> = ({
               <div>
                 <span className="font-semibold">Gerente:</span> {sale.gerente || 'Não informado'}
               </div>
+              <div>
+                <span className="font-semibold">Parceria:</span> {sale.is_partnership ? 'Sim' : 'Não'}
+              </div>
             </CardContent>
           </Card>
 

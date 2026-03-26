@@ -135,6 +135,14 @@ export const SalesTableRow = ({ sale, broker, onView, onEdit, onDelete }: SalesT
             )}
           </Tooltip>
         </TooltipProvider>
+        
+        {sale.is_partnership && (
+          <div className="mt-1">
+            <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[10px] h-5">
+              Parceria
+            </Badge>
+          </div>
+        )}
       </td>
       
       {/* Data */}

@@ -1763,6 +1763,7 @@ export type Database = {
           estilo: string | null
           gerente: string | null
           id: string
+          is_partnership: boolean | null
           latitude: string | null
           longitude: string | null
           mes: number | null
@@ -1799,6 +1800,7 @@ export type Database = {
           estilo?: string | null
           gerente?: string | null
           id?: string
+          is_partnership?: boolean | null
           latitude?: string | null
           longitude?: string | null
           mes?: number | null
@@ -1835,6 +1837,7 @@ export type Database = {
           estilo?: string | null
           gerente?: string | null
           id?: string
+          is_partnership?: boolean | null
           latitude?: string | null
           longitude?: string | null
           mes?: number | null

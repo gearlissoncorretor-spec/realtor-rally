@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
@@ -36,6 +37,7 @@ const saleSchema = z.object({
   ano: z.number().min(2020, 'Ano deve ser válido').max(new Date().getFullYear() + 1),
   mes: z.number().min(1, 'Mês deve ser entre 1 e 12').max(12),
   latitude: z.string().min(1, 'Latitude é obrigatória'),
+  is_partnership: z.boolean().optional().default(false),
 }).superRefine((data, ctx) => {
   if (data.sale_type === 'revenda' && (!data.captador || data.captador.trim() === '')) {
     ctx.addIssue({
@@ -89,6 +91,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       ano: new Date().getFullYear(),
       mes: new Date().getMonth() + 1,
       latitude: '',
+      is_partnership: false,
     },
   });
 
@@ -129,6 +132,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           ano: sale.ano || new Date().getFullYear(),
           mes: sale.mes || new Date().getMonth() + 1,
           latitude: sale.latitude || '',
+          is_partnership: !!sale.is_partnership,
         });
       } else {
         // New sale - reset to default values
@@ -155,6 +159,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           ano: new Date().getFullYear(),
           mes: new Date().getMonth() + 1,
           latitude: '',
+          is_partnership: false,
         });
       }
     }
@@ -410,6 +415,29 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="is_partnership"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Venda em Parceria
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Marque se esta venda foi realizada em parceria com outra imobiliária/corretor.
+                      </p>
+                    </div>
                   </FormItem>
                 )}
               />
