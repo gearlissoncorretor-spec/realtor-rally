@@ -59,7 +59,7 @@ export const InlineActivityForm: React.FC<InlineActivityFormProps> = ({ onCreate
   };
 
   return (
-    <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-2 border-emerald-500 shadow-xl animate-in zoom-in-95 duration-200">
+    <Card className="bg-card/90 backdrop-blur-sm border-2 border-primary shadow-xl animate-in zoom-in-95 duration-200">
       <CardContent className="p-3 sm:p-4">
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="flex items-center gap-2">

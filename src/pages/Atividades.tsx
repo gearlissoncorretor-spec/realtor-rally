@@ -312,10 +312,10 @@ const Atividades = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-emerald-950/20">
+    <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
+      <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 animate-fade-in">
         <div className="space-y-6">
           {/* Header with Week Selector */}
            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -327,7 +327,7 @@ const Atividades = () => {
             </div>
             
             {/* Week Selector */}
-            <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 rounded-xl p-2 shadow-lg">
+            <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
               <Button
                 variant="ghost"
                 size="icon"
@@ -369,7 +369,7 @@ const Atividades = () => {
           {accessibleBrokers.length > 0 ? (
             <Tabs value={selectedBrokerId} onValueChange={setSelectedBrokerId} className="w-full">
               <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
-                <TabsList className="inline-flex h-12 sm:h-14 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 shadow-lg rounded-xl p-1.5 gap-1 min-w-max">
+                <TabsList className="inline-flex h-12 sm:h-14 bg-card/80 backdrop-blur-sm border border-border shadow-lg rounded-xl p-1.5 gap-1 min-w-max">
                   {accessibleBrokers.map((broker) => (
                     <TabsTrigger
                       key={broker.id}
@@ -405,7 +405,7 @@ const Atividades = () => {
                         return (
                           <Card 
                             key={task.id} 
-                            className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+                            className="bg-card/80 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
                           >
                             <CardContent className="p-3 sm:p-4">
                               <div className="flex items-start gap-2 sm:gap-3">
@@ -444,7 +444,7 @@ const Atividades = () => {
                       ) : (
                         <Card 
                           onClick={() => setIsAddingTask(true)}
-                          className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-2 border-dashed border-emerald-300/50 dark:border-emerald-800/50 shadow-sm hover:shadow-md hover:border-emerald-500/50 transition-all hover:scale-[1.02] cursor-pointer flex flex-col items-center justify-center p-4 min-h-[100px] group"
+                          className="bg-card/40 backdrop-blur-sm border-2 border-dashed border-primary/30 shadow-sm hover:shadow-md hover:border-primary/50 transition-all hover:scale-[1.02] cursor-pointer flex flex-col items-center justify-center p-4 min-h-[100px] group"
                         >
                           <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-2 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                             <Plus className="w-6 h-6 text-emerald-600 group-hover:text-white" />
@@ -458,7 +458,7 @@ const Atividades = () => {
                   )}
 
                   {/* Weekly Tasks Table */}
-                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg">
+                  <Card className="bg-card/80 backdrop-blur-sm border-border/50 shadow-lg">
                     <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <CardTitle className="text-lg sm:text-xl font-semibold text-foreground flex items-center gap-2">
                         <ClipboardList className="w-5 h-5 text-emerald-600" />

@@ -176,7 +176,7 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
     <div className="space-y-6">
       {/* Week Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 rounded-xl p-2 shadow-lg">
+        <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
           <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30">
             <ChevronLeft className="w-5 h-5" />
           </Button>
@@ -205,7 +205,7 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
       {accessibleBrokers.length > 0 ? (
         <Tabs value={selectedBrokerId} onValueChange={setSelectedBrokerId} className="w-full">
           <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex h-12 sm:h-14 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-emerald-200 dark:border-emerald-800 shadow-lg rounded-xl p-1.5 gap-1 min-w-max">
+            <TabsList className="inline-flex h-12 sm:h-14 bg-card/80 backdrop-blur-sm border border-border shadow-lg rounded-xl p-1.5 gap-1 min-w-max">
               {accessibleBrokers.map((broker) => (
                 <TabsTrigger key={broker.id} value={broker.id}
                   className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium rounded-lg transition-all duration-200 data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-emerald-100 dark:data-[state=inactive]:hover:bg-emerald-900/30 whitespace-nowrap"
@@ -225,7 +225,7 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
                     const progress = getProgress(task.meta_semanal, task.realizado);
                     const progressColor = progress >= 100 ? 'text-emerald-600' : progress >= 50 ? 'text-yellow-600' : 'text-red-500';
                     return (
-                      <Card key={task.id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-emerald-200/50 dark:border-emerald-800/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]">
+                      <Card key={task.id} className="bg-card/80 backdrop-blur-sm border-border/50 shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]">
                         <CardContent className="p-3 sm:p-4">
                           <div className="flex items-start gap-2 sm:gap-3">
                             <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl shrink-0">{getIcon(task.category)}</div>
@@ -254,7 +254,7 @@ const WeeklyActivitiesView: React.FC<WeeklyActivitiesViewProps> = ({ brokers }) 
                   ) : (
                     <Card 
                       onClick={() => setIsAddingTask(true)}
-                      className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm border-2 border-dashed border-emerald-300/50 dark:border-emerald-800/50 shadow-sm hover:shadow-md hover:border-emerald-500/50 transition-all hover:scale-[1.02] cursor-pointer flex flex-col items-center justify-center p-4 min-h-[100px] group"
+                      className="bg-card/40 backdrop-blur-sm border-2 border-dashed border-primary/30 shadow-sm hover:shadow-md hover:border-primary/50 transition-all hover:scale-[1.02] cursor-pointer flex flex-col items-center justify-center p-4 min-h-[100px] group"
                     >
                       <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-2 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                         <Plus className="w-6 h-6 text-emerald-600 group-hover:text-white" />
