@@ -32,13 +32,15 @@ const saleSchema = z.object({
   estilo: z.string().min(1, 'Estilo é obrigatório'),
   produto: z.string().min(1, 'Produto é obrigatório'),
   captador: z.string().optional().default(''),
+  vendedor_nome: z.string().optional().default(''),
+  parceria_tipo: z.enum(['Agência', 'Mercado']).optional(),
   gerente: z.string().min(1, 'Gerente é obrigatório'),
   pagos: z.number().min(0, 'Pagos deve ser maior ou igual a 0'),
   ano: z.number().min(2020, 'Ano deve ser válido').max(new Date().getFullYear() + 1),
   mes: z.number().min(1, 'Mês deve ser entre 1 e 12').max(12),
   latitude: z.string().min(1, 'Latitude é obrigatória'),
   is_partnership: z.boolean().optional().default(false),
-}).superRefine((data, ctx) => {
+})
   if (data.sale_type === 'revenda' && (!data.captador || data.captador.trim() === '')) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -86,6 +88,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       estilo: '',
       produto: '',
       captador: '',
+      vendedor_nome: '',
+      parceria_tipo: undefined,
       gerente: '',
       pagos: 0,
       ano: new Date().getFullYear(),
@@ -127,6 +131,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           estilo: sale.estilo || '',
           produto: sale.produto || '',
           captador: sale.captador || '',
+          vendedor_nome: sale.vendedor_nome || '',
+          parceria_tipo: (sale.parceria_tipo as 'Agência' | 'Mercado') || undefined,
           gerente: sale.gerente || '',
           pagos: Number(sale.pagos) || 0,
           ano: sale.ano || new Date().getFullYear(),
@@ -154,6 +160,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           estilo: '',
           produto: '',
           captador: '',
+          vendedor_nome: '',
+          parceria_tipo: undefined,
           gerente: '',
           pagos: 0,
           ano: new Date().getFullYear(),
@@ -528,19 +536,55 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 
             <div className={`grid ${watchSaleType === 'lancamento' ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
               {watchSaleType !== 'lancamento' && (
-                <FormField
-                  control={form.control}
-                  name="captador"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Captador *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Nome do captador" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <>
+                  <FormField
+                    control={form.control}
+                    name="captador"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Captador *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome do captador" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="vendedor_nome"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vendedor na Captação</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome de quem vendeu" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="parceria_tipo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Parceria</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Agência">Agência</SelectItem>
+                            <SelectItem value="Mercado">Mercado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
               
               <FormField
