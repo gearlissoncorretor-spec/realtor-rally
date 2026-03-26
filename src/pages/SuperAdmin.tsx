@@ -357,7 +357,7 @@ const SuperAdmin = () => {
               </div>
               <Button onClick={() => { resetWizard(); setWizardOpen(true); }}>
                 <Plus className="w-4 h-4 mr-2" />
-                Nova Venda
+                Nova Empresa
               </Button>
             </div>
           </CardHeader>
