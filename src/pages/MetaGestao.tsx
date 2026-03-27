@@ -68,7 +68,7 @@ const useManagementGoals = (year: number, teamFilter?: string | null) => {
 
     return sales.filter((sale) => {
       const saleDate = new Date(sale.sale_date || sale.created_at || '');
-      const inYear = saleDate >= yearStart && saleDate <= yearEnd && sale.status === 'confirmada';
+      const inYear = saleDate >= yearStart && saleDate <= yearEnd && sale.status === 'confirmada' && sale.tipo !== 'captacao';
       if (!inYear) return false;
       if (filteredBrokerIds && sale.broker_id) return filteredBrokerIds.includes(sale.broker_id);
       return !filteredBrokerIds;

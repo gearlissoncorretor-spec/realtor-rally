@@ -328,7 +328,7 @@ const DiretorDashboard = () => {
 
     return monthNames.map((name, i) => {
       const monthSales = (sales || []).filter(sale => {
-        if (sale.status === 'distrato') return false;
+        if (sale.tipo === 'captacao' || sale.status === 'distrato') return false;
         const rawDate = sale.sale_date || sale.created_at;
         if (!rawDate) return false;
         const d = new Date(rawDate);

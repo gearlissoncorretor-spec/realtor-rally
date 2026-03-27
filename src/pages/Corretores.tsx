@@ -413,7 +413,7 @@ const Corretores = () => {
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
-    const brokerSales = sales.filter(sale => sale.broker_id === brokerId);
+    const brokerSales = sales.filter(sale => sale.broker_id === brokerId && sale.tipo !== 'captacao');
     const confirmedSales = brokerSales.filter(sale => {
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       const d = new Date(sale.sale_date || sale.created_at || '');
@@ -424,7 +424,7 @@ const Corretores = () => {
   }, [sales]);
 
   const getAllTimeBrokerStats = useCallback((brokerId: string) => {
-    const brokerSales = sales.filter(sale => sale.broker_id === brokerId);
+    const brokerSales = sales.filter(sale => sale.broker_id === brokerId && sale.tipo !== 'captacao');
     const confirmedSales = brokerSales.filter(sale => sale.status !== 'cancelada' && sale.status !== 'distrato');
     const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
     return { salesCount: confirmedSales.length, totalRevenue };
@@ -435,7 +435,6 @@ const Corretores = () => {
     return Math.min((revenue / Number(broker.meta_monthly)) * 100, 100);
   }, []);
 
-  // Ranking by revenue
   const brokerRanks = useMemo(() => {
     const ranked = brokers
       .filter(b => b.status === 'ativo')
@@ -446,7 +445,6 @@ const Corretores = () => {
     return map;
   }, [brokers, getBrokerStats]);
 
-  // Current month stats for performance filters
   const currentMonthStats = useMemo(() => {
     const now = new Date();
     const month = now.getMonth() + 1;
@@ -455,6 +453,7 @@ const Corretores = () => {
     brokers.forEach(b => {
       const bSales = sales.filter(s => 
         s.broker_id === b.id && 
+        s.tipo !== 'captacao' &&
         s.status !== 'cancelada' && s.status !== 'distrato'
       );
       const monthly = bSales.filter(s => {

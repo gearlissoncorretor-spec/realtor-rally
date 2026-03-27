@@ -407,31 +407,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
+      const isCaptacao = data?.tipo === 'captacao';
       toast({
-        title: "Venda criada",
-        description: "Venda adicionada com sucesso.",
+        title: isCaptacao ? "Captação criada" : "Venda criada",
+        description: isCaptacao ? "Captação adicionada com sucesso." : "Venda adicionada com sucesso.",
       });
-      // Send Slack notification (fire and forget)
-      import('@/hooks/useSlackNotify').then(({ sendSlackNotification }) => {
-        sendSlackNotification({
-          event_type: 'nova_venda',
-          data: {
-            broker_name: data?.broker?.name || 'N/A',
-            client_name: data?.client_name,
-            property_address: data?.property_address,
-            property_type: data?.property_type,
-            property_value: data?.property_value,
-            vgv: data?.vgv,
-            sale_date: data?.sale_date,
-            is_partnership: data?.is_partnership ? 'Sim' : 'Não',
-          },
-        }).catch(console.error);
-      });
+
+      if (!isCaptacao) {
+        import('@/hooks/useSlackNotify').then(({ sendSlackNotification }) => {
+          sendSlackNotification({
+            event_type: 'nova_venda',
+            data: {
+              broker_name: data?.broker?.name || 'N/A',
+              client_name: data?.client_name,
+              property_address: data?.property_address,
+              property_type: data?.property_type,
+              property_value: data?.property_value,
+              vgv: data?.vgv,
+              sale_date: data?.sale_date,
+              is_partnership: data?.is_partnership ? 'Sim' : 'Não',
+            },
+          }).catch(console.error);
+        });
+      }
     },
     onError: () => {
       toast({
-        title: "Erro ao criar venda",
-        description: "Não foi possível criar a venda.",
+        title: "Erro ao criar registro",
+        description: "Não foi possível salvar o registro.",
         variant: "destructive",
       });
     },
@@ -452,17 +455,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
+      const isCaptacao = data?.tipo === 'captacao';
       toast({
-        title: "Venda atualizada",
-        description: "Dados da venda atualizados com sucesso.",
+        title: isCaptacao ? "Captação atualizada" : "Venda atualizada",
+        description: isCaptacao ? "Dados da captação atualizados com sucesso." : "Dados da venda atualizados com sucesso.",
       });
     },
     onError: () => {
       toast({
-        title: "Erro ao atualizar venda",
-        description: "Não foi possível atualizar a venda.",
+        title: "Erro ao atualizar registro",
+        description: "Não foi possível atualizar o registro.",
         variant: "destructive",
       });
     },
