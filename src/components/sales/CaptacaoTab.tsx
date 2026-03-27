@@ -419,6 +419,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vendedor</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">VGV</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
+                    <th className="text-right p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30">
