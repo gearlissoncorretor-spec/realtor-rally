@@ -3,7 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Home, TrendingUp, DollarSign, BarChart3, Plus } from "lucide-react";
+import { Search, Filter, Home, TrendingUp, DollarSign, BarChart3, Plus, Pencil, Trash2, Eye } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
@@ -16,9 +17,12 @@ interface CaptacaoTabProps {
   brokers: Broker[];
   loading: boolean;
   onRegisterSale?: () => void;
+  onEdit?: (sale: Sale) => void;
+  onView?: (sale: Sale) => void;
+  onDelete?: (saleId: string) => void;
 }
 
-export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: CaptacaoTabProps) => {
+export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, onView, onDelete }: CaptacaoTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
@@ -348,7 +352,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
                         <p className="font-semibold text-foreground truncate text-sm">{sale.property_address}</p>
                         <p className="text-xs text-muted-foreground truncate">{sale.client_name}</p>
                       </div>
-                      <Badge variant="default" className="shrink-0 text-[10px]">Vendida</Badge>
+                      <Badge className="shrink-0 text-[10px] bg-blue-500/10 text-blue-600 border-blue-500/20">Captação</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
@@ -368,6 +372,37 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
                         <p className="font-medium">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</p>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                      {onView && (
+                        <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => onView(sale)}>
+                          <Eye className="w-3 h-3 mr-1" /> Detalhes
+                        </Button>
+                      )}
+                      {onEdit && (
+                        <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => onEdit(sale)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Editar
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:text-destructive">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir captação?</AlertDialogTitle>
+                              <AlertDialogDescription>Esta ação não pode ser desfeita. A captação será removida permanentemente.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onDelete(sale.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -384,6 +419,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vendedor</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">VGV</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
+                    <th className="text-right p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/30">
@@ -395,6 +431,39 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: Captaca
                       <td className="p-3 text-sm text-foreground">{sale.vendedor_nome || sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</td>
                       <td className="p-3 text-sm font-bold text-foreground">{formatCurrency(Number(sale.vgv || sale.property_value || 0))}</td>
                       <td className="p-3 text-sm text-muted-foreground">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {onView && (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onView(sale)} title="Ver detalhes">
+                              <Eye className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {onEdit && (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onEdit(sale)} title="Editar">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {onDelete && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Excluir">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Excluir captação?</AlertDialogTitle>
+                                  <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => onDelete(sale.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
