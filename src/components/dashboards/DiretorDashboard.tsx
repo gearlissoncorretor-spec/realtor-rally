@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { ManagerAIInsights } from './ManagerAIInsights';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -457,6 +458,14 @@ const DiretorDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* ═══ AI Brain Insights ═══ */}
+      {profile?.company_id && (
+        <ManagerAIInsights 
+          companyId={profile.company_id} 
+          managerName={profile?.full_name || 'Diretor'} 
+        />
+      )}
 
       {/* ═══ Smart Alerts ═══ */}
       {visibleAlerts.length > 0 && (
