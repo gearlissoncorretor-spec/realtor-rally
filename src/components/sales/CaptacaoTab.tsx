@@ -17,6 +17,9 @@ interface CaptacaoTabProps {
   brokers: Broker[];
   loading: boolean;
   onRegisterSale?: () => void;
+  onEdit?: (sale: Sale) => void;
+  onView?: (sale: Sale) => void;
+  onDelete?: (saleId: string) => void;
 }
 
 export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: CaptacaoTabProps) => {
