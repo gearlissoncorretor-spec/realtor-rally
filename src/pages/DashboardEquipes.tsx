@@ -34,7 +34,7 @@ const DashboardEquipes = () => {
   });
 
   const filteredData = useMemo(() => {
-    let filteredSales = sales || [];
+    let filteredSales = (sales || []).filter(sale => sale.tipo !== 'captacao');
     let filteredBrokers = brokers || [];
 
     if (filters.teamId !== 'all') {
@@ -77,7 +77,7 @@ const DashboardEquipes = () => {
       .map(team => {
         const teamBrokers = (brokers || []).filter(b => b.team_id === team.id);
         let teamSales = (sales || []).filter(sale =>
-          teamBrokers.some(b => b.id === sale.broker_id),
+          sale.tipo !== 'captacao' && teamBrokers.some(b => b.id === sale.broker_id),
         );
         if (filters.brokerId !== 'all') teamSales = teamSales.filter(s => s.broker_id === filters.brokerId);
         if (filters.month !== 'all')

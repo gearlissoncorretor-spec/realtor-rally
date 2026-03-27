@@ -145,9 +145,9 @@ const Vendas = () => {
             <div className="flex items-center gap-2">
               <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 shadow-sm" size="default">
+                  <Button className="gap-2 shadow-sm" size="default" onClick={() => setDefaultSaleType('lancamento')}>
                     <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline" onClick={() => setDefaultSaleType('lancamento')}>Nova Venda</span>
+                    <span className="hidden sm:inline">Nova Venda</span>
                     <span className="sm:hidden">Nova</span>
                   </Button>
                 </DialogTrigger>
@@ -172,6 +172,8 @@ const Vendas = () => {
                           produto: data.produto!,
                           captador: data.captador!,
                           vendedor_nome: data.vendedor_nome || null,
+                          vendedor_telefone: data.vendedor_telefone || null,
+                          vendedor_creci: data.vendedor_creci || null,
                           parceria_tipo: data.parceria_tipo || null,
                           gerente: data.gerente!,
                           latitude: data.latitude!,
@@ -191,12 +193,11 @@ const Vendas = () => {
 
                         if (selectedSale) {
                           await updateSale(selectedSale.id, saleData);
-                          toast({ title: "Venda atualizada", description: "A venda foi atualizada com sucesso." });
+                          toast({ title: data.tipo === 'captacao' ? "Captação atualizada" : "Venda atualizada", description: "Registro atualizado com sucesso." });
                         } else {
                           const createdSale = await createSale(saleData);
-                          toast({ title: "Venda criada", description: "A nova venda foi criada com sucesso." });
-                          // Show commission dialog
-                          if (createdSale) {
+                          toast({ title: data.tipo === 'captacao' ? "Captação criada" : "Venda criada", description: "Registro criado com sucesso." });
+                          if (createdSale && data.tipo === 'venda') {
                             const broker = brokers.find(b => b.id === saleData.broker_id);
                             setCommissionSaleData({
                               saleId: createdSale.id,
@@ -213,13 +214,13 @@ const Vendas = () => {
                         setIsFormOpen(false);
                         setSelectedSale(null);
                       } catch (error) {
-                        toast({ title: "Erro", description: "Não foi possível salvar a venda.", variant: "destructive" });
+                        toast({ title: "Erro", description: "Não foi possível salvar o registro.", variant: "destructive" });
                       }
                     }}
                     sale={selectedSale}
                     title={selectedSale ? "Editar Venda" : "Nova Venda"}
                     defaultSaleType={defaultSaleType}
-                    defaultTipo={defaultSaleType === 'revenda' ? 'captacao' : 'venda'}
+                    defaultTipo={selectedSale?.tipo === 'captacao' ? 'captacao' : 'venda'}
                   />
                 </DialogContent>
               </Dialog>

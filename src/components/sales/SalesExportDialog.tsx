@@ -78,6 +78,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
 
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
+      if (sale.tipo === 'captacao') return false;
       if (dateFrom) {
         const saleDate = new Date(sale.sale_date || sale.created_at || "");
         if (saleDate < new Date(dateFrom)) return false;

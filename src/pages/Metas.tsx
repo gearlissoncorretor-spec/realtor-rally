@@ -167,7 +167,7 @@ const Metas = () => {
 
   const whatsAppRankings = useMemo(() => {
     const brokerSales = accessibleBrokers.map(b => {
-      const bSales = allSales.filter(s => s.broker_id === b.id);
+      const bSales = allSales.filter(s => s.broker_id === b.id && s.tipo !== 'captacao' && s.status !== 'cancelada' && s.status !== 'distrato');
       return {
         brokerName: b.name,
         position: 0,
@@ -182,6 +182,7 @@ const Metas = () => {
   const whatsAppSales = useMemo(() => {
     const recentSales = allSales
       .filter(s => {
+        if (s.tipo === 'captacao' || s.status === 'cancelada' || s.status === 'distrato') return false;
         const d = s.sale_date || s.created_at;
         if (!d) return false;
         const diff = (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24);

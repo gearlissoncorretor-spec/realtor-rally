@@ -30,6 +30,7 @@ const Relatorios = () => {
 
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
+      if (sale.tipo === 'captacao') return false;
       const saleDate = new Date(sale.sale_date);
       const saleMonth = saleDate.getMonth() + 1;
       const saleYear = saleDate.getFullYear();

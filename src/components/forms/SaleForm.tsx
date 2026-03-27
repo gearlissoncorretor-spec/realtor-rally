@@ -191,19 +191,16 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 
   const handleSubmit = async (data: SaleFormData) => {
     try {
-      // Calculate commission based on broker's rate and VGC
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
-      
-      // VGC é o valor sobre o qual será calculada a comissão
-      // Se não informado, usar o valor do imóvel
       const vgcValue = data.vgc > 0 ? data.vgc : data.property_value;
-      const commission_value = (vgcValue * Number(commissionRate)) / 100;
+      const isVenda = data.tipo === 'venda';
+      const commission_value = isVenda ? (vgcValue * Number(commissionRate)) / 100 : 0;
       
       await onSubmit({
         ...data,
-        vgv: data.property_value, // VGV é o valor total de vendas do empreendimento
-        vgc: vgcValue, // VGC é o valor da comissão geral
+        vgv: isVenda ? data.property_value : 0,
+        vgc: vgcValue,
         commission_value,
         client_email: data.client_email || null,
       });
