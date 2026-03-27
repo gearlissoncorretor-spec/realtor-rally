@@ -461,6 +461,16 @@ const Vendas = () => {
                   setDefaultSaleType('revenda');
                   setIsFormOpen(true);
                 }}
+                onEdit={(sale) => {
+                  setSelectedSale(sale);
+                  setDefaultSaleType('revenda');
+                  setIsFormOpen(true);
+                }}
+                onView={(sale) => {
+                  setSelectedSale(sale);
+                  setIsDetailsOpen(true);
+                }}
+                onDelete={handleDelete}
               />
             </TabsContent>
           </Tabs>
