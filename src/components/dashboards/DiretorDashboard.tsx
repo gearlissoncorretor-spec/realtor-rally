@@ -459,6 +459,14 @@ const DiretorDashboard = () => {
         </div>
       </div>
 
+      {/* ═══ AI Brain Insights ═══ */}
+      {profile?.company_id && (
+        <ManagerAIInsights 
+          companyId={profile.company_id} 
+          managerName={profile?.full_name || 'Diretor'} 
+        />
+      )}
+
       {/* ═══ Smart Alerts ═══ */}
       {visibleAlerts.length > 0 && (
         <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-500">
