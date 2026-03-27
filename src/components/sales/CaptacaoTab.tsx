@@ -22,7 +22,7 @@ interface CaptacaoTabProps {
   onDelete?: (saleId: string) => void;
 }
 
-export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale }: CaptacaoTabProps) => {
+export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, onView, onDelete }: CaptacaoTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
