@@ -352,7 +352,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                         <p className="font-semibold text-foreground truncate text-sm">{sale.property_address}</p>
                         <p className="text-xs text-muted-foreground truncate">{sale.client_name}</p>
                       </div>
-                      <Badge variant="default" className="shrink-0 text-[10px]">Vendida</Badge>
+                      <Badge className="shrink-0 text-[10px] bg-blue-500/10 text-blue-600 border-blue-500/20">Captação</Badge>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
@@ -371,6 +371,37 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Data</p>
                         <p className="font-medium">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</p>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                      {onView && (
+                        <Button size="sm" variant="outline" className="flex-1 h-8 text-xs" onClick={() => onView(sale)}>
+                          <Eye className="w-3 h-3 mr-1" /> Detalhes
+                        </Button>
+                      )}
+                      {onEdit && (
+                        <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => onEdit(sale)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Editar
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive hover:text-destructive">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir captação?</AlertDialogTitle>
+                              <AlertDialogDescription>Esta ação não pode ser desfeita. A captação será removida permanentemente.</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onDelete(sale.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
