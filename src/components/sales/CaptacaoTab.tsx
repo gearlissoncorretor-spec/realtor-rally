@@ -431,6 +431,39 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                       <td className="p-3 text-sm text-foreground">{sale.vendedor_nome || sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</td>
                       <td className="p-3 text-sm font-bold text-foreground">{formatCurrency(Number(sale.vgv || sale.property_value || 0))}</td>
                       <td className="p-3 text-sm text-muted-foreground">{sale.sale_date ? new Date(sale.sale_date).toLocaleDateString('pt-BR') : '-'}</td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {onView && (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onView(sale)} title="Ver detalhes">
+                              <Eye className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {onEdit && (
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onEdit(sale)} title="Editar">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {onDelete && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Excluir">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Excluir captação?</AlertDialogTitle>
+                                  <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => onDelete(sale.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
