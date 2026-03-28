@@ -11,7 +11,6 @@ export const ROLE_SCREENS: Record<string, string[]> = {
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
-    'dashboard-equipes',
   ],
   corretor: [
     'dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas',
