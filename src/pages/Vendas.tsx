@@ -69,9 +69,11 @@ const Vendas = () => {
     { value: 11, label: 'Novembro' }, { value: 12, label: 'Dezembro' },
   ];
 
-  // Filter only 'venda' type sales for the Vendas tab
+  // Show vendas + captações de agência (captação + venda da agência aparece nas duas telas)
   const vendaSales = useMemo(() => {
-    return sales.filter(sale => sale.tipo !== 'captacao');
+    return sales.filter(sale => 
+      sale.tipo !== 'captacao' || sale.parceria_tipo === 'Agência'
+    );
   }, [sales]);
 
   const periodFilteredSales = useMemo(() => {
