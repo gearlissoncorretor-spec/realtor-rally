@@ -116,6 +116,12 @@ const Vendas = () => {
     );
   }, [periodFilteredSales, searchTerm, brokers]);
 
+  // Pagination - must be before any early returns
+  const pagination = usePagination(searchFilteredSales, { storageKey: 'vendas', defaultPageSize: 25 });
+  
+  // Reset page when filters change
+  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, statusFilter, searchTerm]);
+
   const handleDelete = async (saleId: string) => {
     try {
       await deleteSale(saleId);
@@ -139,12 +145,6 @@ const Vendas = () => {
   }
 
   const hasActiveFilters = hasPersistedFilters || !!searchTerm;
-
-  // Pagination
-  const pagination = usePagination(searchFilteredSales, { storageKey: 'vendas', defaultPageSize: 25 });
-  
-  // Reset page when filters change
-  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, statusFilter, searchTerm]);
 
   return (
     <div className="min-h-screen bg-background">
