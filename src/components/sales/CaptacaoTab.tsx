@@ -68,16 +68,33 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
   }, [sales, selectedYear, selectedMonth]);
 
   const filteredSales = useMemo(() => {
-    if (!searchTerm.trim()) return captacaoSales;
-    const lower = searchTerm.toLowerCase();
-    return captacaoSales.filter(sale =>
-      sale.captador?.toLowerCase().includes(lower) ||
-      sale.vendedor?.toLowerCase().includes(lower) ||
-      sale.client_name?.toLowerCase().includes(lower) ||
-      sale.property_address?.toLowerCase().includes(lower) ||
-      brokers.find(b => b.id === sale.broker_id)?.name.toLowerCase().includes(lower)
-    );
-  }, [captacaoSales, searchTerm, brokers]);
+    let result = captacaoSales;
+    
+    // Parceria filter
+    if (parceriaFilter === 'parceria') {
+      result = result.filter(s => s.parceria_tipo === 'Agência' || s.parceria_tipo === 'Mercado');
+    } else if (parceriaFilter === 'propria') {
+      result = result.filter(s => !s.parceria_tipo);
+    } else if (parceriaFilter === 'agencia') {
+      result = result.filter(s => s.parceria_tipo === 'Agência');
+    } else if (parceriaFilter === 'mercado') {
+      result = result.filter(s => s.parceria_tipo === 'Mercado');
+    }
+    
+    // Search filter
+    if (searchTerm.trim()) {
+      const lower = searchTerm.toLowerCase();
+      result = result.filter(sale =>
+        sale.captador?.toLowerCase().includes(lower) ||
+        sale.vendedor?.toLowerCase().includes(lower) ||
+        sale.client_name?.toLowerCase().includes(lower) ||
+        sale.property_address?.toLowerCase().includes(lower) ||
+        brokers.find(b => b.id === sale.broker_id)?.name.toLowerCase().includes(lower)
+      );
+    }
+    
+    return result;
+  }, [captacaoSales, searchTerm, brokers, parceriaFilter]);
 
   // Metrics
   const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
