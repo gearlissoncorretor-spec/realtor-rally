@@ -43,10 +43,14 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
       if (sale.tipo !== 'captacao') return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      if (isNaN(d.getTime())) return false;
-      if (selectedYear > 0 && d.getFullYear() !== selectedYear) return false;
-      if (selectedMonth > 0 && d.getMonth() + 1 !== selectedMonth) return false;
+      const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
+      if (!dateStr) return false;
+      const parts = dateStr.substring(0, 10).split('-');
+      const saleYear = parseInt(parts[0], 10);
+      const saleMonth = parseInt(parts[1], 10);
+      if (isNaN(saleYear)) return false;
+      if (selectedYear > 0 && saleYear !== selectedYear) return false;
+      if (selectedMonth > 0 && saleMonth !== selectedMonth) return false;
       return true;
     });
   }, [sales, selectedYear, selectedMonth]);
@@ -84,8 +88,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
 
   const availableYears = useMemo(() => {
     const years = [...new Set(sales.map(sale => {
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      return d.getFullYear();
+      const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
+      return dateStr ? parseInt(dateStr.substring(0, 4), 10) : NaN;
     }))].filter(y => !isNaN(y)).sort((a, b) => b - a);
     if (!years.includes(currentYear)) years.unshift(currentYear);
     return years;
@@ -107,15 +111,18 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
     const yearFilteredSales = sales.filter(sale => {
       if (sale.tipo !== 'captacao') return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      if (isNaN(d.getTime())) return false;
-      if (selectedYear > 0 && d.getFullYear() !== selectedYear) return false;
+      const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
+      if (!dateStr) return false;
+      const parts = dateStr.substring(0, 10).split('-');
+      const saleYear = parseInt(parts[0], 10);
+      if (isNaN(saleYear)) return false;
+      if (selectedYear > 0 && saleYear !== selectedYear) return false;
       return true;
     });
 
     yearFilteredSales.forEach(sale => {
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      const month = d.getMonth();
+      const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
+      const month = parseInt(dateStr.substring(5, 7), 10) - 1;
       const existing = monthMap.get(month)!;
       existing.count += 1;
       existing.vgv += Number(sale.vgv || sale.property_value || 0);
