@@ -21,6 +21,7 @@ import type { Broker } from "@/contexts/DataContext";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
 interface SalesExportDialogProps {
   isOpen: boolean;
