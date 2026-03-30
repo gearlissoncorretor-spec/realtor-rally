@@ -60,6 +60,7 @@ const INITIAL_FIELDS: ExportField[] = [
 
 const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialogProps) => {
   const { toast } = useToast();
+  const { settings: orgSettings } = useOrganizationSettings();
   const [step, setStep] = useState<"filters" | "select" | "fields" | "preview">("filters");
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
