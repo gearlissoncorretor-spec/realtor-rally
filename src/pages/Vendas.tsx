@@ -138,7 +138,13 @@ const Vendas = () => {
     );
   }
 
-  const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || statusFilter !== 'all' || searchTerm;
+  const hasActiveFilters = hasPersistedFilters || !!searchTerm;
+
+  // Pagination
+  const pagination = usePagination(searchFilteredSales, { storageKey: 'vendas', defaultPageSize: 25 });
+  
+  // Reset page when filters change
+  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, statusFilter, searchTerm]);
 
   return (
     <div className="min-h-screen bg-background">
