@@ -466,6 +466,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               )}
             />
 
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="sale_type"
