@@ -247,7 +247,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
       );
 
       autoTable(doc, {
-        startY: 68,
+        startY: boxY + 28,
         head: [headers],
         body: rows,
         theme: "striped",
