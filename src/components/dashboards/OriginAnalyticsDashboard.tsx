@@ -83,8 +83,6 @@ export const OriginAnalyticsDashboard: React.FC<OriginAnalyticsDashboardProps> =
     teamId: 'all',
   });
 
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
 
   const showFilters = !fixedBrokerId && !compact;
 
@@ -192,36 +190,6 @@ export const OriginAnalyticsDashboard: React.FC<OriginAnalyticsDashboardProps> =
       value: o.vendas,
     })), [originsData]);
 
-  // ─── AI Insights ───
-  const generateInsights = useCallback(async () => {
-    if (originsData.length === 0) return;
-    setAiLoading(true);
-    setAiInsight(null);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('origin-insights', {
-        body: {
-          origins: originsData.map(o => ({
-            name: o.name,
-            leads: o.leads,
-            vendas: o.vendas,
-            conversao: Math.round(o.conversao),
-            valorTotal: o.valorTotal,
-            ticketMedio: o.ticketMedio,
-          })),
-          totals,
-        },
-      });
-
-      if (error) throw error;
-      setAiInsight(data?.insight || 'Não foi possível gerar insights no momento.');
-    } catch (err) {
-      console.error('Error generating insights:', err);
-      setAiInsight('Erro ao gerar insights. Verifique se a API key da IA está configurada.');
-    } finally {
-      setAiLoading(false);
-    }
-  }, [originsData, totals]);
 
   // ─── Compact Broker View ───
   if (compact) {
@@ -566,37 +534,6 @@ export const OriginAnalyticsDashboard: React.FC<OriginAnalyticsDashboardProps> =
             </CardContent>
           </Card>
 
-          {/* AI Insights */}
-          <Card className="border-primary/20">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" /> Insights com IA
-                </CardTitle>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={generateInsights}
-                  disabled={aiLoading || originsData.length === 0}
-                  className="gap-1.5"
-                >
-                  {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Lightbulb className="w-3.5 h-3.5" />}
-                  {aiLoading ? 'Analisando...' : 'Gerar Insights'}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {aiInsight ? (
-                <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap bg-primary/5 rounded-lg p-4 border border-primary/10">
-                  {aiInsight}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Clique em "Gerar Insights" para uma análise inteligente das suas origens de clientes.
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </>
       )}
     </div>

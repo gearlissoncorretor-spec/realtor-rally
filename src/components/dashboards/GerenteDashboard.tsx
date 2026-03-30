@@ -30,7 +30,7 @@ import {
   MessageCircle, Award, Briefcase, Activity, Rocket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ManagerAIInsights } from './ManagerAIInsights';
+
 
 const GerenteDashboard = () => {
   const { profile, user, teamHierarchy } = useAuth();
@@ -284,14 +284,6 @@ const GerenteDashboard = () => {
             </div>
           </div>
 
-          {/* AI Brain Insights */}
-          {!focusMode && profile?.company_id && (
-            <ManagerAIInsights 
-              companyId={profile.company_id} 
-              managerName={profile.full_name || 'Gestor'} 
-              teamId={teamHierarchy?.team_id}
-            />
-          )}
 
           {/* Mobile Quick Actions */}
           {isMobile && !focusMode && (
