@@ -329,9 +329,7 @@ const Vendas = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setSelectedYear(currentYear);
-                          setSelectedMonth(0);
-                          setStatusFilter('all');
+                          resetFilters();
                           setSearchTerm('');
                         }}
                         className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
