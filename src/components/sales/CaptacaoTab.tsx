@@ -120,7 +120,9 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
 
     // Use captacaoSales (already year-filtered, but ignore month filter for the chart)
     const yearFilteredSales = sales.filter(sale => {
-      if (sale.tipo !== 'captacao') return false;
+      const vis = (sale as any).visibilidade || 'auto';
+      const showInCaptacao = vis === 'captacao' || vis === 'ambos' || (vis === 'auto' && sale.tipo === 'captacao');
+      if (!showInCaptacao) return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
       if (!dateStr) return false;
