@@ -14,6 +14,7 @@ import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
   tipo: z.enum(['venda', 'captacao']),
+  visibilidade: z.enum(['auto', 'venda', 'captacao', 'ambos']).default('auto'),
   broker_id: z.string().min(1, 'Selecione um corretor'),
   client_name: z.string().min(2, 'Nome do cliente deve ter pelo menos 2 caracteres'),
   client_email: z.string().email('Email inválido').optional().or(z.literal('')),
@@ -21,14 +22,13 @@ const saleSchema = z.object({
   property_address: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
   property_type: z.enum(['apartamento', 'casa', 'comercial', 'terreno', 'rural']),
   property_value: z.number().min(1, 'Valor do imóvel deve ser maior que 0'),
-  vgv: z.number().optional(), // VGV é o valor total de vendas do empreendimento
+  vgv: z.number().optional(),
   vgc: z.number().min(1, 'VGC deve ser maior que 0'),
   status: z.enum(['pendente', 'confirmada', 'cancelada', 'distrato']),
   notes: z.string().optional(),
   commission_value: z.number().optional(),
   sale_type: z.enum(['lancamento', 'revenda']),
   sale_date: z.string().min(1, 'Data da venda é obrigatória'),
-  // Novos campos obrigatórios
   origem: z.string().min(1, 'Origem é obrigatória'),
   estilo: z.string().min(1, 'Estilo é obrigatório'),
   produto: z.string().min(1, 'Produto é obrigatório'),
@@ -80,6 +80,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
     resolver: zodResolver(saleSchema),
     defaultValues: {
       tipo: defaultTipo,
+      visibilidade: 'auto',
       broker_id: undefined,
       client_name: '',
       client_email: '',
