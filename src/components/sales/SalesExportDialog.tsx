@@ -205,16 +205,29 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
       await new Promise(r => setTimeout(r, 300));
       const doc = new jsPDF({ orientation: pdfOrientation });
       const pageWidth = doc.internal.pageSize.width;
+      let startY = 18;
+
+      // Try to add company logo
+      const logoUrl = orgSettings?.logo_url || orgSettings?.logo_icon_url;
+      if (logoUrl) {
+        const logoBase64 = await loadImageAsBase64(logoUrl);
+        if (logoBase64) {
+          try {
+            doc.addImage(logoBase64, 'PNG', 14, 10, 20, 20);
+            startY = 18;
+          } catch { /* ignore logo errors */ }
+        }
+      }
 
       doc.setFontSize(18);
       doc.setTextColor(30, 64, 175);
-      doc.text("Gestão Master", pageWidth / 2, 18, { align: "center" });
+      doc.text(orgName, pageWidth / 2, startY, { align: "center" });
       doc.setFontSize(14);
       doc.setTextColor(50, 50, 50);
-      doc.text("Relatório de Vendas", pageWidth / 2, 27, { align: "center" });
+      doc.text("Relatório de Vendas", pageWidth / 2, startY + 9, { align: "center" });
       doc.setFontSize(9);
       doc.setTextColor(120, 120, 120);
-      doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pageWidth / 2, 34, { align: "center" });
+      doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pageWidth / 2, startY + 16, { align: "center" });
 
       doc.setDrawColor(200, 200, 200);
       doc.setFillColor(248, 250, 252);
