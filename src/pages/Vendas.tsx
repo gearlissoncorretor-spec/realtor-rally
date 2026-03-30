@@ -395,7 +395,7 @@ const Vendas = () => {
                 ) : (
                   <>
                     <div className="block md:hidden space-y-2 p-3">
-                      {searchFilteredSales.map((sale) => {
+                      {pagination.paginatedItems.map((sale) => {
                         const broker = brokers.find(b => b.id === sale.broker_id);
                         return (
                           <Card key={sale.id} className="border-border/40 hover:border-border/80 transition-colors">
@@ -458,7 +458,7 @@ const Vendas = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
-                          {searchFilteredSales.map((sale) => (
+                          {pagination.paginatedItems.map((sale) => (
                             <SalesTableRow
                               key={sale.id}
                               sale={sale}
@@ -468,6 +468,18 @@ const Vendas = () => {
                               onDelete={handleDelete}
                             />
                           ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <TablePagination
+                      totalItems={pagination.totalItems}
+                      currentPage={pagination.currentPage}
+                      pageSize={pagination.pageSize}
+                      onPageChange={pagination.handlePageChange}
+                      onPageSizeChange={pagination.handlePageSizeChange}
+                    />
                         </tbody>
                       </table>
                     </div>
