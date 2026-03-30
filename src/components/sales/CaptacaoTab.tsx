@@ -26,6 +26,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
+  const [parceriaFilter, setParceriaFilter] = useState<string>('all');
 
   const months = [
     { value: 0, label: 'Todos os meses' },
@@ -67,16 +68,33 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
   }, [sales, selectedYear, selectedMonth]);
 
   const filteredSales = useMemo(() => {
-    if (!searchTerm.trim()) return captacaoSales;
-    const lower = searchTerm.toLowerCase();
-    return captacaoSales.filter(sale =>
-      sale.captador?.toLowerCase().includes(lower) ||
-      sale.vendedor?.toLowerCase().includes(lower) ||
-      sale.client_name?.toLowerCase().includes(lower) ||
-      sale.property_address?.toLowerCase().includes(lower) ||
-      brokers.find(b => b.id === sale.broker_id)?.name.toLowerCase().includes(lower)
-    );
-  }, [captacaoSales, searchTerm, brokers]);
+    let result = captacaoSales;
+    
+    // Parceria filter
+    if (parceriaFilter === 'parceria') {
+      result = result.filter(s => s.parceria_tipo === 'Agência' || s.parceria_tipo === 'Mercado');
+    } else if (parceriaFilter === 'propria') {
+      result = result.filter(s => !s.parceria_tipo);
+    } else if (parceriaFilter === 'agencia') {
+      result = result.filter(s => s.parceria_tipo === 'Agência');
+    } else if (parceriaFilter === 'mercado') {
+      result = result.filter(s => s.parceria_tipo === 'Mercado');
+    }
+    
+    // Search filter
+    if (searchTerm.trim()) {
+      const lower = searchTerm.toLowerCase();
+      result = result.filter(sale =>
+        sale.captador?.toLowerCase().includes(lower) ||
+        sale.vendedor?.toLowerCase().includes(lower) ||
+        sale.client_name?.toLowerCase().includes(lower) ||
+        sale.property_address?.toLowerCase().includes(lower) ||
+        brokers.find(b => b.id === sale.broker_id)?.name.toLowerCase().includes(lower)
+      );
+    }
+    
+    return result;
+  }, [captacaoSales, searchTerm, brokers, parceriaFilter]);
 
   // Metrics
   const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
@@ -106,7 +124,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
     return years;
   }, [sales]);
 
-  const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || searchTerm;
+  const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || searchTerm || parceriaFilter !== 'all';
 
   // Monthly evolution chart data
   const monthlyChartData = useMemo(() => {
@@ -205,11 +223,23 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                 ))}
               </SelectContent>
             </Select>
+            <Select value={parceriaFilter} onValueChange={setParceriaFilter}>
+              <SelectTrigger className="w-[140px] h-9 text-xs bg-background/50 border-border/50">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="propria">Captação própria</SelectItem>
+                <SelectItem value="parceria">Parcerias</SelectItem>
+                <SelectItem value="agencia">Agência</SelectItem>
+                <SelectItem value="mercado">Mercado</SelectItem>
+              </SelectContent>
+            </Select>
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSelectedYear(currentYear); setSelectedMonth(0); setSearchTerm(''); }}
+                onClick={() => { setSelectedYear(currentYear); setSelectedMonth(0); setSearchTerm(''); setParceriaFilter('all'); }}
                 className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
               >
                 Limpar
@@ -435,6 +465,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                   <tr>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
+                    <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Captador</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vendedor</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">VGV</th>
@@ -447,6 +478,17 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                     <tr key={sale.id} className="hover:bg-muted/20 transition-colors">
                       <td className="p-3 text-sm text-foreground max-w-[200px] truncate">{sale.property_address}</td>
                       <td className="p-3 text-sm text-foreground max-w-[150px] truncate">{sale.client_name}</td>
+                      <td className="p-3">
+                        {sale.parceria_tipo ? (
+                          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+                            🤝 {sale.parceria_tipo}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] border-info/30 text-info">
+                            🔵 Própria
+                          </Badge>
+                        )}
+                      </td>
                       <td className="p-3 text-sm font-medium text-primary">{sale.captador || '-'}</td>
                       <td className="p-3 text-sm text-foreground">{sale.vendedor_nome || sale.vendedor || brokers.find(b => b.id === sale.broker_id)?.name || '-'}</td>
                       <td className="p-3 text-sm font-bold text-foreground">{formatCurrency(Number(sale.vgv || sale.property_value || 0))}</td>
