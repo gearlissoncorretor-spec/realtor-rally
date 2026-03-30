@@ -18,8 +18,8 @@ import {
 } from 'recharts';
 import {
   BarChart3, PieChart as PieIcon, TrendingUp, TrendingDown, Target,
-  Users, User, Calendar, Filter, RotateCcw, Sparkles, Loader2,
-  ArrowUpRight, ArrowDownRight, Award, AlertTriangle, Lightbulb
+  Users, User, Calendar, Filter, RotateCcw,
+  ArrowUpRight, ArrowDownRight, Award, AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
