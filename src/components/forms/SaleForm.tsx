@@ -51,6 +51,14 @@ const saleSchema = z.object({
       path: ['captador'],
     });
   }
+  // Lançamento não pode ser captação
+  if (data.sale_type === 'lancamento' && data.tipo === 'captacao') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Lançamento não pode ser do tipo Captação',
+      path: ['tipo'],
+    });
+  }
 });
 
 type SaleFormData = z.infer<typeof saleSchema>;

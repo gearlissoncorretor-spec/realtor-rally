@@ -285,6 +285,7 @@ const Negociacoes = () => {
     try {
       // Create sale record with company_id
       await createSale({
+        tipo: 'venda',
         broker_id: selectedForSale.broker_id,
         client_name: selectedForSale.client_name,
         client_email: selectedForSale.client_email,
@@ -301,10 +302,11 @@ const Negociacoes = () => {
         vendedor: data.vendedor,
         captador: data.sale_type === 'revenda' ? data.captador : undefined,
         gerente: data.gerente,
-        origem: data.origem,
+        origem: data.origem || selectedForSale.origem,
         sale_type: data.sale_type,
         estilo: data.estilo,
         produto: data.produto,
+        visibilidade: 'venda',
         company_id: profile?.company_id || undefined,
       });
 
