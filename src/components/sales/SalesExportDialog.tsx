@@ -138,11 +138,28 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
     }
   };
 
+  const orgName = orgSettings?.organization_name || 'Gestão Imobiliária';
+
   const getFileName = (ext: string) => {
     const now = new Date();
     const month = format(now, "MMMM", { locale: ptBR });
     const year = now.getFullYear();
     return `vendas_${month}_${year}.${ext}`;
+  };
+
+  const loadImageAsBase64 = async (url: string): Promise<string | null> => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
   };
 
   const exportExcel = async () => {
