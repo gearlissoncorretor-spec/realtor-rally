@@ -161,6 +161,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         // New sale - reset to default values
         form.reset({
           tipo: defaultTipo,
+          visibilidade: 'auto',
           broker_id: undefined,
           client_name: '',
           client_email: '',
