@@ -74,7 +74,9 @@ const AuthenticatedLayout = () => {
   return (
     <DataProvider>
       <RealtimeSyncProvider />
+      <DynamicThemeProvider />
       <GlobalStickyNotes />
+      <OnboardingTour />
       <Outlet />
     </DataProvider>
   );
