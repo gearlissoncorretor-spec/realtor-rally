@@ -1,0 +1,2 @@
+ALTER TABLE public.sales ADD COLUMN IF NOT EXISTS visibilidade text NOT NULL DEFAULT 'auto';
+COMMENT ON COLUMN public.sales.visibilidade IS 'Controla onde o registro aparece: venda, captacao, ambos, ou auto (segue o campo tipo)';

@@ -1788,6 +1788,7 @@ export type Database = {
           vendedor_telefone: string | null
           vgc: number
           vgv: number
+          visibilidade: string
         }
         Insert: {
           ano?: number | null
@@ -1829,6 +1830,7 @@ export type Database = {
           vendedor_telefone?: string | null
           vgc: number
           vgv: number
+          visibilidade?: string
         }
         Update: {
           ano?: number | null
@@ -1870,6 +1872,7 @@ export type Database = {
           vendedor_telefone?: string | null
           vgc?: number
           vgv?: number
+          visibilidade?: string
         }
         Relationships: [
           {
