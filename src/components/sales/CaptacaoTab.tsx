@@ -26,6 +26,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
+  const [parceriaFilter, setParceriaFilter] = useState<string>('all');
 
   const months = [
     { value: 0, label: 'Todos os meses' },
