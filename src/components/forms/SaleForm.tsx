@@ -128,6 +128,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         // Editing existing sale - populate form with sale data
         form.reset({
           tipo: (sale.tipo as 'venda' | 'captacao') || 'venda',
+          visibilidade: ((sale as any).visibilidade as 'auto' | 'venda' | 'captacao' | 'ambos') || 'auto',
           broker_id: sale.broker_id || undefined,
           client_name: sale.client_name || '',
           client_email: sale.client_email || '',
