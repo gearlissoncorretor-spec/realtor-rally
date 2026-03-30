@@ -480,9 +480,6 @@ const Vendas = () => {
                       onPageChange={pagination.handlePageChange}
                       onPageSizeChange={pagination.handlePageSizeChange}
                     />
-                        </tbody>
-                      </table>
-                    </div>
                   </>
                 )}
               </Card>
