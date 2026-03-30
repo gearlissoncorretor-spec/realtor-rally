@@ -435,7 +435,37 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Visibilidade: onde o registro aparece */}
+            <FormField
+              control={form.control}
+              name="visibilidade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Exibir em</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "auto"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Automático" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="auto">🔄 Automático (segue o tipo)</SelectItem>
+                      <SelectItem value="venda">🟢 Somente Vendas</SelectItem>
+                      <SelectItem value="captacao">🔵 Somente Captação</SelectItem>
+                      <SelectItem value="ambos">🟣 Vendas e Captação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {field.value === 'auto' ? 'Aparece na tela correspondente ao tipo' : 
+                     field.value === 'ambos' ? 'Aparece nas duas telas' :
+                     field.value === 'venda' ? 'Aparece somente na tela de Vendas' :
+                     'Aparece somente na tela de Captação'}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
               <FormField
                 control={form.control}
                 name="sale_type"
