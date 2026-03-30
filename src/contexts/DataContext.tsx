@@ -121,24 +121,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const role = getUserRole();
         
-        // Build base query with role-based filtering
-        let baseQuery = supabase
-          .from('sales')
-          .select(`
-            *,
-            broker:brokers(name, email),
-            process_stages (
-              id,
-              title,
-              color,
-              order_index
-            )
-          `)
-          .order('created_at', { ascending: false });
+        // Pre-fetch role-based broker filter
+        let brokerFilter: { type: 'eq' | 'in' | 'none'; value?: string | string[] } = { type: 'none' };
         
-        // Apply role-based filters to reduce data volume
         if (role === 'corretor') {
-          // Corretor: only their own sales via broker
           const { data: brokerData } = await supabase
             .from('brokers')
             .select('id')
@@ -146,32 +132,48 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .maybeSingle();
           
           if (brokerData) {
-            baseQuery = baseQuery.eq('broker_id', brokerData.id);
+            brokerFilter = { type: 'eq', value: brokerData.id };
           } else {
             return [];
           }
         } else if (role === 'gerente' && teamHierarchy?.team_id) {
-          // Gerente: sales from team brokers
           const { data: teamBrokers } = await supabase
             .from('brokers')
             .select('id')
             .eq('team_id', teamHierarchy.team_id);
           
           if (teamBrokers && teamBrokers.length > 0) {
-            const brokerIds = teamBrokers.map(b => b.id);
-            baseQuery = baseQuery.in('broker_id', brokerIds);
+            brokerFilter = { type: 'in', value: teamBrokers.map(b => b.id) };
           }
         }
-        // Diretor and Admin see all - no filter
         
-        // Fetch with pagination
+        // Helper to build a fresh query each time
+        const buildQuery = () => {
+          let q = supabase
+            .from('sales')
+            .select(`
+              *,
+              broker:brokers(name, email)
+            `)
+            .order('created_at', { ascending: false });
+          
+          if (brokerFilter.type === 'eq') {
+            q = q.eq('broker_id', brokerFilter.value as string);
+          } else if (brokerFilter.type === 'in') {
+            q = q.in('broker_id', brokerFilter.value as string[]);
+          }
+          
+          return q;
+        };
+        
+        // Fetch with pagination — build fresh query per page
         const allSales: Sale[] = [];
         const PAGE_SIZE = 1000;
         let from = 0;
         let hasMore = true;
 
         while (hasMore) {
-          const { data, error } = await baseQuery.range(from, from + PAGE_SIZE - 1);
+          const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
           
           if (error) {
             console.error('Error fetching sales:', error);
