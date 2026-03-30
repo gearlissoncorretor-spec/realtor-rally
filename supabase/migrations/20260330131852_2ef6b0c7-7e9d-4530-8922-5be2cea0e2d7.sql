@@ -1,0 +1,1 @@
+UPDATE sales SET tipo = 'venda' WHERE tipo = 'captacao' AND sale_type = 'lancamento';
