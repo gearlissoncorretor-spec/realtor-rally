@@ -110,11 +110,13 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   });
 
   const watchSaleType = form.watch('sale_type');
+  const watchTipo = form.watch('tipo');
 
-  // Clear captador when switching to lancamento
+  // When sale_type is 'lancamento', force tipo to 'venda' (lançamento não tem captação)
   React.useEffect(() => {
     if (watchSaleType === 'lancamento') {
       form.setValue('captador', '');
+      form.setValue('tipo', 'venda');
     }
   }, [watchSaleType, form]);
 
@@ -398,14 +400,18 @@ export const SaleForm: React.FC<SaleFormProps> = ({
               />
             </div>
             
-            {/* Tipo: Venda ou Captação */}
+            {/* Tipo: Venda ou Captação — bloqueado para Lançamento */}
             <FormField
               control={form.control}
               name="tipo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipo *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || "venda"}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || "venda"}
+                    disabled={watchSaleType === 'lancamento'}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo" />
@@ -413,9 +419,14 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="venda">🟢 Venda</SelectItem>
-                      <SelectItem value="captacao">🔵 Captação</SelectItem>
+                      {watchSaleType !== 'lancamento' && (
+                        <SelectItem value="captacao">🔵 Captação</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
+                  {watchSaleType === 'lancamento' && (
+                    <p className="text-xs text-muted-foreground">Lançamento é sempre do tipo Venda</p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
