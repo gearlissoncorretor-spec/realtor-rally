@@ -15,8 +15,12 @@ import { CaptacaoTab } from "@/components/sales/CaptacaoTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home, Download } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { usePersistedFilters } from "@/hooks/usePersistedFilters";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/TablePagination";
+import { useQueryErrorHandler } from "@/hooks/useQueryErrorHandler";
 import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,9 +39,16 @@ const Vendas = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState<number>(0);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { filters, setFilter, resetFilters, hasActiveFilters: hasPersistedFilters } = usePersistedFilters({
+    key: 'vendas',
+    defaultValues: { year: currentYear, month: 0, status: 'all' as string },
+  });
+  const selectedYear = filters.year;
+  const selectedMonth = filters.month;
+  const statusFilter = filters.status;
+  const setSelectedYear = (v: number) => setFilter('year', v);
+  const setSelectedMonth = (v: number) => setFilter('month', v);
+  const setStatusFilter = (v: string) => setFilter('status', v);
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [commissionSaleData, setCommissionSaleData] = useState<{
@@ -105,6 +116,12 @@ const Vendas = () => {
     );
   }, [periodFilteredSales, searchTerm, brokers]);
 
+  // Pagination - must be before any early returns
+  const pagination = usePagination(searchFilteredSales, { storageKey: 'vendas', defaultPageSize: 25 });
+  
+  // Reset page when filters change
+  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, statusFilter, searchTerm]);
+
   const handleDelete = async (saleId: string) => {
     try {
       await deleteSale(saleId);
@@ -127,7 +144,7 @@ const Vendas = () => {
     );
   }
 
-  const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || statusFilter !== 'all' || searchTerm;
+  const hasActiveFilters = hasPersistedFilters || !!searchTerm;
 
   return (
     <div className="min-h-screen bg-background">
@@ -312,9 +329,7 @@ const Vendas = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setSelectedYear(currentYear);
-                          setSelectedMonth(0);
-                          setStatusFilter('all');
+                          resetFilters();
                           setSearchTerm('');
                         }}
                         className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
@@ -380,7 +395,7 @@ const Vendas = () => {
                 ) : (
                   <>
                     <div className="block md:hidden space-y-2 p-3">
-                      {searchFilteredSales.map((sale) => {
+                      {pagination.paginatedItems.map((sale) => {
                         const broker = brokers.find(b => b.id === sale.broker_id);
                         return (
                           <Card key={sale.id} className="border-border/40 hover:border-border/80 transition-colors">
@@ -443,7 +458,7 @@ const Vendas = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border/30">
-                          {searchFilteredSales.map((sale) => (
+                          {pagination.paginatedItems.map((sale) => (
                             <SalesTableRow
                               key={sale.id}
                               sale={sale}
@@ -456,6 +471,15 @@ const Vendas = () => {
                         </tbody>
                       </table>
                     </div>
+
+                    {/* Pagination */}
+                    <TablePagination
+                      totalItems={pagination.totalItems}
+                      currentPage={pagination.currentPage}
+                      pageSize={pagination.pageSize}
+                      onPageChange={pagination.handlePageChange}
+                      onPageSizeChange={pagination.handlePageSizeChange}
+                    />
                   </>
                 )}
               </Card>
