@@ -1,0 +1,1 @@
+UPDATE sales SET tipo = 'venda', visibilidade = 'venda' WHERE id IN ('a733efec-8f5f-4b25-973a-e352a4c84d5f', '1f6a2c7b-5dfb-495e-92fb-40daa13a1d7a');
