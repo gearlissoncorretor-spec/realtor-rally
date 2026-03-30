@@ -229,16 +229,17 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
       doc.setTextColor(120, 120, 120);
       doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pageWidth / 2, startY + 16, { align: "center" });
 
+      const boxY = startY + 22;
       doc.setDrawColor(200, 200, 200);
       doc.setFillColor(248, 250, 252);
-      doc.roundedRect(14, 40, pageWidth - 28, 22, 3, 3, "FD");
+      doc.roundedRect(14, boxY, pageWidth - 28, 22, 3, 3, "FD");
       doc.setFontSize(9);
       doc.setTextColor(60, 60, 60);
       const summaryX = 20;
-      doc.text(`Vendas: ${summary.count}`, summaryX, 50);
-      doc.text(`VGV: ${formatCurrency(summary.totalVGV)}`, summaryX + 50, 50);
-      doc.text(`VGC: ${formatCurrency(summary.totalVGC)}`, summaryX + 120, 50);
-      doc.text(`Valor Total: ${formatCurrency(summary.totalValue)}`, summaryX + 190, 50);
+      doc.text(`Vendas: ${summary.count}`, summaryX, boxY + 10);
+      doc.text(`VGV: ${formatCurrency(summary.totalVGV)}`, summaryX + 50, boxY + 10);
+      doc.text(`VGC: ${formatCurrency(summary.totalVGC)}`, summaryX + 120, boxY + 10);
+      doc.text(`Valor Total: ${formatCurrency(summary.totalValue)}`, summaryX + 190, boxY + 10);
 
       const headers = selectedFields.map(f => f.label);
       const rows = salesToExport.map(sale =>
