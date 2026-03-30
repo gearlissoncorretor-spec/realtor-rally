@@ -223,11 +223,23 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                 ))}
               </SelectContent>
             </Select>
+            <Select value={parceriaFilter} onValueChange={setParceriaFilter}>
+              <SelectTrigger className="w-[140px] h-9 text-xs bg-background/50 border-border/50">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="propria">Captação própria</SelectItem>
+                <SelectItem value="parceria">Parcerias</SelectItem>
+                <SelectItem value="agencia">Agência</SelectItem>
+                <SelectItem value="mercado">Mercado</SelectItem>
+              </SelectContent>
+            </Select>
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSelectedYear(currentYear); setSelectedMonth(0); setSearchTerm(''); }}
+                onClick={() => { setSelectedYear(currentYear); setSelectedMonth(0); setSearchTerm(''); setParceriaFilter('all'); }}
                 className="text-xs text-muted-foreground hover:text-foreground h-9 px-2"
               >
                 Limpar
