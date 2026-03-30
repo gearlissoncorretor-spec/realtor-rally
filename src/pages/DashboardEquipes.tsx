@@ -149,8 +149,9 @@ const DashboardEquipes = () => {
       monthlyData[key] = { month: label, vgv: 0, vgc: 0, sales: 0 };
     }
     confirmedVendas.forEach(sale => {
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const dateStr = sale.sale_date || sale.created_at || '';
+      const { year, month } = parseDateParts(dateStr.substring(0, 10));
+      const key = `${year}-${String(month).padStart(2, '0')}`;
       if (monthlyData[key]) {
         monthlyData[key].vgv += Number(sale.vgv || 0);
         monthlyData[key].vgc += Number(sale.vgc || 0);
