@@ -52,8 +52,8 @@ const Vendas = () => {
   const availableYears = useMemo(() => {
     const vendaOnly = sales.filter(s => s.tipo !== 'captacao');
     const years = [...new Set(vendaOnly.map(sale => {
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      return d.getFullYear();
+      const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
+      return dateStr ? parseInt(dateStr.substring(0, 4), 10) : NaN;
     }))].filter(y => !isNaN(y)).sort((a, b) => b - a);
     if (!years.includes(currentYear)) years.unshift(currentYear);
     return years;
@@ -76,10 +76,14 @@ const Vendas = () => {
 
   const periodFilteredSales = useMemo(() => {
     return vendaSales.filter(sale => {
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      if (isNaN(d.getTime())) return false;
-      if (selectedYear > 0 && d.getFullYear() !== selectedYear) return false;
-      if (selectedMonth > 0 && d.getMonth() + 1 !== selectedMonth) return false;
+      const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
+      if (!dateStr) return false;
+      const parts = dateStr.substring(0, 10).split('-');
+      const saleYear = parseInt(parts[0], 10);
+      const saleMonth = parseInt(parts[1], 10);
+      if (isNaN(saleYear)) return false;
+      if (selectedYear > 0 && saleYear !== selectedYear) return false;
+      if (selectedMonth > 0 && saleMonth !== selectedMonth) return false;
       if (statusFilter !== 'all' && sale.status !== statusFilter) return false;
       return true;
     });

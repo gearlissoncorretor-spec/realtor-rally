@@ -416,8 +416,12 @@ const Corretores = () => {
     const brokerSales = sales.filter(sale => sale.broker_id === brokerId && sale.tipo !== 'captacao');
     const confirmedSales = brokerSales.filter(sale => {
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+      const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
+      if (!dateStr) return false;
+      const parts = dateStr.substring(0, 10).split('-');
+      const saleMonth = parseInt(parts[1], 10);
+      const saleYear = parseInt(parts[0], 10);
+      return saleMonth === currentMonth && saleYear === currentYear;
     });
     const totalRevenue = confirmedSales.reduce((sum, sale) => sum + Number(sale.vgv || sale.property_value || 0), 0);
     return { salesCount: confirmedSales.length, totalRevenue };
@@ -457,8 +461,10 @@ const Corretores = () => {
         s.status !== 'cancelada' && s.status !== 'distrato'
       );
       const monthly = bSales.filter(s => {
-        const d = new Date(s.sale_date || s.created_at || '');
-        return d.getMonth() + 1 === month && d.getFullYear() === year;
+        const dateStr = s.sale_date || (s.created_at ? s.created_at.substring(0, 10) : '');
+        if (!dateStr) return false;
+        const parts = dateStr.substring(0, 10).split('-');
+        return parseInt(parts[1], 10) === month && parseInt(parts[0], 10) === year;
       });
       const rev = monthly.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
       map[b.id] = { monthlySales: monthly.length, monthlyRevenue: rev };

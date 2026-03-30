@@ -69,8 +69,10 @@ const GerenteDashboard = () => {
 
   const monthSales = useMemo(() =>
     teamSales.filter(s => {
-      const d = new Date(s.sale_date || s.created_at || '');
-      return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+      const dateStr = s.sale_date || (s.created_at ? s.created_at.substring(0, 10) : '');
+      if (!dateStr) return false;
+      const parts = dateStr.substring(0, 10).split('-');
+      return parseInt(parts[1], 10) === currentMonth && parseInt(parts[0], 10) === currentYear;
     }), [teamSales, currentMonth, currentYear]);
 
   const monthVGV = monthSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
@@ -144,8 +146,9 @@ const GerenteDashboard = () => {
   
   const yearVGV = useMemo(() => 
     teamSales.filter(s => {
-      const d = new Date(s.sale_date || s.created_at || '');
-      return d.getFullYear() === currentYear;
+      const dateStr = s.sale_date || (s.created_at ? s.created_at.substring(0, 10) : '');
+      if (!dateStr) return false;
+      return parseInt(dateStr.substring(0, 4), 10) === currentYear;
     }).reduce((sum, s) => sum + (s.vgv || 0), 0),
     [teamSales, currentYear]
   );

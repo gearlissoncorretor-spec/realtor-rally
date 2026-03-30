@@ -21,13 +21,27 @@ const fmt = (value: number, compact = false) =>
     ...(compact ? { notation: 'compact' as const } : {}),
   }).format(value);
 
+// Parse date string safely without timezone shift
+const parseDateParts = (dateStr: string) => {
+  const parts = dateStr.split('-');
+  return { year: parseInt(parts[0], 10), month: parseInt(parts[1], 10), day: parseInt(parts[2], 10) };
+};
+
 const applyPeriodFilter = (sales: any[], filters: DashboardFiltersState) => {
   let result = sales;
   if (filters.month !== 'all') {
-    result = result.filter(s => s.sale_date && (new Date(s.sale_date).getMonth() + 1).toString() === filters.month);
+    result = result.filter(s => {
+      if (!s.sale_date) return false;
+      const { month } = parseDateParts(s.sale_date);
+      return month.toString() === filters.month;
+    });
   }
   if (filters.year !== 'all') {
-    result = result.filter(s => s.sale_date && new Date(s.sale_date).getFullYear().toString() === filters.year);
+    result = result.filter(s => {
+      if (!s.sale_date) return false;
+      const { year } = parseDateParts(s.sale_date);
+      return year.toString() === filters.year;
+    });
   }
   return result;
 };
@@ -135,8 +149,9 @@ const DashboardEquipes = () => {
       monthlyData[key] = { month: label, vgv: 0, vgc: 0, sales: 0 };
     }
     confirmedVendas.forEach(sale => {
-      const d = new Date(sale.sale_date || sale.created_at || '');
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const dateStr = sale.sale_date || sale.created_at || '';
+      const { year, month } = parseDateParts(dateStr.substring(0, 10));
+      const key = `${year}-${String(month).padStart(2, '0')}`;
       if (monthlyData[key]) {
         monthlyData[key].vgv += Number(sale.vgv || 0);
         monthlyData[key].vgc += Number(sale.vgc || 0);
