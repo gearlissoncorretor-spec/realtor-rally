@@ -124,7 +124,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
     return years;
   }, [sales]);
 
-  const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || searchTerm;
+  const hasActiveFilters = selectedYear !== currentYear || selectedMonth !== 0 || searchTerm || parceriaFilter !== 'all';
 
   // Monthly evolution chart data
   const monthlyChartData = useMemo(() => {
