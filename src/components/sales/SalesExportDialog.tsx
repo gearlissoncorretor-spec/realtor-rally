@@ -176,7 +176,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
       XLSX.utils.book_append_sheet(wb, ws, "Vendas");
 
       const summaryData = [
-        ["Relatório de Vendas - Gestão Master"],
+        [`Relatório de Vendas - ${orgName}`],
         [""],
         ["Data da Exportação", format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })],
         ["Total de Vendas", summary.count.toString()],
