@@ -14,6 +14,7 @@ import { Sale, useData } from '@/contexts/DataContext';
 
 const saleSchema = z.object({
   tipo: z.enum(['venda', 'captacao']),
+  visibilidade: z.enum(['auto', 'venda', 'captacao', 'ambos']).default('auto'),
   broker_id: z.string().min(1, 'Selecione um corretor'),
   client_name: z.string().min(2, 'Nome do cliente deve ter pelo menos 2 caracteres'),
   client_email: z.string().email('Email inválido').optional().or(z.literal('')),
@@ -21,14 +22,13 @@ const saleSchema = z.object({
   property_address: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
   property_type: z.enum(['apartamento', 'casa', 'comercial', 'terreno', 'rural']),
   property_value: z.number().min(1, 'Valor do imóvel deve ser maior que 0'),
-  vgv: z.number().optional(), // VGV é o valor total de vendas do empreendimento
+  vgv: z.number().optional(),
   vgc: z.number().min(1, 'VGC deve ser maior que 0'),
   status: z.enum(['pendente', 'confirmada', 'cancelada', 'distrato']),
   notes: z.string().optional(),
   commission_value: z.number().optional(),
   sale_type: z.enum(['lancamento', 'revenda']),
   sale_date: z.string().min(1, 'Data da venda é obrigatória'),
-  // Novos campos obrigatórios
   origem: z.string().min(1, 'Origem é obrigatória'),
   estilo: z.string().min(1, 'Estilo é obrigatório'),
   produto: z.string().min(1, 'Produto é obrigatório'),
@@ -80,6 +80,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
     resolver: zodResolver(saleSchema),
     defaultValues: {
       tipo: defaultTipo,
+      visibilidade: 'auto',
       broker_id: undefined,
       client_name: '',
       client_email: '',
@@ -127,6 +128,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         // Editing existing sale - populate form with sale data
         form.reset({
           tipo: (sale.tipo as 'venda' | 'captacao') || 'venda',
+          visibilidade: ((sale as any).visibilidade as 'auto' | 'venda' | 'captacao' | 'ambos') || 'auto',
           broker_id: sale.broker_id || undefined,
           client_name: sale.client_name || '',
           client_email: sale.client_email || '',
@@ -159,6 +161,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         // New sale - reset to default values
         form.reset({
           tipo: defaultTipo,
+          visibilidade: 'auto',
           broker_id: undefined,
           client_name: '',
           client_email: '',
@@ -427,6 +430,37 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                   {watchSaleType === 'lancamento' && (
                     <p className="text-xs text-muted-foreground">Lançamento é sempre do tipo Venda</p>
                   )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Visibilidade: onde o registro aparece */}
+            <FormField
+              control={form.control}
+              name="visibilidade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Exibir em</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || "auto"}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Automático" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="auto">🔄 Automático (segue o tipo)</SelectItem>
+                      <SelectItem value="venda">🟢 Somente Vendas</SelectItem>
+                      <SelectItem value="captacao">🔵 Somente Captação</SelectItem>
+                      <SelectItem value="ambos">🟣 Vendas e Captação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {field.value === 'auto' ? 'Aparece na tela correspondente ao tipo' : 
+                     field.value === 'ambos' ? 'Aparece nas duas telas' :
+                     field.value === 'venda' ? 'Aparece somente na tela de Vendas' :
+                     'Aparece somente na tela de Captação'}
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

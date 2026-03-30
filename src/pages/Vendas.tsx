@@ -69,11 +69,15 @@ const Vendas = () => {
     { value: 11, label: 'Novembro' }, { value: 12, label: 'Dezembro' },
   ];
 
-  // Show vendas + captações de agência (captação + venda da agência aparece nas duas telas)
+  // Show sales based on visibilidade field
   const vendaSales = useMemo(() => {
-    return sales.filter(sale => 
-      sale.tipo !== 'captacao' || sale.parceria_tipo === 'Agência'
-    );
+    return sales.filter(sale => {
+      const vis = (sale as any).visibilidade || 'auto';
+      if (vis === 'venda' || vis === 'ambos') return true;
+      if (vis === 'captacao') return false;
+      // auto: show if tipo is venda, or if captação from agency
+      return sale.tipo !== 'captacao' || sale.parceria_tipo === 'Agência';
+    });
   }, [sales]);
 
   const periodFilteredSales = useMemo(() => {
