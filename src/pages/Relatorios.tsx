@@ -19,6 +19,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import PeriodFilter from "@/components/PeriodFilter";
 import { formatCurrency } from "@/utils/formatting";
+import BrokerReportDialog from "@/components/reports/BrokerReportDialog";
 
 const Relatorios = () => {
   const { toast } = useToast();
