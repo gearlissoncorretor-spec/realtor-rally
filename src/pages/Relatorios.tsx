@@ -346,6 +346,23 @@ const Relatorios = () => {
                 </div>
               </Card>
             ))}
+
+            {/* Individual Broker Report Card */}
+            <Card className="p-6 hover:shadow-lg transition-all duration-300 animate-fade-in border-2 border-dashed border-primary/20" style={{ animationDelay: '0.6s' }}>
+              <div className={`w-16 h-16 ${individualReport.color} rounded-lg flex items-center justify-center mb-4`}>
+                {individualReport.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2">{individualReport.title}</h3>
+              <p className="text-muted-foreground mb-4">{individualReport.description}</p>
+              <BrokerReportDialog
+                trigger={
+                  <Button size="sm" className="w-full">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Gerar PDF Individual
+                  </Button>
+                }
+              />
+            </Card>
           </div>
         )}
 
