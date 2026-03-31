@@ -661,6 +661,7 @@ const Corretores = () => {
                 <LayoutGrid className="w-4 h-4" />
               </Button>
             </div>
+            <BrokerReportDialog />
             <Button className="flex-1 sm:flex-none h-10 shadow-sm" onClick={handleNewBroker}>
               <Plus className="w-4 h-4 mr-2" /> Novo Corretor
             </Button>
