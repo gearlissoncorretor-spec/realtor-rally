@@ -53,6 +53,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BrokerForm } from "@/components/forms/BrokerForm";
 import BrokerDetailsModal from "@/components/BrokerDetailsModal";
+import BrokerReportDialog from "@/components/reports/BrokerReportDialog";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
 import { useTeams } from "@/hooks/useTeams";
@@ -660,6 +661,7 @@ const Corretores = () => {
                 <LayoutGrid className="w-4 h-4" />
               </Button>
             </div>
+            <BrokerReportDialog />
             <Button className="flex-1 sm:flex-none h-10 shadow-sm" onClick={handleNewBroker}>
               <Plus className="w-4 h-4 mr-2" /> Novo Corretor
             </Button>

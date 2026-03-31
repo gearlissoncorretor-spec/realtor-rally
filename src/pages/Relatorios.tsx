@@ -19,6 +19,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import PeriodFilter from "@/components/PeriodFilter";
 import { formatCurrency } from "@/utils/formatting";
+import BrokerReportDialog from "@/components/reports/BrokerReportDialog";
 
 const Relatorios = () => {
   const { toast } = useToast();
@@ -294,6 +295,13 @@ const Relatorios = () => {
     }
   ];
 
+  const individualReport = {
+    title: "Relatório Individual",
+    description: "PDF completo por corretor com KPIs, vendas e insights",
+    icon: <FileText className="w-8 h-8 text-warning" />,
+    color: "bg-warning/10",
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -338,6 +346,23 @@ const Relatorios = () => {
                 </div>
               </Card>
             ))}
+
+            {/* Individual Broker Report Card */}
+            <Card className="p-6 hover:shadow-lg transition-all duration-300 animate-fade-in border-2 border-dashed border-primary/20" style={{ animationDelay: '0.6s' }}>
+              <div className={`w-16 h-16 ${individualReport.color} rounded-lg flex items-center justify-center mb-4`}>
+                {individualReport.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2">{individualReport.title}</h3>
+              <p className="text-muted-foreground mb-4">{individualReport.description}</p>
+              <BrokerReportDialog
+                trigger={
+                  <Button size="sm" className="w-full">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Gerar PDF Individual
+                  </Button>
+                }
+              />
+            </Card>
           </div>
         )}
 
