@@ -53,6 +53,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BrokerForm } from "@/components/forms/BrokerForm";
 import BrokerDetailsModal from "@/components/BrokerDetailsModal";
+import BrokerReportDialog from "@/components/reports/BrokerReportDialog";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
 import { useTeams } from "@/hooks/useTeams";
