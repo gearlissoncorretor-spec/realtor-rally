@@ -295,6 +295,13 @@ const Relatorios = () => {
     }
   ];
 
+  const individualReport = {
+    title: "Relatório Individual",
+    description: "PDF completo por corretor com KPIs, vendas e insights",
+    icon: <FileText className="w-8 h-8 text-warning" />,
+    color: "bg-warning/10",
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
