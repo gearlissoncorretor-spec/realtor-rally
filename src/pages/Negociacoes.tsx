@@ -705,10 +705,11 @@ const Negociacoes = () => {
           )}
 
           {/* Important Notice */}
-          <Alert className="border-amber-500/50 bg-amber-500/10">
+          <Alert className="border-warning/50 bg-warning/10">
             <AlertDescription className="flex items-center gap-2 text-sm">
-              <span className="text-amber-500 font-bold">⚠️ IMPORTANTE:</span>
+              <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
               <span>
+                <strong className="text-warning">IMPORTANTE:</strong>{' '}
                 Cliente <strong>Aprovado</strong> ≠ <strong>Venda</strong>. 
                 Uma venda só é registrada ao clicar em "Converter em Venda".
               </span>
