@@ -90,7 +90,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Calendar className="w-5 h-5 text-primary" />
-            📅 Meta Mensal
+            Meta Mensal
           </CardTitle>
         </CardHeader>
         <CardContent>
