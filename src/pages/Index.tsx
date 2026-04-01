@@ -411,10 +411,15 @@ const DiretorDashboardPage = () => {
           )}
         </div>
 
-        {/* KPI Cards */}
+        {/* KPI Cards - Hero layout for VGV */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-8">
-          {kpiData.map((kpi) => (
-            <KPICard key={kpi.title} {...kpi} className="animate-fade-in" />
+          {kpiData.map((kpi, index) => (
+            <KPICard
+              key={kpi.title}
+              {...kpi}
+              variant={index === 0 ? "hero" : "default"}
+              className={index === 0 ? "sm:col-span-2 lg:col-span-1 animate-fade-in" : "animate-fade-in"}
+            />
           ))}
         </div>
 
