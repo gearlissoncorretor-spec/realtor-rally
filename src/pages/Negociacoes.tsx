@@ -66,9 +66,9 @@ const PROPERTY_TYPES = [
 ];
 
 const TEMPERATURE_OPTIONS = [
-  { value: 'fria', label: '❄️ Fria', color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/30' },
-  { value: 'morna', label: '🌤️ Morna', color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/30' },
-  { value: 'quente', label: '🔥 Quente', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/30' },
+  { value: 'fria', label: '❄️ Fria', color: 'text-info', bg: 'bg-info/10 border-info/30' },
+  { value: 'morna', label: '🌤️ Morna', color: 'text-warning', bg: 'bg-warning/10 border-warning/30' },
+  { value: 'quente', label: '🔥 Quente', color: 'text-destructive', bg: 'bg-destructive/10 border-destructive/30' },
 ];
 
 const Negociacoes = () => {
