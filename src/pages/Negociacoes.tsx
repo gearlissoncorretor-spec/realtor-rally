@@ -1250,7 +1250,7 @@ const Negociacoes = () => {
                   <p><strong>Valor:</strong> {formatCurrency(selectedForFollowUp.negotiated_value)}</p>
                 </div>
               )}
-              <p className="text-amber-600 dark:text-amber-400">
+              <p className="text-warning">
                 A negociação será removida e um novo registro será criado no Follow Up com status "Novo Lead".
               </p>
             </AlertDialogDescription>
