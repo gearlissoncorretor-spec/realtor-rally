@@ -1074,13 +1074,11 @@ const Negociacoes = () => {
                 </CardHeader>
                 <CardContent>
                   {filteredLostNegotiations.length === 0 ? (
-                    <div className="text-center py-12">
-                      <XCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-                      <p className="text-muted-foreground">Nenhuma negociação perdida</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Isso é uma boa notícia! 🎉
-                      </p>
-                    </div>
+                    <EmptyState
+                      icon={XCircle}
+                      title="Nenhuma negociação perdida"
+                      description="Ótima notícia! Continue assim e mantenha suas conversões em alta."
+                    />
                   ) : (
                     <>
                       {/* Mobile Card View - Lost */}
