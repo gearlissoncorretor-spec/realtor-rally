@@ -196,9 +196,9 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
               <div
                 className={cn(
                   "h-full rounded-full bg-gradient-to-r transition-all duration-1000 ease-out relative",
-                  progress >= 71 ? "from-emerald-500 to-emerald-400" :
-                  progress >= 31 ? "from-amber-500 to-yellow-400" :
-                  "from-red-500 to-rose-400",
+                  progress >= 71 ? "bg-success" :
+                  progress >= 31 ? "bg-warning" :
+                  "bg-destructive",
                   isGoalMet && "animate-pulse"
                 )}
                 style={{ width: `${animatedProgress}%` }}
