@@ -245,7 +245,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {getProbabilityIcon()}
-                <span className="text-sm font-medium text-foreground">📈 Probabilidade</span>
+                <span className="text-sm font-medium text-foreground">Probabilidade</span>
               </div>
             </div>
             <div className="text-center">
