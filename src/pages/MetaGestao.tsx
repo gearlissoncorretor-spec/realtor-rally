@@ -483,13 +483,13 @@ const MetaGestao = () => {
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* BLOCO 1 – RESUMO KPIs (compacto) */}
           {/* ═══════════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Meta Anual */}
             <Card className="border-border/50 bg-card relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-primary/50" />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Meta Anual</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{formatCurrency(effectiveAnnualGoal)}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{formatCurrency(effectiveAnnualGoal)}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">Objetivo {selectedYear}</p>
               </CardContent>
             </Card>
@@ -499,7 +499,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-info to-info/50" />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Realizado</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{formatCurrency(yearlyData.totalVGV)}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{formatCurrency(yearlyData.totalVGV)}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">{yearlyData.totalSales} vendas</p>
               </CardContent>
             </Card>
@@ -509,7 +509,7 @@ const MetaGestao = () => {
               <div className={cn("absolute top-0 left-0 right-0 h-[2px]", annualProgress >= 80 ? "bg-gradient-to-r from-success to-success/50" : annualProgress >= 50 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Atingimento</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{formatPercentDisplay(annualProgress, 1)}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{formatPercentDisplay(annualProgress, 1)}</p>
                 <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-1.5 mt-1.5" />
               </CardContent>
             </Card>
@@ -519,15 +519,16 @@ const MetaGestao = () => {
               <div className={cn("absolute top-0 left-0 right-0 h-[2px]", componentProbability.current >= 70 ? "bg-gradient-to-r from-success to-success/50" : componentProbability.current >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Probabilidade</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{componentProbability.current}%</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{componentProbability.current}%</p>
                 <p className="text-[10px] text-muted-foreground mt-1">projeção anual</p>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* BLOCO 2 – FOCO NO MÊS ATUAL */}
           {/* ═══════════════════════════════════════════════════════════════ */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}>
           <Card className="border-primary/20 bg-card shadow-md relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/30" />
             <CardHeader className="pb-2">
