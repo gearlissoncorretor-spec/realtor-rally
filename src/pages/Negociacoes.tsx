@@ -1133,7 +1133,7 @@ const Negociacoes = () => {
                                   <div>
                                     <p className="font-medium">{negotiation.client_name}</p>
                                     {negotiation.client_phone && (
-                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700">
+                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-success hover:text-success/80">
                                         <MessageCircle className="w-3 h-3" />{negotiation.client_phone}
                                       </a>
                                     )}
