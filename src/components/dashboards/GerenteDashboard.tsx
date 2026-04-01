@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { OriginAnalyticsDashboard } from '@/components/dashboards/OriginAnalyticsDashboard';
+import ConsolidatedAlerts from '@/components/dashboards/ConsolidatedAlerts';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
@@ -21,6 +22,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import MonthlyGoalPanel from '@/components/goals/MonthlyGoalPanel';
 import AnnualGoalPanel from '@/components/goals/AnnualGoalPanel';
+import { motion } from 'framer-motion';
 import {
   Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
   CheckSquare, Square, ChevronRight, ChevronDown, ChevronUp,
@@ -31,6 +33,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.4, ease: 'easeOut' },
+  }),
+};
 
 const GerenteDashboard = () => {
   const { profile, user, teamHierarchy } = useAuth();
@@ -43,7 +53,6 @@ const GerenteDashboard = () => {
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
   const [rankingExpanded, setRankingExpanded] = useState(false);
-  const [alertsDismissed, setAlertsDismissed] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
@@ -100,7 +109,7 @@ const GerenteDashboard = () => {
         id: `google-${ge.id}`,
         user_id: '',
         company_id: null,
-        title: `📅 ${ge.summary}`,
+        title: ge.summary,
         description: ge.description || null,
         event_date: startDate,
         start_time: startTime,
@@ -183,7 +192,6 @@ const GerenteDashboard = () => {
       const bNeg = activeNegotiations.filter(n => n.broker_id === broker.id);
       const bFollowUps = pendingFollowUps.filter(f => f.broker_id === broker.id);
       
-      // Calculate days since last sale
       const lastSaleDate = allBrokerSales.length > 0
         ? Math.max(...allBrokerSales.map(s => new Date(s.sale_date || s.created_at || '').getTime()))
         : null;
@@ -204,21 +212,20 @@ const GerenteDashboard = () => {
     }).sort((a, b) => b.vgv - a.vgv);
   }, [activeTeamBrokers, monthSales, teamSales, activeNegotiations, pendingFollowUps]);
 
-  // Alerts: brokers with no activity
-  const brokersWithoutSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations === 0);
-  
-  // Brokers inactive for 5+ days (no sales in 5+ days)
+  // Alerts data
+  const brokersWithoutSalesData = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations === 0);
+  const activeBrokersNoSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations > 0);
   const inactiveBrokers = brokerPerformance.filter(b => 
     b.daysSinceLastSale !== null && b.daysSinceLastSale >= 5
   );
 
   // Funnel data
   const funnelData = [
-    { label: 'Leads', value: teamFollowUps.length, color: 'bg-blue-500' },
-    { label: 'Atendimento', value: activeNegotiations.length, color: 'bg-cyan-500' },
-    { label: 'Visitas', value: activeNegotiations.filter(n => n.status === 'visita_realizada' || n.status === 'em_negociacao').length, color: 'bg-emerald-500' },
-    { label: 'Propostas', value: activeNegotiations.filter(n => n.status === 'proposta_enviada' || n.status === 'em_negociacao').length, color: 'bg-purple-500' },
-    { label: 'Fechados', value: monthSales.length, color: 'bg-amber-500' },
+    { label: 'Leads', value: teamFollowUps.length, color: 'bg-primary' },
+    { label: 'Atendimento', value: activeNegotiations.length, color: 'bg-info' },
+    { label: 'Visitas', value: activeNegotiations.filter(n => n.status === 'visita_realizada' || n.status === 'em_negociacao').length, color: 'bg-success' },
+    { label: 'Propostas', value: activeNegotiations.filter(n => n.status === 'proposta_enviada' || n.status === 'em_negociacao').length, color: 'bg-accent-foreground/60' },
+    { label: 'Fechados', value: monthSales.length, color: 'bg-warning' },
   ];
   const maxFunnel = Math.max(...funnelData.map(f => f.value), 1);
 
@@ -232,18 +239,21 @@ const GerenteDashboard = () => {
   const sections = focusMode ? focusSections : allSections;
 
   const kpiCards = [
-    { label: 'Vendas do Mês', value: monthSales.length.toString(), sub: `VGV: ${formatCurrency(monthVGV)}`, icon: DollarSign, gradient: 'from-emerald-500/20 to-emerald-600/5', border: 'border-emerald-500/30', iconColor: 'text-emerald-400' },
-    { label: 'Corretores Ativos', value: activeTeamBrokers.length.toString(), sub: `de ${teamBrokers.length} na equipe`, icon: Users, gradient: 'from-blue-500/20 to-blue-600/5', border: 'border-blue-500/30', iconColor: 'text-blue-400' },
-    { label: 'Negociações Ativas', value: activeNegotiations.length.toString(), sub: `${hotNegotiations.length} quentes`, icon: Flame, gradient: 'from-orange-500/20 to-orange-600/5', border: 'border-orange-500/30', iconColor: 'text-orange-400' },
-    { label: 'Follow-ups Pendentes', value: pendingFollowUps.length.toString(), sub: `${teamFollowUps.length} total`, icon: RotateCcw, gradient: 'from-purple-500/20 to-purple-600/5', border: 'border-purple-500/30', iconColor: 'text-purple-400' },
+    { label: 'Vendas do Mês', value: monthSales.length.toString(), sub: `VGV: ${formatCurrency(monthVGV)}`, icon: DollarSign, gradient: 'from-success/20 to-success/5', border: 'border-success/30', iconColor: 'text-success' },
+    { label: 'Corretores Ativos', value: activeTeamBrokers.length.toString(), sub: `de ${teamBrokers.length} na equipe`, icon: Users, gradient: 'from-primary/20 to-primary/5', border: 'border-primary/30', iconColor: 'text-primary' },
+    { label: 'Negociações Ativas', value: activeNegotiations.length.toString(), sub: `${hotNegotiations.length} quentes`, icon: Flame, gradient: 'from-warning/20 to-warning/5', border: 'border-warning/30', iconColor: 'text-warning' },
+    { label: 'Follow-ups Pendentes', value: pendingFollowUps.length.toString(), sub: `${teamFollowUps.length} total`, icon: RotateCcw, gradient: 'from-accent-foreground/15 to-accent-foreground/5', border: 'border-accent-foreground/20', iconColor: 'text-accent-foreground/70' },
   ];
 
   const eventTypeColors: Record<string, string> = {
-    visita: '#10b981', captacao: '#10b981', reuniao: '#8b5cf6', meta: '#8b5cf6',
-    follow_up: '#f59e0b', lembrete: '#3b82f6', venda: '#06b6d4', outro: '#6b7280',
+    visita: 'hsl(var(--success))', captacao: 'hsl(var(--success))', reuniao: 'hsl(var(--primary))', meta: 'hsl(var(--primary))',
+    follow_up: 'hsl(var(--warning))', lembrete: 'hsl(var(--info))', venda: 'hsl(var(--info))', outro: 'hsl(var(--muted-foreground))',
   };
 
-  const medals = ['🥇', '🥈', '🥉'];
+  const medalIcons = [Trophy, Award, Award];
+  const medalColors = ['text-warning', 'text-muted-foreground', 'text-orange-600'];
+
+  let sectionIndex = 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -252,7 +262,12 @@ const GerenteDashboard = () => {
         <div className="space-y-5 max-w-7xl mx-auto">
 
           {/* Header */}
-          <div className="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-3">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-3"
+          >
             <div className="text-center sm:text-left w-full lg:w-auto">
               <h1 className="text-xl lg:text-3xl font-bold text-foreground">
                 Central do Gestor
@@ -265,7 +280,7 @@ const GerenteDashboard = () => {
               <Button
                 variant={focusMode ? 'default' : 'outline'}
                 size="sm"
-                className={cn("gap-1.5 transition-all", focusMode && "bg-amber-500 hover:bg-amber-600 text-white")}
+                className={cn("gap-1.5 transition-all", focusMode && "bg-warning hover:bg-warning/90 text-warning-foreground")}
                 onClick={() => setFocusMode(!focusMode)}
               >
                 {focusMode ? <X className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
@@ -273,26 +288,28 @@ const GerenteDashboard = () => {
               </Button>
               {!focusMode && (
                 <>
-                  <Button variant="outline" size="sm" className="gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => navigate('/corretores')}>
+                  <Button variant="outline" size="sm" className="gap-1.5 border-success/20 text-success hover:bg-success/10" onClick={() => navigate('/corretores')}>
                     <Users className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Minha</span> Equipe
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-1.5 border-blue-500/20 text-blue-400 hover:bg-blue-500/10" onClick={() => navigate('/negociacoes')}>
+                  <Button variant="outline" size="sm" className="gap-1.5 border-primary/20 text-primary hover:bg-primary/10" onClick={() => navigate('/negociacoes')}>
                     <Briefcase className="w-3.5 h-3.5" /> Negociações
                   </Button>
                 </>
               )}
             </div>
-          </div>
-
+          </motion.div>
 
           {/* Mobile Quick Actions */}
           {isMobile && !focusMode && (
-            <div className="grid grid-cols-4 gap-2">
+            <motion.div
+              variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++}
+              className="grid grid-cols-4 gap-2"
+            >
               {[
-                { icon: DollarSign, label: 'Venda', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', route: '/vendas' },
-                { icon: Briefcase, label: 'Negociação', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20', route: '/negociacoes' },
-                { icon: Calendar, label: 'Agenda', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20', route: '/agenda' },
-                { icon: MessageCircle, label: 'Follow-up', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', route: '/follow-up' },
+                { icon: DollarSign, label: 'Venda', color: 'text-success bg-success/10 border-success/20', route: '/vendas' },
+                { icon: Briefcase, label: 'Negociação', color: 'text-primary bg-primary/10 border-primary/20', route: '/negociacoes' },
+                { icon: Calendar, label: 'Agenda', color: 'text-accent-foreground bg-accent/50 border-accent', route: '/agenda' },
+                { icon: MessageCircle, label: 'Follow-up', color: 'text-warning bg-warning/10 border-warning/20', route: '/follow-up' },
               ].map(action => (
                 <button
                   key={action.label}
@@ -303,103 +320,58 @@ const GerenteDashboard = () => {
                   <span className="text-[10px] font-medium">{action.label}</span>
                 </button>
               ))}
-            </div>
+            </motion.div>
           )}
 
           {/* Focus mode banner */}
           {focusMode && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 flex items-center gap-3">
-              <Zap className="w-5 h-5 text-amber-400 shrink-0" />
-              <p className="text-sm text-amber-200">
-                <strong>Modo Foco ativo</strong> — KPIs, metas, alertas, ranking e negociações quentes.
+            <motion.div
+              variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++}
+              className="rounded-xl border border-warning/30 bg-warning/5 p-3 flex items-center gap-3"
+            >
+              <Zap className="w-5 h-5 text-warning shrink-0" />
+              <p className="text-sm text-muted-foreground">
+                <strong className="text-foreground">Modo Foco ativo</strong> — KPIs, metas, alertas, ranking e negociações quentes.
               </p>
-            </div>
+            </motion.div>
           )}
 
           {/* 1. KPI Cards */}
           {sections.includes('kpis') && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
-              {kpiCards.map(card => (
-                <div key={card.label} className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-3 lg:p-4 transition-all hover:scale-[1.02]`}>
+              {kpiCards.map((card, idx) => (
+                <motion.div
+                  key={card.label}
+                  variants={fadeUp} initial="hidden" animate="visible" custom={idx}
+                  className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-3 lg:p-4 transition-all hover:scale-[1.02]`}
+                >
                   <div className="flex items-center justify-between">
                     <div className="min-w-0">
                       <p className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{card.label}</p>
-                      <p className="text-2xl lg:text-3xl font-bold text-foreground mt-0.5 lg:mt-1">{card.value}</p>
+                      <p className="text-2xl lg:text-3xl font-bold text-foreground mt-0.5 lg:mt-1 tabular-nums">{card.value}</p>
                       <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{card.sub}</p>
                     </div>
                     <card.icon className={`w-6 h-6 lg:w-8 lg:h-8 ${card.iconColor} opacity-80 shrink-0`} />
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
 
-          {/* 2. Alerts */}
-          {sections.includes('alerts') && brokersWithoutSales.length > 0 && !alertsDismissed && (
-            <div className="rounded-xl border border-red-500/20 bg-gradient-to-br from-red-500/5 to-transparent p-4 relative">
-              <button
-                onClick={() => setAlertsDismissed(true)}
-                className="absolute top-2 right-2 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                aria-label="Fechar alerta"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 pr-6">
-                <AlertTriangle className="w-4 h-4 text-red-400" /> Atenção — Corretores sem atividade
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {brokersWithoutSales.map(b => (
-                  <Badge key={b.id} variant="outline" className="border-red-500/30 text-red-400 bg-red-500/10 py-1 px-3">
-                    {b.name.split(' ')[0]} — 0 vendas, 0 negociações
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {sections.includes('alerts') && (() => {
-            const activeBrokersNoSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations > 0);
-            return activeBrokersNoSales.length > 0 ? (
-              <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                  <DollarSign className="w-4 h-4 text-amber-400" /> Atenção — Corretores sem vendas no mês
-                </h2>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Estes corretores possuem negociações ativas mas ainda não fecharam vendas este mês.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {activeBrokersNoSales.map(b => (
-                    <Badge key={b.id} variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/10 py-1 px-3">
-                      {b.name.split(' ')[0]} — {b.negotiations} negociação(ões)
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            ) : null;
-          })()}
-
-          {/* Broker Inactivity Alert (5+ days without sales) */}
-          {sections.includes('alerts') && inactiveBrokers.length > 0 && (
-            <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
-              <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                <Clock className="w-4 h-4 text-orange-400" /> Alerta de Inatividade — 5+ dias sem vendas
-              </h2>
-              <p className="text-xs text-muted-foreground mb-3">
-                Estes corretores não registram vendas há pelo menos 5 dias.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {inactiveBrokers.map(b => (
-                  <Badge key={b.id} variant="outline" className="border-orange-500/30 text-orange-400 bg-orange-500/10 py-1 px-3">
-                    {b.name.split(' ')[0]} — {b.daysSinceLastSale} dias sem venda
-                  </Badge>
-                ))}
-              </div>
-            </div>
+          {/* 2. Consolidated Alerts */}
+          {sections.includes('alerts') && (
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++}>
+              <ConsolidatedAlerts
+                brokersWithoutActivity={brokersWithoutSalesData}
+                brokersWithoutSales={activeBrokersNoSales}
+                inactiveBrokers={inactiveBrokers}
+              />
+            </motion.div>
           )}
 
           {/* 3. Goal Panel — Monthly + Annual + Smart Insights */}
           {sections.includes('goal') && (
-            <div className="space-y-4">
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="space-y-4">
               <div className="grid lg:grid-cols-2 gap-4">
                 <MonthlyGoalPanel
                   targetValue={monthlyTargetValue}
@@ -420,9 +392,10 @@ const GerenteDashboard = () => {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {goalInsights.isGoalMet ? (
-                      <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center col-span-full">
-                        <p className="text-sm font-bold text-emerald-400">
-                          🎉 Meta atingida! Superado em {formatCurrency(monthlyAchieved - monthlyTargetValue)}
+                      <div className="p-3 rounded-lg bg-success/10 border border-success/20 text-center col-span-full">
+                        <p className="text-sm font-bold text-success flex items-center justify-center gap-2">
+                          <CheckSquare className="w-4 h-4" />
+                          Meta atingida! Superado em {formatCurrency(monthlyAchieved - monthlyTargetValue)}
                         </p>
                       </div>
                     ) : (
@@ -430,8 +403,9 @@ const GerenteDashboard = () => {
                         {goalInsights.salesNeeded > 0 && goalInsights.ticketMedioValue > 0 && (
                           <div className="p-3 rounded-lg bg-card/50 border border-border/50">
                             <p className="text-xs text-muted-foreground">Vendas necessárias</p>
-                            <p className="text-lg font-bold text-foreground mt-1">
-                              🔥 Faltam {goalInsights.salesNeeded} venda{goalInsights.salesNeeded > 1 ? 's' : ''}
+                            <p className="text-lg font-bold text-foreground mt-1 flex items-center gap-1.5">
+                              <Flame className="w-4 h-4 text-warning" />
+                              Faltam {goalInsights.salesNeeded} venda{goalInsights.salesNeeded > 1 ? 's' : ''}
                             </p>
                             <p className="text-[10px] text-muted-foreground mt-0.5">
                               Ticket médio atual: {formatCurrency(goalInsights.ticketMedioValue)}
@@ -441,13 +415,14 @@ const GerenteDashboard = () => {
                         {goalInsights.projectedDate && (
                           <div className="p-3 rounded-lg bg-card/50 border border-border/50">
                             <p className="text-xs text-muted-foreground">Projeção de atingimento</p>
-                            <p className="text-lg font-bold text-foreground mt-1">
-                              🚀 {format(goalInsights.projectedDate, "dd/MM")}
+                            <p className="text-lg font-bold text-foreground mt-1 flex items-center gap-1.5">
+                              <Rocket className="w-4 h-4 text-primary" />
+                              {format(goalInsights.projectedDate, "dd/MM")}
                             </p>
                             <p className="text-[10px] text-muted-foreground mt-0.5">
                               {goalInsights.projectedDate.getMonth() === new Date().getMonth()
                                 ? 'Mantendo o ritmo atual'
-                                : '⚠️ Projeção ultrapassa o mês'}
+                                : <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3 text-warning" /> Projeção ultrapassa o mês</span>}
                             </p>
                           </div>
                         )}
@@ -465,7 +440,7 @@ const GerenteDashboard = () => {
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
 
           {/* 4. Agenda + Negociações Quentes */}
@@ -473,7 +448,7 @@ const GerenteDashboard = () => {
 
             {/* Agenda do Dia */}
             {sections.includes('agenda') && (
-              <div className="rounded-xl border border-border bg-card/50 p-4">
+              <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-border bg-card/50 p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-primary" /> Agenda do Dia
@@ -487,10 +462,10 @@ const GerenteDashboard = () => {
                 ) : (
                   <div className="space-y-2">
                     {todayEvents.slice(0, 5).map(event => {
-                      const color = eventTypeColors[event.event_type] || '#3b82f6';
+                      const color = eventTypeColors[event.event_type] || 'hsl(var(--primary))';
                       return (
                         <div key={event.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate('/agenda')}>
-                          <span className="text-xs font-mono text-muted-foreground w-12 shrink-0">
+                          <span className="text-xs font-mono text-muted-foreground w-12 shrink-0 tabular-nums">
                             {event.start_time?.slice(0, 5) || '—'}
                           </span>
                           <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: color }} />
@@ -503,17 +478,17 @@ const GerenteDashboard = () => {
                     })}
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
 
             {/* Negociações Quentes */}
             {sections.includes('negotiations') && (
-              <div className="rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent p-4">
+              <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-warning/20 bg-gradient-to-br from-warning/5 to-transparent p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Flame className="w-4 h-4 text-orange-400" /> Negociações Quentes
+                    <Flame className="w-4 h-4 text-warning" /> Negociações Quentes
                   </h2>
-                  <Button variant="ghost" size="sm" className="text-xs text-orange-400" onClick={() => navigate('/negociacoes')}>
+                  <Button variant="ghost" size="sm" className="text-xs text-warning" onClick={() => navigate('/negociacoes')}>
                     Ver todas <ChevronRight className="w-3 h-3 ml-1" />
                   </Button>
                 </div>
@@ -534,7 +509,7 @@ const GerenteDashboard = () => {
                               </p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-xs font-semibold text-foreground">{formatCurrency(neg.negotiated_value)}</span>
+                              <span className="text-xs font-semibold text-foreground tabular-nums">{formatCurrency(neg.negotiated_value)}</span>
                               <Badge variant="outline" className={`text-[10px] ${getProbabilityColor(chance)}`}>
                                 {chance}%
                               </Badge>
@@ -546,13 +521,13 @@ const GerenteDashboard = () => {
                     })}
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
           </div>
 
           {/* Funil da Equipe */}
           {!focusMode && sections.includes('funnel') && (
-            <div className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
               <h2 className="text-xs lg:text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 lg:mb-4">
                 <BarChart3 className="w-4 h-4 text-primary" /> Funil de Vendas
               </h2>
@@ -565,79 +540,79 @@ const GerenteDashboard = () => {
                         className={`h-full ${item.color} rounded-full flex items-center justify-end pr-2 transition-all`}
                         style={{ width: `${Math.max((item.value / maxFunnel) * 100, 12)}%` }}
                       >
-                        <span className="text-[10px] font-bold text-white">{item.value}</span>
+                        <span className="text-[10px] font-bold text-primary-foreground tabular-nums">{item.value}</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Metrics */}
           {!focusMode && sections.includes('metrics') && (
-            <div className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-border bg-card/50 p-3 lg:p-5">
               <h2 className="text-xs lg:text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3 lg:mb-4">
                 <Activity className="w-4 h-4 text-primary" /> Métricas Consolidadas
               </h2>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
                 <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-lg lg:text-2xl font-bold text-foreground">{formatCurrency(ticketMedio)}</p>
+                  <p className="text-lg lg:text-2xl font-bold text-foreground tabular-nums">{formatCurrency(ticketMedio)}</p>
                   <p className="text-[10px] lg:text-xs text-muted-foreground">Ticket Médio</p>
                 </div>
                 <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-lg lg:text-2xl font-bold text-foreground">
+                  <p className="text-lg lg:text-2xl font-bold text-foreground tabular-nums">
                     {activeTeamBrokers.length > 0 ? (monthSales.length / activeTeamBrokers.length).toFixed(1) : '0'}
                   </p>
                   <p className="text-[10px] lg:text-xs text-muted-foreground">Vendas/Corretor</p>
                 </div>
                 <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-lg lg:text-2xl font-bold text-foreground">{conversionRate}%</p>
+                  <p className="text-lg lg:text-2xl font-bold text-foreground tabular-nums">{conversionRate}%</p>
                   <p className="text-[10px] lg:text-xs text-muted-foreground">Taxa de Conversão</p>
                 </div>
                 <div className="p-2.5 lg:p-3 rounded-lg bg-muted/20 border border-border/30 text-center">
-                  <p className="text-lg lg:text-2xl font-bold text-foreground">{formatCurrency(monthVGC)}</p>
+                  <p className="text-lg lg:text-2xl font-bold text-foreground tabular-nums">{formatCurrency(monthVGC)}</p>
                   <p className="text-[10px] lg:text-xs text-muted-foreground">Comissões do Mês</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Opportunities */}
           {!focusMode && sections.includes('opportunities') && (
-            <div className="rounded-xl border border-cyan-500/20 bg-gradient-to-br from-cyan-500/5 to-transparent p-4">
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-info/20 bg-gradient-to-br from-info/5 to-transparent p-4">
               <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-3">
-                <Lightbulb className="w-4 h-4 text-cyan-400" /> Visão Geral
+                <Lightbulb className="w-4 h-4 text-info" /> Visão Geral
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 rounded-lg bg-card/30 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{pendingFollowUps.length}</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{pendingFollowUps.length}</p>
                   <p className="text-xs text-muted-foreground">Leads pendentes</p>
                 </div>
                 <div className="p-3 rounded-lg bg-card/30 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{activeNegotiations.length}</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{activeNegotiations.length}</p>
                   <p className="text-xs text-muted-foreground">Negociações ativas</p>
                 </div>
                 <div className="p-3 rounded-lg bg-card/30 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{todayEvents.length}</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{todayEvents.length}</p>
                   <p className="text-xs text-muted-foreground">Compromissos hoje</p>
                 </div>
                 <div className="p-3 rounded-lg bg-card/30 border border-border/30 text-center">
-                  <p className="text-2xl font-bold text-foreground">{brokersWithoutSales.length}</p>
+                  <p className="text-2xl font-bold text-foreground tabular-nums">{brokersWithoutSalesData.length}</p>
                   <p className="text-xs text-muted-foreground">Corretores parados</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
-          {/* 5. Ranking da Equipe — ÚLTIMO BLOCO, expandível */}
+          {/* 5. Ranking da Equipe */}
           {sections.includes('ranking') && (
-            <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-warning/20 bg-gradient-to-br from-warning/5 to-transparent p-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-amber-400" /> Ranking da Equipe — Mês Atual
+                  <Trophy className="w-4 h-4 text-warning" /> Ranking da Equipe — Mês Atual
                 </h2>
-                <Button variant="ghost" size="sm" className="text-xs text-amber-400" onClick={() => navigate('/ranking')}>
+                <Button variant="ghost" size="sm" className="text-xs text-warning" onClick={() => navigate('/ranking')}>
                   Ver ranking completo <ChevronRight className="w-3 h-3 ml-1" />
                 </Button>
               </div>
@@ -650,26 +625,29 @@ const GerenteDashboard = () => {
                     {brokerPerformance.slice(0, 3).map((broker, idx) => {
                       const maxVGV = brokerPerformance[0]?.vgv || 1;
                       const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
+                      const MedalIcon = medalIcons[idx];
                       return (
                         <div key={broker.id} className={cn(
                           "flex items-center gap-2 lg:gap-3 p-2 lg:p-2.5 rounded-lg hover:bg-muted/20 transition-all",
-                          idx === 0 && "bg-amber-500/5 border border-amber-500/10"
+                          idx === 0 && "bg-warning/5 border border-warning/10"
                         )}>
-                          <span className="text-base lg:text-lg w-6 lg:w-8 text-center shrink-0">{medals[idx]}</span>
+                          <div className="w-6 lg:w-8 flex items-center justify-center shrink-0">
+                            <MedalIcon className={cn("w-5 h-5", medalColors[idx])} />
+                          </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5 lg:mb-1">
                               <span className="text-xs lg:text-sm font-medium text-foreground truncate">{broker.name}</span>
                               <div className="flex items-center gap-1.5 lg:gap-3 text-[10px] lg:text-xs text-muted-foreground shrink-0">
                                 <span className="hidden sm:inline">{broker.salesCount} vendas</span>
                                 <span className="sm:hidden">{broker.salesCount}v</span>
-                                <span className="font-semibold text-foreground">{formatCurrency(broker.vgv)}</span>
+                                <span className="font-semibold text-foreground tabular-nums">{formatCurrency(broker.vgv)}</span>
                               </div>
                             </div>
                             <div className="w-full bg-muted/30 rounded-full h-1 lg:h-1.5 overflow-hidden">
                               <div
                                 className={cn(
                                   "h-full rounded-full transition-all duration-700",
-                                  idx === 0 ? "bg-amber-400" : idx === 1 ? "bg-gray-400" : "bg-amber-600"
+                                  idx === 0 ? "bg-warning" : idx === 1 ? "bg-muted-foreground" : "bg-warning/60"
                                 )}
                                 style={{ width: `${barWidth}%` }}
                               />
@@ -690,14 +668,13 @@ const GerenteDashboard = () => {
                           const position = idx + 4;
                           return (
                             <div key={broker.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/20 transition-all">
-                              <span className="text-sm w-8 text-center shrink-0 text-muted-foreground">{position}º</span>
+                              <span className="text-sm w-8 text-center shrink-0 text-muted-foreground tabular-nums">{position}º</span>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="text-sm font-medium text-foreground truncate">{broker.name}</span>
                                   <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
                                     <span>{broker.salesCount} vendas</span>
-                                    <span>{broker.negotiations} neg.</span>
-                                    <span className="font-semibold text-foreground">{formatCurrency(broker.vgv)}</span>
+                                    <span className="font-semibold text-foreground tabular-nums">{formatCurrency(broker.vgv)}</span>
                                   </div>
                                 </div>
                                 <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
@@ -708,25 +685,21 @@ const GerenteDashboard = () => {
                           );
                         })}
                       </CollapsibleContent>
-
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-full mt-3 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 gap-1.5">
-                          {rankingExpanded ? (
-                            <>Mostrar menos <ChevronUp className="w-3.5 h-3.5" /></>
-                          ) : (
-                            <>Ver ranking completo ({brokerPerformance.length - 3} mais) <ChevronDown className="w-3.5 h-3.5" /></>
-                          )}
+                        <Button variant="ghost" size="sm" className="w-full mt-3 text-xs text-muted-foreground hover:text-foreground">
+                          {rankingExpanded ? <ChevronUp className="w-3.5 h-3.5 mr-1" /> : <ChevronDown className="w-3.5 h-3.5 mr-1" />}
+                          {rankingExpanded ? 'Ver menos' : `Ver todos (${brokerPerformance.length - 3} restantes)`}
                         </Button>
                       </CollapsibleTrigger>
                     </>
                   )}
                 </Collapsible>
               )}
-            </div>
+            </motion.div>
           )}
 
-          {/* ORIGEM DOS CLIENTES */}
-          <OriginAnalyticsDashboard />
+          {/* Origin Analytics */}
+          {!focusMode && <OriginAnalyticsDashboard />}
         </div>
       </main>
     </div>
