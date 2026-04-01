@@ -629,9 +629,8 @@ const MetaGestao = () => {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
 
-          {/* ═══════════════════════════════════════════════════════════════ */}
-          {/* META ANUAL (configuração) */}
           {/* ═══════════════════════════════════════════════════════════════ */}
           <Card className="border-border/50 bg-card shadow-sm">
             <CardHeader className="pb-3">
