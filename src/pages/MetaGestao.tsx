@@ -18,16 +18,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 import { 
   Target, Users, TrendingUp, TrendingDown, Calendar, DollarSign, BarChart3,
   ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Edit2, Save, X,
-  AlertTriangle, CheckCircle2, Clock, Building2, Plus, Loader2, Lightbulb, Eye
+  AlertTriangle, CheckCircle2, Clock, Building2, Plus, Loader2, Lightbulb, Eye,
+  Trophy, Banknote, UserCheck, Crosshair
 } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '@/utils/formatting';
 import { format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachMonthOfInterval, isSameMonth, differenceInDays, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { CurrencyInput } from '@/components/ui/currency-input';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.4, ease: [0, 0, 0.2, 1] as const },
+  }),
+};
 
 interface MonthlyGoal {
   month: Date;
