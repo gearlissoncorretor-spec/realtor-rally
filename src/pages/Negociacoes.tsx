@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { EmptyState } from "@/components/EmptyState";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import {
   Calendar,
   CheckCircle2,
   XCircle,
+  X,
   TrendingDown,
   Percent,
   Settings,
@@ -66,9 +68,9 @@ const PROPERTY_TYPES = [
 ];
 
 const TEMPERATURE_OPTIONS = [
-  { value: 'fria', label: '❄️ Fria', color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/30' },
-  { value: 'morna', label: '🌤️ Morna', color: 'text-amber-500', bg: 'bg-amber-500/10 border-amber-500/30' },
-  { value: 'quente', label: '🔥 Quente', color: 'text-red-500', bg: 'bg-red-500/10 border-red-500/30' },
+  { value: 'fria', label: '❄️ Fria', color: 'text-info', bg: 'bg-info/10 border-info/30' },
+  { value: 'morna', label: '🌤️ Morna', color: 'text-warning', bg: 'bg-warning/10 border-warning/30' },
+  { value: 'quente', label: '🔥 Quente', color: 'text-destructive', bg: 'bg-destructive/10 border-destructive/30' },
 ];
 
 const Negociacoes = () => {
@@ -690,7 +692,7 @@ const Negociacoes = () => {
                 <div className="flex items-center gap-2 text-sm">
                   <AlertTriangle className="w-5 h-5 text-destructive" />
                   <span className="font-semibold text-destructive">
-                    ⚠️ {stalledNegotiations.length} negociação(ões) parada(s) há 3+ dias!
+                    {stalledNegotiations.length} negociação(ões) parada(s) há 3+ dias!
                   </span>
                   <span className="text-muted-foreground hidden sm:inline">
                     — Clientes: {stalledNegotiations.slice(0, 3).map(n => n.client_name).join(', ')}
@@ -698,17 +700,18 @@ const Negociacoes = () => {
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setShowStalledAlert(false)} className="h-8 px-2">
-                  ✕
+                  <X className="w-4 h-4" />
                 </Button>
               </AlertDescription>
             </Alert>
           )}
 
           {/* Important Notice */}
-          <Alert className="border-amber-500/50 bg-amber-500/10">
+          <Alert className="border-warning/50 bg-warning/10">
             <AlertDescription className="flex items-center gap-2 text-sm">
-              <span className="text-amber-500 font-bold">⚠️ IMPORTANTE:</span>
+              <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
               <span>
+                <strong className="text-warning">IMPORTANTE:</strong>{' '}
                 Cliente <strong>Aprovado</strong> ≠ <strong>Venda</strong>. 
                 Uma venda só é registrada ao clicar em "Converter em Venda".
               </span>
@@ -726,52 +729,52 @@ const Negociacoes = () => {
             />
             <ResponsiveStatCard
               icon={Clock}
-              iconColor="text-yellow-500"
-              bgColor="bg-yellow-500/10"
+              iconColor="text-warning"
+              bgColor="bg-warning/10"
               value={stats.emAprovacao}
-              label="🟡 Em Aprovação"
+              label="Em Aprovação"
             />
             <ResponsiveStatCard
               icon={CheckCircle2}
-              iconColor="text-green-500"
-              bgColor="bg-green-500/10"
+              iconColor="text-success"
+              bgColor="bg-success/10"
               value={stats.clienteAprovado}
-              label="🟢 Aprovados"
+              label="Aprovados"
               sublabel="(não é venda)"
             />
             <ResponsiveStatCard
               icon={Ban}
-              iconColor="text-red-500"
-              bgColor="bg-red-500/10"
+              iconColor="text-destructive"
+              bgColor="bg-destructive/10"
               value={stats.clienteReprovado}
-              label="🔴 Reprovados"
+              label="Reprovados"
             />
             <ResponsiveStatCard
               icon={XCircle}
-              iconColor="text-gray-500"
-              bgColor="bg-gray-500/10"
+              iconColor="text-muted-foreground"
+              bgColor="bg-muted/50"
               value={stats.perdidas}
               label="Perdidas"
             />
             <ResponsiveStatCard
               icon={Star}
-              iconColor="text-emerald-500"
-              bgColor="bg-emerald-500/10"
+              iconColor="text-success"
+              bgColor="bg-success/10"
               value={stats.vendasConvertidas}
-              label="⭐ Vendas"
+              label="Vendas"
               sublabel="convertidas"
             />
             <ResponsiveStatCard
               icon={Percent}
-              iconColor="text-amber-500"
-              bgColor="bg-amber-500/10"
+              iconColor="text-warning"
+              bgColor="bg-warning/10"
               value={`${stats.taxaConversao}%`}
               label="Conversão"
             />
             <ResponsiveStatCard
               icon={DollarSign}
-              iconColor="text-emerald-500"
-              bgColor="bg-emerald-500/10"
+              iconColor="text-success"
+              bgColor="bg-success/10"
               value={formatCurrency(stats.valorTotal)}
               label="Valor Ativo"
             />
@@ -875,13 +878,13 @@ const Negociacoes = () => {
                 </CardHeader>
                 <CardContent>
                   {filteredNegotiations.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Handshake className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-                      <p className="text-muted-foreground">Nenhuma negociação encontrada</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Clique em "Nova Negociação" para começar
-                      </p>
-                    </div>
+                    <EmptyState
+                      variant="negotiations"
+                      title="Nenhuma negociação encontrada"
+                      description="Comece adicionando sua primeira negociação para acompanhar o pipeline de vendas."
+                      actionLabel="Nova Negociação"
+                      onAction={() => setIsFormOpen(true)}
+                    />
                   ) : (
                     <>
                       {/* Mobile Card View */}
@@ -896,7 +899,7 @@ const Negociacoes = () => {
                                   <div className="min-w-0 flex-1">
                                     <p className="font-semibold text-foreground truncate">{negotiation.client_name}</p>
                                     {negotiation.client_phone && (
-                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700">
+                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-success hover:text-success/80">
                                         <MessageCircle className="w-3 h-3" />{negotiation.client_phone}
                                       </a>
                                     )}
@@ -936,7 +939,7 @@ const Negociacoes = () => {
                                   <Button
                                     size="sm"
                                     onClick={() => handleOpenSaleConversion(negotiation)}
-                                    className={`flex-1 h-9 text-white ${canConvert ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600/50 hover:bg-green-600'}`}
+                                    className={`flex-1 h-9 text-success-foreground ${canConvert ? 'bg-success hover:bg-success/90' : 'bg-success/50 hover:bg-success/70'}`}
                                   >
                                     <DollarSign className="w-4 h-4 mr-1" /> Venda
                                   </Button>
@@ -983,7 +986,7 @@ const Negociacoes = () => {
                                     <div>
                                       <p className="font-medium">{negotiation.client_name}</p>
                                       {negotiation.client_phone && (
-                                        <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700">
+                                        <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-success hover:text-success/80">
                                           <MessageCircle className="w-3 h-3" />{negotiation.client_phone}
                                         </a>
                                       )}
@@ -1022,7 +1025,7 @@ const Negociacoes = () => {
                                         size="sm"
                                         variant="default"
                                         onClick={() => handleOpenSaleConversion(negotiation)}
-                                        className={`text-white ${canConvert ? 'bg-green-600 hover:bg-green-700 animate-pulse' : 'bg-green-600/50 hover:bg-green-600'}`}
+                                        className={`text-success-foreground ${canConvert ? 'bg-success hover:bg-success/90 animate-pulse' : 'bg-success/50 hover:bg-success/70'}`}
                                         title={canConvert ? "Cliente aprovado - Converter em Venda" : "Converter em Venda"}
                                       >
                                         <DollarSign className="w-4 h-4" />
@@ -1072,13 +1075,11 @@ const Negociacoes = () => {
                 </CardHeader>
                 <CardContent>
                   {filteredLostNegotiations.length === 0 ? (
-                    <div className="text-center py-12">
-                      <XCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-                      <p className="text-muted-foreground">Nenhuma negociação perdida</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Isso é uma boa notícia! 🎉
-                      </p>
-                    </div>
+                    <EmptyState
+                      icon={XCircle}
+                      title="Nenhuma negociação perdida"
+                      description="Ótima notícia! Continue assim e mantenha suas conversões em alta."
+                    />
                   ) : (
                     <>
                       {/* Mobile Card View - Lost */}
@@ -1133,7 +1134,7 @@ const Negociacoes = () => {
                                   <div>
                                     <p className="font-medium">{negotiation.client_name}</p>
                                     {negotiation.client_phone && (
-                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700">
+                                      <a href={`https://wa.me/${negotiation.client_phone.replace(/\D/g, '').replace(/^(?!55)/, '55')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-success hover:text-success/80">
                                         <MessageCircle className="w-3 h-3" />{negotiation.client_phone}
                                       </a>
                                     )}
@@ -1249,7 +1250,7 @@ const Negociacoes = () => {
                   <p><strong>Valor:</strong> {formatCurrency(selectedForFollowUp.negotiated_value)}</p>
                 </div>
               )}
-              <p className="text-amber-600 dark:text-amber-400">
+              <p className="text-warning">
                 A negociação será removida e um novo registro será criado no Follow Up com status "Novo Lead".
               </p>
             </AlertDialogDescription>

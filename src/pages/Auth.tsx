@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck, Zap, Trophy, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck, Zap, Trophy, Sparkles, LogIn, PhoneCall, Globe } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 
@@ -205,8 +205,8 @@ const Auth = () => {
               <Button type="submit"
                 className="auth-primary-button w-full h-13 gap-2"
                 disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>🚀</span>}
-                {isSubmitting ? "Entrando..." : "Entrar no sistema"}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
+                {isSubmitting ? "Entrando..." : "Entrar"}
               </Button>
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
                 <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ const Auth = () => {
                 onClick={handleContactClick}
                 disabled={!contactUrl}
               >
-                📞 Entrar em contato
+                <PhoneCall className="w-4 h-4" /> Entrar em contato
               </Button>
               {!contactUrl && (
                 <p className="text-center text-white/40 text-xs">Telefone de suporte indisponível no momento.</p>
@@ -248,8 +248,8 @@ const Auth = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 space-y-2">
-          <button onClick={() => navigate("/landing")} className="text-blue-400 hover:text-blue-300 text-sm font-medium transition">
-            🌐 Conheça o sistema
+          <button onClick={() => navigate("/landing")} className="text-blue-400 hover:text-blue-300 text-sm font-medium transition inline-flex items-center gap-1.5">
+            <Globe className="w-4 h-4" /> Conheça o sistema
           </button>
           <p className="text-white/30 text-xs font-medium">
             Versão 1.0 &nbsp;|&nbsp; © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
