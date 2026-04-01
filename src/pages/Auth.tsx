@@ -230,7 +230,7 @@ const Auth = () => {
                 onClick={handleContactClick}
                 disabled={!contactUrl}
               >
-                📞 Entrar em contato
+                <PhoneCall className="w-4 h-4" /> Entrar em contato
               </Button>
               {!contactUrl && (
                 <p className="text-center text-white/40 text-xs">Telefone de suporte indisponível no momento.</p>
