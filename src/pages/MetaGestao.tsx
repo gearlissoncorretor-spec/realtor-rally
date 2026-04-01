@@ -685,7 +685,7 @@ const MetaGestao = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Progresso Anual</span>
                       <Badge variant="outline" className={cn("text-xs", annualProgress >= 100 ? "border-success/30 text-success bg-success/10" : annualProgress >= 80 ? "border-success/30 text-success bg-success/10" : annualProgress >= 50 ? "border-warning/30 text-warning bg-warning/10" : "border-destructive/30 text-destructive bg-destructive/10")}>
-                        {annualProgress >= 100 ? '🎉 Meta atingida' : annualProgress >= 80 ? 'No caminho' : annualProgress >= 50 ? 'Em atenção' : 'Abaixo do esperado'}
+                        {annualProgress >= 100 ? 'Meta atingida' : annualProgress >= 80 ? 'No caminho' : annualProgress >= 50 ? 'Em atenção' : 'Abaixo do esperado'}
                       </Badge>
                     </div>
                     <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-3" />
