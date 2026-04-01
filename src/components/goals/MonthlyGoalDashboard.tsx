@@ -114,15 +114,13 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
           {Array.from({ length: 20 }).map((_, i) => (
             <div
               key={i}
-              className="absolute animate-[confetti_3s_ease-out_forwards]"
+              className="absolute animate-[confetti_3s_ease-out_forwards] w-2 h-2 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 1.5}s`,
-                fontSize: `${10 + Math.random() * 14}px`,
+                backgroundColor: ['hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--primary))', 'hsl(var(--info))'][Math.floor(Math.random() * 4)],
               }}
-            >
-              {['🎉', '✨', '🏆', '⭐', '🎊', '💰'][Math.floor(Math.random() * 6)]}
-            </div>
+            />
           ))}
         </div>
       )}
