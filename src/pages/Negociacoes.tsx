@@ -728,52 +728,52 @@ const Negociacoes = () => {
             />
             <ResponsiveStatCard
               icon={Clock}
-              iconColor="text-yellow-500"
-              bgColor="bg-yellow-500/10"
+              iconColor="text-warning"
+              bgColor="bg-warning/10"
               value={stats.emAprovacao}
-              label="🟡 Em Aprovação"
+              label="Em Aprovação"
             />
             <ResponsiveStatCard
               icon={CheckCircle2}
-              iconColor="text-green-500"
-              bgColor="bg-green-500/10"
+              iconColor="text-success"
+              bgColor="bg-success/10"
               value={stats.clienteAprovado}
-              label="🟢 Aprovados"
+              label="Aprovados"
               sublabel="(não é venda)"
             />
             <ResponsiveStatCard
               icon={Ban}
-              iconColor="text-red-500"
-              bgColor="bg-red-500/10"
+              iconColor="text-destructive"
+              bgColor="bg-destructive/10"
               value={stats.clienteReprovado}
-              label="🔴 Reprovados"
+              label="Reprovados"
             />
             <ResponsiveStatCard
               icon={XCircle}
-              iconColor="text-gray-500"
-              bgColor="bg-gray-500/10"
+              iconColor="text-muted-foreground"
+              bgColor="bg-muted/50"
               value={stats.perdidas}
               label="Perdidas"
             />
             <ResponsiveStatCard
               icon={Star}
-              iconColor="text-emerald-500"
-              bgColor="bg-emerald-500/10"
+              iconColor="text-success"
+              bgColor="bg-success/10"
               value={stats.vendasConvertidas}
-              label="⭐ Vendas"
+              label="Vendas"
               sublabel="convertidas"
             />
             <ResponsiveStatCard
               icon={Percent}
-              iconColor="text-amber-500"
-              bgColor="bg-amber-500/10"
+              iconColor="text-warning"
+              bgColor="bg-warning/10"
               value={`${stats.taxaConversao}%`}
               label="Conversão"
             />
             <ResponsiveStatCard
               icon={DollarSign}
-              iconColor="text-emerald-500"
-              bgColor="bg-emerald-500/10"
+              iconColor="text-success"
+              bgColor="bg-success/10"
               value={formatCurrency(stats.valorTotal)}
               label="Valor Ativo"
             />
