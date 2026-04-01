@@ -879,7 +879,7 @@ const MetaGestao = () => {
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* VISÃO EXECUTIVA + PROJEÇÕES */}
           {/* ═══════════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Executive Overview */}
             <Card className="border-border/50 bg-card shadow-sm">
               <CardHeader className="pb-3">
@@ -891,15 +891,15 @@ const MetaGestao = () => {
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label: 'Melhor Mês', value: performanceStats?.bestMonth ? formatCurrency(performanceStats.bestMonth.achieved) : 'R$ 0,00', sub: performanceStats?.bestMonth ? format(performanceStats.bestMonth.month, 'MMMM', { locale: ptBR }) : '-', icon: '🏆' },
-                    { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00', sub: `${yearlyData.totalSales} vendas`, icon: '💰' },
-                    { label: 'Corretores Ativos', value: String(brokerStats.activeBrokers), sub: `${brokerStats.activeWithSales} com vendas`, icon: '👥' },
-                    { label: 'Distância p/ Meta', value: isGoalExceeded ? formatCurrency(exceededBy) : formatCurrency(remaining), sub: isGoalExceeded ? 'superada' : 'restantes', icon: '🎯' },
+                    { label: 'Melhor Mês', value: performanceStats?.bestMonth ? formatCurrency(performanceStats.bestMonth.achieved) : 'R$ 0,00', sub: performanceStats?.bestMonth ? format(performanceStats.bestMonth.month, 'MMMM', { locale: ptBR }) : '-', Icon: Trophy, iconColor: 'text-warning' },
+                    { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00', sub: `${yearlyData.totalSales} vendas`, Icon: Banknote, iconColor: 'text-success' },
+                    { label: 'Corretores Ativos', value: String(brokerStats.activeBrokers), sub: `${brokerStats.activeWithSales} com vendas`, Icon: UserCheck, iconColor: 'text-primary' },
+                    { label: 'Distância p/ Meta', value: isGoalExceeded ? formatCurrency(exceededBy) : formatCurrency(remaining), sub: isGoalExceeded ? 'superada' : 'restantes', Icon: Crosshair, iconColor: isGoalExceeded ? 'text-success' : 'text-destructive' },
                   ].map((item, i) => (
                     <div key={i} className="p-3 rounded-xl bg-muted/30 text-center">
-                      <p className="text-lg mb-0.5">{item.icon}</p>
+                      <item.Icon className={cn("w-5 h-5 mx-auto mb-1", item.iconColor)} />
                       <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">{item.value}</p>
+                      <p className="text-sm font-bold text-foreground mt-0.5 tabular-nums">{item.value}</p>
                       <p className="text-[9px] text-muted-foreground capitalize">{item.sub}</p>
                     </div>
                   ))}
