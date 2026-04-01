@@ -877,13 +877,13 @@ const Negociacoes = () => {
                 </CardHeader>
                 <CardContent>
                   {filteredNegotiations.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Handshake className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-                      <p className="text-muted-foreground">Nenhuma negociação encontrada</p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Clique em "Nova Negociação" para começar
-                      </p>
-                    </div>
+                    <EmptyState
+                      variant="negotiations"
+                      title="Nenhuma negociação encontrada"
+                      description="Comece adicionando sua primeira negociação para acompanhar o pipeline de vendas."
+                      actionLabel="Nova Negociação"
+                      onAction={() => setIsFormOpen(true)}
+                    />
                   ) : (
                     <>
                       {/* Mobile Card View */}
