@@ -624,7 +624,7 @@ const MetaGestao = () => {
               <div className="space-y-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">Análise Automática</p>
                 <p className="text-sm text-muted-foreground">{insightText}</p>
-                <p className="text-xs text-primary mt-1.5">💡 {insightSuggestion}</p>
+                <p className="text-xs text-primary mt-1.5 flex items-center gap-1"><Lightbulb className="w-3 h-3" /> {insightSuggestion}</p>
               </div>
             </CardContent>
           </Card>
