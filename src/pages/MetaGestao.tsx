@@ -613,9 +613,8 @@ const MetaGestao = () => {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
 
-          {/* ═══════════════════════════════════════════════════════════════ */}
-          {/* CARD INTELIGENTE – INSIGHT */}
           {/* ═══════════════════════════════════════════════════════════════ */}
           <Card className="border-border/50 bg-card shadow-sm">
             <CardContent className="p-4 flex gap-4 items-start">
