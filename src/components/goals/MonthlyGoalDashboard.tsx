@@ -263,7 +263,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
         {isGoalMet && (
           <div className="p-4 rounded-xl bg-success/10 border border-success/20 text-center animate-fade-in">
             <p className="text-sm font-bold text-success">
-              🎉 META MENSAL ATINGIDA! Parabéns equipe! 🎉
+              META MENSAL ATINGIDA! Parabéns equipe!
             </p>
             <p className="text-xs text-success/70 mt-1">
               Superado em {formatCurrency(achievedValue - targetValue)}
