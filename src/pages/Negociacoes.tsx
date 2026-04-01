@@ -27,6 +27,7 @@ import {
   Calendar,
   CheckCircle2,
   XCircle,
+  X,
   TrendingDown,
   Percent,
   Settings,
