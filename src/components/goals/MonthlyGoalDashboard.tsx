@@ -163,7 +163,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
             <TrendingUp className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Falta</p>
             <p className={cn("text-sm sm:text-base font-bold mt-0.5", isGoalMet ? "text-success" : "text-foreground")}>
-              {isGoalMet ? '🎉 R$ 0,00' : formatCurrency(remaining)}
+              {isGoalMet ? 'R$ 0,00' : formatCurrency(remaining)}
             </p>
           </div>
           <div className="p-3 rounded-xl bg-muted/50 border border-border text-center">
