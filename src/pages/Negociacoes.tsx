@@ -1024,7 +1024,7 @@ const Negociacoes = () => {
                                         size="sm"
                                         variant="default"
                                         onClick={() => handleOpenSaleConversion(negotiation)}
-                                        className={`text-white ${canConvert ? 'bg-green-600 hover:bg-green-700 animate-pulse' : 'bg-green-600/50 hover:bg-green-600'}`}
+                                        className={`text-success-foreground ${canConvert ? 'bg-success hover:bg-success/90 animate-pulse' : 'bg-success/50 hover:bg-success/70'}`}
                                         title={canConvert ? "Cliente aprovado - Converter em Venda" : "Converter em Venda"}
                                       >
                                         <DollarSign className="w-4 h-4" />
