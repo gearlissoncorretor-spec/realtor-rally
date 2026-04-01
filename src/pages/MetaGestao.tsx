@@ -18,16 +18,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 import { 
   Target, Users, TrendingUp, TrendingDown, Calendar, DollarSign, BarChart3,
   ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, Edit2, Save, X,
-  AlertTriangle, CheckCircle2, Clock, Building2, Plus, Loader2, Lightbulb, Eye
+  AlertTriangle, CheckCircle2, Clock, Building2, Plus, Loader2, Lightbulb, Eye,
+  Trophy, Banknote, UserCheck, Crosshair
 } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '@/utils/formatting';
 import { format, startOfYear, endOfYear, startOfMonth, endOfMonth, eachMonthOfInterval, isSameMonth, differenceInDays, getDaysInMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { CurrencyInput } from '@/components/ui/currency-input';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.4, ease: [0, 0, 0.2, 1] as const },
+  }),
+};
 
 interface MonthlyGoal {
   month: Date;
@@ -390,7 +401,7 @@ const MetaGestao = () => {
   // Smart insight
   const insightText = useMemo(() => {
     if (currentMonthTarget <= 0) return 'Defina uma meta mensal para receber insights.';
-    if (currentMonthPercent >= 100) return `🎉 Parabéns! Meta do mês atingida! Você superou em ${formatCurrency(currentMonthAchieved - currentMonthTarget)}.`;
+    if (currentMonthPercent >= 100) return `Parabéns! Meta do mês atingida! Você superou em ${formatCurrency(currentMonthAchieved - currentMonthTarget)}.`;
     if (currentMonthPercent >= 80) return `Você está perto! Faltam apenas ${formatCurrency(currentMonthRemaining)}. Mantenha o ritmo!`;
     if (daysRemaining > 0) {
       return `Você está ${formatPercentDisplay(100 - currentMonthPercent, 0)} abaixo da meta. Para bater, precisa vender ${formatCurrency(dailyNeeded)} por dia nos próximos ${daysRemaining} dias.`;
@@ -472,13 +483,13 @@ const MetaGestao = () => {
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* BLOCO 1 – RESUMO KPIs (compacto) */}
           {/* ═══════════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Meta Anual */}
             <Card className="border-border/50 bg-card relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-primary/50" />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Meta Anual</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{formatCurrency(effectiveAnnualGoal)}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{formatCurrency(effectiveAnnualGoal)}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">Objetivo {selectedYear}</p>
               </CardContent>
             </Card>
@@ -488,7 +499,7 @@ const MetaGestao = () => {
               <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-info to-info/50" />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Realizado</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{formatCurrency(yearlyData.totalVGV)}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{formatCurrency(yearlyData.totalVGV)}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">{yearlyData.totalSales} vendas</p>
               </CardContent>
             </Card>
@@ -498,7 +509,7 @@ const MetaGestao = () => {
               <div className={cn("absolute top-0 left-0 right-0 h-[2px]", annualProgress >= 80 ? "bg-gradient-to-r from-success to-success/50" : annualProgress >= 50 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Atingimento</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{formatPercentDisplay(annualProgress, 1)}</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{formatPercentDisplay(annualProgress, 1)}</p>
                 <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-1.5 mt-1.5" />
               </CardContent>
             </Card>
@@ -508,15 +519,16 @@ const MetaGestao = () => {
               <div className={cn("absolute top-0 left-0 right-0 h-[2px]", componentProbability.current >= 70 ? "bg-gradient-to-r from-success to-success/50" : componentProbability.current >= 40 ? "bg-gradient-to-r from-warning to-warning/50" : "bg-gradient-to-r from-destructive to-destructive/50")} />
               <CardContent className="p-4">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Probabilidade</p>
-                <p className="text-lg sm:text-xl font-bold text-foreground">{componentProbability.current}%</p>
+                <p className="text-lg sm:text-xl font-bold text-foreground tabular-nums">{componentProbability.current}%</p>
                 <p className="text-[10px] text-muted-foreground mt-1">projeção anual</p>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* BLOCO 2 – FOCO NO MÊS ATUAL */}
           {/* ═══════════════════════════════════════════════════════════════ */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}>
           <Card className="border-primary/20 bg-card shadow-md relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/30" />
             <CardHeader className="pb-2">
@@ -601,10 +613,10 @@ const MetaGestao = () => {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
 
           {/* ═══════════════════════════════════════════════════════════════ */}
-          {/* CARD INTELIGENTE – INSIGHT */}
-          {/* ═══════════════════════════════════════════════════════════════ */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
           <Card className="border-border/50 bg-card shadow-sm">
             <CardContent className="p-4 flex gap-4 items-start">
               <div className="p-2 rounded-lg bg-primary/10 shrink-0">
@@ -613,13 +625,12 @@ const MetaGestao = () => {
               <div className="space-y-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">Análise Automática</p>
                 <p className="text-sm text-muted-foreground">{insightText}</p>
-                <p className="text-xs text-primary mt-1.5">💡 {insightSuggestion}</p>
+                <p className="text-xs text-primary mt-1.5 flex items-center gap-1"><Lightbulb className="w-3 h-3" /> {insightSuggestion}</p>
               </div>
             </CardContent>
           </Card>
+          </motion.div>
 
-          {/* ═══════════════════════════════════════════════════════════════ */}
-          {/* META ANUAL (configuração) */}
           {/* ═══════════════════════════════════════════════════════════════ */}
           <Card className="border-border/50 bg-card shadow-sm">
             <CardHeader className="pb-3">
@@ -674,7 +685,7 @@ const MetaGestao = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Progresso Anual</span>
                       <Badge variant="outline" className={cn("text-xs", annualProgress >= 100 ? "border-success/30 text-success bg-success/10" : annualProgress >= 80 ? "border-success/30 text-success bg-success/10" : annualProgress >= 50 ? "border-warning/30 text-warning bg-warning/10" : "border-destructive/30 text-destructive bg-destructive/10")}>
-                        {annualProgress >= 100 ? '🎉 Meta atingida' : annualProgress >= 80 ? 'No caminho' : annualProgress >= 50 ? 'Em atenção' : 'Abaixo do esperado'}
+                        {annualProgress >= 100 ? 'Meta atingida' : annualProgress >= 80 ? 'No caminho' : annualProgress >= 50 ? 'Em atenção' : 'Abaixo do esperado'}
                       </Badge>
                     </div>
                     <Progress value={Math.min(annualProgress, 100)} variant={annualProgressVariant} className="h-3" />
@@ -868,7 +879,7 @@ const MetaGestao = () => {
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* VISÃO EXECUTIVA + PROJEÇÕES */}
           {/* ═══════════════════════════════════════════════════════════════ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Executive Overview */}
             <Card className="border-border/50 bg-card shadow-sm">
               <CardHeader className="pb-3">
@@ -880,15 +891,15 @@ const MetaGestao = () => {
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label: 'Melhor Mês', value: performanceStats?.bestMonth ? formatCurrency(performanceStats.bestMonth.achieved) : 'R$ 0,00', sub: performanceStats?.bestMonth ? format(performanceStats.bestMonth.month, 'MMMM', { locale: ptBR }) : '-', icon: '🏆' },
-                    { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00', sub: `${yearlyData.totalSales} vendas`, icon: '💰' },
-                    { label: 'Corretores Ativos', value: String(brokerStats.activeBrokers), sub: `${brokerStats.activeWithSales} com vendas`, icon: '👥' },
-                    { label: 'Distância p/ Meta', value: isGoalExceeded ? formatCurrency(exceededBy) : formatCurrency(remaining), sub: isGoalExceeded ? 'superada' : 'restantes', icon: '🎯' },
+                    { label: 'Melhor Mês', value: performanceStats?.bestMonth ? formatCurrency(performanceStats.bestMonth.achieved) : 'R$ 0,00', sub: performanceStats?.bestMonth ? format(performanceStats.bestMonth.month, 'MMMM', { locale: ptBR }) : '-', Icon: Trophy, iconColor: 'text-warning' },
+                    { label: 'Ticket Médio', value: yearlyData.totalSales > 0 ? formatCurrency(yearlyData.totalVGV / yearlyData.totalSales) : 'R$ 0,00', sub: `${yearlyData.totalSales} vendas`, Icon: Banknote, iconColor: 'text-success' },
+                    { label: 'Corretores Ativos', value: String(brokerStats.activeBrokers), sub: `${brokerStats.activeWithSales} com vendas`, Icon: UserCheck, iconColor: 'text-primary' },
+                    { label: 'Distância p/ Meta', value: isGoalExceeded ? formatCurrency(exceededBy) : formatCurrency(remaining), sub: isGoalExceeded ? 'superada' : 'restantes', Icon: Crosshair, iconColor: isGoalExceeded ? 'text-success' : 'text-destructive' },
                   ].map((item, i) => (
                     <div key={i} className="p-3 rounded-xl bg-muted/30 text-center">
-                      <p className="text-lg mb-0.5">{item.icon}</p>
+                      <item.Icon className={cn("w-5 h-5 mx-auto mb-1", item.iconColor)} />
                       <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                      <p className="text-sm font-bold text-foreground mt-0.5">{item.value}</p>
+                      <p className="text-sm font-bold text-foreground mt-0.5 tabular-nums">{item.value}</p>
                       <p className="text-[9px] text-muted-foreground capitalize">{item.sub}</p>
                     </div>
                   ))}
@@ -928,7 +939,7 @@ const MetaGestao = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* METAS PERSONALIZADAS */}

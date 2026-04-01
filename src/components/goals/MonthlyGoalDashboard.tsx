@@ -90,7 +90,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Calendar className="w-5 h-5 text-primary" />
-            📅 Meta Mensal
+            Meta Mensal
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -114,15 +114,13 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
           {Array.from({ length: 20 }).map((_, i) => (
             <div
               key={i}
-              className="absolute animate-[confetti_3s_ease-out_forwards]"
+              className="absolute animate-[confetti_3s_ease-out_forwards] w-2 h-2 rounded-full"
               style={{
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 1.5}s`,
-                fontSize: `${10 + Math.random() * 14}px`,
+                backgroundColor: ['hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--primary))', 'hsl(var(--info))'][Math.floor(Math.random() * 4)],
               }}
-            >
-              {['🎉', '✨', '🏆', '⭐', '🎊', '💰'][Math.floor(Math.random() * 6)]}
-            </div>
+            />
           ))}
         </div>
       )}
@@ -135,7 +133,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
             ) : (
               <Calendar className="w-5 h-5 text-primary" />
             )}
-            📅 Meta Mensal
+            Meta Mensal
           </CardTitle>
           {isGoalMet && (
             <span className="flex items-center gap-1 text-xs font-bold text-success animate-pulse">
@@ -163,7 +161,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
             <TrendingUp className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Falta</p>
             <p className={cn("text-sm sm:text-base font-bold mt-0.5", isGoalMet ? "text-success" : "text-foreground")}>
-              {isGoalMet ? '🎉 R$ 0,00' : formatCurrency(remaining)}
+              {isGoalMet ? 'R$ 0,00' : formatCurrency(remaining)}
             </p>
           </div>
           <div className="p-3 rounded-xl bg-muted/50 border border-border text-center">
@@ -198,9 +196,9 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
               <div
                 className={cn(
                   "h-full rounded-full bg-gradient-to-r transition-all duration-1000 ease-out relative",
-                  progress >= 71 ? "from-emerald-500 to-emerald-400" :
-                  progress >= 31 ? "from-amber-500 to-yellow-400" :
-                  "from-red-500 to-rose-400",
+                  progress >= 71 ? "bg-success" :
+                  progress >= 31 ? "bg-warning" :
+                  "bg-destructive",
                   isGoalMet && "animate-pulse"
                 )}
                 style={{ width: `${animatedProgress}%` }}
@@ -221,7 +219,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
           <div className="p-4 rounded-xl bg-muted/30 border border-border space-y-3">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">📅 Dias do Mês</span>
+              <span className="text-sm font-medium text-foreground">Dias do Mês</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="text-center">
@@ -245,7 +243,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {getProbabilityIcon()}
-                <span className="text-sm font-medium text-foreground">📈 Probabilidade</span>
+                <span className="text-sm font-medium text-foreground">Probabilidade</span>
               </div>
             </div>
             <div className="text-center">
@@ -263,7 +261,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
         {isGoalMet && (
           <div className="p-4 rounded-xl bg-success/10 border border-success/20 text-center animate-fade-in">
             <p className="text-sm font-bold text-success">
-              🎉 META MENSAL ATINGIDA! Parabéns equipe! 🎉
+              META MENSAL ATINGIDA! Parabéns equipe!
             </p>
             <p className="text-xs text-success/70 mt-1">
               Superado em {formatCurrency(achievedValue - targetValue)}
