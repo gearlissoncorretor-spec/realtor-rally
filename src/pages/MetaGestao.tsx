@@ -939,7 +939,7 @@ const MetaGestao = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* METAS PERSONALIZADAS */}
