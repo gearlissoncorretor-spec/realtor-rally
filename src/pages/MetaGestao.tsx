@@ -401,7 +401,7 @@ const MetaGestao = () => {
   // Smart insight
   const insightText = useMemo(() => {
     if (currentMonthTarget <= 0) return 'Defina uma meta mensal para receber insights.';
-    if (currentMonthPercent >= 100) return `🎉 Parabéns! Meta do mês atingida! Você superou em ${formatCurrency(currentMonthAchieved - currentMonthTarget)}.`;
+    if (currentMonthPercent >= 100) return `Parabéns! Meta do mês atingida! Você superou em ${formatCurrency(currentMonthAchieved - currentMonthTarget)}.`;
     if (currentMonthPercent >= 80) return `Você está perto! Faltam apenas ${formatCurrency(currentMonthRemaining)}. Mantenha o ritmo!`;
     if (daysRemaining > 0) {
       return `Você está ${formatPercentDisplay(100 - currentMonthPercent, 0)} abaixo da meta. Para bater, precisa vender ${formatCurrency(dailyNeeded)} por dia nos próximos ${daysRemaining} dias.`;
