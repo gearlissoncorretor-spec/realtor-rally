@@ -616,6 +616,7 @@ const MetaGestao = () => {
           </motion.div>
 
           {/* ═══════════════════════════════════════════════════════════════ */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
           <Card className="border-border/50 bg-card shadow-sm">
             <CardContent className="p-4 flex gap-4 items-start">
               <div className="p-2 rounded-lg bg-primary/10 shrink-0">
