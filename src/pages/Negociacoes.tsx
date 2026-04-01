@@ -938,7 +938,7 @@ const Negociacoes = () => {
                                   <Button
                                     size="sm"
                                     onClick={() => handleOpenSaleConversion(negotiation)}
-                                    className={`flex-1 h-9 text-white ${canConvert ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600/50 hover:bg-green-600'}`}
+                                    className={`flex-1 h-9 text-success-foreground ${canConvert ? 'bg-success hover:bg-success/90' : 'bg-success/50 hover:bg-success/70'}`}
                                   >
                                     <DollarSign className="w-4 h-4 mr-1" /> Venda
                                   </Button>
