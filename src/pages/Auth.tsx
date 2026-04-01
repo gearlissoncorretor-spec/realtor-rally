@@ -205,8 +205,8 @@ const Auth = () => {
               <Button type="submit"
                 className="auth-primary-button w-full h-13 gap-2"
                 disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>🚀</span>}
-                {isSubmitting ? "Entrando..." : "Entrar no sistema"}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
+                {isSubmitting ? "Entrando..." : "Entrar"}
               </Button>
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
                 <div className="flex items-center gap-2">
