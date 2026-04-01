@@ -135,7 +135,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
             ) : (
               <Calendar className="w-5 h-5 text-primary" />
             )}
-            📅 Meta Mensal
+            Meta Mensal
           </CardTitle>
           {isGoalMet && (
             <span className="flex items-center gap-1 text-xs font-bold text-success animate-pulse">
