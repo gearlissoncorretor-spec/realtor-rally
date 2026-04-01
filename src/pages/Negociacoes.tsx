@@ -690,7 +690,7 @@ const Negociacoes = () => {
                 <div className="flex items-center gap-2 text-sm">
                   <AlertTriangle className="w-5 h-5 text-destructive" />
                   <span className="font-semibold text-destructive">
-                    ⚠️ {stalledNegotiations.length} negociação(ões) parada(s) há 3+ dias!
+                    {stalledNegotiations.length} negociação(ões) parada(s) há 3+ dias!
                   </span>
                   <span className="text-muted-foreground hidden sm:inline">
                     — Clientes: {stalledNegotiations.slice(0, 3).map(n => n.client_name).join(', ')}
@@ -698,7 +698,7 @@ const Negociacoes = () => {
                   </span>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setShowStalledAlert(false)} className="h-8 px-2">
-                  ✕
+                  <X className="w-4 h-4" />
                 </Button>
               </AlertDescription>
             </Alert>
