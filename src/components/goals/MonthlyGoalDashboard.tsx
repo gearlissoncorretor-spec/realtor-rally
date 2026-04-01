@@ -221,7 +221,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
           <div className="p-4 rounded-xl bg-muted/30 border border-border space-y-3">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">📅 Dias do Mês</span>
+              <span className="text-sm font-medium text-foreground">Dias do Mês</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="text-center">
