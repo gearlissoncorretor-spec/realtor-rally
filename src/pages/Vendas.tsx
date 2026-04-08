@@ -263,10 +263,11 @@ const Vendas = () => {
 
           {/* Tabs: Vendas / Captação */}
           <Tabs defaultValue="vendas" className="w-full">
-            <TabsList className="grid w-full max-w-[300px] grid-cols-2">
+            <TabsList className="grid w-full max-w-[360px] grid-cols-2">
               <TabsTrigger value="vendas" className="gap-1.5 text-xs">
                 <BarChart3 className="w-3.5 h-3.5" />
                 Vendas
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{searchFilteredSales.length}</Badge>
               </TabsTrigger>
               <TabsTrigger value="captacao" className="gap-1.5 text-xs">
                 <Home className="w-3.5 h-3.5" />
