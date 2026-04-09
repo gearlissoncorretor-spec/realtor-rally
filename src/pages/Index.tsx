@@ -4,6 +4,7 @@ import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
 import VGCPercentageCard from "@/components/VGCPercentageCard";
 import NegotiationAlert from "@/components/NegotiationAlert";
+import { SalesInsightsAlerts } from "@/components/dashboards/SalesInsightsAlerts";
 import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import React, { useState, useMemo, useEffect } from "react";
@@ -18,6 +19,7 @@ const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeams } from "@/hooks/useTeams";
+import { useFollowUps } from "@/hooks/useFollowUps";
 import { formatCurrency } from "@/utils/formatting";
 import { Home, TrendingUp, DollarSign, Users, Target, BarChart3, Filter, UserMinus } from "lucide-react";
 import heroImage from "@/assets/dashboard-hero.jpg";
@@ -258,6 +260,7 @@ const DiretorDashboardPage = () => {
   const { displayName, subtitle } = useContextualIdentity();
   const { isDiretor, isAdmin } = useAuth();
   const { teams } = useTeams();
+  const { followUps } = useFollowUps();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
@@ -422,6 +425,17 @@ const DiretorDashboardPage = () => {
             />
           ))}
         </div>
+
+        {/* Insights & Alertas */}
+        {isDirectorView && (
+          <div className="mb-8">
+            <SalesInsightsAlerts
+              brokers={brokers}
+              sales={sales}
+              followUps={followUps}
+            />
+          </div>
+        )}
 
         {/* Charts and Ranking */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-8">

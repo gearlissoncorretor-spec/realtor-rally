@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS idx_campaign_participants_campaign_id ON public.campaign_participants(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_campaign_participants_broker_id ON public.campaign_participants(broker_id);

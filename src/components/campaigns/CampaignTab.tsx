@@ -4,6 +4,8 @@ import { Zap, Plus, History } from "lucide-react";
 import { useCampaigns } from "@/hooks/useCampaigns";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrokers } from "@/hooks/useBrokers";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/TablePagination";
 import CreateCampaignDialog from "./CreateCampaignDialog";
 import CampaignLivePanel from "./CampaignLivePanel";
 import CampaignReportCard from "./CampaignReportCard";
@@ -30,16 +32,23 @@ const CampaignTab = () => {
 
   const canManage = isDiretor() || isAdmin() || isGerente();
 
-  // Find current user's broker id
   const currentBrokerId = useMemo(() => {
     return brokers.find(b => b.user_id === user?.id)?.id;
   }, [brokers, user?.id]);
 
-  // Active or most recent non-draft campaign
   const currentCampaign = activeCampaign || campaigns.find(c => c.status === 'paused') || campaigns.find(c => c.status === 'draft');
 
-  // Finished campaigns with reports
   const finishedCampaigns = campaigns.filter(c => c.status === 'finished');
+
+  const {
+    paginatedItems: paginatedFinished,
+    currentPage,
+    totalPages,
+    totalItems,
+    pageSize,
+    handlePageChange,
+    handlePageSizeChange,
+  } = usePagination(finishedCampaigns, { storageKey: 'campaigns_history', defaultPageSize: 6 });
 
   return (
     <div className="space-y-6">
@@ -50,7 +59,7 @@ const CampaignTab = () => {
           <h2 className="text-lg font-bold">Modo Ofertão</h2>
         </div>
         {canManage && !currentCampaign && (
-          <Button onClick={() => setCreateOpen(true)} className="bg-amber-500 hover:bg-amber-600 text-white">
+          <Button onClick={() => setCreateOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <Plus className="w-4 h-4 mr-1" /> Nova Campanha
           </Button>
         )}
@@ -85,20 +94,30 @@ const CampaignTab = () => {
         </div>
       )}
 
-      {/* Past campaigns */}
+      {/* Past campaigns with pagination */}
       {finishedCampaigns.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-            <History className="w-4 h-4" /> Campanhas Anteriores
+            <History className="w-4 h-4" /> Campanhas Anteriores ({totalItems})
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {finishedCampaigns.map(c => {
+            {paginatedFinished.map(c => {
               const report = reports.find(r => r.campaign_id === c.id);
               return report ? (
                 <CampaignReportCard key={c.id} campaign={c} report={report} />
               ) : null;
             })}
           </div>
+          {totalPages > 1 && (
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[6, 12, 24]}
+            />
+          )}
         </div>
       )}
 
