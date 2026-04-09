@@ -111,11 +111,11 @@ const CampaignTab = () => {
           {totalPages > 1 && (
             <TablePagination
               currentPage={currentPage}
-              totalPages={totalPages}
               totalItems={totalItems}
               pageSize={pageSize}
               onPageChange={handlePageChange}
               onPageSizeChange={handlePageSizeChange}
+              pageSizeOptions={[6, 12, 24]}
             />
           )}
         </div>
