@@ -4,6 +4,7 @@ import PeriodFilter from "@/components/PeriodFilter";
 import RankingPodium from "@/components/RankingPodium";
 import VGCPercentageCard from "@/components/VGCPercentageCard";
 import NegotiationAlert from "@/components/NegotiationAlert";
+import { SalesInsightsAlerts } from "@/components/dashboards/SalesInsightsAlerts";
 import { LazyComponentLoader, ChartSkeleton } from "@/components/LazyComponentLoader";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import React, { useState, useMemo, useEffect } from "react";
@@ -18,6 +19,7 @@ const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeams } from "@/hooks/useTeams";
+import { useFollowUps } from "@/hooks/useFollowUps";
 import { formatCurrency } from "@/utils/formatting";
 import { Home, TrendingUp, DollarSign, Users, Target, BarChart3, Filter, UserMinus } from "lucide-react";
 import heroImage from "@/assets/dashboard-hero.jpg";
