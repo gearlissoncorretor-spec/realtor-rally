@@ -22,7 +22,7 @@ interface CreateCampaignDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   brokers: Broker[];
-  onSubmit: (data: { title: string; meta_calls: number; broker_ids: string[] }) => Promise<void>;
+  onSubmit: (data: { title: string; meta_calls: number; broker_ids: string[] }) => Promise<any>;
   isCreating: boolean;
 }
 
