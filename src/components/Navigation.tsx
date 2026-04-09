@@ -3,7 +3,7 @@ import { useState } from "react";
 import { 
   LayoutGrid, 
   Trophy, 
-  Home, 
+  ShoppingBag, 
   Settings, 
   TrendingUp, 
   Users, 
@@ -14,7 +14,9 @@ import {
   Building2,
   ClipboardList,
   Handshake,
-  DollarSign,
+  Wallet,
+  Receipt,
+  FileBarChart,
   PieChart,
   CalendarDays,
   Download,
@@ -22,7 +24,9 @@ import {
   Search,
   LogOut,
   RefreshCw,
-  Shield
+  Shield,
+  UserCog,
+  UsersRound
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
