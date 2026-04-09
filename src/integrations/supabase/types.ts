@@ -520,6 +520,171 @@ export type Database = {
           },
         ]
       }
+      campaign_participants: {
+        Row: {
+          appointments: number
+          broker_id: string
+          calls: number
+          campaign_id: string
+          captures: number
+          company_id: string | null
+          created_at: string
+          id: string
+          negotiations: number
+          updated_at: string
+        }
+        Insert: {
+          appointments?: number
+          broker_id: string
+          calls?: number
+          campaign_id: string
+          captures?: number
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          negotiations?: number
+          updated_at?: string
+        }
+        Update: {
+          appointments?: number
+          broker_id?: string
+          calls?: number
+          campaign_id?: string
+          captures?: number
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          negotiations?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_participants_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "brokers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_participants_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_participants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_reports: {
+        Row: {
+          campaign_id: string
+          company_id: string | null
+          conversion_rate: number
+          created_at: string
+          duration_minutes: number
+          id: string
+          total_appointments: number
+          total_calls: number
+          total_captures: number
+          total_negotiations: number
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          company_id?: string | null
+          conversion_rate?: number
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          total_appointments?: number
+          total_calls?: number
+          total_captures?: number
+          total_negotiations?: number
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          company_id?: string | null
+          conversion_rate?: number
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          total_appointments?: number
+          total_calls?: number
+          total_captures?: number
+          total_negotiations?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_reports_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: true
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          finished_at: string | null
+          id: string
+          meta_calls: number
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          finished_at?: string | null
+          id?: string
+          meta_calls?: number
+          started_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          finished_at?: string | null
+          id?: string
+          meta_calls?: number
+          started_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       column_targets: {
         Row: {
           broker_id: string
