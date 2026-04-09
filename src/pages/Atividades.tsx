@@ -819,6 +819,12 @@ const Atividades = () => {
             </Card>
           )}
         </div>
+          </TabsContent>
+
+          <TabsContent value="ofertao">
+            <CampaignTab />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Delete Confirmation Dialog */}
