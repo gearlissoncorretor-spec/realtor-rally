@@ -49,7 +49,8 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  ListTodo
+  ListTodo,
+  Zap
 } from "lucide-react";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
@@ -317,8 +318,19 @@ const Atividades = () => {
       <Navigation />
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 animate-fade-in">
+        {/* Top-level tabs: Semanal vs Ofertão */}
+        <Tabs defaultValue="semanal" className="w-full">
+          <TabsList className="mb-6 bg-card/80 border border-border shadow-sm">
+            <TabsTrigger value="semanal" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              <ClipboardList className="w-4 h-4 mr-2" /> Semanal
+            </TabsTrigger>
+            <TabsTrigger value="ofertao" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white">
+              <Zap className="w-4 h-4 mr-2" /> Modo Ofertão
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="semanal">
         <div className="space-y-6">
-          {/* Header with Week Selector */}
            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="w-full text-center sm:text-left">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
