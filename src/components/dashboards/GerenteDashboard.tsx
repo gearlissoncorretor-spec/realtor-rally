@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { OriginAnalyticsDashboard } from '@/components/dashboards/OriginAnalyticsDashboard';
 import ConsolidatedAlerts from '@/components/dashboards/ConsolidatedAlerts';
+import GestorHeroHeader from '@/components/dashboards/gestor/GestorHeroHeader';
+import GestorKPICards from '@/components/dashboards/gestor/GestorKPICards';
+import GestorTeamRanking from '@/components/dashboards/gestor/GestorTeamRanking';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSales } from '@/hooks/useSales';
@@ -17,19 +20,16 @@ import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } 
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import MonthlyGoalPanel from '@/components/goals/MonthlyGoalPanel';
 import AnnualGoalPanel from '@/components/goals/AnnualGoalPanel';
 import { motion } from 'framer-motion';
 import {
-  Zap, UserPlus, Phone, Target, Flame, Trophy, Clock,
-  CheckSquare, Square, ChevronRight, ChevronDown, ChevronUp,
-  Calendar, MapPin,
-  Users, RotateCcw, FileText, BarChart3, TrendingUp,
-  DollarSign, Lightbulb, X, AlertTriangle, Eye,
-  MessageCircle, Award, Briefcase, Activity, Rocket,
+  Zap, Flame, Trophy, CheckSquare,
+  ChevronRight, Calendar, MapPin,
+  BarChart3, TrendingUp, DollarSign, Lightbulb, X,
+  AlertTriangle, MessageCircle, Briefcase, Activity, Rocket,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -52,7 +52,6 @@ const GerenteDashboard = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [focusMode, setFocusMode] = useState(false);
-  const [rankingExpanded, setRankingExpanded] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const { events } = useCalendarEvents(today, today);
@@ -98,7 +97,7 @@ const GerenteDashboard = () => {
     (followUps || []).filter(f => teamBrokerIds.has(f.broker_id)), [followUps, teamBrokerIds]);
   const pendingFollowUps = teamFollowUps.filter(f => f.status !== 'convertido' && f.status !== 'perdido');
 
-  // Today events - merge internal + Google Calendar
+  // Today events
   const todayEvents: CalEvent[] = useMemo(() => {
     const internal = events || [];
     const mappedGoogle: CalEvent[] = googleEvents.map((ge) => {
@@ -128,18 +127,17 @@ const GerenteDashboard = () => {
     return [...internal, ...mappedGoogle].sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
   }, [events, googleEvents]);
 
-  // Team targets from the targets table
+  // Targets
   const monthlyTarget = useMemo(() => {
-    return (targets || []).find(t => 
-      t.month === currentMonth && 
+    return (targets || []).find(t =>
+      t.month === currentMonth &&
       t.year === currentYear &&
       (t.team_id === teamHierarchy?.team_id || (!t.team_id && !t.broker_id))
     );
   }, [targets, currentMonth, currentYear, teamHierarchy?.team_id]);
 
-  // Load annual goal from month=0 target (independent from monthly)
   const annualTargetValue = useMemo(() => {
-    const annualRecord = (targets || []).find(t => 
+    const annualRecord = (targets || []).find(t =>
       t.year === currentYear &&
       t.month === 0 &&
       t.broker_id === null &&
@@ -148,12 +146,10 @@ const GerenteDashboard = () => {
     return annualRecord?.target_value || 0;
   }, [targets, currentYear, teamHierarchy?.team_id]);
 
-  // Calculate actual progress from sales data
   const monthlyAchieved = monthVGV;
   const monthlyTargetValue = monthlyTarget?.target_value || 0;
-  const goalProgress = monthlyTargetValue > 0 ? Math.min((monthlyAchieved / monthlyTargetValue) * 100, 100) : 0;
-  
-  const yearVGV = useMemo(() => 
+
+  const yearVGV = useMemo(() =>
     teamSales.filter(s => {
       const dateStr = s.sale_date || (s.created_at ? s.created_at.substring(0, 10) : '');
       if (!dateStr) return false;
@@ -162,7 +158,6 @@ const GerenteDashboard = () => {
     [teamSales, currentYear]
   );
   const annualAchieved = yearVGV;
-  const annualProgress = annualTargetValue > 0 ? Math.min((annualAchieved / annualTargetValue) * 100, 100) : 0;
 
   // Smart goal insights
   const goalInsights = useMemo(() => {
@@ -179,7 +174,6 @@ const GerenteDashboard = () => {
       ? addDays(now, Math.ceil(remaining / dailyAvg))
       : null;
     const isGoalMet = monthlyAchieved >= monthlyTargetValue;
-
     return { salesNeeded, projectedDate, remaining, isGoalMet, ticketMedioValue, daysRemaining };
   }, [monthlyTargetValue, monthlyAchieved, monthSales, monthVGV]);
 
@@ -191,14 +185,12 @@ const GerenteDashboard = () => {
       const vgv = bSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
       const bNeg = activeNegotiations.filter(n => n.broker_id === broker.id);
       const bFollowUps = pendingFollowUps.filter(f => f.broker_id === broker.id);
-      
       const lastSaleDate = allBrokerSales.length > 0
         ? Math.max(...allBrokerSales.map(s => new Date(s.sale_date || s.created_at || '').getTime()))
         : null;
       const daysSinceLastSale = lastSaleDate
         ? Math.floor((Date.now() - lastSaleDate) / (1000 * 60 * 60 * 24))
         : null;
-
       return {
         id: broker.id,
         name: broker.name,
@@ -215,7 +207,7 @@ const GerenteDashboard = () => {
   // Alerts data
   const brokersWithoutSalesData = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations === 0);
   const activeBrokersNoSales = brokerPerformance.filter(b => b.salesCount === 0 && b.negotiations > 0);
-  const inactiveBrokers = brokerPerformance.filter(b => 
+  const inactiveBrokers = brokerPerformance.filter(b =>
     b.daysSinceLastSale !== null && b.daysSinceLastSale >= 5
   );
 
@@ -229,29 +221,17 @@ const GerenteDashboard = () => {
   ];
   const maxFunnel = Math.max(...funnelData.map(f => f.value), 1);
 
-  // Ticket médio
   const ticketMedio = monthSales.length > 0 ? monthVGV / monthSales.length : 0;
   const conversionRate = teamFollowUps.length > 0 ? Math.round((monthSales.length / teamFollowUps.length) * 100) : 0;
 
-  // Sections
   const focusSections = ['kpis', 'alerts', 'goal', 'ranking', 'negotiations'];
   const allSections = ['kpis', 'alerts', 'goal', 'agenda', 'negotiations', 'ranking', 'funnel', 'metrics', 'opportunities'];
   const sections = focusMode ? focusSections : allSections;
-
-  const kpiCards = [
-    { label: 'Vendas do Mês', value: monthSales.length.toString(), sub: `VGV: ${formatCurrency(monthVGV)}`, icon: DollarSign, gradient: 'from-success/20 to-success/5', border: 'border-success/30', iconColor: 'text-success' },
-    { label: 'Corretores Ativos', value: activeTeamBrokers.length.toString(), sub: `de ${teamBrokers.length} na equipe`, icon: Users, gradient: 'from-primary/20 to-primary/5', border: 'border-primary/30', iconColor: 'text-primary' },
-    { label: 'Negociações Ativas', value: activeNegotiations.length.toString(), sub: `${hotNegotiations.length} quentes`, icon: Flame, gradient: 'from-warning/20 to-warning/5', border: 'border-warning/30', iconColor: 'text-warning' },
-    { label: 'Follow-ups Pendentes', value: pendingFollowUps.length.toString(), sub: `${teamFollowUps.length} total`, icon: RotateCcw, gradient: 'from-accent-foreground/15 to-accent-foreground/5', border: 'border-accent-foreground/20', iconColor: 'text-accent-foreground/70' },
-  ];
 
   const eventTypeColors: Record<string, string> = {
     visita: 'hsl(var(--success))', captacao: 'hsl(var(--success))', reuniao: 'hsl(var(--primary))', meta: 'hsl(var(--primary))',
     follow_up: 'hsl(var(--warning))', lembrete: 'hsl(var(--info))', venda: 'hsl(var(--info))', outro: 'hsl(var(--muted-foreground))',
   };
-
-  const medalIcons = [Trophy, Award, Award];
-  const medalColors = ['text-warning', 'text-muted-foreground', 'text-orange-600'];
 
   let sectionIndex = 0;
 
@@ -261,43 +241,16 @@ const GerenteDashboard = () => {
       <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6">
         <div className="space-y-5 max-w-7xl mx-auto">
 
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-3"
-          >
-            <div className="text-center sm:text-left w-full lg:w-auto">
-              <h1 className="text-xl lg:text-3xl font-bold text-foreground">
-                Central do Gestor
-              </h1>
-              <p className="text-xs lg:text-sm text-muted-foreground mt-0.5">
-                Equipe <strong className="text-foreground">{teamHierarchy?.team_name || 'Sua Equipe'}</strong> — {format(new Date(), "dd/MM/yyyy")}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-2 w-full lg:w-auto">
-              <Button
-                variant={focusMode ? 'default' : 'outline'}
-                size="sm"
-                className={cn("gap-1.5 transition-all", focusMode && "bg-warning hover:bg-warning/90 text-warning-foreground")}
-                onClick={() => setFocusMode(!focusMode)}
-              >
-                {focusMode ? <X className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
-                {focusMode ? 'Sair do Foco' : 'Modo Foco'}
-              </Button>
-              {!focusMode && (
-                <>
-                  <Button variant="outline" size="sm" className="gap-1.5 border-success/20 text-success hover:bg-success/10" onClick={() => navigate('/corretores')}>
-                    <Users className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Minha</span> Equipe
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1.5 border-primary/20 text-primary hover:bg-primary/10" onClick={() => navigate('/negociacoes')}>
-                    <Briefcase className="w-3.5 h-3.5" /> Negociações
-                  </Button>
-                </>
-              )}
-            </div>
-          </motion.div>
+          {/* Hero Header */}
+          <GestorHeroHeader
+            profileName={profile?.full_name}
+            teamName={teamHierarchy?.team_name || 'Sua Equipe'}
+            activeBrokersCount={activeTeamBrokers.length}
+            totalBrokersCount={teamBrokers.length}
+            monthSalesCount={monthSales.length}
+            focusMode={focusMode}
+            onToggleFocusMode={() => setFocusMode(!focusMode)}
+          />
 
           {/* Mobile Quick Actions */}
           {isMobile && !focusMode && (
@@ -336,29 +289,21 @@ const GerenteDashboard = () => {
             </motion.div>
           )}
 
-          {/* 1. KPI Cards */}
+          {/* KPI Cards */}
           {sections.includes('kpis') && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
-              {kpiCards.map((card, idx) => (
-                <motion.div
-                  key={card.label}
-                  variants={fadeUp} initial="hidden" animate="visible" custom={idx}
-                  className={`relative overflow-hidden rounded-xl border ${card.border} bg-gradient-to-br ${card.gradient} p-3 lg:p-4 transition-all hover:scale-[1.02]`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-[10px] lg:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">{card.label}</p>
-                      <p className="text-2xl lg:text-3xl font-bold text-foreground mt-0.5 lg:mt-1 tabular-nums">{card.value}</p>
-                      <p className="text-[10px] lg:text-xs text-muted-foreground mt-0.5 truncate">{card.sub}</p>
-                    </div>
-                    <card.icon className={`w-6 h-6 lg:w-8 lg:h-8 ${card.iconColor} opacity-80 shrink-0`} />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <GestorKPICards
+              monthSalesCount={monthSales.length}
+              monthVGV={monthVGV}
+              activeBrokersCount={activeTeamBrokers.length}
+              totalBrokersCount={teamBrokers.length}
+              activeNegotiationsCount={activeNegotiations.length}
+              hotNegotiationsCount={hotNegotiations.length}
+              pendingFollowUpsCount={pendingFollowUps.length}
+              totalFollowUpsCount={teamFollowUps.length}
+            />
           )}
 
-          {/* 2. Consolidated Alerts */}
+          {/* Consolidated Alerts */}
           {sections.includes('alerts') && (
             <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++}>
               <ConsolidatedAlerts
@@ -369,19 +314,12 @@ const GerenteDashboard = () => {
             </motion.div>
           )}
 
-          {/* 3. Goal Panel — Monthly + Annual + Smart Insights */}
+          {/* Goal Panel */}
           {sections.includes('goal') && (
             <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="space-y-4">
               <div className="grid lg:grid-cols-2 gap-4">
-                <MonthlyGoalPanel
-                  targetValue={monthlyTargetValue}
-                  achievedValue={monthlyAchieved}
-                />
-                <AnnualGoalPanel
-                  targetValue={annualTargetValue}
-                  achievedValue={annualAchieved}
-                  year={currentYear}
-                />
+                <MonthlyGoalPanel targetValue={monthlyTargetValue} achievedValue={monthlyAchieved} />
+                <AnnualGoalPanel targetValue={annualTargetValue} achievedValue={annualAchieved} year={currentYear} />
               </div>
 
               {/* Smart Insights */}
@@ -443,9 +381,8 @@ const GerenteDashboard = () => {
             </motion.div>
           )}
 
-          {/* 4. Agenda + Negociações Quentes */}
+          {/* Agenda + Negociações Quentes */}
           <div className={cn("grid gap-4", sections.includes('negotiations') && sections.includes('agenda') ? "lg:grid-cols-2" : "lg:grid-cols-1")}>
-
             {/* Agenda do Dia */}
             {sections.includes('agenda') && (
               <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-border bg-card/50 p-4">
@@ -605,97 +542,9 @@ const GerenteDashboard = () => {
             </motion.div>
           )}
 
-          {/* 5. Ranking da Equipe */}
+          {/* Team Ranking */}
           {sections.includes('ranking') && (
-            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={sectionIndex++} className="rounded-xl border border-warning/20 bg-gradient-to-br from-warning/5 to-transparent p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-warning" /> Ranking da Equipe — Mês Atual
-                </h2>
-                <Button variant="ghost" size="sm" className="text-xs text-warning" onClick={() => navigate('/ranking')}>
-                  Ver ranking completo <ChevronRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
-              {brokerPerformance.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">Nenhum corretor na equipe</p>
-              ) : (
-                <Collapsible open={rankingExpanded} onOpenChange={setRankingExpanded}>
-                  {/* Top 3 always visible */}
-                  <div className="space-y-1.5 lg:space-y-2">
-                    {brokerPerformance.slice(0, 3).map((broker, idx) => {
-                      const maxVGV = brokerPerformance[0]?.vgv || 1;
-                      const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
-                      const MedalIcon = medalIcons[idx];
-                      return (
-                        <div key={broker.id} className={cn(
-                          "flex items-center gap-2 lg:gap-3 p-2 lg:p-2.5 rounded-lg hover:bg-muted/20 transition-all",
-                          idx === 0 && "bg-warning/5 border border-warning/10"
-                        )}>
-                          <div className="w-6 lg:w-8 flex items-center justify-center shrink-0">
-                            <MedalIcon className={cn("w-5 h-5", medalColors[idx])} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-0.5 lg:mb-1">
-                              <span className="text-xs lg:text-sm font-medium text-foreground truncate">{broker.name}</span>
-                              <div className="flex items-center gap-1.5 lg:gap-3 text-[10px] lg:text-xs text-muted-foreground shrink-0">
-                                <span className="hidden sm:inline">{broker.salesCount} vendas</span>
-                                <span className="sm:hidden">{broker.salesCount}v</span>
-                                <span className="font-semibold text-foreground tabular-nums">{formatCurrency(broker.vgv)}</span>
-                              </div>
-                            </div>
-                            <div className="w-full bg-muted/30 rounded-full h-1 lg:h-1.5 overflow-hidden">
-                              <div
-                                className={cn(
-                                  "h-full rounded-full transition-all duration-700",
-                                  idx === 0 ? "bg-warning" : idx === 1 ? "bg-muted-foreground" : "bg-warning/60"
-                                )}
-                                style={{ width: `${barWidth}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Expanded: 4th+ */}
-                  {brokerPerformance.length > 3 && (
-                    <>
-                      <CollapsibleContent className="space-y-2 mt-2 animate-fade-in">
-                        {brokerPerformance.slice(3).map((broker, idx) => {
-                          const maxVGV = brokerPerformance[0]?.vgv || 1;
-                          const barWidth = Math.max((broker.vgv / maxVGV) * 100, 5);
-                          const position = idx + 4;
-                          return (
-                            <div key={broker.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/20 transition-all">
-                              <span className="text-sm w-8 text-center shrink-0 text-muted-foreground tabular-nums">{position}º</span>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-sm font-medium text-foreground truncate">{broker.name}</span>
-                                  <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
-                                    <span>{broker.salesCount} vendas</span>
-                                    <span className="font-semibold text-foreground tabular-nums">{formatCurrency(broker.vgv)}</span>
-                                  </div>
-                                </div>
-                                <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
-                                  <div className="h-full rounded-full bg-primary/50 transition-all duration-700" style={{ width: `${barWidth}%` }} />
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </CollapsibleContent>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-full mt-3 text-xs text-muted-foreground hover:text-foreground">
-                          {rankingExpanded ? <ChevronUp className="w-3.5 h-3.5 mr-1" /> : <ChevronDown className="w-3.5 h-3.5 mr-1" />}
-                          {rankingExpanded ? 'Ver menos' : `Ver todos (${brokerPerformance.length - 3} restantes)`}
-                        </Button>
-                      </CollapsibleTrigger>
-                    </>
-                  )}
-                </Collapsible>
-              )}
-            </motion.div>
+            <GestorTeamRanking brokerPerformance={brokerPerformance} />
           )}
 
           {/* Origin Analytics */}
