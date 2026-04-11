@@ -3,6 +3,7 @@
  * Used by ProtectedRoute and Navigation to avoid duplication.
  */
 export const ROLE_SCREENS: Record<string, string[]> = {
+  socio: ['*'],
   diretor: ['*'],
   admin: ['*'],
   super_admin: ['*'],

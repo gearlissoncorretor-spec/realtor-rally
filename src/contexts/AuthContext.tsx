@@ -57,6 +57,7 @@ interface AuthContextType {
   isDiretor: () => boolean;
   isGerente: () => boolean;
   isCorretor: () => boolean;
+  isSocio: () => boolean;
   isSuperAdmin: () => boolean;
   getUserRole: () => string;
   getDefaultRoute: () => string;
@@ -293,7 +294,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Backward compatibility: existing manager/director/admin profiles
     // may not yet contain this new permission in allowed_screens
-    if (screen === 'central-gestor' && ['gerente', 'diretor', 'admin'].includes(userRole ?? '')) {
+    if (screen === 'central-gestor' && ['gerente', 'diretor', 'admin', 'socio'].includes(userRole ?? '')) {
       return true;
     }
 
@@ -301,14 +302,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const hasPermission = (screen: string, action: 'view' | 'create' | 'edit' | 'delete'): boolean => {
-    // Admins, directors, super_admins have full access
-    if (userRole === 'super_admin' || userRole === 'admin' || userRole === 'diretor') return true;
+    // Socios, admins, directors, super_admins have full access
+    if (userRole === 'super_admin' || userRole === 'socio' || userRole === 'admin' || userRole === 'diretor') return true;
 
     const perm = rolePermissions.find(p => p.role === (userRole ?? 'corretor') && p.screen === screen);
     if (!perm) return false;
 
     const actionMap = { view: 'can_view', create: 'can_create', edit: 'can_edit', delete: 'can_delete' } as const;
     return perm[actionMap[action]];
+  };
+
+  const isSocio = (): boolean => {
+    return userRole === 'socio';
   };
 
   const isSuperAdmin = (): boolean => {
@@ -320,7 +325,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const isDiretor = (): boolean => {
-    return userRole === 'diretor' || userRole === 'admin';
+    return userRole === 'diretor' || userRole === 'admin' || userRole === 'socio';
   };
 
   const isGerente = (): boolean => {
@@ -337,7 +342,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getDefaultRoute = (): string => {
     if (userRole === 'super_admin') return '/super-admin';
-    if (userRole === 'diretor' || userRole === 'admin') return '/';
+    if (userRole === 'socio' || userRole === 'diretor' || userRole === 'admin') return '/';
 
     if (company?.status === 'bloqueado') return '/';
     
@@ -377,7 +382,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const canAccessUserData = (userId: string): boolean => {
     if (!userRole || !user) return false;
     
-    if (userRole === 'super_admin' || userRole === 'diretor' || userRole === 'admin') return true;
+    if (userRole === 'super_admin' || userRole === 'socio' || userRole === 'diretor' || userRole === 'admin') return true;
     
     if (userRole === 'gerente' && teamHierarchy) {
       return teamHierarchy.team_members.includes(userId);
@@ -404,6 +409,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isDiretor,
     isGerente,
     isCorretor,
+    isSocio,
     isSuperAdmin,
     getUserRole,
     getDefaultRoute,
