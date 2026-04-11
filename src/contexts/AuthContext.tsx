@@ -118,59 +118,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('[AuthContext] Role resolved for user:', userId, '→', resolvedRole, 'roleResult:', roleResult.data, 'error:', roleResult.error);
       setUserRole(resolvedRole);
 
-      // Parallelize company and hierarchy queries (depend on profile data)
-      let companyData: Company | null = null;
-      let hierarchyData: any = null;
-
+      // Parallelize ALL remaining queries together
       if (profileData.company_id) {
-        const [companyResult, hierarchyResult] = await Promise.all([
-          supabase
-            .from('companies')
-            .select('*')
-            .eq('id', profileData.company_id)
-            .single(),
+        const [companyResult, hierarchyResult, permResult] = await Promise.all([
+          supabase.from('companies').select('*').eq('id', profileData.company_id).single(),
           supabase.rpc('get_team_hierarchy', { user_id: userId }),
+          supabase.from('role_permissions')
+            .select('role, screen, can_view, can_create, can_edit, can_delete')
+            .eq('company_id', profileData.company_id),
         ]);
         
-        if (companyResult.data) {
-          companyData = companyResult.data as Company;
+        if (companyResult.data) setCompany(companyResult.data as Company);
+        if (hierarchyResult.data?.[0]) setTeamHierarchy(hierarchyResult.data[0]);
+        else setTeamHierarchy(null);
+        
+        if (permResult.data) {
+          setRolePermissions(permResult.data.map((p: any) => ({
+            role: p.role, screen: p.screen,
+            can_view: p.can_view, can_create: p.can_create,
+            can_edit: p.can_edit, can_delete: p.can_delete,
+          })));
         }
-        hierarchyData = hierarchyResult.data;
       } else {
         try {
           const hierarchyResult = await supabase.rpc('get_team_hierarchy', { user_id: userId });
-          hierarchyData = hierarchyResult.data;
+          if (hierarchyResult.data?.[0]) setTeamHierarchy(hierarchyResult.data[0]);
+          else setTeamHierarchy(null);
         } catch (err) {
           console.error('Error fetching team hierarchy:', err);
-        }
-      }
-      
-      if (companyData) {
-        setCompany(companyData);
-      }
-      
-      if (hierarchyData?.[0]) {
-        setTeamHierarchy(hierarchyData[0]);
-      } else {
-        setTeamHierarchy(null);
-      }
-
-      // Fetch role permissions for the company
-      if (profileData.company_id) {
-        const { data: permData } = await supabase
-          .from('role_permissions')
-          .select('role, screen, can_view, can_create, can_edit, can_delete')
-          .eq('company_id', profileData.company_id);
-        
-        if (permData) {
-          setRolePermissions(permData.map((p: any) => ({
-            role: p.role,
-            screen: p.screen,
-            can_view: p.can_view,
-            can_create: p.can_create,
-            can_edit: p.can_edit,
-            can_delete: p.can_delete,
-          })));
+          setTeamHierarchy(null);
         }
       }
       
