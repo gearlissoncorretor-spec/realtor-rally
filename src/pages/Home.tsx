@@ -35,6 +35,7 @@ const Home = () => {
 
   const dashboard = (() => {
     switch (role) {
+      case 'socio':
       case 'diretor':
       case 'admin':
       case 'gerente':

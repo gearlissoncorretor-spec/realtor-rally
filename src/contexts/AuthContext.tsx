@@ -294,7 +294,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Backward compatibility: existing manager/director/admin profiles
     // may not yet contain this new permission in allowed_screens
-    if (screen === 'central-gestor' && ['gerente', 'diretor', 'admin'].includes(userRole ?? '')) {
+    if (screen === 'central-gestor' && ['gerente', 'diretor', 'admin', 'socio'].includes(userRole ?? '')) {
       return true;
     }
 

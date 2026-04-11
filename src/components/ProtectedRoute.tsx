@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   superAdminOnly,
   allowWithoutCompany 
 }) => {
-  const { user, loading, hasAccess, profile, isAdmin, isDiretor, isSuperAdmin, getUserRole, getDefaultRoute, error, company } = useAuth();
+  const { user, loading, hasAccess, profile, isAdmin, isDiretor, isSuperAdmin, isSocio, getUserRole, getDefaultRoute, error, company } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
   const location = useLocation();
 
@@ -108,7 +108,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const screenToCheck = requiredScreen || PATH_TO_SCREEN[location.pathname];
   const userRole = getUserRole();
 
-  if (isDiretor() || isAdmin() || isSuperAdmin()) {
+  if (isDiretor() || isAdmin() || isSuperAdmin() || isSocio()) {
     return <>{children}</>;
   }
 
