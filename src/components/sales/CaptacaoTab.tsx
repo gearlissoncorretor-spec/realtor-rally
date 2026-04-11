@@ -39,20 +39,12 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
   ];
 
   // Filter sales visible in captação tab
+  // Show ALL sales that have a captador (revenda always has one, lançamento may have one)
   const captacaoSales = useMemo(() => {
     return sales.filter(sale => {
-      // Check visibilidade field first
-      const vis = (sale as any).visibilidade || 'auto';
-      let showInCaptacao = false;
-      if (vis === 'captacao' || vis === 'ambos') {
-        showInCaptacao = true;
-      } else if (vis === 'venda') {
-        showInCaptacao = false;
-      } else {
-        // auto: show if tipo is captacao
-        showInCaptacao = sale.tipo === 'captacao';
-      }
-      if (!showInCaptacao) return false;
+      // Must have a captador to appear in captação tab
+      const hasCaptador = sale.captador && sale.captador.trim() !== '';
+      if (!hasCaptador) return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
@@ -136,11 +128,10 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
       monthMap.set(i, { count: 0, vgv: 0 });
     }
 
-    // Use captacaoSales (already year-filtered, but ignore month filter for the chart)
+    // Use all sales with captador (year-filtered only, ignore month filter for chart)
     const yearFilteredSales = sales.filter(sale => {
-      const vis = (sale as any).visibilidade || 'auto';
-      const showInCaptacao = vis === 'captacao' || vis === 'ambos' || (vis === 'auto' && sale.tipo === 'captacao');
-      if (!showInCaptacao) return false;
+      const hasCaptador = sale.captador && sale.captador.trim() !== '';
+      if (!hasCaptador) return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
       if (!dateStr) return false;
@@ -386,7 +377,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
               <p className="text-sm text-muted-foreground">
                 {hasActiveFilters
                   ? 'Nenhuma captação encontrada para os filtros aplicados.'
-                  : 'Nenhuma captação registrada. Cadastre uma nova venda com tipo "Captação".'}
+                  : 'Nenhuma venda com captador registrada. Cadastre vendas do tipo Revenda para aparecerem aqui.'}
               </p>
             </div>
           </div>
@@ -402,7 +393,16 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                         <p className="font-semibold text-foreground truncate text-sm">{sale.property_address}</p>
                         <p className="text-xs text-muted-foreground truncate">{sale.client_name}</p>
                       </div>
-                      <Badge className="shrink-0 text-[10px] bg-blue-500/10 text-blue-600 border-blue-500/20">Captação</Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                          {sale.sale_type === 'revenda' ? 'Revenda' : 'Lançamento'}
+                        </Badge>
+                        {sale.parceria_tipo && (
+                          <Badge className="text-[10px] bg-warning/10 text-warning border-warning/20">
+                            🤝 {sale.parceria_tipo}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
@@ -465,7 +465,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                   <tr>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
-                    <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</th>
+                    <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo Venda</th>
+                    <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Parceria</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Captador</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vendedor</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">VGV</th>
@@ -479,14 +480,17 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                       <td className="p-3 text-sm text-foreground max-w-[200px] truncate">{sale.property_address}</td>
                       <td className="p-3 text-sm text-foreground max-w-[150px] truncate">{sale.client_name}</td>
                       <td className="p-3">
+                        <Badge variant="outline" className="text-[10px]">
+                          {sale.sale_type === 'revenda' ? 'Revenda' : 'Lançamento'}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
                         {sale.parceria_tipo ? (
-                          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+                          <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">
                             🤝 {sale.parceria_tipo}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] border-info/30 text-info">
-                            🔵 Própria
-                          </Badge>
+                          <span className="text-xs text-muted-foreground">Própria</span>
                         )}
                       </td>
                       <td className="p-3 text-sm font-medium text-primary">{sale.captador || '-'}</td>
