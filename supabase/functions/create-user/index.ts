@@ -372,8 +372,18 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('Error in create-user function:', error)
+    
+    // Map errors to safe client messages
+    const msg = error.message || '';
+    let clientMessage = 'Falha ao criar usuário';
+    if (msg.includes('already') || msg.includes('duplicate')) clientMessage = 'Este email já está em uso';
+    else if (msg.includes('Unauthorized') || msg.includes('Não autorizado')) clientMessage = 'Acesso não autorizado';
+    else if (msg.includes('senha') || msg.includes('Password') || msg.includes('password')) clientMessage = msg;
+    else if (msg.includes('Cargo') || msg.includes('cargo') || msg.includes('Gerentes')) clientMessage = msg;
+    else if (msg.startsWith('❌')) clientMessage = msg;
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: clientMessage }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400 
