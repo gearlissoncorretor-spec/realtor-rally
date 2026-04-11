@@ -38,7 +38,7 @@ import AgencyManager from "@/components/AgencyManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
-  const { isAdmin, isDiretor, isGerente } = useAuth();
+  const { isAdmin, isDiretor, isGerente, isSocio } = useAuth();
   const { theme } = useTheme();
   
   const [settings, setSettings] = useState({
@@ -60,6 +60,7 @@ const Configuracoes = () => {
     rolePermissions: false,
     userManagement: false,
     slack: false,
+    agencies: false,
   });
 
   const toggleSection = (section: string) => {
