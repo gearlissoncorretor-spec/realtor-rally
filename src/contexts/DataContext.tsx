@@ -105,7 +105,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -166,26 +166,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return q;
         };
         
-        // Fetch with pagination — build fresh query per page
-        const allSales: Sale[] = [];
-        const PAGE_SIZE = 1000;
-        let from = 0;
-        let hasMore = true;
-
-        while (hasMore) {
-          const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
-          
-          if (error) {
-            console.error('Error fetching sales:', error);
-            throw new Error(`Erro ao carregar vendas: ${error.message}`);
-          }
-          
-          allSales.push(...(data as Sale[]));
-          hasMore = data.length === PAGE_SIZE;
-          from += PAGE_SIZE;
+        // Single query with limit — most users won't have >1000 sales
+        const { data, error } = await buildQuery().limit(1000);
+        
+        if (error) {
+          console.error('Error fetching sales:', error);
+          throw new Error(`Erro ao carregar vendas: ${error.message}`);
         }
         
-        return allSales;
+        return (data as Sale[]) || [];
       } catch (err) {
         console.error('Sales query failed:', err);
         throw err;
@@ -193,7 +182,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
@@ -230,7 +219,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     enabled: !!user,
   });
 
