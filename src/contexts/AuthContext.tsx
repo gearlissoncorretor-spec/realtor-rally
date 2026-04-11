@@ -119,18 +119,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserRole(resolvedRole);
 
       // Parallelize ALL remaining queries together
-      const parallelQueries: Promise<any>[] = [];
-      
       if (profileData.company_id) {
-        parallelQueries.push(
+        const [companyResult, hierarchyResult, permResult] = await Promise.all([
           supabase.from('companies').select('*').eq('id', profileData.company_id).single(),
           supabase.rpc('get_team_hierarchy', { user_id: userId }),
           supabase.from('role_permissions')
             .select('role, screen, can_view, can_create, can_edit, can_delete')
             .eq('company_id', profileData.company_id),
-        );
-        
-        const [companyResult, hierarchyResult, permResult] = await Promise.all(parallelQueries);
+        ]);
         
         if (companyResult.data) setCompany(companyResult.data as Company);
         if (hierarchyResult.data?.[0]) setTeamHierarchy(hierarchyResult.data[0]);
