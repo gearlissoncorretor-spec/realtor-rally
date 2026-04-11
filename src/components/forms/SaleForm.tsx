@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { supabase } from '@/integrations/supabase/client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -84,6 +85,30 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 }) => {
   const { brokers } = useData();
 
+  // Fetch managers (gerentes) for dropdown
+  const [managers, setManagers] = useState<{ id: string; full_name: string; team_id: string | null }[]>([]);
+  useEffect(() => {
+    const fetchManagers = async () => {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, team_id');
+      const profileIds = (profilesData || []).map(p => p.id);
+      if (profileIds.length === 0) return;
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', profileIds)
+        .eq('role', 'gerente');
+      const gerenteIds = new Set((rolesData || []).map(r => r.user_id));
+      setManagers((profilesData || []).filter(p => gerenteIds.has(p.id)).map(p => ({
+        id: p.id,
+        full_name: p.full_name,
+        team_id: p.team_id,
+      })));
+    };
+    if (isOpen) fetchManagers();
+  }, [isOpen]);
+
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
@@ -120,6 +145,19 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 
   const watchSaleType = form.watch('sale_type');
   const watchTipo = form.watch('tipo');
+  const watchBrokerId = form.watch('broker_id');
+
+  // Auto-fill gerente when broker is selected
+  useEffect(() => {
+    if (!watchBrokerId || !managers.length) return;
+    const selectedBroker = brokers.find(b => b.id === watchBrokerId);
+    if (selectedBroker?.team_id) {
+      const manager = managers.find(m => m.team_id === selectedBroker.team_id);
+      if (manager) {
+        form.setValue('gerente', manager.full_name);
+      }
+    }
+  }, [watchBrokerId, managers, brokers, form]);
 
   // When sale_type is 'lancamento', force tipo to 'venda' (lançamento não tem captação)
   React.useEffect(() => {
@@ -723,9 +761,20 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gerente *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do gerente" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o gerente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {managers.map((manager) => (
+                          <SelectItem key={manager.id} value={manager.full_name}>
+                            {manager.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
