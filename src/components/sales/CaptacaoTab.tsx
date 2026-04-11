@@ -393,7 +393,16 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                         <p className="font-semibold text-foreground truncate text-sm">{sale.property_address}</p>
                         <p className="text-xs text-muted-foreground truncate">{sale.client_name}</p>
                       </div>
-                      <Badge className="shrink-0 text-[10px] bg-blue-500/10 text-blue-600 border-blue-500/20">Captação</Badge>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                          {sale.sale_type === 'revenda' ? 'Revenda' : 'Lançamento'}
+                        </Badge>
+                        {sale.parceria_tipo && (
+                          <Badge className="text-[10px] bg-warning/10 text-warning border-warning/20">
+                            🤝 {sale.parceria_tipo}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
