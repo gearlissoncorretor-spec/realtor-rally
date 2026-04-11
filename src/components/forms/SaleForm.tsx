@@ -761,9 +761,20 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Gerente *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do gerente" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o gerente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {managers.map((manager) => (
+                          <SelectItem key={manager.id} value={manager.full_name}>
+                            {manager.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
