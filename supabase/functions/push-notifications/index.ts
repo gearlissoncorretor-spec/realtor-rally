@@ -63,6 +63,15 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'check') {
+      // Require authentication or cron secret for check action
+      const cronSecret = req.headers.get('x-cron-secret')
+      const expectedSecret = Deno.env.get('CRON_SECRET')
+      const userId = await authenticateUser(req, supabaseUrl)
+      
+      if (!userId && (!expectedSecret || cronSecret !== expectedSecret)) {
+        return errorResponse('Unauthorized', 401)
+      }
+      
       const results = await checkAndNotify(supabase)
       return jsonResponse(results)
     }
