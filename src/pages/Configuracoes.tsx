@@ -161,6 +161,19 @@ const Configuracoes = () => {
               <NotificationCenter />
             </CollapsibleSection>
 
+            {/* Gestão de Lojas/Agências — Admin ou Sócio */}
+            {(isAdmin() || isSocio()) && (
+              <CollapsibleSection
+                title="Lojas / Imobiliárias"
+                icon={<Building2 className="h-5 w-5 text-primary" />}
+                description="Criar e gerenciar lojas do grupo"
+                isOpen={openSections.agencies}
+                onToggle={() => toggleSection('agencies')}
+              >
+                <AgencyManager />
+              </CollapsibleSection>
+            )}
+
             {/* Slack */}
             {(isAdmin() || isDiretor()) && (
               <CollapsibleSection
