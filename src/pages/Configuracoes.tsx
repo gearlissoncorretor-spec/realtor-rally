@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Image as ImageIcon,
   MessageSquare,
+  Building2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -34,10 +35,11 @@ import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
 import SlackSettings from "@/components/SlackSettings";
 import { RolePermissionsManager } from "@/components/RolePermissionsManager";
+import AgencyManager from "@/components/AgencyManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
-  const { isAdmin, isDiretor, isGerente } = useAuth();
+  const { isAdmin, isDiretor, isGerente, isSocio } = useAuth();
   const { theme } = useTheme();
   
   const [settings, setSettings] = useState({
@@ -59,6 +61,7 @@ const Configuracoes = () => {
     rolePermissions: false,
     userManagement: false,
     slack: false,
+    agencies: false,
   });
 
   const toggleSection = (section: string) => {
@@ -158,6 +161,19 @@ const Configuracoes = () => {
             >
               <NotificationCenter />
             </CollapsibleSection>
+
+            {/* Gestão de Lojas/Agências — Admin ou Sócio */}
+            {(isAdmin() || isSocio()) && (
+              <CollapsibleSection
+                title="Lojas / Imobiliárias"
+                icon={<Building2 className="h-5 w-5 text-primary" />}
+                description="Criar e gerenciar lojas do grupo"
+                isOpen={openSections.agencies}
+                onToggle={() => toggleSection('agencies')}
+              >
+                <AgencyManager />
+              </CollapsibleSection>
+            )}
 
             {/* Slack */}
             {(isAdmin() || isDiretor()) && (
