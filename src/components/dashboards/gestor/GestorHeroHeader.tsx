@@ -37,7 +37,8 @@ const GestorHeroHeader: React.FC<GestorHeroHeaderProps> = ({
   onToggleFocusMode,
 }) => {
   const navigate = useNavigate();
-  const firstName = profileName?.split(' ')[0] || 'Gestor';
+  const isEmail = profileName?.includes('@');
+  const firstName = isEmail ? 'Gestor' : (profileName?.split(' ')[0] || 'Gestor');
 
   return (
     <motion.div
