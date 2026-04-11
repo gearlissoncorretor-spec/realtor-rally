@@ -34,6 +34,7 @@ import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
 import SlackSettings from "@/components/SlackSettings";
 import { RolePermissionsManager } from "@/components/RolePermissionsManager";
+import AgencyManager from "@/components/AgencyManager";
 
 const Configuracoes = () => {
   const { toast } = useToast();
