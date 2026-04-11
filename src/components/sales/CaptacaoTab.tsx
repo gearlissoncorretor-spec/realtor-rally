@@ -39,20 +39,12 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
   ];
 
   // Filter sales visible in captação tab
+  // Show ALL sales that have a captador (revenda always has one, lançamento may have one)
   const captacaoSales = useMemo(() => {
     return sales.filter(sale => {
-      // Check visibilidade field first
-      const vis = (sale as any).visibilidade || 'auto';
-      let showInCaptacao = false;
-      if (vis === 'captacao' || vis === 'ambos') {
-        showInCaptacao = true;
-      } else if (vis === 'venda') {
-        showInCaptacao = false;
-      } else {
-        // auto: show if tipo is captacao
-        showInCaptacao = sale.tipo === 'captacao';
-      }
-      if (!showInCaptacao) return false;
+      // Must have a captador to appear in captação tab
+      const hasCaptador = sale.captador && sale.captador.trim() !== '';
+      if (!hasCaptador) return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
