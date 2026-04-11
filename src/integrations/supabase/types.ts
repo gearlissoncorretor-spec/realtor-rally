@@ -2509,6 +2509,7 @@ export type Database = {
         | "corretor"
         | "user"
         | "super_admin"
+        | "socio"
       broker_status: "ativo" | "inativo" | "ferias"
       property_type: "apartamento" | "casa" | "terreno" | "comercial" | "rural"
       sale_status: "pendente" | "confirmada" | "cancelada" | "distrato"
@@ -2646,6 +2647,7 @@ export const Constants = {
         "corretor",
         "user",
         "super_admin",
+        "socio",
       ],
       broker_status: ["ativo", "inativo", "ferias"],
       property_type: ["apartamento", "casa", "terreno", "comercial", "rural"],
