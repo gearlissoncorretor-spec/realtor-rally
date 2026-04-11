@@ -465,7 +465,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                   <tr>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Imóvel</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Cliente</th>
-                    <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</th>
+                    <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo Venda</th>
+                    <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Parceria</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Captador</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Vendedor</th>
                     <th className="text-left p-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">VGV</th>
@@ -479,14 +480,17 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                       <td className="p-3 text-sm text-foreground max-w-[200px] truncate">{sale.property_address}</td>
                       <td className="p-3 text-sm text-foreground max-w-[150px] truncate">{sale.client_name}</td>
                       <td className="p-3">
+                        <Badge variant="outline" className="text-[10px]">
+                          {sale.sale_type === 'revenda' ? 'Revenda' : 'Lançamento'}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
                         {sale.parceria_tipo ? (
-                          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+                          <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">
                             🤝 {sale.parceria_tipo}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-[10px] border-info/30 text-info">
-                            🔵 Própria
-                          </Badge>
+                          <span className="text-xs text-muted-foreground">Própria</span>
                         )}
                       </td>
                       <td className="p-3 text-sm font-medium text-primary">{sale.captador || '-'}</td>
