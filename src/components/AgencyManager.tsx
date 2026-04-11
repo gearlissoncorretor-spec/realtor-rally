@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Building2, Plus, User, Pencil, Trash2, Store } from 'lucide-react';
+import { Building2, Plus, User, Pencil, Trash2, Store, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Agency {
@@ -40,7 +40,20 @@ const AgencyManager = () => {
   const [editDirector, setEditDirector] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
+  // New director creation fields
+  const [createNewDirector, setCreateNewDirector] = useState(false);
+  const [newDirectorName, setNewDirectorName] = useState('');
+  const [newDirectorEmail, setNewDirectorEmail] = useState('');
+  const [newDirectorPassword, setNewDirectorPassword] = useState('');
+
   const companyId = profile?.company_id;
+
+  const directorScreens = [
+    'dashboard', 'vendas', 'corretores', 'ranking', 'acompanhamento',
+    'relatorios', 'configuracoes', 'equipes', 'metas', 'central-gestor',
+    'atividades', 'negociacoes', 'follow-up', 'meta-gestao', 'agenda',
+    'instalar', 'gestao-usuarios', 'comissoes', 'dashboard-equipes', 'x1',
+  ];
 
   const fetchData = async () => {
     if (!companyId) return;
@@ -74,6 +87,34 @@ const AgencyManager = () => {
     return directors.filter(d => !d.agency_id || d.agency_id === excludeAgencyId);
   };
 
+  const createDirectorUser = async (agencyId: string) => {
+    if (!newDirectorName.trim() || !newDirectorEmail.trim() || !newDirectorPassword.trim()) {
+      toast.error('Preencha todos os campos do diretor');
+      return null;
+    }
+
+    const { data, error } = await supabase.functions.invoke('create-user', {
+      body: {
+        full_name: newDirectorName.trim(),
+        email: newDirectorEmail.trim(),
+        password: newDirectorPassword.trim(),
+        role: 'diretor',
+        allowed_screens: directorScreens,
+        company_id: companyId,
+      },
+    });
+
+    if (error) throw new Error(error.message || 'Erro ao criar diretor');
+    if (data?.error) throw new Error(data.error);
+
+    // Assign agency_id to the new director profile
+    if (data?.user?.id) {
+      await supabase.from('profiles').update({ agency_id: agencyId }).eq('id', data.user.id);
+    }
+
+    return data?.user;
+  };
+
   const handleCreate = async () => {
     if (!newAgencyName.trim() || !companyId) return;
     setSaving(true);
@@ -86,24 +127,37 @@ const AgencyManager = () => {
 
       if (error) throw error;
 
-      if (selectedDirector && agency) {
+      if (createNewDirector && agency) {
+        await createDirectorUser(agency.id);
+        toast.success('Loja e Diretor criados com sucesso!');
+      } else if (selectedDirector && agency) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ agency_id: agency.id })
           .eq('id', selectedDirector);
         if (profileError) console.error('Error assigning director:', profileError);
+        toast.success('Loja criada com sucesso!');
+      } else {
+        toast.success('Loja criada com sucesso!');
       }
 
-      toast.success('Loja criada com sucesso!');
       setShowCreateDialog(false);
-      setNewAgencyName('');
-      setSelectedDirector('');
+      resetCreateForm();
       fetchData();
     } catch (err: any) {
-      toast.error('Erro ao criar loja: ' + (err.message || 'Erro desconhecido'));
+      toast.error('Erro: ' + (err.message || 'Erro desconhecido'));
     } finally {
       setSaving(false);
     }
+  };
+
+  const resetCreateForm = () => {
+    setNewAgencyName('');
+    setSelectedDirector('');
+    setCreateNewDirector(false);
+    setNewDirectorName('');
+    setNewDirectorEmail('');
+    setNewDirectorPassword('');
   };
 
   const handleEdit = async () => {
@@ -117,13 +171,11 @@ const AgencyManager = () => {
 
       if (error) throw error;
 
-      // Remove old director assignment
       const oldDirector = getDirectorForAgency(editingAgency.id);
       if (oldDirector && oldDirector.id !== editDirector) {
         await supabase.from('profiles').update({ agency_id: null }).eq('id', oldDirector.id);
       }
 
-      // Assign new director
       if (editDirector && editDirector !== 'none') {
         await supabase.from('profiles').update({ agency_id: editingAgency.id }).eq('id', editDirector);
       }
@@ -142,7 +194,6 @@ const AgencyManager = () => {
   const handleDelete = async (agency: Agency) => {
     if (!confirm(`Deseja realmente excluir a loja "${agency.name}"?`)) return;
     try {
-      // Unassign directors first
       await supabase.from('profiles').update({ agency_id: null }).eq('agency_id', agency.id);
       const { error } = await supabase.from('agencies').delete().eq('id', agency.id);
       if (error) throw error;
@@ -229,11 +280,11 @@ const AgencyManager = () => {
       )}
 
       {/* Create Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+      <Dialog open={showCreateDialog} onOpenChange={(open) => { setShowCreateDialog(open); if (!open) resetCreateForm(); }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Loja / Imobiliária</DialogTitle>
-            <DialogDescription>Adicione uma nova loja ao seu grupo</DialogDescription>
+            <DialogDescription>Adicione uma nova loja e opcionalmente crie o usuário do Diretor</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -244,24 +295,84 @@ const AgencyManager = () => {
                 onChange={(e) => setNewAgencyName(e.target.value)}
               />
             </div>
+
             <div className="space-y-2">
-              <Label>Diretor Responsável (opcional)</Label>
-              <Select value={selectedDirector} onValueChange={setSelectedDirector}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um diretor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getAvailableDirectors().map(d => (
-                    <SelectItem key={d.id} value={d.id}>{d.full_name} ({d.email})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Diretor Responsável</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={!createNewDirector ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCreateNewDirector(false)}
+                >
+                  Selecionar existente
+                </Button>
+                <Button
+                  type="button"
+                  variant={createNewDirector ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setCreateNewDirector(true)}
+                >
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Criar novo
+                </Button>
+              </div>
             </div>
+
+            {!createNewDirector ? (
+              <div className="space-y-2">
+                <Select value={selectedDirector} onValueChange={setSelectedDirector}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um diretor (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAvailableDirectors().map(d => (
+                      <SelectItem key={d.id} value={d.id}>{d.full_name} ({d.email})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-3 p-3 rounded-lg border border-border bg-muted/30">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <UserPlus className="h-3 w-3" /> Novo usuário Diretor
+                </p>
+                <div className="space-y-2">
+                  <Label className="text-xs">Nome Completo</Label>
+                  <Input
+                    placeholder="Ex: João Silva"
+                    value={newDirectorName}
+                    onChange={(e) => setNewDirectorName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="diretor@empresa.com"
+                    value={newDirectorEmail}
+                    onChange={(e) => setNewDirectorEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Senha Inicial</Label>
+                  <Input
+                    type="text"
+                    placeholder="Mínimo 8 caracteres com letras e números"
+                    value={newDirectorPassword}
+                    onChange={(e) => setNewDirectorPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancelar</Button>
-            <Button onClick={handleCreate} disabled={!newAgencyName.trim() || saving}>
-              {saving ? 'Criando...' : 'Criar Loja'}
+            <Button variant="outline" onClick={() => { setShowCreateDialog(false); resetCreateForm(); }}>Cancelar</Button>
+            <Button
+              onClick={handleCreate}
+              disabled={!newAgencyName.trim() || saving || (createNewDirector && (!newDirectorName.trim() || !newDirectorEmail.trim() || !newDirectorPassword.trim()))}
+            >
+              {saving ? 'Criando...' : createNewDirector ? 'Criar Loja e Diretor' : 'Criar Loja'}
             </Button>
           </DialogFooter>
         </DialogContent>
