@@ -85,6 +85,30 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 }) => {
   const { brokers } = useData();
 
+  // Fetch managers (gerentes) for dropdown
+  const [managers, setManagers] = useState<{ id: string; full_name: string; team_id: string | null }[]>([]);
+  useEffect(() => {
+    const fetchManagers = async () => {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, team_id');
+      const profileIds = (profilesData || []).map(p => p.id);
+      if (profileIds.length === 0) return;
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', profileIds)
+        .eq('role', 'gerente');
+      const gerenteIds = new Set((rolesData || []).map(r => r.user_id));
+      setManagers((profilesData || []).filter(p => gerenteIds.has(p.id)).map(p => ({
+        id: p.id,
+        full_name: p.full_name,
+        team_id: p.team_id,
+      })));
+    };
+    if (isOpen) fetchManagers();
+  }, [isOpen]);
+
   const form = useForm<SaleFormData>({
     resolver: zodResolver(saleSchema),
     defaultValues: {
