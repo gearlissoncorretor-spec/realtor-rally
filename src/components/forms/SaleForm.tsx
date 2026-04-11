@@ -145,6 +145,19 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 
   const watchSaleType = form.watch('sale_type');
   const watchTipo = form.watch('tipo');
+  const watchBrokerId = form.watch('broker_id');
+
+  // Auto-fill gerente when broker is selected
+  useEffect(() => {
+    if (!watchBrokerId || !managers.length) return;
+    const selectedBroker = brokers.find(b => b.id === watchBrokerId);
+    if (selectedBroker?.team_id) {
+      const manager = managers.find(m => m.team_id === selectedBroker.team_id);
+      if (manager) {
+        form.setValue('gerente', manager.full_name);
+      }
+    }
+  }, [watchBrokerId, managers, brokers, form]);
 
   // When sale_type is 'lancamento', force tipo to 'venda' (lançamento não tem captação)
   React.useEffect(() => {
