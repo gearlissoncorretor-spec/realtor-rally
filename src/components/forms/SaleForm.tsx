@@ -632,9 +632,22 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Captador *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Nome do captador" {...field} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o captador" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {brokers
+                              .filter(b => b.status === 'ativo')
+                              .map((broker) => (
+                                <SelectItem key={broker.id} value={broker.name}>
+                                  {broker.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
