@@ -45,6 +45,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
       // Must have a captador to appear in captação tab
       const hasCaptador = sale.captador && sale.captador.trim() !== '';
       if (!hasCaptador) return false;
+      // Lançamento never counts as captação
+      if (sale.property_type === 'Lançamento') return false;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
