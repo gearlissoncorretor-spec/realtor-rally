@@ -36,19 +36,25 @@ serve(async (req) => {
 
     console.log('Request from user:', user.id)
 
-    // Check if user is admin, diretor or gerente using role system
-    const { data: isAdmin, error: adminError } = await supabaseClient
+    // Check if user has permission to create users
+    const { data: isSuperAdmin } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'super_admin' })
+
+    const { data: isSocio } = await supabaseClient
+      .rpc('has_role', { _user_id: user.id, _role: 'socio' })
+
+    const { data: isAdmin } = await supabaseClient
       .rpc('has_role', { _user_id: user.id, _role: 'admin' })
     
-    const { data: isDiretor, error: diretorError } = await supabaseClient
+    const { data: isDiretor } = await supabaseClient
       .rpc('has_role', { _user_id: user.id, _role: 'diretor' })
     
-    const { data: isGerente, error: gerenteError } = await supabaseClient
+    const { data: isGerente } = await supabaseClient
       .rpc('has_role', { _user_id: user.id, _role: 'gerente' })
 
-    const canCreateUsers = isAdmin || isDiretor || isGerente
+    const canCreateUsers = isSuperAdmin || isSocio || isAdmin || isDiretor || isGerente
 
-    if (adminError || diretorError || gerenteError || !canCreateUsers) {
+    if (!canCreateUsers) {
       console.error('Unauthorized access attempt by:', user.id)
       throw new Error('Unauthorized: Apenas administradores, diretores e gerentes podem criar usuários')
     }
