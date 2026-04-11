@@ -170,13 +170,13 @@ const SuperAdmin = () => {
 
       if (companyError) throw companyError;
 
-      // 2. Create admin user for the company
+      // 2. Create the company owner (socio) user
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
           full_name: directorName.trim(),
           email: directorEmail.trim(),
           password: directorPassword,
-          role: role === 'corretor' ? 'admin' : role === 'gerente' ? 'admin' : 'admin',
+          role: 'socio',
           company_id: companyData.id,
           allowed_screens: plan.screens,
         },
