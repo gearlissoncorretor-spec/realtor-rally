@@ -106,6 +106,13 @@ const FollowUpPage = () => {
   // Get current user's broker ID
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
+  // Pre-select current broker if available and not already set
+  React.useEffect(() => {
+    if (currentBroker && !formData.broker_id && !editingFollowUp) {
+      setFormData(prev => ({ ...prev, broker_id: currentBroker.id }));
+    }
+  }, [currentBroker, formData.broker_id, editingFollowUp]);
+
   // Filter follow-ups
   const filteredFollowUps = useMemo(() => {
     return followUps.filter(followUp => {
