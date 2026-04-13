@@ -338,18 +338,30 @@ const FollowUpPage = () => {
                       <Select
                         value={formData.broker_id}
                         onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
+                        required
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o corretor" />
                         </SelectTrigger>
                         <SelectContent>
-                          {brokers.map((broker) => (
-                            <SelectItem key={broker.id} value={broker.id}>
-                              {broker.name}
-                            </SelectItem>
-                          ))}
+                          {brokers.length === 0 ? (
+                            <div className="p-2 text-sm text-muted-foreground text-center">
+                              Nenhum corretor cadastrado
+                            </div>
+                          ) : (
+                            brokers.map((broker) => (
+                              <SelectItem key={broker.id} value={broker.id}>
+                                {broker.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
+                      {brokers.length === 0 && (
+                        <p className="text-[10px] text-destructive mt-1">
+                          É necessário cadastrar corretores antes de criar leads.
+                        </p>
+                      )}
                     </div>
                   )}
 
