@@ -2775,6 +2775,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_manager_of_user: {
+        Args: { manager_uid: string; target_uid: string }
+        Returns: boolean
+      }
       is_socio: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       log_audit_event: {
