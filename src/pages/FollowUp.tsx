@@ -36,6 +36,7 @@ import {
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/utils/formatting";
 import { format, isToday, isPast, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -52,6 +53,7 @@ import { cn } from "@/lib/utils";
 
 const FollowUpPage = () => {
   const { user, isCorretor } = useAuth();
+  const { toast } = useToast();
   const { 
     followUps, 
     statuses, 
@@ -104,6 +106,13 @@ const FollowUpPage = () => {
   // Get current user's broker ID
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
+  // Pre-select current broker if available and not already set
+  React.useEffect(() => {
+    if (currentBroker && !formData.broker_id && !editingFollowUp) {
+      setFormData(prev => ({ ...prev, broker_id: currentBroker.id }));
+    }
+  }, [currentBroker, formData.broker_id, editingFollowUp]);
+
   // Filter follow-ups
   const filteredFollowUps = useMemo(() => {
     return followUps.filter(followUp => {
@@ -142,9 +151,22 @@ const FollowUpPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const brokerId = isCorretor() && currentBroker ? currentBroker.id : formData.broker_id;
+
+    if (!brokerId) {
+      toast({
+        title: "Erro de validação",
+        description: isCorretor() 
+          ? "Seu perfil de corretor não foi encontrado. Entre em contato com o administrador." 
+          : "Por favor, selecione um corretor responsável.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const dataToSubmit = {
       ...formData,
-      broker_id: isCorretor() && currentBroker ? currentBroker.id : formData.broker_id,
+      broker_id: brokerId,
     };
 
     try {
@@ -316,18 +338,30 @@ const FollowUpPage = () => {
                       <Select
                         value={formData.broker_id}
                         onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
+                        required
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o corretor" />
                         </SelectTrigger>
                         <SelectContent>
-                          {brokers.map((broker) => (
-                            <SelectItem key={broker.id} value={broker.id}>
-                              {broker.name}
-                            </SelectItem>
-                          ))}
+                          {brokers.length === 0 ? (
+                            <div className="p-2 text-sm text-muted-foreground text-center">
+                              Nenhum corretor cadastrado
+                            </div>
+                          ) : (
+                            brokers.map((broker) => (
+                              <SelectItem key={broker.id} value={broker.id}>
+                                {broker.name}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
+                      {brokers.length === 0 && (
+                        <p className="text-[10px] text-destructive mt-1">
+                          É necessário cadastrar corretores antes de criar leads.
+                        </p>
+                      )}
                     </div>
                   )}
 
