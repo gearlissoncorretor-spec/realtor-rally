@@ -36,6 +36,7 @@ import {
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/utils/formatting";
 import { format, isToday, isPast, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -52,6 +53,7 @@ import { cn } from "@/lib/utils";
 
 const FollowUpPage = () => {
   const { user, isCorretor } = useAuth();
+  const { toast } = useToast();
   const { 
     followUps, 
     statuses, 
