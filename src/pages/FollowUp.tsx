@@ -142,9 +142,22 @@ const FollowUpPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const brokerId = isCorretor() && currentBroker ? currentBroker.id : formData.broker_id;
+
+    if (!brokerId) {
+      toast({
+        title: "Erro de validação",
+        description: isCorretor() 
+          ? "Seu perfil de corretor não foi encontrado. Entre em contato com o administrador." 
+          : "Por favor, selecione um corretor responsável.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const dataToSubmit = {
       ...formData,
-      broker_id: isCorretor() && currentBroker ? currentBroker.id : formData.broker_id,
+      broker_id: brokerId,
     };
 
     try {
