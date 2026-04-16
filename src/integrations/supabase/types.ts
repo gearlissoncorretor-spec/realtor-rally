@@ -1258,6 +1258,7 @@ export type Database = {
           observations: string | null
           property_interest: string | null
           status: string
+          team_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1274,6 +1275,7 @@ export type Database = {
           observations?: string | null
           property_interest?: string | null
           status?: string
+          team_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1290,6 +1292,7 @@ export type Database = {
           observations?: string | null
           property_interest?: string | null
           status?: string
+          team_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1312,6 +1315,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]
