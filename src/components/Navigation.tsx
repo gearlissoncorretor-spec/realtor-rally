@@ -372,11 +372,11 @@ const Navigation = () => {
     )}
 
     {/* Mobile Bottom Navigation */}
-    <MobileBottomNav />
+    <MobileBottomNav onMenuClick={() => setIsMobileOpen(!isMobileOpen)} />
   </>;
 };
 
-const MobileBottomNav = () => {
+const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { getUserRole } = useAuth();
