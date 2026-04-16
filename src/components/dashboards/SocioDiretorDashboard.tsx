@@ -49,6 +49,7 @@ const SocioDiretorDashboard = () => {
   const { teams } = useTeams();
   const { agencies } = useAgencies();
   const { negotiations } = useNegotiations();
+  const { followUps } = useFollowUps();
 
   const [filters, setFilters] = useState<FiltersState>({
     agencyId: 'all',
@@ -97,7 +98,7 @@ const SocioDiretorDashboard = () => {
     const captacoes = filteredSales.filter(s => s.tipo === 'captacao').length;
     
     // In a real scenario, leads would come from another table, but we use negotiations as a proxy if needed
-    const leadsCount = (negotiations || []).length;
+    const leadsCount = (followUps || []).length;
     
     const confirmedSales = filteredSales.filter(s => s.status === 'confirmada');
     const conversionRate = totalSales > 0 ? (confirmedSales.length / totalSales) * 100 : 0;
