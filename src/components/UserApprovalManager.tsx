@@ -69,6 +69,12 @@ export const UserApprovalManager = () => {
 
   const handleUserApproval = async (userId: string, approved: boolean) => {
     try {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name, email, company_id, agency_id')
+        .eq('id', userId)
+        .single();
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -79,6 +85,27 @@ export const UserApprovalManager = () => {
         .eq('id', userId);
 
       if (error) throw error;
+
+      // If approved and is a broker, ensure broker record exists
+      if (approved && userProfile) {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId);
+        
+        const isBroker = roles?.some(r => r.role === 'corretor');
+        
+        if (isBroker) {
+          await supabase.from('brokers').upsert({
+            user_id: userId,
+            name: userProfile.full_name,
+            email: userProfile.email,
+            company_id: userProfile.company_id,
+            agency_id: userProfile.agency_id,
+            status: 'ativo'
+          }, { onConflict: 'email' });
+        }
+      }
 
       setPendingUsers(prev => prev.filter(user => user.id !== userId));
       
