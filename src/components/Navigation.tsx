@@ -262,9 +262,6 @@ const Navigation = () => {
           </button>
         </UserProfileDialog>
         <ThemeToggle />
-        <Button variant="ghost" size="sm" className="rounded-lg h-8 w-8 p-0" onClick={() => setIsMobileOpen(!isMobileOpen)}>
-          {isMobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-        </Button>
       </div>
     </div>
 
