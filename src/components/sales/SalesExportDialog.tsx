@@ -158,7 +158,8 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers, activeTab = "venda
     const now = new Date();
     const month = format(now, "MMMM", { locale: ptBR });
     const year = now.getFullYear();
-    return `vendas_${month}_${year}.${ext}`;
+    const prefix = exportScope === "total" ? "vendas_geral" : (activeTab === "captacao" ? "captacoes" : "vendas");
+    return `${prefix}_${month}_${year}.${ext}`;
   };
 
   const loadImageAsBase64 = async (url: string): Promise<string | null> => {
