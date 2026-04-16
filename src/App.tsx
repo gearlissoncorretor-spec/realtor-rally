@@ -19,7 +19,7 @@ import "./App.css";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("@/pages/Home"));
-const Index = lazy(() => import("@/pages/Index"));
+// Index is now lazy-loaded within Home.tsx
 const Auth = lazy(() => import("@/pages/Auth"));
 const Vendas = lazy(() => import("@/pages/Vendas"));
 const Corretores = lazy(() => import("@/pages/Corretores"));
