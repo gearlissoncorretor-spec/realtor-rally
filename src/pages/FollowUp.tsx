@@ -88,8 +88,8 @@ const FollowUpPage = () => {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedForNotes, setSelectedForNotes] = useState<FollowUpType | null>(null);
 
-  // Expanded contact history (mobile)
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<CreateFollowUpInput>({
