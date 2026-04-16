@@ -8,17 +8,22 @@ import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useGoals } from '@/hooks/useGoals';
+import { useTeams } from '@/hooks/useTeams';
+import { useAgencies } from '@/hooks/useAgencies';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import {
   UserPlus, Phone, Target, Flame, Calendar, ChevronRight,
   Handshake, DollarSign, AlertTriangle, TrendingUp, Eye,
+  Trophy, Medal, Home, Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +34,8 @@ const CorretorDashboard = () => {
   const { negotiations } = useNegotiations();
   const { followUps } = useFollowUps();
   const { goals } = useGoals();
+  const { teams } = useTeams();
+  const { agencies } = useAgencies();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -74,6 +81,82 @@ const CorretorDashboard = () => {
   const metaFaltam = metaValue > 0 ? Math.max(metaValue - metaRealizado, 0) : 0;
 
   const visitEvents = todayEvents.filter(e => e.event_type === 'visita' || e.event_type === 'captacao').length;
+
+  // Agency Stats for Ranking
+  const agencyStats = useMemo(() => {
+    return (agencies || []).map(agency => {
+      const agencySales = (sales || []).filter(s => 
+        s.agency_id === agency.id && 
+        s.status !== 'distrato' &&
+        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
+        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+      );
+      
+      const vgv = agencySales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const salesCount = agencySales.length;
+      const agencyBrokers = (brokers || []).filter(b => b.agency_id === agency.id);
+      const confirmed = agencySales.filter(s => s.status === 'confirmada').length;
+      const conversion = salesCount > 0 ? (confirmed / salesCount) * 100 : 0;
+
+      return {
+        id: agency.id,
+        name: agency.name,
+        vgv,
+        sales: salesCount,
+        brokerCount: agencyBrokers.length,
+        conversion
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [agencies, sales, brokers, currentYear, currentMonth]);
+
+  // Manager Stats (based on teams)
+  const managerStats = useMemo(() => {
+    return (teams || []).map(team => {
+      const teamBrokers = (brokers || []).filter(b => b.team_id === team.id);
+      const teamSales = (sales || []).filter(s => 
+        teamBrokers.some(b => b.id === s.broker_id) && 
+        s.status !== 'distrato' &&
+        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
+        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+      );
+      
+      const vgv = teamSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const salesCount = teamSales.length;
+      const agency = (agencies || []).find(a => a.id === team.agency_id);
+
+      return {
+        id: team.id,
+        name: team.name,
+        agencyName: agency?.name || 'N/A',
+        vgv,
+        sales: salesCount,
+        brokerCount: teamBrokers.length
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [teams, brokers, sales, agencies, currentYear, currentMonth]);
+
+  // Broker Stats for Ranking
+  const brokerStats = useMemo(() => {
+    return (brokers || []).map(broker => {
+      const bSales = (sales || []).filter(s => 
+        s.broker_id === broker.id && 
+        s.status !== 'distrato' &&
+        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
+        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+      );
+      
+      const vgv = bSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const salesCount = bSales.length;
+
+      return {
+        id: broker.id,
+        name: broker.name,
+        avatar: (broker as any).avatar_url,
+        vgv,
+        sales: salesCount,
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [brokers, sales, currentYear, currentMonth]);
 
   // Smart alerts
   const alerts: { icon: string; text: string; type: 'warning' | 'fire' | 'info' }[] = [];
@@ -320,7 +403,106 @@ const CorretorDashboard = () => {
             </div>
           </div>
 
-          {/* ========== 5. META DO MÊS - MOTIVATIONAL BLOCK ========== */}
+          {/* ========== 5. RANKINGS ========== */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Unidades Ranking */}
+            <Card className="shadow-sm border-border/60 bg-card/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                  Ranking de Unidades
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 px-4 pb-4">
+                <div className="space-y-3">
+                  {agencyStats.slice(0, 5).map((stat, idx) => (
+                    <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="font-semibold text-xs truncate">{stat.name}</span>
+                          <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {stat.sales} vendas · {stat.brokerCount} corretores
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gerentes Ranking */}
+            <Card className="shadow-sm border-border/60 bg-card/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Medal className="h-4 w-4 text-blue-500" />
+                  Ranking de Equipes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 px-4 pb-4">
+                <div className="space-y-3">
+                  {managerStats.slice(0, 5).map((stat, idx) => (
+                    <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="font-semibold text-xs truncate">{stat.name}</span>
+                          <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground italic">
+                          {stat.agencyName} · {stat.sales} vendas
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Corretores Ranking */}
+            <Card className="shadow-sm border-border/60 bg-card/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-primary" />
+                  Ranking de Corretores
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 px-4 pb-4">
+                <div className="space-y-3">
+                  {brokerStats.slice(0, 5).map((stat, idx) => (
+                    <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                        {idx + 1}
+                      </div>
+                      <Avatar className="h-8 w-8 border border-border shadow-sm">
+                        <AvatarImage src={stat.avatar} />
+                        <AvatarFallback className="bg-primary/5 text-primary text-[10px]">
+                          {stat.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="font-semibold text-xs truncate">{stat.name}</span>
+                          <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {stat.sales} vendas
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ========== 6. META DO MÊS - MOTIVATIONAL BLOCK ========== */}
           <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6">
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-5">
               <TrendingUp className="w-4 h-4 text-primary" /> Meta do Mês
