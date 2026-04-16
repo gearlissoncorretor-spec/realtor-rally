@@ -36,6 +36,7 @@ const Vendas = () => {
   const { toast } = useToast();
   const { isDiretor, isGerente } = useAuth();
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("vendas");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -262,7 +263,7 @@ const Vendas = () => {
           </div>
 
           {/* Tabs: Vendas / Captação */}
-          <Tabs defaultValue="vendas" className="w-full">
+          <Tabs defaultValue="vendas" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full max-w-[360px] grid-cols-2">
               <TabsTrigger value="vendas" className="gap-1.5 text-xs">
                 <BarChart3 className="w-3.5 h-3.5" />
@@ -529,6 +530,7 @@ const Vendas = () => {
         onClose={() => setExportDialogOpen(false)}
         sales={sales}
         brokers={brokers}
+        activeTab={activeTab}
       />
     </div>
   );
