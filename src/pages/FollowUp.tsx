@@ -186,7 +186,7 @@ const FollowUpPage = () => {
       } else {
         toast({
           title: "Erro de perfil",
-          description: "Seu perfil de corretor não foi encontrado no sistema. Por favor, contate o administrador.",
+          description: "Seu usuário não está vinculado a um corretor cadastrado. Por favor, contate o administrador para regularizar seu acesso.",
           variant: "destructive",
         });
         setSubmitting(false);
