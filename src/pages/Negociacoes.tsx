@@ -183,6 +183,7 @@ const Negociacoes = () => {
               <p className="text-muted-foreground mt-1">Pipeline de vendas e acompanhamento de negociações</p>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" size="icon" onClick={() => setExportDialogOpen(true)} title="Exportar Negociações"><Download className="w-4 h-4" /></Button>
               <Button variant="outline" size="icon" onClick={() => setStatusManagerOpen(true)} title="Gerenciar Status"><Settings className="w-4 h-4" /></Button>
               <Button className="gap-2" onClick={() => { setEditingNegotiation(null); setIsFormOpen(true); }}><Plus className="w-4 h-4" />Nova Negociação</Button>
             </div>
