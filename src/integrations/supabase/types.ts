@@ -2751,6 +2751,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_is_event_owner: {
+        Args: { _event_id: string; _user_id: string }
+        Returns: boolean
+      }
+      check_is_event_shared_with_user: {
+        Args: { _event_id: string; _user_id: string }
+        Returns: boolean
+      }
       get_current_user_admin_status: { Args: never; Returns: boolean }
       get_manager_user_ids: { Args: never; Returns: string[] }
       get_team_hierarchy: {
