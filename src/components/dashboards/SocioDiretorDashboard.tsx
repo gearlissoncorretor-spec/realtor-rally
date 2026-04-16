@@ -19,6 +19,7 @@ import { useData } from '@/contexts/DataContext';
 import { useTeams } from '@/hooks/useTeams';
 import { useAgencies } from '@/hooks/useAgencies';
 import { useNegotiations } from '@/hooks/useNegotiations';
+import { useFollowUps } from '@/hooks/useFollowUps';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
   ResponsiveContainer, Tooltip, LineChart, Line, AreaChart, Area,
