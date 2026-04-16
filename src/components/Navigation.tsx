@@ -204,14 +204,14 @@ const Navigation = () => {
         to={item.href}
         onClick={onClick}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200 group relative",
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-300 group relative overflow-hidden",
           isActive
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+            ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-1 ring-primary/20"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:translate-x-1"
         )}
       >
         {isActive && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
         )}
         <Icon className={cn(
           "w-[18px] h-[18px] shrink-0 transition-colors",

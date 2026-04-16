@@ -1,7 +1,5 @@
 import { Card } from "@/components/ui/card";
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -11,7 +9,9 @@ import {
   Bar,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  AreaChart,
+  Area
 } from "recharts";
 
 interface ChartData {
@@ -28,7 +28,7 @@ interface DashboardChartProps {
   height?: number;
 }
 
-const COLORS = ['hsl(221, 83%, 53%)', 'hsl(142, 71%, 45%)', 'hsl(32, 95%, 44%)', 'hsl(199, 89%, 48%)'];
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--info))'];
 
 const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps) => {
   const renderChart = () => {
@@ -36,16 +36,31 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
       case "line":
         return (
           <ResponsiveContainer width="100%" height={height}>
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorVgv" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="colorVgc" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.15}/>
+                  <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis 
                 dataKey="month" 
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
+                axisLine={false}
+                tickLine={false}
+                dy={10}
               />
               <YAxis 
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={(value) => `R$ ${value / 1000}k`}
               />
               <Tooltip 
@@ -53,57 +68,68 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))"
+                  boxShadow: "var(--shadow-lg)"
                 }}
+                itemStyle={{ fontSize: '12px', fontWeight: 600 }}
                 formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, '']}
               />
-              <Line 
+              <Area 
                 type="monotone" 
                 dataKey="vgv" 
-                stroke="hsl(221, 83%, 53%)" 
+                stroke="hsl(var(--primary))" 
                 strokeWidth={3}
-                dot={{ fill: "hsl(221, 83%, 53%)", strokeWidth: 2, r: 4 }}
+                fillOpacity={1}
+                fill="url(#colorVgv)"
                 name="VGV"
+                activeDot={{ r: 6, strokeWidth: 0 }}
               />
-              <Line 
+              <Area 
                 type="monotone" 
                 dataKey="vgc" 
-                stroke="hsl(142, 71%, 45%)" 
+                stroke="hsl(var(--success))" 
                 strokeWidth={3}
-                dot={{ fill: "hsl(142, 71%, 45%)", strokeWidth: 2, r: 4 }}
+                fillOpacity={1}
+                fill="url(#colorVgc)"
                 name="VGC"
+                activeDot={{ r: 6, strokeWidth: 0 }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         );
 
       case "bar":
         return (
           <ResponsiveContainer width="100%" height={height}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis 
                 dataKey="month" 
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
+                axisLine={false}
+                tickLine={false}
+                dy={10}
               />
               <YAxis 
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={12}
+                axisLine={false}
+                tickLine={false}
               />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))"
+                  boxShadow: "var(--shadow-lg)"
                 }}
               />
               <Bar 
                 dataKey="sales" 
-                fill="hsl(221, 83%, 53%)"
-                radius={[4, 4, 0, 0]}
+                fill="hsl(var(--primary))"
+                radius={[6, 6, 0, 0]}
                 name="Vendas"
+                maxBarSize={40}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -123,12 +149,14 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
                 data={pieData}
                 cx="50%"
                 cy="50%"
+                innerRadius={60}
                 outerRadius={80}
+                paddingAngle={5}
                 dataKey="value"
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                 ))}
               </Pie>
               <Tooltip 
@@ -136,7 +164,7 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "var(--radius)",
-                  color: "hsl(var(--foreground))"
+                  boxShadow: "var(--shadow-lg)"
                 }}
               />
             </PieChart>
@@ -150,8 +178,10 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
   };
 
   return (
-    <Card className="p-6 bg-gradient-card border-border animate-fade-in">
-      <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
+    <Card className="p-6 bg-card border-border/50 hover:border-primary/20 transition-all duration-300 shadow-sm hover:shadow-md animate-fade-in">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-base font-semibold text-foreground tracking-tight">{title}</h3>
+      </div>
       {renderChart()}
     </Card>
   );
