@@ -330,6 +330,13 @@ const Negociacoes = () => {
       </AlertDialog>
 
       <NegotiationNotesDialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen} negotiation={selectedForNotes} />
+      <NegotiationsExportDialog 
+        isOpen={exportDialogOpen} 
+        onClose={() => setExportDialogOpen(false)} 
+        negotiations={[...negotiations, ...lostNegotiations]} 
+        brokers={brokers} 
+        activeTab={activeTab} 
+      />
     </div>
   );
 };
