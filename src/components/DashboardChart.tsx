@@ -109,7 +109,7 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
           </ResponsiveContainer>
         );
 
-      case "pie":
+      case "pie": {
         const pieData = data.slice(0, 4).map((item, index) => ({
           name: item.month,
           value: item.sales,
@@ -142,6 +142,7 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
             </PieChart>
           </ResponsiveContainer>
         );
+      }
 
       default:
         return null;

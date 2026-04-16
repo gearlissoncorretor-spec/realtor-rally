@@ -100,7 +100,7 @@ export const TVModeSoundSettings = () => {
       await saveSoundUrl(publicUrl);
 
       toast({ title: 'Som enviado!', description: 'O som do Modo TV foi atualizado.' });
-    } catch (error: any) {
+    } catch (error: any) { // Keep any for now as it's common in error handling but maybe add a comment
       toast({ title: 'Erro ao enviar', description: error.message, variant: 'destructive' });
     } finally {
       setUploading(false);
