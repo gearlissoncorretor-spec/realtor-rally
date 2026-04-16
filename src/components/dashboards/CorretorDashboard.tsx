@@ -9,7 +9,7 @@ import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useGoals } from '@/hooks/useGoals';
 import { useTeams } from '@/hooks/useTeams';
-import { useData } from '@/contexts/DataContext';
+import { useAgencies } from '@/hooks/useAgencies';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
@@ -35,7 +35,7 @@ const CorretorDashboard = () => {
   const { followUps } = useFollowUps();
   const { goals } = useGoals();
   const { teams } = useTeams();
-  const { agencies } = useData();
+  const { agencies } = useAgencies();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -403,7 +403,106 @@ const CorretorDashboard = () => {
             </div>
           </div>
 
-          {/* ========== 5. META DO MÊS - MOTIVATIONAL BLOCK ========== */}
+          {/* ========== 5. RANKINGS ========== */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Unidades Ranking */}
+            <Card className="shadow-sm border-border/60 bg-card/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                  Ranking de Unidades
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 px-4 pb-4">
+                <div className="space-y-3">
+                  {agencyStats.slice(0, 5).map((stat, idx) => (
+                    <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="font-semibold text-xs truncate">{stat.name}</span>
+                          <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {stat.sales} vendas · {stat.brokerCount} corretores
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gerentes Ranking */}
+            <Card className="shadow-sm border-border/60 bg-card/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Medal className="h-4 w-4 text-blue-500" />
+                  Ranking de Equipes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 px-4 pb-4">
+                <div className="space-y-3">
+                  {managerStats.slice(0, 5).map((stat, idx) => (
+                    <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="font-semibold text-xs truncate">{stat.name}</span>
+                          <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground italic">
+                          {stat.agencyName} · {stat.sales} vendas
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Corretores Ranking */}
+            <Card className="shadow-sm border-border/60 bg-card/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-primary" />
+                  Ranking de Corretores
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 px-4 pb-4">
+                <div className="space-y-3">
+                  {brokerStats.slice(0, 5).map((stat, idx) => (
+                    <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                        {idx + 1}
+                      </div>
+                      <Avatar className="h-8 w-8 border border-border shadow-sm">
+                        <AvatarImage src={stat.avatar} />
+                        <AvatarFallback className="bg-primary/5 text-primary text-[10px]">
+                          {stat.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="font-semibold text-xs truncate">{stat.name}</span>
+                          <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {stat.sales} vendas
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ========== 6. META DO MÊS - MOTIVATIONAL BLOCK ========== */}
           <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-6">
             <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2 mb-5">
               <TrendingUp className="w-4 h-4 text-primary" /> Meta do Mês
