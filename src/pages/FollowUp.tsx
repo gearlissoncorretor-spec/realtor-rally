@@ -88,8 +88,8 @@ const FollowUpPage = () => {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedForNotes, setSelectedForNotes] = useState<FollowUpType | null>(null);
 
-  // Expanded contact history (mobile)
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState<CreateFollowUpInput>({
@@ -150,23 +150,40 @@ const FollowUpPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     
-    const brokerId = isCorretor() && currentBroker ? currentBroker.id : formData.broker_id;
+    // Determine the correct broker ID
+    let brokerId = formData.broker_id;
+    
+    if (isCorretor()) {
+      if (currentBroker) {
+        brokerId = currentBroker.id;
+      } else {
+        toast({
+          title: "Erro de perfil",
+          description: "Seu perfil de corretor não foi encontrado no sistema. Por favor, contate o administrador.",
+          variant: "destructive",
+        });
+        setSubmitting(false);
+        return;
+      }
+    }
 
     if (!brokerId) {
       toast({
         title: "Erro de validação",
-        description: isCorretor() 
-          ? "Seu perfil de corretor não foi encontrado. Entre em contato com o administrador." 
-          : "Por favor, selecione um corretor responsável.",
+        description: "Por favor, selecione um corretor responsável.",
         variant: "destructive",
       });
+      setSubmitting(false);
       return;
     }
 
     const dataToSubmit = {
       ...formData,
       broker_id: brokerId,
+      // Ensure empty date is sent as null
+      next_contact_date: formData.next_contact_date || null,
     };
 
     try {
@@ -176,8 +193,15 @@ const FollowUpPage = () => {
         await createFollowUp(dataToSubmit);
       }
       handleCloseForm();
-    } catch (error) {
-      // Error handled by hook
+    } catch (error: any) {
+      console.error('Error submitting lead:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: error.message || "Ocorreu um erro ao tentar salvar o lead. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -445,8 +469,8 @@ const FollowUpPage = () => {
                     <Button type="button" variant="outline" onClick={handleCloseForm} className="flex-1">
                       Cancelar
                     </Button>
-                    <Button type="submit" className="flex-1">
-                      {editingFollowUp ? 'Salvar' : 'Criar Lead'}
+                    <Button type="submit" className="flex-1" disabled={submitting}>
+                      {submitting ? 'Salvando...' : (editingFollowUp ? 'Salvar' : 'Criar Lead')}
                     </Button>
                   </div>
                 </form>

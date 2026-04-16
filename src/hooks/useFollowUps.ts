@@ -95,10 +95,20 @@ export const useFollowUps = () => {
   const createMutation = useMutation({
     mutationFn: async (input: CreateFollowUpInput) => {
       const { data: userData } = await supabase.auth.getUser();
+      
+      // Clean up input data
+      const cleanedInput = {
+        ...input,
+        next_contact_date: input.next_contact_date || null,
+        client_phone: input.client_phone || null,
+        property_interest: input.property_interest || null,
+        observations: input.observations || null,
+      };
+
       const { data, error } = await supabase
         .from('follow_ups')
         .insert({
-          ...input,
+          ...cleanedInput,
           created_by: userData.user?.id,
         })
         .select()
@@ -111,9 +121,13 @@ export const useFollowUps = () => {
       queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
       toast({ title: 'Follow up criado', description: 'Cliente adicionado com sucesso.' });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error creating follow up:', error);
-      toast({ title: 'Erro', description: 'Não foi possível criar o follow up.', variant: 'destructive' });
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Não foi possível criar o follow up.', 
+        variant: 'destructive' 
+      });
     },
   });
 
