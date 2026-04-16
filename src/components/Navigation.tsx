@@ -262,9 +262,6 @@ const Navigation = () => {
           </button>
         </UserProfileDialog>
         <ThemeToggle />
-        <Button variant="ghost" size="sm" className="rounded-lg h-8 w-8 p-0" onClick={() => setIsMobileOpen(!isMobileOpen)}>
-          {isMobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-        </Button>
       </div>
     </div>
 
@@ -375,11 +372,11 @@ const Navigation = () => {
     )}
 
     {/* Mobile Bottom Navigation */}
-    <MobileBottomNav />
+    <MobileBottomNav onMenuClick={() => setIsMobileOpen(!isMobileOpen)} />
   </>;
 };
 
-const MobileBottomNav = () => {
+const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { getUserRole } = useAuth();
@@ -390,7 +387,6 @@ const MobileBottomNav = () => {
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
     { href: "/agenda", label: "Agenda", icon: CalendarDays },
     { href: "/follow-up", label: "Follow-up / Clientes", icon: Users },
-    { href: "/vendas", label: "Vendas", icon: ShoppingBag },
   ];
 
   const defaultItems = [
@@ -398,7 +394,6 @@ const MobileBottomNav = () => {
     { href: "/vendas", label: "Vendas", icon: ShoppingBag },
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
     { href: "/ranking", label: "Ranking", icon: Trophy },
-    { href: "/metas", label: "Metas", icon: Target },
   ];
 
   const bottomItems = role === 'super_admin'
@@ -431,6 +426,13 @@ const MobileBottomNav = () => {
           </button>
         );
       })}
+      <button
+        onClick={onMenuClick}
+        className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-0 relative text-muted-foreground hover:text-foreground"
+      >
+        <Menu className="w-5 h-5" />
+        <span className="text-[10px] font-medium truncate">Menu</span>
+      </button>
     </div>
   );
 };
