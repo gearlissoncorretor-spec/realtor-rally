@@ -14,6 +14,7 @@ interface Profile {
   team_id?: string;
   manager_id?: string;
   company_id?: string;
+  agency_id?: string;
 }
 
 interface Company {

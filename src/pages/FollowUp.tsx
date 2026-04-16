@@ -351,7 +351,7 @@ const FollowUpPage = () => {
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingFollowUp ? 'Editar Follow Up' : 'Novo Lead'}
+                    {editingFollowUp ? 'Editar Follow Up' : 'Cadastrar Lead'}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -470,7 +470,7 @@ const FollowUpPage = () => {
                       Cancelar
                     </Button>
                     <Button type="submit" className="flex-1" disabled={submitting}>
-                      {submitting ? 'Salvando...' : (editingFollowUp ? 'Salvar' : 'Criar Lead')}
+                      {submitting ? 'Salvando...' : (editingFollowUp ? 'Salvar' : 'Cadastrar Lead')}
                     </Button>
                   </div>
                 </form>

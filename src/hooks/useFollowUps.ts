@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface FollowUp {
   id: string;
@@ -16,6 +17,8 @@ export interface FollowUp {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  company_id: string | null;
+  agency_id: string | null;
   brokers?: {
     id: string;
     name: string;
@@ -53,10 +56,13 @@ export interface CreateFollowUpInput {
   next_contact_date?: string;
   observations?: string;
   status?: string;
+  company_id?: string;
+  agency_id?: string;
 }
 
 export const useFollowUps = () => {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
 
   // Fetch statuses
@@ -94,8 +100,6 @@ export const useFollowUps = () => {
   // Create follow-up
   const createMutation = useMutation({
     mutationFn: async (input: CreateFollowUpInput) => {
-      const { data: userData } = await supabase.auth.getUser();
-      
       // Clean up input data
       const cleanedInput = {
         ...input,
@@ -103,13 +107,15 @@ export const useFollowUps = () => {
         client_phone: input.client_phone || null,
         property_interest: input.property_interest || null,
         observations: input.observations || null,
+        company_id: profile?.company_id,
+        agency_id: profile?.agency_id,
       };
 
       const { data, error } = await supabase
         .from('follow_ups')
         .insert({
           ...cleanedInput,
-          created_by: userData.user?.id,
+          created_by: user?.id,
         })
         .select()
         .single();
@@ -170,7 +176,7 @@ export const useFollowUps = () => {
     },
     onError: (error) => {
       console.error('Error deleting follow up:', error);
-      toast({ title: 'Erro', description: 'Não foi possível excluir o follow up.', variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Não foi possível excluir the follow up.', variant: 'destructive' });
     },
   });
 
@@ -189,6 +195,8 @@ export const useFollowUps = () => {
           negotiated_value: followUp.estimated_vgv,
           status: 'em_contato',
           observations: `Convertido de Follow Up. ${followUp.observations || ''}`.trim(),
+          company_id: profile?.company_id,
+          agency_id: profile?.agency_id,
         });
       
       if (negError) throw negError;
@@ -218,14 +226,15 @@ export const useFollowUps = () => {
   // Add contact history
   const addContactMutation = useMutation({
     mutationFn: async ({ followUpId, contactType, notes }: { followUpId: string; contactType: string; notes?: string }) => {
-      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('follow_up_contacts')
         .insert({
           follow_up_id: followUpId,
           contact_type: contactType,
           notes,
-          created_by: userData.user?.id,
+          created_by: user?.id,
+          company_id: profile?.company_id,
+          agency_id: profile?.agency_id,
         })
         .select()
         .single();
