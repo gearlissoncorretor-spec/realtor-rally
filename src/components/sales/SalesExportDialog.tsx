@@ -91,7 +91,11 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers, activeTab = "venda
           const isVenda = vis === 'venda' || vis === 'ambos' || (vis === 'auto' && (sale.tipo !== 'captacao' || sale.parceria_tipo === 'Agência'));
           if (!isVenda) return false;
         } else if (activeTab === "captacao") {
-          if (sale.tipo !== 'captacao') return false;
+          // Logic from CaptacaoTab.tsx for 'captacao' tab
+          const hasCaptador = sale.captador && sale.captador.trim() !== '';
+          if (!hasCaptador) return false;
+          if ((sale as any).sale_type === 'lancamento') return false;
+          if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
         }
       }
 
