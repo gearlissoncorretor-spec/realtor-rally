@@ -277,7 +277,7 @@ const GestaoUsuarios = () => {
     setCopied(false);
   };
 
-  const allowedRoles = isAdmin() || profile?.role === 'socio'
+  const allowedRoles = isAdmin() || isSocio()
     ? ['admin', 'socio', 'diretor', 'gerente', 'corretor']
     : isDiretor()
       ? ['gerente', 'corretor']
