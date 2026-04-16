@@ -442,8 +442,8 @@ const NegotiationsExportDialog = ({ isOpen, onClose, negotiations, brokers, acti
                 <p className="text-xs text-muted-foreground">Escolha quais informações deseja incluir no arquivo.</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="xs" onClick={() => selectAllFields(true)} className="h-7 text-[10px]">Selecionar Tudo</Button>
-                <Button variant="outline" size="xs" onClick={() => selectAllFields(false)} className="h-7 text-[10px]">Limpar</Button>
+                <Button variant="outline" size="sm" onClick={() => selectAllFields(true)} className="h-7 text-[10px] px-2">Selecionar Tudo</Button>
+                <Button variant="outline" size="sm" onClick={() => selectAllFields(false)} className="h-7 text-[10px] px-2">Limpar</Button>
               </div>
             </div>
 
