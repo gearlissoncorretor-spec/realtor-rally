@@ -54,10 +54,13 @@ export interface CreateFollowUpInput {
   next_contact_date?: string;
   observations?: string;
   status?: string;
+  company_id?: string;
+  agency_id?: string;
 }
 
 export const useFollowUps = () => {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
 
   // Fetch statuses
@@ -95,8 +98,6 @@ export const useFollowUps = () => {
   // Create follow-up
   const createMutation = useMutation({
     mutationFn: async (input: CreateFollowUpInput) => {
-      const { data: userData } = await supabase.auth.getUser();
-      
       // Clean up input data
       const cleanedInput = {
         ...input,
@@ -104,17 +105,19 @@ export const useFollowUps = () => {
         client_phone: input.client_phone || null,
         property_interest: input.property_interest || null,
         observations: input.observations || null,
+        company_id: profile?.company_id,
+        agency_id: profile?.agency_id,
       };
 
       const { data, error } = await supabase
         .from('follow_ups')
         .insert({
           ...cleanedInput,
-          created_by: userData.user?.id,
+          created_by: user?.id,
         })
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -190,8 +193,10 @@ export const useFollowUps = () => {
           negotiated_value: followUp.estimated_vgv,
           status: 'em_contato',
           observations: `Convertido de Follow Up. ${followUp.observations || ''}`.trim(),
+          company_id: profile?.company_id,
+          agency_id: profile?.agency_id,
         });
-      
+
       if (negError) throw negError;
 
       // Delete follow-up
