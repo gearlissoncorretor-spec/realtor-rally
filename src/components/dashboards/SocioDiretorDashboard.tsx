@@ -173,6 +173,29 @@ const SocioDiretorDashboard = () => {
     }).sort((a, b) => b.vgv - a.vgv);
   }, [teams, brokers, sales, agencies, filters.year, filters.month]);
 
+  // Broker Stats
+  const brokerStats = useMemo(() => {
+    return (brokers || []).map(broker => {
+      const brokerSales = (sales || []).filter(s => 
+        s.broker_id === broker.id && 
+        s.status !== 'distrato' &&
+        (!filters.year || filters.year === 'all' || new Date(s.sale_date || s.created_at || '').getFullYear() === Number(filters.year)) &&
+        (!filters.month || filters.month === 'all' || new Date(s.sale_date || s.created_at || '').getMonth() + 1 === Number(filters.month))
+      );
+      
+      const vgv = brokerSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const salesCount = brokerSales.length;
+
+      return {
+        id: broker.id,
+        name: broker.name,
+        avatar: (broker as any).avatar_url,
+        vgv,
+        sales: salesCount,
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [brokers, sales, filters.year, filters.month]);
+
   // Sales evolution chart data
   const chartData = useMemo(() => {
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -392,98 +415,98 @@ const SocioDiretorDashboard = () => {
       </div>
 
       {/* Agency Rankings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Unidades Ranking */}
         <Card className="shadow-sm border-border/60">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Trophy className="h-4 w-4 text-yellow-500" />
               Ranking de Unidades
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setAgencyRankingExpanded(!agencyRankingExpanded)}>
-              {agencyRankingExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="px-4 pb-4 overflow-hidden">
-              <div className="space-y-3">
-                {agencyStats.slice(0, agencyRankingExpanded ? 100 : 5).map((stat, idx) => (
-                  <div key={stat.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                      {idx + 1}
+          <CardContent className="p-0 px-4 pb-4">
+            <div className="space-y-3">
+              {agencyStats.slice(0, 5).map((stat, idx) => (
+                <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                  <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <span className="font-semibold text-xs truncate">{stat.name}</span>
+                      <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-sm truncate">{stat.name}</span>
-                        <span className="font-bold text-sm text-primary">{formatCurrency(stat.vgv)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                        <div className="flex gap-3">
-                          <span className="flex items-center gap-1"><Home className="h-3 w-3" /> {stat.sales} vendas</span>
-                          <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {stat.brokerCount} corretores</span>
-                        </div>
-                        <span className="flex items-center gap-1 font-medium text-success">
-                          <Target className="h-3 w-3" /> {stat.conversion.toFixed(1)}% conv.
-                        </span>
-                      </div>
-                      <Progress value={Math.min((stat.vgv / (agencyStats[0]?.vgv || 1)) * 100, 100)} className="h-1.5 mt-2" />
+                    <div className="text-[10px] text-muted-foreground">
+                      {stat.sales} vendas · {stat.brokerCount} corretores
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Manager Rankings */}
+        {/* Gerentes Ranking */}
         <Card className="shadow-sm border-border/60">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Medal className="h-4 w-4 text-primary" />
-              Performance dos Gerentes
+              <Medal className="h-4 w-4 text-blue-500" />
+              Ranking de Gerentes
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => setManagerRankingExpanded(!managerRankingExpanded)}>
-              {managerRankingExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="px-4 pb-4 overflow-hidden">
-              <div className="space-y-3">
-                {managerStats.slice(0, managerRankingExpanded ? 100 : 5).map((stat, idx) => (
-                  <div key={stat.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/30 border border-border/50">
-                    <div className="relative">
-                      <Avatar className="h-10 w-10 border border-border shadow-sm">
-                        <AvatarFallback className="bg-primary/5 text-primary">
-                          {stat.name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
-                        {idx + 1}
-                      </div>
+          <CardContent className="p-0 px-4 pb-4">
+            <div className="space-y-3">
+              {managerStats.slice(0, 5).map((stat, idx) => (
+                <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                  <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <span className="font-semibold text-xs truncate">{stat.name}</span>
+                      <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="font-semibold text-sm truncate">{stat.name}</span>
-                        <span className="font-bold text-sm">{formatCurrency(stat.vgv)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                        <span className="italic">{stat.agencyName}</span>
-                        <span>{stat.sales} vendas · {stat.brokerCount} corretores</span>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="flex-1 bg-muted rounded-full h-1 overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-to-r from-primary/60 to-primary transition-all duration-1000" 
-                            style={{ width: `${Math.min((stat.vgv / (managerStats[0]?.vgv || 1)) * 100, 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-bold text-primary whitespace-nowrap">
-                          {stat.performance.toFixed(1)} PTS
-                        </span>
-                      </div>
+                    <div className="text-[10px] text-muted-foreground italic">
+                      {stat.agencyName} · {stat.sales} vendas
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Corretores Ranking */}
+        <Card className="shadow-sm border-border/60">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Award className="h-4 w-4 text-emerald-500" />
+              Ranking de Corretores
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 px-4 pb-4">
+            <div className="space-y-3">
+              {brokerStats.slice(0, 5).map((stat, idx) => (
+                <div key={stat.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-border/40">
+                  <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold">
+                    {idx + 1}
+                  </div>
+                  <Avatar className="h-8 w-8 border border-border shadow-sm">
+                    <AvatarFallback className="bg-primary/5 text-primary text-[10px]">
+                      {stat.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <span className="font-semibold text-xs truncate">{stat.name}</span>
+                      <span className="font-bold text-xs">{formatCurrency(stat.vgv)}</span>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {stat.sales} vendas
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
