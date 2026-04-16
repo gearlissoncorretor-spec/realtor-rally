@@ -96,14 +96,14 @@ export const UserApprovalManager = () => {
         const isBroker = roles?.some(r => r.role === 'corretor');
         
         if (isBroker) {
-          await supabase.from('brokers').insert({
+          await supabase.from('brokers').upsert({
             user_id: userId,
             name: userProfile.full_name,
             email: userProfile.email,
             company_id: userProfile.company_id,
             agency_id: userProfile.agency_id,
             status: 'ativo'
-          }).onConflict('email').ignore();
+          }, { onConflict: 'email' });
         }
       }
 
