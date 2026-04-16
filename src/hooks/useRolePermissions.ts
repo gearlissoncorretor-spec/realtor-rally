@@ -38,6 +38,8 @@ const ALL_SCREENS = [
 const CONFIGURABLE_ROLES = [
   { value: 'corretor', label: 'Corretor' },
   { value: 'gerente', label: 'Gerente' },
+  { value: 'diretor', label: 'Diretor' },
+  { value: 'socio', label: 'Sócio Diretor' },
 ];
 
 export { ALL_SCREENS, CONFIGURABLE_ROLES };
