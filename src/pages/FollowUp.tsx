@@ -469,8 +469,8 @@ const FollowUpPage = () => {
                     <Button type="button" variant="outline" onClick={handleCloseForm} className="flex-1">
                       Cancelar
                     </Button>
-                    <Button type="submit" className="flex-1">
-                      {editingFollowUp ? 'Salvar' : 'Criar Lead'}
+                    <Button type="submit" className="flex-1" disabled={submitting}>
+                      {submitting ? 'Salvando...' : (editingFollowUp ? 'Salvar' : 'Criar Lead')}
                     </Button>
                   </div>
                 </form>
