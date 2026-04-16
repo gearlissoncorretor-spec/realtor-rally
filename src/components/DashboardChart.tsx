@@ -1,7 +1,5 @@
 import { Card } from "@/components/ui/card";
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -13,9 +11,7 @@ import {
   Pie,
   Cell,
   AreaChart,
-  Area,
-  Defs,
-  LinearGradient
+  Area
 } from "recharts";
 
 interface ChartData {
