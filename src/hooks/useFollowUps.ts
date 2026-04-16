@@ -109,6 +109,7 @@ export const useFollowUps = () => {
         observations: input.observations || null,
         company_id: profile?.company_id,
         agency_id: profile?.agency_id,
+        team_id: profile?.team_id,
       };
 
       const { data, error } = await supabase
@@ -118,7 +119,7 @@ export const useFollowUps = () => {
           created_by: user?.id,
         })
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -145,7 +146,7 @@ export const useFollowUps = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -237,7 +238,7 @@ export const useFollowUps = () => {
           agency_id: profile?.agency_id,
         })
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
