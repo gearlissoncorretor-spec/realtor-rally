@@ -1,0 +1,1 @@
+ALTER FUNCTION public.sync_broker_from_profile() SET search_path = public;
