@@ -151,14 +151,26 @@ const FollowUpPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const brokerId = isCorretor() && currentBroker ? currentBroker.id : formData.broker_id;
+    // Determine the correct broker ID
+    let brokerId = formData.broker_id;
+    
+    if (isCorretor()) {
+      if (currentBroker) {
+        brokerId = currentBroker.id;
+      } else {
+        toast({
+          title: "Erro de perfil",
+          description: "Seu perfil de corretor não foi encontrado no sistema. Por favor, contate o administrador.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     if (!brokerId) {
       toast({
         title: "Erro de validação",
-        description: isCorretor() 
-          ? "Seu perfil de corretor não foi encontrado. Entre em contato com o administrador." 
-          : "Por favor, selecione um corretor responsável.",
+        description: "Por favor, selecione um corretor responsável.",
         variant: "destructive",
       });
       return;
@@ -167,6 +179,8 @@ const FollowUpPage = () => {
     const dataToSubmit = {
       ...formData,
       broker_id: brokerId,
+      // Ensure empty date is sent as null
+      next_contact_date: formData.next_contact_date || null,
     };
 
     try {
@@ -176,8 +190,13 @@ const FollowUpPage = () => {
         await createFollowUp(dataToSubmit);
       }
       handleCloseForm();
-    } catch (error) {
-      // Error handled by hook
+    } catch (error: any) {
+      console.error('Error submitting lead:', error);
+      toast({
+        title: "Erro ao salvar",
+        description: error.message || "Ocorreu um erro ao tentar salvar o lead. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
