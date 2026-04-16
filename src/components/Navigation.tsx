@@ -387,7 +387,6 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
     { href: "/agenda", label: "Agenda", icon: CalendarDays },
     { href: "/follow-up", label: "Follow-up / Clientes", icon: Users },
-    { href: "/vendas", label: "Vendas", icon: ShoppingBag },
   ];
 
   const defaultItems = [
@@ -395,7 +394,6 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
     { href: "/vendas", label: "Vendas", icon: ShoppingBag },
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
     { href: "/ranking", label: "Ranking", icon: Trophy },
-    { href: "/metas", label: "Metas", icon: Target },
   ];
 
   const bottomItems = role === 'super_admin'
