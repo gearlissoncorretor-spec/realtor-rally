@@ -297,6 +297,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers, activeTab = "venda
     setExportSuccess(false);
     setIsExporting(false);
     setUseManualSelection(false);
+    setExportScope("tab");
     setSelectedSaleIds(new Set());
     onClose();
   };
