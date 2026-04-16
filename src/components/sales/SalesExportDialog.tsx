@@ -28,6 +28,7 @@ interface SalesExportDialogProps {
   onClose: () => void;
   sales: Sale[];
   brokers: Broker[];
+  activeTab?: string;
 }
 
 type ExportField = {
@@ -58,7 +59,7 @@ const INITIAL_FIELDS: ExportField[] = [
   { key: "notes", label: "Observações", checked: false, getValue: (s) => s.notes || "" },
 ];
 
-const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialogProps) => {
+const SalesExportDialog = ({ isOpen, onClose, sales, brokers, activeTab = "vendas" }: SalesExportDialogProps) => {
   const { toast } = useToast();
   const { settings: orgSettings } = useOrganizationSettings();
   const [step, setStep] = useState<"filters" | "select" | "fields" | "preview">("filters");
@@ -71,6 +72,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterProperty, setFilterProperty] = useState("");
   const [filterPropertyType, setFilterPropertyType] = useState("all");
+  const [exportScope, setExportScope] = useState<"tab" | "total">("tab");
 
   const [selectedSaleIds, setSelectedSaleIds] = useState<Set<string>>(new Set());
   const [useManualSelection, setUseManualSelection] = useState(false);
@@ -80,7 +82,18 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
 
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
-      if (sale.tipo === 'captacao') return false;
+      // Filter by scope (active tab or total)
+      if (exportScope === "tab") {
+        if (activeTab === "vendas") {
+          // Logic from Vendas.tsx for 'vendas' tab
+          const vis = (sale as any).visibilidade || 'auto';
+          const isVenda = vis === 'venda' || vis === 'ambos' || (vis === 'auto' && (sale.tipo !== 'captacao' || sale.parceria_tipo === 'Agência'));
+          if (!isVenda) return false;
+        } else if (activeTab === "captacao") {
+          if (sale.tipo !== 'captacao') return false;
+        }
+      }
+
       if (dateFrom) {
         const saleDate = new Date(sale.sale_date || sale.created_at || "");
         if (saleDate < new Date(dateFrom)) return false;
@@ -95,7 +108,7 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
       if (filterPropertyType !== "all" && sale.property_type !== filterPropertyType) return false;
       return true;
     });
-  }, [sales, dateFrom, dateTo, filterBroker, filterStatus, filterProperty, filterPropertyType]);
+  }, [sales, exportScope, activeTab, dateFrom, dateTo, filterBroker, filterStatus, filterProperty, filterPropertyType]);
 
   const salesToExport = useMemo(() => {
     if (useManualSelection && selectedSaleIds.size > 0) {
@@ -333,6 +346,16 @@ const SalesExportDialog = ({ isOpen, onClose, sales, brokers }: SalesExportDialo
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs">Escopo da Exportação</Label>
+                <Select value={exportScope} onValueChange={(v: any) => setExportScope(v)}>
+                  <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Selecione o escopo" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tab">Aba Atual ({activeTab === 'vendas' ? 'Vendas' : 'Captação'})</SelectItem>
+                    <SelectItem value="total">Total (Todos os registros)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Data Inicial</Label>
                 <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-9 text-sm" />
