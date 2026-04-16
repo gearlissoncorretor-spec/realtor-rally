@@ -39,6 +39,7 @@ type ExportField = {
 };
 
 const INITIAL_FIELDS: ExportField[] = [
+  { key: "tipo", label: "Tipo de Registro", checked: true, getValue: (s) => s.tipo === 'captacao' ? 'Captação' : 'Venda' },
   { key: "client_name", label: "Nome do Cliente", checked: true, getValue: (s) => s.client_name || "" },
   { key: "client_phone", label: "Telefone", checked: true, getValue: (s) => s.client_phone || "" },
   { key: "client_email", label: "Email", checked: false, getValue: (s) => s.client_email || "" },
