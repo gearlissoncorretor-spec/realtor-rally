@@ -17,6 +17,8 @@ export interface FollowUp {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  company_id: string | null;
+  agency_id: string | null;
   brokers?: {
     id: string;
     name: string;
@@ -117,7 +119,7 @@ export const useFollowUps = () => {
         })
         .select()
         .single();
-
+      
       if (error) throw error;
       return data;
     },
@@ -174,7 +176,7 @@ export const useFollowUps = () => {
     },
     onError: (error) => {
       console.error('Error deleting follow up:', error);
-      toast({ title: 'Erro', description: 'Não foi possível excluir o follow up.', variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Não foi possível excluir the follow up.', variant: 'destructive' });
     },
   });
 
@@ -196,7 +198,7 @@ export const useFollowUps = () => {
           company_id: profile?.company_id,
           agency_id: profile?.agency_id,
         });
-
+      
       if (negError) throw negError;
 
       // Delete follow-up
@@ -224,14 +226,15 @@ export const useFollowUps = () => {
   // Add contact history
   const addContactMutation = useMutation({
     mutationFn: async ({ followUpId, contactType, notes }: { followUpId: string; contactType: string; notes?: string }) => {
-      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('follow_up_contacts')
         .insert({
           follow_up_id: followUpId,
           contact_type: contactType,
           notes,
-          created_by: userData.user?.id,
+          created_by: user?.id,
+          company_id: profile?.company_id,
+          agency_id: profile?.agency_id,
         })
         .select()
         .single();
