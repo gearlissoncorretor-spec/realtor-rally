@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .from('profiles')
           .select('*')
           .eq('id', userId)
-          .single(),
+          .maybeSingle(),
         supabase
           .from('user_roles')
           .select('role')
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Parallelize ALL remaining queries together
       if (profileData.company_id) {
         const [companyResult, hierarchyResult, permResult] = await Promise.all([
-          supabase.from('companies').select('*').eq('id', profileData.company_id).single(),
+          supabase.from('companies').select('*').eq('id', profileData.company_id).maybeSingle(),
           supabase.rpc('get_team_hierarchy', { user_id: userId }),
           supabase.from('role_permissions')
             .select('role, screen, can_view, can_create, can_edit, can_delete')

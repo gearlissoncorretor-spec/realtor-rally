@@ -353,6 +353,11 @@ const FollowUpPage = () => {
                   <DialogTitle>
                     {editingFollowUp ? 'Editar Follow Up' : 'Cadastrar Lead'}
                   </DialogTitle>
+                  <DialogDescription>
+                    {editingFollowUp 
+                      ? 'Atualize os dados do acompanhamento deste cliente.' 
+                      : 'Preencha os dados para cadastrar um novo cliente e iniciar o acompanhamento.'}
+                  </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {/* Broker selector */}
