@@ -127,6 +127,17 @@ const FollowUpPage = () => {
     }
   }, [currentBroker, formData.broker_id, editingFollowUp]);
 
+  // Show warning if broker profile is missing
+  React.useEffect(() => {
+    if (isCorretor() && !loading && !currentBroker && brokers.length > 0) {
+      toast({
+        title: "Perfil Incompleto",
+        description: "Seu perfil de corretor não foi encontrado. Por favor, contate o administrador para vincular seu usuário ao cadastro de corretores.",
+        variant: "destructive",
+      });
+    }
+  }, [isCorretor, loading, currentBroker, brokers, toast]);
+
   // Filter follow-ups
   const filteredFollowUps = useMemo(() => {
     return followUps.filter(followUp => {
