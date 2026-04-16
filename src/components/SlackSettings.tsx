@@ -38,7 +38,9 @@ export const SlackSettings = () => {
     if (saved) {
       try {
         setSettings({ ...defaultSettings, ...JSON.parse(saved) });
-      } catch {}
+      } catch (e) {
+        console.error("Error parsing slack settings:", e);
+      }
     }
   }, []);
 
