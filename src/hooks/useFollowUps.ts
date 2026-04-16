@@ -95,10 +95,21 @@ export const useFollowUps = () => {
   const createMutation = useMutation({
     mutationFn: async (input: CreateFollowUpInput) => {
       const { data: userData } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
+      
+      // Clean up input data
+      const cleanedInput = {
+        ...input,
+        next_contact_date: input.next_contact_date || null,
+        client_phone: input.client_phone || null,
+        property_interest: input.property_interest || null,
+        observations: input.observations || null,
+      };
+
       const { data, error } = await supabase
         .from('follow_ups')
         .insert({
-          ...input,
+          ...cleanedInput,
           created_by: userData.user?.id,
         })
         .select()
