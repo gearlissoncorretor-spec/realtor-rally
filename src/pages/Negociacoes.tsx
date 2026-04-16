@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Handshake, Settings, Clock, Thermometer, XCircle, X, AlertTriangle, Undo2, Trash2 } from "lucide-react";
+import { Plus, Search, Handshake, Settings, Clock, Thermometer, XCircle, X, AlertTriangle, Undo2, Trash2, Download } from "lucide-react";
+import NegotiationsExportDialog from "@/components/negotiations/NegotiationsExportDialog";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useFollowUps } from "@/hooks/useFollowUps";
@@ -54,6 +55,7 @@ const Negociacoes = () => {
   const [selectedForFollowUp, setSelectedForFollowUp] = useState<Negotiation | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedForNotes, setSelectedForNotes] = useState<Negotiation | null>(null);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
@@ -181,6 +183,7 @@ const Negociacoes = () => {
               <p className="text-muted-foreground mt-1">Pipeline de vendas e acompanhamento de negociações</p>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" size="icon" onClick={() => setExportDialogOpen(true)} title="Exportar Negociações"><Download className="w-4 h-4" /></Button>
               <Button variant="outline" size="icon" onClick={() => setStatusManagerOpen(true)} title="Gerenciar Status"><Settings className="w-4 h-4" /></Button>
               <Button className="gap-2" onClick={() => { setEditingNegotiation(null); setIsFormOpen(true); }}><Plus className="w-4 h-4" />Nova Negociação</Button>
             </div>
@@ -327,6 +330,13 @@ const Negociacoes = () => {
       </AlertDialog>
 
       <NegotiationNotesDialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen} negotiation={selectedForNotes} />
+      <NegotiationsExportDialog 
+        isOpen={exportDialogOpen} 
+        onClose={() => setExportDialogOpen(false)} 
+        negotiations={[...negotiations, ...lostNegotiations]} 
+        brokers={brokers} 
+        activeTab={activeTab} 
+      />
     </div>
   );
 };
