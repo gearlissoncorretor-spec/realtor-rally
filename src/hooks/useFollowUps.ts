@@ -95,7 +95,6 @@ export const useFollowUps = () => {
   const createMutation = useMutation({
     mutationFn: async (input: CreateFollowUpInput) => {
       const { data: userData } = await supabase.auth.getUser();
-      const { data: userData } = await supabase.auth.getUser();
       
       // Clean up input data
       const cleanedInput = {
