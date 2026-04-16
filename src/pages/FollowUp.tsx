@@ -52,7 +52,7 @@ import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatu
 import { cn } from "@/lib/utils";
 
 const FollowUpPage = () => {
-  const { user, isCorretor } = useAuth();
+  const { user, profile, isCorretor } = useAuth();
   const { toast } = useToast();
   const { 
     followUps, 
@@ -90,6 +90,20 @@ const FollowUpPage = () => {
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const formatPhone = (value: string) => {
+    if (!value) return value;
+    const phoneNumber = value.replace(/\D/g, '');
+    const phoneNumberLength = phoneNumber.length;
+    if (phoneNumberLength <= 2) return phoneNumber;
+    if (phoneNumberLength <= 6) {
+      return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2)}`;
+    }
+    if (phoneNumberLength <= 10) {
+      return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 6)}-${phoneNumber.slice(6)}`;
+    }
+    return `(${phoneNumber.slice(0, 2)}) ${phoneNumber.slice(2, 7)}-${phoneNumber.slice(7, 11)}`;
+  };
   
   // Form state
   const [formData, setFormData] = useState<CreateFollowUpInput>({
@@ -408,8 +422,9 @@ const FollowUpPage = () => {
                     <label className="text-sm font-medium">Telefone (WhatsApp)</label>
                     <Input
                       value={formData.client_phone}
-                      onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, client_phone: formatPhone(e.target.value) })}
                       placeholder="(00) 00000-0000"
+                      maxLength={15}
                     />
                   </div>
 
