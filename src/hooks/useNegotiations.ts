@@ -168,6 +168,7 @@ export const useNegotiations = () => {
           ...input,
           created_by: user?.id,
           company_id: profile?.company_id || undefined,
+          agency_id: profile?.agency_id || undefined,
         })
         .select()
         .single();
