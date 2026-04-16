@@ -208,8 +208,8 @@ const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, h
     }
 
     switch (selectedMetric) {
-      case 'property_types':
-        const COLORS = ['hsl(32, 95%, 44%)', 'hsl(142, 76%, 36%)', 'hsl(221, 83%, 53%)', 'hsl(262, 83%, 58%)', 'hsl(346, 87%, 43%)'];
+      case 'property_types': {
+        const COLORS_PIE = ['hsl(32, 95%, 44%)', 'hsl(142, 76%, 36%)', 'hsl(221, 83%, 53%)', 'hsl(262, 83%, 58%)', 'hsl(346, 87%, 43%)'];
         return (
           <ResponsiveContainer width="100%" height={height}>
             <PieChart>
@@ -224,13 +224,14 @@ const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, h
                 dataKey="value"
               >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={COLORS_PIE[index % COLORS_PIE.length]} />
                 ))}
               </Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         );
+      }
       
       case 'monthly_performance':
         return (
