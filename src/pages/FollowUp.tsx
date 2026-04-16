@@ -150,6 +150,7 @@ const FollowUpPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     
     // Determine the correct broker ID
     let brokerId = formData.broker_id;
@@ -163,6 +164,7 @@ const FollowUpPage = () => {
           description: "Seu perfil de corretor não foi encontrado no sistema. Por favor, contate o administrador.",
           variant: "destructive",
         });
+        setSubmitting(false);
         return;
       }
     }
@@ -173,6 +175,7 @@ const FollowUpPage = () => {
         description: "Por favor, selecione um corretor responsável.",
         variant: "destructive",
       });
+      setSubmitting(false);
       return;
     }
 
@@ -197,6 +200,8 @@ const FollowUpPage = () => {
         description: error.message || "Ocorreu um erro ao tentar salvar o lead. Tente novamente.",
         variant: "destructive",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
