@@ -14,7 +14,7 @@ import EditUserDialog from '@/components/gestao-usuarios/EditUserDialog';
 import TransferTeamDialog from '@/components/gestao-usuarios/TransferTeamDialog';
 
 const GestaoUsuarios = () => {
-  const { user, profile, isAdmin, isDiretor, isGerente } = useAuth();
+  const { user, profile, isAdmin, isDiretor, isGerente, isSocio } = useAuth();
   const { toast } = useToast();
 
   const [users, setUsers] = useState<UserData[]>([]);
@@ -277,8 +277,8 @@ const GestaoUsuarios = () => {
     setCopied(false);
   };
 
-  const allowedRoles = isAdmin()
-    ? ['admin', 'diretor', 'gerente', 'corretor']
+  const allowedRoles = isAdmin() || isSocio()
+    ? ['admin', 'socio', 'diretor', 'gerente', 'corretor']
     : isDiretor()
       ? ['gerente', 'corretor']
       : isGerente()

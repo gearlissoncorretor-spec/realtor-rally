@@ -138,6 +138,7 @@ const Navigation = () => {
   const roleLabelMap: Record<string, string> = {
     admin: 'Admin',
     diretor: 'Diretor',
+    socio: 'Sócio Diretor',
     gerente: 'Gerente',
     corretor: 'Corretor',
     super_admin: 'Super Admin',

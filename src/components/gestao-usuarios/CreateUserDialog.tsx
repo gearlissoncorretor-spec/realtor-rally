@@ -188,7 +188,9 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {roles.map(r => (
-                      <SelectItem key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</SelectItem>
+                      <SelectItem key={r} value={r}>
+                        {r === 'socio' ? 'Sócio Diretor' : r.charAt(0).toUpperCase() + r.slice(1)}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -15,6 +15,7 @@ export interface Team {
   name: string;
   description?: string;
   manager_id?: string | null;
+  agency_id?: string | null;
   created_at: string;
   updated_at: string;
 }

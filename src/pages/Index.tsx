@@ -11,6 +11,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import GerenteDashboard from "@/components/dashboards/GerenteDashboard";
 import CorretorDashboard from "@/components/dashboards/CorretorDashboard";
 import DiretorDashboard from "@/components/dashboards/DiretorDashboard";
+import SocioDiretorDashboard from "@/components/dashboards/SocioDiretorDashboard";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
@@ -559,6 +560,19 @@ const DiretorDashboardPage = () => {
 
 // Dashboard principal - sempre renderiza o dashboard analítico com KPIs, gráficos e ranking
 const Index = () => {
+  const { isSocio } = useAuth();
+
+  if (isSocio()) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+          <SocioDiretorDashboard />
+        </main>
+      </div>
+    );
+  }
+
   return <DiretorDashboardPage />;
 };
 
