@@ -171,7 +171,7 @@ export const useNegotiations = () => {
           agency_id: profile?.agency_id || undefined,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -200,7 +200,7 @@ export const useNegotiations = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;

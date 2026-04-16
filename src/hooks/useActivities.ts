@@ -56,7 +56,7 @@ export const useActivities = () => {
           created_by: user?.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -84,7 +84,7 @@ export const useActivities = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
