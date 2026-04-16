@@ -426,6 +426,13 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
           </button>
         );
       })}
+      <button
+        onClick={onMenuClick}
+        className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-0 relative text-muted-foreground hover:text-foreground"
+      >
+        <Menu className="w-5 h-5" />
+        <span className="text-[10px] font-medium truncate">Menu</span>
+      </button>
     </div>
   );
 };
