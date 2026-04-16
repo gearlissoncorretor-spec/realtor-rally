@@ -12,7 +12,7 @@ import {
   BarChart3, TrendingUp, DollarSign, Users, Target, Home,
   Filter, RotateCcw, Building, User, Trophy, Medal, Award,
   PieChart, ArrowUpRight, ChevronDown, ChevronUp, Activity,
-  LayoutDashboard, TrendingDown, Clock, Search
+  LayoutDashboard, TrendingDown, Clock, Search, Calendar
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
