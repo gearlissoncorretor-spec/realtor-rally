@@ -256,7 +256,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: broker.email,
             password: randomPassword,
             role: 'corretor',
-            allowed_screens: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'configuracoes'],
+            allowed_screens: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'configuracoes', 'agenda', 'comissoes', 'instalar'],
             team_id: broker.team_id,
             phone: broker.phone,
             cpf: broker.cpf,
