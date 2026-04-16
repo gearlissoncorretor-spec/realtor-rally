@@ -8,17 +8,22 @@ import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useGoals } from '@/hooks/useGoals';
+import { useTeams } from '@/hooks/useTeams';
+import { useData } from '@/contexts/DataContext';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatting';
 import { getHotNegotiations, getProbabilityColor, getProbabilityProgressColor } from '@/utils/negotiationProbability';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import {
   UserPlus, Phone, Target, Flame, Calendar, ChevronRight,
   Handshake, DollarSign, AlertTriangle, TrendingUp, Eye,
+  Trophy, Medal, Home, Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +34,8 @@ const CorretorDashboard = () => {
   const { negotiations } = useNegotiations();
   const { followUps } = useFollowUps();
   const { goals } = useGoals();
+  const { teams } = useTeams();
+  const { agencies } = useData();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -74,6 +81,82 @@ const CorretorDashboard = () => {
   const metaFaltam = metaValue > 0 ? Math.max(metaValue - metaRealizado, 0) : 0;
 
   const visitEvents = todayEvents.filter(e => e.event_type === 'visita' || e.event_type === 'captacao').length;
+
+  // Agency Stats for Ranking
+  const agencyStats = useMemo(() => {
+    return (agencies || []).map(agency => {
+      const agencySales = (sales || []).filter(s => 
+        s.agency_id === agency.id && 
+        s.status !== 'distrato' &&
+        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
+        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+      );
+      
+      const vgv = agencySales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const salesCount = agencySales.length;
+      const agencyBrokers = (brokers || []).filter(b => b.agency_id === agency.id);
+      const confirmed = agencySales.filter(s => s.status === 'confirmada').length;
+      const conversion = salesCount > 0 ? (confirmed / salesCount) * 100 : 0;
+
+      return {
+        id: agency.id,
+        name: agency.name,
+        vgv,
+        sales: salesCount,
+        brokerCount: agencyBrokers.length,
+        conversion
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [agencies, sales, brokers, currentYear, currentMonth]);
+
+  // Manager Stats (based on teams)
+  const managerStats = useMemo(() => {
+    return (teams || []).map(team => {
+      const teamBrokers = (brokers || []).filter(b => b.team_id === team.id);
+      const teamSales = (sales || []).filter(s => 
+        teamBrokers.some(b => b.id === s.broker_id) && 
+        s.status !== 'distrato' &&
+        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
+        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+      );
+      
+      const vgv = teamSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const salesCount = teamSales.length;
+      const agency = (agencies || []).find(a => a.id === team.agency_id);
+
+      return {
+        id: team.id,
+        name: team.name,
+        agencyName: agency?.name || 'N/A',
+        vgv,
+        sales: salesCount,
+        brokerCount: teamBrokers.length
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [teams, brokers, sales, agencies, currentYear, currentMonth]);
+
+  // Broker Stats for Ranking
+  const brokerStats = useMemo(() => {
+    return (brokers || []).map(broker => {
+      const bSales = (sales || []).filter(s => 
+        s.broker_id === broker.id && 
+        s.status !== 'distrato' &&
+        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
+        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+      );
+      
+      const vgv = bSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const salesCount = bSales.length;
+
+      return {
+        id: broker.id,
+        name: broker.name,
+        avatar: (broker as any).avatar_url,
+        vgv,
+        sales: salesCount,
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [brokers, sales, currentYear, currentMonth]);
 
   // Smart alerts
   const alerts: { icon: string; text: string; type: 'warning' | 'fire' | 'info' }[] = [];
