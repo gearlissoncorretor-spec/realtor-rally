@@ -55,6 +55,7 @@ const Negociacoes = () => {
   const [selectedForFollowUp, setSelectedForFollowUp] = useState<Negotiation | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedForNotes, setSelectedForNotes] = useState<Negotiation | null>(null);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
