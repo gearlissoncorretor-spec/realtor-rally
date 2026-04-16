@@ -121,9 +121,13 @@ export const useFollowUps = () => {
       queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
       toast({ title: 'Follow up criado', description: 'Cliente adicionado com sucesso.' });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error creating follow up:', error);
-      toast({ title: 'Erro', description: 'Não foi possível criar o follow up.', variant: 'destructive' });
+      toast({ 
+        title: 'Erro', 
+        description: error.message || 'Não foi possível criar o follow up.', 
+        variant: 'destructive' 
+      });
     },
   });
 
