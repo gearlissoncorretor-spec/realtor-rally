@@ -18,7 +18,7 @@ export const TopBrokersRanking = ({ sales, brokers }: TopBrokersRankingProps) =>
   const confirmedSales = sales.filter(s => s.status === 'confirmada');
   
   const brokerRankings = brokers.map(broker => {
-    const brokerSales = confirmedSales.filter(s => s.broker_id === broker.id);
+    const brokerSales = confirmedSales.filter(s => s.broker_id === broker.id && s.tipo === 'venda' && s.parceria_tipo !== 'Agência');
     const totalVGV = brokerSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
     return { broker, salesCount: brokerSales.length, totalVGV };
   })
