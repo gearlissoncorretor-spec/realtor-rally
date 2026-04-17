@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const resolvedRole = (!roleResult.error && roleResult.data) ? roleResult.data.role : 'corretor';
       console.log('[AuthContext] Role resolved for user:', userId, '→', resolvedRole, 'roleResult:', roleResult.data, 'error:', roleResult.error);
       setUserRole(resolvedRole);
-...
+      
       if (profileData?.company_id) {
         const [companyResult, hierarchyResult, permResult] = await Promise.all([
           supabase.from('companies').select('*').eq('id', profileData.company_id).maybeSingle(),
