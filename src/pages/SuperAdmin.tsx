@@ -150,8 +150,9 @@ const SuperAdmin = () => {
     if (!error && data) {
       const enabledVal = data.find(s => s.key === 'contact_form_enabled')?.value;
       const enabled = enabledVal === true || enabledVal === 'true';
-      const recipient = data.find(s => s.key === 'contact_form_email_recipient')?.value;
-      setContactSettings({ enabled, recipient: recipient || 'suporte@gestaomaster.com' });
+      const recipientVal = data.find(s => s.key === 'contact_form_email_recipient')?.value;
+      const recipient = typeof recipientVal === 'string' ? recipientVal : 'suporte@gestaomaster.com';
+      setContactSettings({ enabled, recipient });
     }
   };
 
