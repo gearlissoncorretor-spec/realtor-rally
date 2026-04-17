@@ -153,6 +153,24 @@ const DiretorDashboard = () => {
   // ─── KPI calculations ───
   const metrics = useMemo(() => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
+    const totalVGVCaptacao = (sales || []).filter(s => {
+      // Filtros de período e equipe para captação
+      const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
+      if (!isOnlyCaptacao) return false;
+      if (s.status === 'distrato') return false;
+      const rawDate = s.sale_date || s.created_at;
+      if (!rawDate) return false;
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return false;
+      if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
+      if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
+      if (filters.teamId !== 'all') {
+        const broker = brokers.find(b => b.id === s.broker_id);
+        if (!broker || broker.team_id !== filters.teamId) return false;
+      }
+      return true;
+    }).reduce((s, sale) => s + Number(sale.property_value || 0), 0);
+    
     const totalVGC = filteredSales.reduce((s, sale) => s + Number(sale.vgc || 0), 0);
     const totalSales = filteredSales.length;
     const confirmedSales = filteredSales.filter(s => s.status === 'confirmada');
