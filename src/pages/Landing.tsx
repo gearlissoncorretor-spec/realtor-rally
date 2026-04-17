@@ -222,6 +222,13 @@ const Landing = () => {
     ? `https://wa.me/${supportPhone}?text=${encodeURIComponent(supportMessage)}`
     : '';
   const handleContactClick = () => {
+    if (formConfig.enabled) {
+      const contactSection = document.getElementById('contact');
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
     if (!contactUrl) return;
     window.open(contactUrl, '_blank', 'noopener,noreferrer');
   };
@@ -237,6 +244,7 @@ const Landing = () => {
             <a href="#features" className="hover:text-white transition">Recursos</a>
             <a href="#pricing" className="hover:text-white transition">Preços</a>
             <a href="#faq" className="hover:text-white transition">FAQ</a>
+            {formConfig.enabled && <a href="#contact" className="hover:text-white transition">Contato</a>}
             <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goLogin}>Entrar</Button>
             <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={handleContactClick} disabled={!contactUrl}>
               Saiba mais
