@@ -193,9 +193,11 @@ const Landing = () => {
                 <Eye className="w-5 h-5" /> Ver demonstração
               </Button>
             </div>
-            <p className="text-white/30 text-sm mt-4 flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-4 h-4" /> Acesso mediante contato com suporte
-            </p>
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <p className="text-white/30 text-sm flex items-center justify-center gap-1.5">
+                <ShieldCheck className="w-4 h-4" /> Acesso mediante contato com suporte: <strong>(62) 98206-2205</strong>
+              </p>
+            </div>
           </FadeIn>
         </div>
       </section>
