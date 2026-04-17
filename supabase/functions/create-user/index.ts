@@ -60,7 +60,14 @@ serve(async (req) => {
     }
 
     // Get request body
-    const body = await req.json()
+    let body;
+    try {
+      body = await req.json()
+    } catch (e) {
+      console.error('Error parsing request body:', e)
+      throw new Error('❌ JSON do corpo da requisição inválido')
+    }
+
     const {
       full_name,
       name,
@@ -81,14 +88,30 @@ serve(async (req) => {
       company_id,
       created_by: providedCreatedBy
     } = body
+    
     const resolvedName = (full_name || name || '').toString().trim()
     const createdByUserId = providedCreatedBy || user.id
-    console.log('Creating user:', { email, role, team_id, allowed_screens, company_id })
+    console.log('Creating user with data:', JSON.stringify({ 
+      email, 
+      role, 
+      team_id, 
+      resolvedName, 
+      company_id,
+      phone: !!phone,
+      cpf: !!cpf,
+      passwordProvided: !!password
+    }))
 
     // Validate required fields
     if (!resolvedName || !email || !password || !role) {
-      console.error('Missing required fields:', { resolvedName: !!resolvedName, email: !!email, password: !!password, role: !!role })
-      throw new Error('❌ Campos obrigatórios: nome, email, senha e cargo')
+      const missing = [];
+      if (!resolvedName) missing.push('nome');
+      if (!email) missing.push('email');
+      if (!password) missing.push('senha');
+      if (!role) missing.push('cargo');
+      
+      console.error('Missing required fields:', missing)
+      throw new Error(`❌ Campos obrigatórios faltando: ${missing.join(', ')}`)
     }
 
     // Validate email format
@@ -103,16 +126,21 @@ serve(async (req) => {
       console.error('Password too short')
       throw new Error('❌ A senha deve ter pelo menos 8 caracteres')
     }
-    if (!/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
-      console.error('Password lacks numbers or letters')
-      throw new Error('❌ A senha deve conter letras e números')
+    
+    // Check for at least one letter and one number
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    
+    if (!hasLetter || !hasNumber) {
+      console.error('Password lacks numbers or letters:', { hasLetter, hasNumber })
+      throw new Error('❌ A senha deve conter pelo menos uma letra e um número')
     }
 
     // Validate role is valid
-    const validRoles = ['admin', 'diretor', 'gerente', 'corretor', 'super_admin']
+    const validRoles = ['admin', 'diretor', 'gerente', 'corretor', 'super_admin', 'socio']
     if (!validRoles.includes(role)) {
       console.error('Invalid role:', role)
-      throw new Error('❌ Cargo inválido')
+      throw new Error(`❌ Cargo inválido: ${role}`)
     }
 
     // Gerentes só podem criar corretores da sua própria equipe
