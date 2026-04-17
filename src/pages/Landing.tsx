@@ -242,25 +242,9 @@ const Landing = () => {
           <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Gestão Master</span>
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#features" className="hover:text-white transition">Recursos</a>
-            <a href="#pricing" className="hover:text-white transition">Preços</a>
-            <a href="#faq" className="hover:text-white transition">FAQ</a>
-            {formConfig.enabled && <a href="#contact" className="hover:text-white transition">Contato</a>}
-            <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goLogin}>Entrar</Button>
-            <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={handleContactClick} disabled={!contactUrl}>
-              Saiba mais
-            </Button>
-          </div>
-          <button className="md:hidden text-white/70" onClick={() => setMobileMenu(!mobileMenu)}>
-            {mobileMenu ? <X /> : <Menu />}
-          </button>
-        </div>
-        <AnimatePresence>
-          {mobileMenu && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-              className="md:hidden border-t border-white/5 bg-slate-950/95 backdrop-blur-xl overflow-hidden">
-              <div className="px-4 py-4 flex flex-col gap-3">
-                <a href="#features" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Recursos</a>
-                <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Preços</a>
+            <a href="#pricing" className="hover:text-white transition">Planos</a>
+...
+                <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Planos</a>
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
                 {formConfig.enabled && <a href="#contact" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Contato</a>}
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
