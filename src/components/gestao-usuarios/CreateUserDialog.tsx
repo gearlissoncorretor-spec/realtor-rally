@@ -41,10 +41,21 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
   const roles = allowedRoles || ['admin', 'diretor', 'gerente', 'corretor'];
 
   const generatePassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$';
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz';
+    const numbers = '23456789';
+    const symbols = '!@#$';
+    const all = letters + numbers + symbols;
+    
     let pass = '';
-    for (let i = 0; i < 12; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    return pass;
+    // Ensure at least one letter and one number
+    pass += letters.charAt(Math.floor(Math.random() * letters.length));
+    pass += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    
+    // Fill the rest
+    for (let i = 0; i < 10; i++) pass += all.charAt(Math.floor(Math.random() * all.length));
+    
+    // Shuffle
+    return pass.split('').sort(() => 0.5 - Math.random()).join('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
