@@ -344,9 +344,9 @@ const SocioDiretorDashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {[
           { label: 'Vendas Totais', value: metrics.totalSales, icon: Home, color: 'text-primary' },
-          { label: 'Valor Vendido', value: formatCurrency(metrics.totalVGV), icon: DollarSign, color: 'text-success' },
+          { label: 'VGV Vendas', value: formatCurrency(metrics.totalVGV), icon: DollarSign, color: 'text-success' },
+          { label: 'VGV Captação', value: formatCurrency(metrics.totalVGVCaptacao), icon: Building, color: 'text-warning' },
           { label: 'Ticket Médio', value: formatCurrency(metrics.ticketMedio), icon: TrendingUp, color: 'text-info' },
-          { label: 'Captações', value: metrics.captacoes, icon: Building, color: 'text-warning' },
           { label: 'Leads Gerados', value: metrics.leadsCount, icon: Users, color: 'text-purple-500' },
           { label: 'Taxa de Conversão', value: `${metrics.conversionRate.toFixed(1)}%`, icon: Target, color: 'text-rose-500' },
         ].map((kpi, idx) => (
