@@ -66,6 +66,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!user) {
+    if (allowLanding) {
+      return <Navigate to="/landing" replace />;
+    }
     return <Navigate to="/auth" replace />;
   }
 
