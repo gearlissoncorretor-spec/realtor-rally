@@ -114,14 +114,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       const profileData = profileResult.data;
+      if (!profileData) {
+        console.warn('[AuthContext] No profile found for user:', userId);
+        setProfile(null);
+        setUserRole(null);
+        return true; // Still authenticated, but no profile
+      }
+      
       setProfile(profileData);
       
       const resolvedRole = (!roleResult.error && roleResult.data) ? roleResult.data.role : 'corretor';
       console.log('[AuthContext] Role resolved for user:', userId, '→', resolvedRole, 'roleResult:', roleResult.data, 'error:', roleResult.error);
       setUserRole(resolvedRole);
-
-      // Parallelize ALL remaining queries together
-      if (profileData.company_id) {
+      
+      if (profileData?.company_id) {
         const [companyResult, hierarchyResult, permResult] = await Promise.all([
           supabase.from('companies').select('*').eq('id', profileData.company_id).maybeSingle(),
           supabase.rpc('get_team_hierarchy', { user_id: userId }),
