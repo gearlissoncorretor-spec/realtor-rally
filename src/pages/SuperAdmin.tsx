@@ -126,7 +126,89 @@ const SuperAdmin = () => {
 
   useEffect(() => {
     fetchCompanies();
+    fetchSubmissions();
+    fetchContactSettings();
   }, []);
+
+  const fetchSubmissions = async () => {
+    setSubmissionsLoading(true);
+    const { data, error } = await supabase
+      .from('contact_submissions')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (!error) setSubmissions(data || []);
+    setSubmissionsLoading(false);
+  };
+
+  const fetchContactSettings = async () => {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('key, value')
+      .in('key', ['contact_form_enabled', 'contact_form_email_recipient']);
+    
+    if (!error && data) {
+      const enabledVal = data.find(s => s.key === 'contact_form_enabled')?.value;
+      const enabled = enabledVal === true || enabledVal === 'true';
+      const recipient = data.find(s => s.key === 'contact_form_email_recipient')?.value;
+      setContactSettings({ enabled, recipient: recipient || 'suporte@gestaomaster.com' });
+    }
+  };
+
+  const updateContactSettings = async (enabled: boolean, recipient: string) => {
+    setUpdatingSettings(true);
+    try {
+      // Supabase JS handles the jsonb value correctly
+      const { error: error1 } = await supabase
+        .from('system_settings')
+        .update({ value: enabled })
+        .eq('key', 'contact_form_enabled');
+      
+      const { error: error2 } = await supabase
+        .from('system_settings')
+        .update({ value: recipient })
+        .eq('key', 'contact_form_email_recipient');
+      
+      if (error1 || error2) {
+        toast.error('Erro ao atualizar configurações');
+      } else {
+        toast.success('Configurações do formulário atualizadas!');
+        setContactSettings({ enabled, recipient });
+      }
+    } catch (err) {
+      toast.error('Ocorreu um erro');
+    } finally {
+      setUpdatingSettings(false);
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    const { error } = await supabase
+      .from('contact_submissions')
+      .update({ status })
+      .eq('id', id);
+    
+    if (error) {
+      toast.error('Erro ao atualizar status');
+    } else {
+      toast.success('Status do contato atualizado');
+      fetchSubmissions();
+    }
+  };
+
+  const handleDeleteSubmission = async (id: string) => {
+    const { error } = await supabase
+      .from('contact_submissions')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      toast.error('Erro ao excluir contato');
+    } else {
+      toast.success('Contato removido');
+      fetchSubmissions();
+    }
+  };
 
   const stats = useMemo(() => {
     const total = companies.length;
