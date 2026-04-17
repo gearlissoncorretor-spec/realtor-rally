@@ -29,7 +29,12 @@ const brokerSchema = z.object({
   observations: z.string().max(200, 'Observação deve ter no máximo 200 caracteres').optional(),
   meta_monthly: z.number().min(0).optional(),
   avatar_url: z.string().optional(),
-  password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres').optional().or(z.literal('')),
+  password: z.string()
+    .min(8, 'Senha deve ter pelo menos 8 caracteres')
+    .regex(/[a-zA-Z]/, 'Senha deve conter letras')
+    .regex(/\d/, 'Senha deve conter números')
+    .optional()
+    .or(z.literal('')),
 });
 
 type BrokerFormData = z.infer<typeof brokerSchema>;

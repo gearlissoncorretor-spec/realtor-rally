@@ -50,6 +50,15 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.full_name || !form.email) return;
+
+    if (form.password && (form.password.length < 8 || !/\d/.test(form.password) || !/[a-zA-Z]/.test(form.password))) {
+      toast({ 
+        title: "Senha inválida", 
+        description: "A senha deve ter pelo menos 8 caracteres, incluindo letras e números.", 
+        variant: "destructive" 
+      });
+      return;
+    }
     
     setLoading(true);
     try {
