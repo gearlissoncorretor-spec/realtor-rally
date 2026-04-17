@@ -12,6 +12,7 @@ interface ProtectedRouteProps {
   adminOnly?: boolean;
   superAdminOnly?: boolean;
   allowWithoutCompany?: boolean;
+  allowLanding?: boolean;
 }
 
 const LOADING_TIMEOUT = 3000;
