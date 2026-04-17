@@ -2,14 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import {
   BarChart3, Users, Kanban, Target, Trophy, DollarSign,
   FileText, Calendar, Check, Star, ChevronDown,
   ChevronUp, Smartphone, Shield, Upload, Clock, Zap, Eye,
   TrendingUp, Building2, Menu, X, PhoneCall, ArrowRight,
-  Sparkles, ShieldCheck, Rocket
+  Sparkles, ShieldCheck, Rocket, Mail, Settings2
 } from "lucide-react";
 import {
   Accordion,
@@ -104,12 +109,111 @@ const TABS = [
   { label: "Ranking", icon: Trophy },
 ];
 
+const ContactForm = () => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) {
+      toast.error('Preencha os campos obrigatórios');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.from('contact_submissions').insert([formData]);
+    if (error) {
+      toast.error('Erro ao enviar mensagem. Tente novamente.');
+    } else {
+      toast.success('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+      setFormData({ name: '', email: '', phone: '', message: '' });
+    }
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 text-left p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-xl">
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-white/70">Nome Completo *</Label>
+          <Input 
+            id="name" 
+            placeholder="Seu nome" 
+            className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-blue-500/50"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-white/70">E-mail Corporativo *</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="seu@email.com" 
+            className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-blue-500/50"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phone" className="text-white/70">WhatsApp / Telefone</Label>
+        <Input 
+          id="phone" 
+          placeholder="(00) 00000-0000" 
+          className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-blue-500/50"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="message" className="text-white/70">Mensagem *</Label>
+        <Textarea 
+          id="message" 
+          placeholder="Como podemos ajudar sua imobiliária?" 
+          className="bg-white/5 border-white/10 text-white min-h-[120px] rounded-xl focus:border-blue-500/50"
+          value={formData.message}
+          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          required
+        />
+      </div>
+      <Button 
+        type="submit" 
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white h-14 text-lg font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+        disabled={loading}
+      >
+        {loading ? 'Enviando...' : 'Solicitar Demonstração'}
+      </Button>
+      <p className="text-center text-xs text-white/40 pt-2">
+        Ao enviar, você concorda com nossos termos de uso e política de privacidade.
+      </p>
+    </form>
+  );
+};
+
 const Landing = () => {
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
   const [activeTab, setActiveTab] = useState(0);
   const [annual, setAnnual] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [formConfig, setFormConfig] = useState({ enabled: true });
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('key, value')
+        .eq('key', 'contact_form_enabled')
+        .maybeSingle();
+      
+      if (!error && data) {
+        setFormConfig({ enabled: data.value === true || data.value === 'true' });
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const goLogin = () => navigate("/auth");
   const supportPhone = (settings?.support_phone || '62982062205').replace(/\D/g, '');
@@ -118,6 +222,13 @@ const Landing = () => {
     ? `https://wa.me/${supportPhone}?text=${encodeURIComponent(supportMessage)}`
     : '';
   const handleContactClick = () => {
+    if (formConfig.enabled) {
+      const contactSection = document.getElementById('contact');
+      if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
     if (!contactUrl) return;
     window.open(contactUrl, '_blank', 'noopener,noreferrer');
   };
@@ -133,6 +244,7 @@ const Landing = () => {
             <a href="#features" className="hover:text-white transition">Recursos</a>
             <a href="#pricing" className="hover:text-white transition">Preços</a>
             <a href="#faq" className="hover:text-white transition">FAQ</a>
+            {formConfig.enabled && <a href="#contact" className="hover:text-white transition">Contato</a>}
             <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goLogin}>Entrar</Button>
             <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={handleContactClick} disabled={!contactUrl}>
               Saiba mais
@@ -150,6 +262,7 @@ const Landing = () => {
                 <a href="#features" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Recursos</a>
                 <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Preços</a>
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
+                {formConfig.enabled && <a href="#contact" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Contato</a>}
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
                   Saiba mais
                 </Button>
@@ -412,6 +525,53 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* ── CONTACT ── */}
+      {formConfig.enabled && (
+        <section id="contact" className="py-20 sm:py-28 px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <FadeIn>
+                <div className="text-left space-y-6">
+                  <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
+                    Fale com um de nossos<br />
+                    <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">especialistas</span>
+                  </h2>
+                  <p className="text-white/60 text-lg leading-relaxed">
+                    Estamos prontos para mostrar como o Gestão Master pode revolucionar a produtividade da sua imobiliária. 
+                    Preencha o formulário e nossa equipe entrará em contato em menos de 24 horas.
+                  </p>
+                  
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                        <Mail className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-white/40">E-mail</p>
+                        <p className="text-white font-medium">contato@gestaomaster.com</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                        <PhoneCall className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-white/40">WhatsApp</p>
+                        <p className="text-white font-medium">(62) 98206-2205</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+              
+              <FadeIn delay={0.2}>
+                <ContactForm />
+              </FadeIn>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── FAQ ── */}
       <section id="faq" className="py-20 sm:py-28 px-4 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent">
