@@ -140,7 +140,7 @@ const DiretorDashboard = () => {
     if (prevMonth === 0) { prevMonth = 12; prevYear--; }
 
     return (sales || []).filter(sale => {
-      if (sale.tipo === 'captacao') return false;
+      if (sale.tipo === 'captacao' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
