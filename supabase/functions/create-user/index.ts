@@ -410,17 +410,29 @@ serve(async (req) => {
     // Map errors to safe client messages
     const msg = error.message || '';
     let clientMessage = 'Falha ao criar usuário';
-    if (msg.includes('already') || msg.includes('duplicate')) clientMessage = 'Este email já está em uso';
-    else if (msg.includes('Unauthorized') || msg.includes('Não autorizado')) clientMessage = 'Acesso não autorizado';
-    else if (msg.includes('senha') || msg.includes('Password') || msg.includes('password')) clientMessage = msg;
-    else if (msg.includes('Cargo') || msg.includes('cargo') || msg.includes('Gerentes')) clientMessage = msg;
-    else if (msg.startsWith('❌')) clientMessage = msg;
+    let statusCode = 400;
+
+    if (msg.includes('already') || msg.includes('duplicate')) {
+      clientMessage = 'Este email já está em uso';
+    } else if (msg.includes('Unauthorized') || msg.includes('Não autorizado')) {
+      clientMessage = 'Acesso não autorizado';
+      statusCode = 403;
+    } else if (msg.includes('senha') || msg.includes('Password') || msg.includes('password')) {
+      clientMessage = msg;
+    } else if (msg.includes('Cargo') || msg.includes('cargo') || msg.includes('Gerentes')) {
+      clientMessage = msg;
+    } else if (msg.startsWith('❌')) {
+      clientMessage = msg;
+    } else {
+      statusCode = 500;
+      clientMessage = `Erro interno: ${msg}`;
+    }
     
     return new Response(
       JSON.stringify({ error: clientMessage }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
+        status: statusCode 
       }
     )
   }
