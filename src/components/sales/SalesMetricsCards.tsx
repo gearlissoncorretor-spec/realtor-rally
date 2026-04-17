@@ -50,12 +50,12 @@ export const SalesMetricsCards = ({ sales, previousPeriodSales = [] }: SalesMetr
     <div className="space-y-4">
       {/* Primary Financial KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* VGV Total */}
+        {/* VGV Vendas */}
         <Card className="relative overflow-hidden p-5 border-border/50 group hover:shadow-md transition-all duration-300">
           <div className="absolute top-0 right-0 w-24 h-24 bg-success/5 rounded-full -translate-y-8 translate-x-8 group-hover:scale-110 transition-transform" />
           <div className="relative space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">VGV Total</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">VGV Vendas</p>
               <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center">
                 <DollarSign className="w-4.5 h-4.5 text-success" />
               </div>
@@ -65,6 +65,25 @@ export const SalesMetricsCards = ({ sales, previousPeriodSales = [] }: SalesMetr
             </p>
             <p className="text-xs text-muted-foreground">
               Ticket médio: <span className="font-semibold text-foreground">{formatCurrencyCompact(ticketMedio)}</span>
+            </p>
+          </div>
+        </Card>
+
+        {/* VGV Captação */}
+        <Card className="relative overflow-hidden p-5 border-border/50 group hover:shadow-md transition-all duration-300">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-info/5 rounded-full -translate-y-8 translate-x-8 group-hover:scale-110 transition-transform" />
+          <div className="relative space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">VGV Captação</p>
+              <div className="w-9 h-9 rounded-lg bg-info/10 flex items-center justify-center">
+                <Home className="w-4.5 h-4.5 text-info" />
+              </div>
+            </div>
+            <p className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
+              {formatCurrencyCompact(totalVGVCaptacao)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Volume captado no período
             </p>
           </div>
         </Card>
@@ -83,7 +102,7 @@ export const SalesMetricsCards = ({ sales, previousPeriodSales = [] }: SalesMetr
               {formatCurrencyCompact(totalVGC)}
             </p>
             <p className="text-xs text-muted-foreground">
-              <span className="font-semibold text-primary">{vgcPercentage.toFixed(1)}%</span> do VGV
+              Expectativa de recebimento
             </p>
           </div>
         </Card>
@@ -99,9 +118,9 @@ export const SalesMetricsCards = ({ sales, previousPeriodSales = [] }: SalesMetr
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">{sales.length}</p>
+              <p className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">{sales.filter(s => s.tipo === 'venda').length}</p>
               <span className="text-sm font-semibold text-success">
-                {confirmedSales.length} ✓
+                {confirmedSales.filter(s => s.tipo === 'venda').length} ✓
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
