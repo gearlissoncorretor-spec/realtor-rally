@@ -31,6 +31,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
     full_name: '',
     nickname: '',
     email: '',
+    password: '',
     phone: '',
     birth_date: '',
     role: 'corretor',
@@ -52,7 +53,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
     
     setLoading(true);
     try {
-      const password = generatePassword();
+      const password = form.password || generatePassword();
       
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
@@ -60,7 +61,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
           password,
           full_name: form.full_name,
           role: form.role,
-          team_id: forcedTeamId || form.team_id || null,
+          team_id: forcedTeamId || (form.team_id === 'none' ? null : form.team_id) || null,
           nickname: form.nickname || null,
           phone: form.phone || null,
           birth_date: form.birth_date || null,
@@ -123,7 +124,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
     setCreatedEmail('');
     setCreatedName('');
     setCreatedRole('');
-    setForm({ full_name: '', nickname: '', email: '', phone: '', birth_date: '', role: 'corretor', team_id: forcedTeamId || '' });
+    setForm({ full_name: '', nickname: '', email: '', password: '', phone: '', birth_date: '', role: 'corretor', team_id: forcedTeamId || '' });
   };
 
   return (
@@ -177,6 +178,10 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
               <div className="col-span-2 space-y-1.5">
                 <Label>Email *</Label>
                 <Input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Senha (deixe em branco para gerar automaticamente)</Label>
+                <Input type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="Mínimo 8 caracteres com letras e números" />
               </div>
               <div className="space-y-1.5">
                 <Label>Data de Nascimento</Label>
