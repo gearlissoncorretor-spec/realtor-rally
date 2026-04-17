@@ -626,7 +626,7 @@ const Landing = () => {
               <h4 className="font-semibold text-white/70 mb-3 text-sm">Produto</h4>
               <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="#features" className="hover:text-white transition">Recursos</a></li>
-                <li><a href="#pricing" className="hover:text-white transition">Preços</a></li>
+                <li><a href="#pricing" className="hover:text-white transition">Planos</a></li>
                 <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
