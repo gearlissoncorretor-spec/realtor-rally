@@ -562,10 +562,10 @@ const DiretorDashboard = () => {
           Array.from({ length: 4 }).map((_, i) => <KPICardSkeleton key={i} />)
         ) : (
           <>
-            <KPICardCompact title="Vendas Realizadas" value={metrics.totalSales.toString()} change={metrics.salesChange} icon={<Home className="w-5 h-5" />} accent="text-primary" delay={0} />
-            <KPICardCompact title="VGV Total" value={formatCurrency(metrics.totalVGV)} change={metrics.vgvChange} icon={<DollarSign className="w-5 h-5" />} accent="text-emerald-500" delay={1} />
-            <KPICardCompact title="Meta Geral" value={`${metrics.monthlyTargetPercent.toFixed(0)}%`} subtitle={metrics.monthlyTargetValue > 0 ? `de ${formatCurrency(metrics.monthlyTargetValue)}` : 'Sem meta definida'} icon={<Target className="w-5 h-5" />} accent="text-amber-500" delay={2} />
-            <KPICardCompact title="Corretores Ativos" value={`${metrics.activeBrokersCount}`} subtitle={`de ${metrics.totalBrokers} — ${metrics.activityRate.toFixed(0)}% ativos`} icon={<Users className="w-5 h-5" />} accent="text-blue-500" delay={3} />
+            <KPICardCompact title="VGV Vendas" value={formatCurrency(metrics.totalVGV)} change={metrics.vgvChange} icon={<DollarSign className="w-5 h-5" />} accent="text-emerald-500" delay={0} />
+            <KPICardCompact title="VGV Captação" value={formatCurrency(metrics.totalVGVCaptacao)} icon={<Building className="w-5 h-5" />} accent="text-info" delay={1} />
+            <KPICardCompact title="Vendas Realizadas" value={metrics.totalSales.toString()} change={metrics.salesChange} icon={<Home className="w-5 h-5" />} accent="text-primary" delay={2} />
+            <KPICardCompact title="Meta Geral" value={`${metrics.monthlyTargetPercent.toFixed(0)}%`} subtitle={metrics.monthlyTargetValue > 0 ? `de ${formatCurrency(metrics.monthlyTargetValue)}` : 'Sem meta definida'} icon={<Target className="w-5 h-5" />} accent="text-amber-500" delay={3} />
           </>
         )}
       </div>
@@ -576,10 +576,10 @@ const DiretorDashboard = () => {
           Array.from({ length: 4 }).map((_, i) => <KPICardSkeleton key={i} />)
         ) : (
           <>
-            <KPICardCompact title="Negociações Ativas" value={metrics.activeNegotiations.toString()} subtitle={formatCurrency(metrics.negotiationsVGV)} icon={<Handshake className="w-5 h-5" />} accent="text-violet-500" delay={4} />
-            <KPICardCompact title="Follow-ups Pendentes" value={metrics.pendingFollowUps.toString()} icon={<Phone className="w-5 h-5" />} accent="text-orange-500" highlight={metrics.pendingFollowUps > 10} delay={5} />
-            <KPICardCompact title="Ticket Médio" value={formatCurrency(metrics.ticketMedio)} icon={<BarChart3 className="w-5 h-5" />} accent="text-cyan-500" delay={6} />
-            <KPICardCompact title="Tempo Médio Fechamento" value={`${metrics.avgCloseTime} dias`} icon={<Clock className="w-5 h-5" />} accent="text-pink-500" delay={7} />
+            <KPICardCompact title="Corretores Ativos" value={`${metrics.activeBrokersCount}`} subtitle={`de ${metrics.totalBrokers} — ${metrics.activityRate.toFixed(0)}% ativos`} icon={<Users className="w-5 h-5" />} accent="text-blue-500" delay={4} />
+            <KPICardCompact title="Negociações Ativas" value={metrics.activeNegotiations.toString()} subtitle={formatCurrency(metrics.negotiationsVGV)} icon={<Handshake className="w-5 h-5" />} accent="text-violet-500" delay={5} />
+            <KPICardCompact title="Follow-ups Pendentes" value={metrics.pendingFollowUps.toString()} icon={<Phone className="w-5 h-5" />} accent="text-orange-500" highlight={metrics.pendingFollowUps > 10} delay={6} />
+            <KPICardCompact title="Taxa de Conversão" value={`${metrics.conversionRate.toFixed(1)}%`} icon={<Activity className="w-5 h-5" />} accent="text-rose-500" delay={7} />
           </>
         )}
       </div>
