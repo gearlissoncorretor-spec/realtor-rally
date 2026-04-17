@@ -117,6 +117,7 @@ const CorretorDashboard = () => {
       const teamSales = (sales || []).filter(s => 
         teamBrokers.some(b => b.id === s.broker_id) && 
         s.status !== 'distrato' &&
+        s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
         new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
       );
