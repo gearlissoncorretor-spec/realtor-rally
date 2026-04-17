@@ -7,7 +7,8 @@ import {
   ShoppingCart,
   ArrowUpRight,
   ArrowDownRight,
-  Clock
+  Clock,
+  Home
 } from "lucide-react";
 import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
 import { cn } from "@/lib/utils";
