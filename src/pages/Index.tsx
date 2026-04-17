@@ -67,8 +67,12 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
   // Métricas principais
   const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+  const totalVGVCaptacao = filteredSales.reduce((sum, s) => {
+    const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
+    return isOnlyCaptacao ? sum + Number(s.property_value || 0) : sum;
+  }, 0);
   const totalVGC = filteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
-  const totalSales = filteredSales.length;
+  const totalSales = filteredSales.filter(s => s.tipo === 'venda' && s.parceria_tipo !== 'Agência').length;
   const activeBrokers = filteredBrokers.filter(b => b.status === "ativo").length;
   const inactiveBrokers = filteredBrokers.filter(b => b.status === "inativo").length;
   const totalBrokersForTurnover = activeBrokers + inactiveBrokers;
@@ -77,7 +81,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
   // Taxa de conversão
   const conversionRate = totalSales > 0
-    ? ((filteredSales.filter(s => s.status === "confirmada").length / totalSales) * 100)
+    ? ((filteredSales.filter(s => s.status === "confirmada" && s.tipo === 'venda' && s.parceria_tipo !== 'Agência').length / totalSales) * 100)
     : 0;
 
   // Cálculo do mês anterior para comparação
