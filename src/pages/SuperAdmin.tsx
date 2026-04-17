@@ -359,218 +359,372 @@ const SuperAdmin = () => {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 lg:pb-8 space-y-6">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Empresas</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{stats.active}</p>
-                  <p className="text-xs text-muted-foreground">Ativas</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-2">
-                <Ban className="w-5 h-5 text-destructive shrink-0" />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{stats.blocked}</p>
-                  <p className="text-xs text-muted-foreground">Bloqueadas</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{stats.totalUsers}</p>
-                  <p className="text-xs text-muted-foreground">Usuários</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{stats.totalCapacity}</p>
-                  <p className="text-xs text-muted-foreground">Capacidade</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-                <div>
-                  <p className="text-xl font-bold text-foreground">{stats.nearLimit}</p>
-                  <p className="text-xs text-muted-foreground">Perto do Limite</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <Tabs defaultValue="companies" value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="companies" className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" /> Empresas
+              </TabsTrigger>
+              <TabsTrigger value="contacts" className="flex items-center gap-2">
+                <PhoneCall className="w-4 h-4" /> Contatos 
+                {submissions.filter(s => s.status === 'pending').length > 0 && (
+                  <Badge variant="destructive" className="ml-1 px-1.5 h-5 min-w-5 flex items-center justify-center rounded-full text-[10px]">
+                    {submissions.filter(s => s.status === 'pending').length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Companies Section */}
-        <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Empresas (Imobiliárias)
-              </CardTitle>
-              <CardDescription>Gerencie as empresas que utilizam a plataforma</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar empresa..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 w-48"
-                />
+            <TabsContent value="companies" className="space-y-6">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <Card>
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="text-xl font-bold text-foreground">{stats.total}</p>
+                        <p className="text-xs text-muted-foreground">Empresas</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                      <div>
+                        <p className="text-xl font-bold text-foreground">{stats.active}</p>
+                        <p className="text-xs text-muted-foreground">Ativas</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Ban className="w-5 h-5 text-destructive shrink-0" />
+                      <div>
+                        <p className="text-xl font-bold text-foreground">{stats.blocked}</p>
+                        <p className="text-xs text-muted-foreground">Bloqueadas</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="text-xl font-bold text-foreground">{stats.totalUsers}</p>
+                        <p className="text-xs text-muted-foreground">Usuários</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-primary shrink-0" />
+                      <div>
+                        <p className="text-xl font-bold text-foreground">{stats.totalCapacity}</p>
+                        <p className="text-xs text-muted-foreground">Capacidade</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                      <div>
+                        <p className="text-xl font-bold text-foreground">{stats.nearLimit}</p>
+                        <p className="text-xs text-muted-foreground">Perto do Limite</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <Button onClick={() => { resetWizard(); setWizardOpen(true); }}>
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Empresa
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-muted-foreground text-center py-8">Carregando...</p>
-            ) : filteredCompanies.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                {searchQuery ? 'Nenhuma empresa encontrada' : 'Nenhuma empresa cadastrada'}
-              </div>
-            ) : (
-              <>
-                {/* Mobile Card View */}
-                <div className="block md:hidden space-y-3">
-                  {filteredCompanies.map((company) => {
-                    const usage = company.max_users > 0 ? ((company.user_count || 0) / company.max_users) * 100 : 0;
-                    return (
-                      <Card key={company.id} className="border border-border/50">
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-foreground">{company.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(company.created_at).toLocaleDateString('pt-BR')}
-                              </p>
-                            </div>
-                            <Badge variant={company.status === 'ativo' ? 'default' : 'destructive'}>
-                              {company.status === 'ativo' ? 'Ativo' : 'Bloqueado'}
-                            </Badge>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>Usuários: {company.user_count || 0} / {company.max_users}</span>
-                              <span>{Math.round(usage)}%</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${usage >= 90 ? 'bg-destructive' : usage >= 70 ? 'bg-amber-500' : 'bg-primary'}`}
-                                style={{ width: `${Math.min(usage, 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 pt-1 border-t border-border/30 flex-wrap">
-                            <Button variant="ghost" size="sm" className="h-8" onClick={() => { setEditCompany(company); setEditFormData({ name: company.name, max_users: company.max_users }); }}>
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8" onClick={() => handleToggleStatus(company)}>
-                              {company.status === 'ativo' ? <Ban className="w-4 h-4 text-destructive" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8" onClick={() => handleDeleteCompany(company)} disabled={(company.user_count || 0) > 0}>
-                              <Trash2 className="w-4 h-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
 
-                {/* Desktop Table */}
-                <div className="hidden md:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Empresa</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Usuários</TableHead>
-                        <TableHead>Uso</TableHead>
-                        <TableHead>Criação</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredCompanies.map((company) => {
-                        const usage = company.max_users > 0 ? ((company.user_count || 0) / company.max_users) * 100 : 0;
-                        return (
-                          <TableRow key={company.id}>
-                            <TableCell className="font-medium">{company.name}</TableCell>
-                            <TableCell>
-                              <Badge variant={company.status === 'ativo' ? 'default' : 'destructive'}>
-                                {company.status === 'ativo' ? 'Ativo' : 'Bloqueado'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{company.user_count || 0} / {company.max_users}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${usage >= 90 ? 'bg-destructive' : usage >= 70 ? 'bg-amber-500' : 'bg-primary'}`}
-                                    style={{ width: `${Math.min(usage, 100)}%` }}
-                                  />
+              {/* Companies Table */}
+              <Card>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5" />
+                      Empresas (Imobiliárias)
+                    </CardTitle>
+                    <CardDescription>Gerencie as empresas que utilizam a plataforma</CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar empresa..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 w-48"
+                      />
+                    </div>
+                    <Button onClick={() => { resetWizard(); setWizardOpen(true); }}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Nova Empresa
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <p className="text-muted-foreground text-center py-8">Carregando...</p>
+                  ) : filteredCompanies.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      {searchQuery ? 'Nenhuma empresa encontrada' : 'Nenhuma empresa cadastrada'}
+                    </div>
+                  ) : (
+                    <>
+                      {/* Mobile Card View */}
+                      <div className="block md:hidden space-y-3">
+                        {filteredCompanies.map((company) => {
+                          const usage = company.max_users > 0 ? ((company.user_count || 0) / company.max_users) * 100 : 0;
+                          return (
+                            <Card key={company.id} className="border border-border/50">
+                              <CardContent className="p-4 space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-foreground">{company.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {new Date(company.created_at).toLocaleDateString('pt-BR')}
+                                    </p>
+                                  </div>
+                                  <Badge variant={company.status === 'ativo' ? 'default' : 'destructive'}>
+                                    {company.status === 'ativo' ? 'Ativo' : 'Bloqueado'}
+                                  </Badge>
                                 </div>
-                                <span className="text-xs text-muted-foreground">{Math.round(usage)}%</span>
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-xs text-muted-foreground">
+                                    <span>Usuários: {company.user_count || 0} / {company.max_users}</span>
+                                    <span>{Math.round(usage)}%</span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${usage >= 90 ? 'bg-destructive' : usage >= 70 ? 'bg-amber-500' : 'bg-primary'}`}
+                                      style={{ width: `${Math.min(usage, 100)}%` }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 pt-1 border-t border-border/30 flex-wrap">
+                                  <Button variant="ghost" size="sm" className="h-8" onClick={() => { setEditCompany(company); setEditFormData({ name: company.name, max_users: company.max_users }); }}>
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="sm" className="h-8" onClick={() => handleToggleStatus(company)}>
+                                    {company.status === 'ativo' ? <Ban className="w-4 h-4 text-destructive" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                                  </Button>
+                                  <Button variant="ghost" size="sm" className="h-8" onClick={() => handleDeleteCompany(company)} disabled={(company.user_count || 0) > 0}>
+                                    <Trash2 className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+
+                      {/* Desktop Table */}
+                      <div className="hidden md:block">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Empresa</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Usuários</TableHead>
+                              <TableHead>Uso</TableHead>
+                              <TableHead>Criação</TableHead>
+                              <TableHead className="text-right">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredCompanies.map((company) => {
+                              const usage = company.max_users > 0 ? ((company.user_count || 0) / company.max_users) * 100 : 0;
+                              return (
+                                <TableRow key={company.id}>
+                                  <TableCell className="font-medium">{company.name}</TableCell>
+                                  <TableCell>
+                                    <Badge variant={company.status === 'ativo' ? 'default' : 'destructive'}>
+                                      {company.status === 'ativo' ? 'Ativo' : 'Bloqueado'}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>{company.user_count || 0} / {company.max_users}</TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                                        <div
+                                          className={`h-full rounded-full ${usage >= 90 ? 'bg-destructive' : usage >= 70 ? 'bg-amber-500' : 'bg-primary'}`}
+                                          style={{ width: `${Math.min(usage, 100)}%` }}
+                                        />
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">{Math.round(usage)}%</span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground text-sm">{new Date(company.created_at).toLocaleDateString('pt-BR')}</TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                      <Button variant="ghost" size="sm" onClick={() => { setEditCompany(company); setEditFormData({ name: company.name, max_users: company.max_users }); }}>
+                                        <Pencil className="w-4 h-4" />
+                                      </Button>
+                                      <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(company)}>
+                                        {company.status === 'ativo' ? <Ban className="w-4 h-4 text-destructive" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                                      </Button>
+                                      <Button variant="ghost" size="sm" onClick={() => handleDeleteCompany(company)} disabled={(company.user_count || 0) > 0}>
+                                        <Trash2 className="w-4 h-4 text-destructive" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="contacts" className="space-y-6">
+              {/* Contact Settings Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings2 className="w-5 h-5" />
+                    Configurações do Formulário
+                  </CardTitle>
+                  <CardDescription>Defina como o formulário de contato deve se comportar</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Formulário Ativo</Label>
+                      <p className="text-sm text-muted-foreground">Exibir formulário de contato na landing page</p>
+                    </div>
+                    <Switch 
+                      checked={contactSettings.enabled} 
+                      onCheckedChange={(checked) => updateContactSettings(checked, contactSettings.recipient)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>E-mail para Notificações</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Ex: suporte@empresa.com" 
+                        value={contactSettings.recipient} 
+                        onChange={(e) => setContactSettings({ ...contactSettings, recipient: e.target.value })}
+                        disabled={updatingSettings}
+                      />
+                      <Button 
+                        onClick={() => updateContactSettings(contactSettings.enabled, contactSettings.recipient)} 
+                        disabled={updatingSettings}
+                      >
+                        {updatingSettings ? 'Salvando...' : 'Salvar'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Os dados do formulário também ficam salvos aqui no painel.</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contact Submissions Table */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="w-5 h-5" />
+                    Solicitações de Contato
+                  </CardTitle>
+                  <CardDescription>Mensagens enviadas através do formulário da landing page</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {submissionsLoading ? (
+                    <p className="text-muted-foreground text-center py-8">Carregando...</p>
+                  ) : submissions.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      Nenhum contato recebido ainda.
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Contato</TableHead>
+                          <TableHead>Mensagem</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {submissions.map((sub) => (
+                          <TableRow key={sub.id}>
+                            <TableCell className="text-xs whitespace-nowrap">
+                              {new Date(sub.created_at).toLocaleDateString('pt-BR')} <br/>
+                              {new Date(sub.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </TableCell>
+                            <TableCell className="font-medium">{sub.name}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col text-xs gap-1">
+                                <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {sub.email}</span>
+                                {sub.phone && <span className="flex items-center gap-1"><PhoneCall className="w-3 h-3" /> {sub.phone}</span>}
                               </div>
                             </TableCell>
-                            <TableCell className="text-muted-foreground text-sm">{new Date(company.created_at).toLocaleDateString('pt-BR')}</TableCell>
+                            <TableCell className="max-w-[200px] truncate group relative">
+                              <span className="cursor-help">{sub.message}</span>
+                              <div className="absolute hidden group-hover:block z-50 bg-popover text-popover-foreground p-3 rounded-lg shadow-xl border w-64 mt-1">
+                                {sub.message}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Select 
+                                value={sub.status} 
+                                onValueChange={(val) => handleUpdateStatus(sub.id, val)}
+                              >
+                                <SelectTrigger className="h-8 w-[120px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pendente</SelectItem>
+                                  <SelectItem value="contacted">Contatado</SelectItem>
+                                  <SelectItem value="closed">Finalizado</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1">
-                                <Button variant="ghost" size="sm" onClick={() => { setEditCompany(company); setEditFormData({ name: company.name, max_users: company.max_users }); }}>
-                                  <Pencil className="w-4 h-4" />
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => {
+                                    const text = `Olá ${sub.name}, recebemos seu contato no Gestão Master.`;
+                                    window.open(`https://wa.me/${sub.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
+                                  }}
+                                  disabled={!sub.phone}
+                                >
+                                  <ExternalLink className="w-4 h-4" />
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleToggleStatus(company)}>
-                                  {company.status === 'ativo' ? <Ban className="w-4 h-4 text-destructive" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleDeleteCompany(company)} disabled={(company.user_count || 0) > 0}>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  onClick={() => handleDeleteSubmission(sub.id)}
+                                >
                                   <Trash2 className="w-4 h-4 text-destructive" />
                                 </Button>
                               </div>
                             </TableCell>
                           </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </main>
 
       {/* ===== WIZARD: Nova Venda ===== */}
