@@ -195,11 +195,18 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
   const kpiData = [
     {
-      title: "VGV Total",
+      title: "VGV Vendas",
       value: formatCurrency(totalVGV),
       change: Math.round(vgvChange),
       trend: getTrend(vgvChange),
       icon: <DollarSign className="w-6 h-6 text-primary" />
+    },
+    {
+      title: "VGV Captação",
+      value: formatCurrency(totalVGVCaptacao),
+      change: 0,
+      trend: "neutral" as const,
+      icon: <Home className="w-6 h-6 text-info" />
     },
     {
       title: "VGC Total",
@@ -213,14 +220,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
       value: totalSales.toString(),
       change: Math.round(salesChange),
       trend: getTrend(salesChange),
-      icon: <Home className="w-6 h-6 text-warning" />
-    },
-    {
-      title: "Percentual VGC",
-      value: `${vgcPercentage.toFixed(2).replace('.', ',')}%`,
-      change: Math.round(vgcPercentageChange),
-      trend: getTrend(vgcPercentageChange),
-      icon: <Target className="w-6 h-6 text-info" />
+      icon: <Target className="w-6 h-6 text-warning" />
     }
   ] as const;
 
