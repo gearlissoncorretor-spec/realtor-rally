@@ -65,7 +65,7 @@ const FEATURES = [
 const PLANS = [
   {
     name: "Starter", price: "Grátis", period: "14 dias", popular: false,
-    features: ["Até 5 usuários", "Dashboard básico", "Pipeline de negociações", "Follow-up de clientes", "Suporte por email"],
+    features: ["Até 5 usuários", "Dashboard básico", "Pipeline de negociações", "Pix Grátis", "Follow-up de clientes", "Suporte por email"],
     cta: "Começar grátis",
   },
   {
