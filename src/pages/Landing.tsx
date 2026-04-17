@@ -14,7 +14,7 @@ import {
   FileText, Calendar, Check, Star, ChevronDown,
   ChevronUp, Smartphone, Shield, Upload, Clock, Zap, Eye,
   TrendingUp, Building2, Menu, X, PhoneCall, ArrowRight,
-  Sparkles, ShieldCheck, Rocket
+  Sparkles, ShieldCheck, Rocket, Mail, Settings2
 } from "lucide-react";
 import {
   Accordion,
