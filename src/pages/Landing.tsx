@@ -112,7 +112,7 @@ const Landing = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
 
   const goLogin = () => navigate("/auth");
-  const supportPhone = (settings?.support_phone || '').replace(/\D/g, '');
+  const supportPhone = (settings?.support_phone || '62982062205').replace(/\D/g, '');
   const supportMessage = 'Olá, gostaria de solicitar acesso ao sistema.';
   const contactUrl = supportPhone
     ? `https://wa.me/${supportPhone}?text=${encodeURIComponent(supportMessage)}`
@@ -124,7 +124,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden selection:bg-blue-500/30">
-      <FloatingWhatsApp phoneNumber={settings?.support_phone || ''} />
+      <FloatingWhatsApp phoneNumber={settings?.support_phone || '62982062205'} />
       {/* ── NAV ── */}
       <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -135,7 +135,7 @@ const Landing = () => {
             <a href="#faq" className="hover:text-white transition">FAQ</a>
             <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goLogin}>Entrar</Button>
             <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white" onClick={handleContactClick} disabled={!contactUrl}>
-              Entrar em contato
+              Saiba mais
             </Button>
           </div>
           <button className="md:hidden text-white/70" onClick={() => setMobileMenu(!mobileMenu)}>
@@ -151,7 +151,7 @@ const Landing = () => {
                 <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Preços</a>
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
-                  Entrar em contato
+                  Saiba mais
                 </Button>
               </div>
             </motion.div>
@@ -187,7 +187,7 @@ const Landing = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-8 h-14 text-base font-semibold rounded-xl shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:shadow-[0_0_40px_rgba(59,130,246,0.5)] transition-all gap-2 w-full sm:w-auto"
                 onClick={handleContactClick} disabled={!contactUrl}>
-                <PhoneCall className="w-5 h-5" /> Entrar em contato
+                <PhoneCall className="w-5 h-5" /> Saiba mais
               </Button>
               <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 px-8 h-14 text-base rounded-xl gap-2 w-full sm:w-auto">
                 <Eye className="w-5 h-5" /> Ver demonstração
