@@ -452,9 +452,9 @@ const Landing = () => {
                 </p>
                 <Button size="lg" className="bg-blue-500 hover:bg-blue-600 text-white px-10 h-14 text-base font-semibold rounded-xl shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:shadow-[0_0_50px_rgba(59,130,246,0.6)] transition-all gap-2"
                   onClick={handleContactClick} disabled={!contactUrl}>
-                  Entrar em contato <PhoneCall className="w-5 h-5" />
+                  Saiba mais <PhoneCall className="w-5 h-5" />
                 </Button>
-                <p className="text-white/30 text-sm mt-4">Acesso mediante contato com suporte</p>
+                <p className="text-white/30 text-sm mt-4">Acesso mediante contato com suporte: (62) 98206-2205</p>
               </div>
             </div>
           </FadeIn>
