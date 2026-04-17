@@ -77,9 +77,9 @@ const PLANS = [
     cta: "Começar grátis",
   },
   {
-    name: "Professional", price: "R$ 197", period: "/mês", popular: true,
+    name: "Professional", price: "Sob consulta", period: "", popular: true,
     features: ["Até 25 usuários", "Todas as funcionalidades", "Ranking e Modo TV", "Comissões avançadas", "Relatórios completos", "Suporte prioritário"],
-    cta: "Assinar agora",
+    cta: "Falar com consultor",
   },
   {
     name: "Enterprise", price: "Sob consulta", period: "", popular: false,
