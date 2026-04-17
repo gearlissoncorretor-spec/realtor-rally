@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import {
   BarChart3, Users, Kanban, Target, Trophy, DollarSign,
   FileText, Calendar, Check, Star, ChevronDown,
   ChevronUp, Smartphone, Shield, Upload, Clock, Zap, Eye,
-  TrendingUp, Building2, Menu, X, PhoneCall
+  TrendingUp, Building2, Menu, X, PhoneCall, ArrowRight,
+  Sparkles, ShieldCheck, Rocket
 } from "lucide-react";
 import {
   Accordion,
@@ -15,6 +17,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+// ── Animated counter ──
+const AnimatedCounter = ({ end, suffix = "", duration = 2000 }: { end: number; suffix?: string; duration?: number }) => {
+...
 
 // ── Animated counter ──
 const AnimatedCounter = ({ end, suffix = "", duration = 2000 }: { end: number; suffix?: string; duration?: number }) => {
