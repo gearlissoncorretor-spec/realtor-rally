@@ -150,12 +150,24 @@ const Ranking = () => {
     if (effectiveTeamFilter !== 'all') filteredBrokers = brokers.filter(b => b.team_id === effectiveTeamFilter);
 
     const rankings = filteredBrokers.filter(b => b.status === 'ativo').map(broker => {
-      const brokerSales = filteredSales.filter(s => s.broker_id === broker.id && s.status !== 'cancelada' && s.status !== 'distrato');
-      const totalRevenue = brokerSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
+      const brokerSales = filteredSales.filter(s => 
+        s.broker_id === broker.id && 
+        s.status !== 'cancelada' && 
+        s.status !== 'distrato' &&
+        s.tipo === 'venda' &&
+        s.parceria_tipo !== 'Agência'
+      );
+      const totalRevenue = brokerSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
       const ticketMedio = brokerSales.length > 0 ? totalRevenue / brokerSales.length : 0;
       const team = teams.find(t => t.id === broker.team_id);
-      const prevBrokerSales = previousPeriodSales.filter(s => s.broker_id === broker.id && s.status !== 'cancelada' && s.status !== 'distrato');
-      const prevRevenue = prevBrokerSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
+      const prevBrokerSales = previousPeriodSales.filter(s => 
+        s.broker_id === broker.id && 
+        s.status !== 'cancelada' && 
+        s.status !== 'distrato' &&
+        s.tipo === 'venda' &&
+        s.parceria_tipo !== 'Agência'
+      );
+      const prevRevenue = prevBrokerSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
       const growth = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : null;
       return { id: broker.id, name: broker.name, avatar: broker.avatar_url || '', sales: brokerSales.length, revenue: totalRevenue, position: 0, growth, email: broker.email, userId: broker.user_id, teamId: broker.team_id, teamName: team?.name || null, ticketMedio, participationPct: 0 };
     });
