@@ -58,13 +58,15 @@ const FEATURES = [
   { icon: Trophy, title: "Metas e Ranking", desc: "Gamifique resultados com metas individuais e por equipe. Ranking em tempo real no Modo TV." },
   { icon: DollarSign, title: "Comissões", desc: "Controle comissões com parcelas, datas de vencimento e status de pagamento." },
   { icon: FileText, title: "Relatórios Avançados", desc: "Gráficos dinâmicos, filtros por período e exportação. Dados para decisões estratégicas." },
+  { icon: DollarSign, title: "Pix Grátis", desc: "Integração para recebimento via Pix sem taxas bancárias abusivas. Gestão financeira simplificada." },
+  { icon: Smartphone, title: "App Grátis", desc: "Instale o sistema como um aplicativo no seu celular (PWA). Acesso rápido e offline para corretores." },
   { icon: Calendar, title: "Agenda Integrada", desc: "Eventos, visitas e reuniões em um calendário compartilhado com a equipe." },
 ];
 
 const PLANS = [
   {
     name: "Starter", price: "Grátis", period: "14 dias", popular: false,
-    features: ["Até 5 usuários", "Dashboard básico", "Pipeline de negociações", "Follow-up de clientes", "Suporte por email"],
+    features: ["Até 5 usuários", "Dashboard básico", "Pipeline de negociações", "Pix Grátis", "Follow-up de clientes", "Suporte por email"],
     cta: "Começar grátis",
   },
   {

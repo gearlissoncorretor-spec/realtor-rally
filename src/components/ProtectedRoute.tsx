@@ -12,6 +12,7 @@ interface ProtectedRouteProps {
   adminOnly?: boolean;
   superAdminOnly?: boolean;
   allowWithoutCompany?: boolean;
+  allowLanding?: boolean;
 }
 
 const LOADING_TIMEOUT = 3000;
@@ -21,7 +22,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredScreen, 
   adminOnly,
   superAdminOnly,
-  allowWithoutCompany 
+  allowWithoutCompany,
+  allowLanding
 }) => {
   const { user, loading, hasAccess, profile, isAdmin, isDiretor, isSuperAdmin, isSocio, getUserRole, getDefaultRoute, error, company } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
@@ -64,6 +66,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!user) {
+    if (allowLanding) {
+      return <Navigate to="/landing" replace />;
+    }
     return <Navigate to="/auth" replace />;
   }
 
