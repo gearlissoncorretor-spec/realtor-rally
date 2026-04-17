@@ -193,15 +193,21 @@ serve(async (req) => {
     // Create user in Supabase Auth
     console.log('Creating user in auth...')
     // Resolve company_id: use provided, or get from requesting user's profile
-    let targetCompanyId = company_id
+    let targetCompanyId = (company_id && company_id.trim() !== '') ? company_id : null
+    
     if (!targetCompanyId) {
       const { data: requesterProfile } = await supabaseClient
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
         .single()
-      targetCompanyId = requesterProfile?.company_id
+      targetCompanyId = requesterProfile?.company_id || null
     }
+
+    console.log('Sending to auth.admin.createUser:', JSON.stringify({
+      email,
+      user_metadata: { full_name: resolvedName, company_id: targetCompanyId }
+    }))
 
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
       email,
