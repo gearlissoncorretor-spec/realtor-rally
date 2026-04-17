@@ -157,6 +157,9 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ teams, onCreated, a
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Criar Novo Usuário</DialogTitle>
+          <DialogDescription>
+            Preencha os dados abaixo para cadastrar um novo usuário no sistema.
+          </DialogDescription>
         </DialogHeader>
 
         {generatedPassword ? (
