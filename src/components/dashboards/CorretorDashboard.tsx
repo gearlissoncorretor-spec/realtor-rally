@@ -143,6 +143,7 @@ const CorretorDashboard = () => {
       const bSales = (sales || []).filter(s => 
         s.broker_id === broker.id && 
         s.status !== 'distrato' &&
+        s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
         new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
       );
