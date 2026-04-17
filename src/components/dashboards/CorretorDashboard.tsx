@@ -49,7 +49,7 @@ const CorretorDashboard = () => {
   const currentYear = new Date().getFullYear();
 
   const brokerSales = useMemo(() =>
-    (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato' && s.tipo !== 'captacao'), [sales, brokerId]);
+    (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato' && s.tipo === 'venda' && s.parceria_tipo !== 'Agência'), [sales, brokerId]);
   const monthSales = useMemo(() =>
     brokerSales.filter(s => {
       const d = new Date(s.sale_date || s.created_at || '');
