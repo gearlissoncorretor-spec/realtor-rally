@@ -88,6 +88,7 @@ const CorretorDashboard = () => {
       const agencySales = (sales || []).filter(s => 
         s.agency_id === agency.id && 
         s.status !== 'distrato' &&
+        s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
         new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
       );
