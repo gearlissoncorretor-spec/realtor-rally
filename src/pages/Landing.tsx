@@ -109,6 +109,89 @@ const TABS = [
   { label: "Ranking", icon: Trophy },
 ];
 
+const ContactForm = () => {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.message) {
+      toast.error('Preencha os campos obrigatórios');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.from('contact_submissions').insert([formData]);
+    if (error) {
+      toast.error('Erro ao enviar mensagem. Tente novamente.');
+    } else {
+      toast.success('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+      setFormData({ name: '', email: '', phone: '', message: '' });
+    }
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 text-left p-6 sm:p-8 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-xl">
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-white/70">Nome Completo *</Label>
+          <Input 
+            id="name" 
+            placeholder="Seu nome" 
+            className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-blue-500/50"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-white/70">E-mail Corporativo *</Label>
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="seu@email.com" 
+            className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-blue-500/50"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phone" className="text-white/70">WhatsApp / Telefone</Label>
+        <Input 
+          id="phone" 
+          placeholder="(00) 00000-0000" 
+          className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-blue-500/50"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="message" className="text-white/70">Mensagem *</Label>
+        <Textarea 
+          id="message" 
+          placeholder="Como podemos ajudar sua imobiliária?" 
+          className="bg-white/5 border-white/10 text-white min-h-[120px] rounded-xl focus:border-blue-500/50"
+          value={formData.message}
+          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+          required
+        />
+      </div>
+      <Button 
+        type="submit" 
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white h-14 text-lg font-bold rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+        disabled={loading}
+      >
+        {loading ? 'Enviando...' : 'Solicitar Demonstração'}
+      </Button>
+      <p className="text-center text-xs text-white/40 pt-2">
+        Ao enviar, você concorda com nossos termos de uso e política de privacidade.
+      </p>
+    </form>
+  );
+};
+
 const Landing = () => {
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
