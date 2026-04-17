@@ -20,10 +20,6 @@ import {
 
 // ── Animated counter ──
 const AnimatedCounter = ({ end, suffix = "", duration = 2000 }: { end: number; suffix?: string; duration?: number }) => {
-...
-
-// ── Animated counter ──
-const AnimatedCounter = ({ end, suffix = "", duration = 2000 }: { end: number; suffix?: string; duration?: number }) => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
@@ -127,7 +123,8 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden selection:bg-blue-500/30">
+      <FloatingWhatsApp phoneNumber={settings?.support_phone || ''} />
       {/* ── NAV ── */}
       <nav className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -175,15 +172,15 @@ const Landing = () => {
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-tight tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-[1.1] tracking-tight mb-8">
               A evolução da<br />
-              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">gestão imobiliária</span>
+              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-sm">gestão imobiliária</span>
             </h1>
           </FadeIn>
           <FadeIn delay={0.2}>
-            <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
-              Controle vendas, equipes, negociações e metas em uma única plataforma. 
-              Menos planilhas, mais resultados.
+            <p className="text-lg sm:text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+              Controle vendas, equipes, negociações e metas em uma única plataforma inteligente. 
+              Elimine o caos das planilhas e escale seus resultados hoje mesmo.
             </p>
           </FadeIn>
           <FadeIn delay={0.3}>
@@ -196,7 +193,9 @@ const Landing = () => {
                 <Eye className="w-5 h-5" /> Ver demonstração
               </Button>
             </div>
-            <p className="text-white/30 text-sm mt-4">Acesso mediante contato com suporte</p>
+            <p className="text-white/30 text-sm mt-4 flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-4 h-4" /> Acesso mediante contato com suporte
+            </p>
           </FadeIn>
         </div>
       </section>
