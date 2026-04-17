@@ -441,14 +441,7 @@ const Landing = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Planos que crescem com você</h2>
               <p className="text-white/40 mb-6">Comece grátis e escale conforme sua operação.</p>
-              <div className="inline-flex items-center gap-3 bg-white/5 rounded-full p-1">
-                <button onClick={() => setAnnual(false)} className={`px-4 py-1.5 rounded-full text-sm transition ${!annual ? "bg-blue-500 text-white" : "text-white/50"}`}>
-                  Mensal
-                </button>
-                <button onClick={() => setAnnual(true)} className={`px-4 py-1.5 rounded-full text-sm transition ${annual ? "bg-blue-500 text-white" : "text-white/50"}`}>
-                  Anual <span className="text-green-400 text-xs ml-1">-20%</span>
-                </button>
-              </div>
+              {/* Pricing toggle removed */}
             </div>
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-6">
