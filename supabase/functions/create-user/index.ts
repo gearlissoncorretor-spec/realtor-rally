@@ -86,6 +86,7 @@ serve(async (req) => {
       nickname,
       birth_date,
       company_id,
+      agency_id,
       created_by: providedCreatedBy
     } = body
     
@@ -167,8 +168,8 @@ serve(async (req) => {
     }
 
     // Set default allowed_screens if not provided
-    const gerenteScreens = ['dashboard', 'central-gestor', 'vendas', 'corretores', 'equipes', 'ranking', 'metas', 'acompanhamento', 'relatorios', 'x1', 'dashboard-equipes', 'atividades', 'negociacoes', 'follow-up', 'meta-gestao', 'configuracoes', 'agenda', 'comissoes', 'instalar']
-    const corretorScreens = ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'configuracoes']
+    const gerenteScreens = ['dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'corretores', 'equipes', 'ranking', 'metas', 'acompanhamento', 'relatorios', 'x1', 'atividades', 'negociacoes', 'follow-up', 'meta-gestao', 'configuracoes', 'agenda', 'comissoes', 'instalar', 'gestao-usuarios']
+    const corretorScreens = ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'configuracoes', 'comissoes', 'agenda']
     const finalAllowedScreens = allowed_screens || (role === 'corretor' ? corretorScreens : role === 'gerente' ? gerenteScreens : ['dashboard'])
 
     // Validate manager has team
@@ -194,14 +195,17 @@ serve(async (req) => {
     console.log('Creating user in auth...')
     // Resolve company_id: use provided, or get from requesting user's profile
     let targetCompanyId = (company_id && company_id.trim() !== '') ? company_id : null
+    let targetAgencyId = (agency_id && agency_id.trim() !== '') ? agency_id : null
     
-    if (!targetCompanyId) {
+    if (!targetCompanyId || !targetAgencyId) {
       const { data: requesterProfile } = await supabaseClient
         .from('profiles')
-        .select('company_id')
+        .select('company_id, agency_id')
         .eq('id', user.id)
         .single()
-      targetCompanyId = requesterProfile?.company_id || null
+      
+      if (!targetCompanyId) targetCompanyId = requesterProfile?.company_id || null
+      if (!targetAgencyId) targetAgencyId = requesterProfile?.agency_id || null
     }
 
     console.log('Sending to auth.admin.createUser:', JSON.stringify({
@@ -257,6 +261,7 @@ serve(async (req) => {
           phone: phone || null,
           birth_date: birth_date || null,
           company_id: targetCompanyId,
+          agency_id: targetAgencyId,
         })
         .eq('id', authData.user.id)
 
@@ -281,6 +286,7 @@ serve(async (req) => {
           phone: phone || null,
           birth_date: birth_date || null,
           company_id: targetCompanyId,
+          agency_id: targetAgencyId,
         })
 
       if (profileInsertError) {
@@ -347,6 +353,7 @@ serve(async (req) => {
             phone: phone || null,
             team_id: team_id || null,
             company_id: targetCompanyId || null,
+            agency_id: targetAgencyId || null,
             status: status || 'ativo',
           })
           .eq('id', existingBrokerByEmail.id)
@@ -375,6 +382,7 @@ serve(async (req) => {
             status: status || 'ativo',
             team_id: team_id || null,
             company_id: targetCompanyId || null,
+            agency_id: targetAgencyId || null,
             created_by: createdByUserId
           })
 
