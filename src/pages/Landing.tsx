@@ -70,23 +70,8 @@ const FEATURES = [
   { icon: Calendar, title: "Agenda Integrada", desc: "Eventos, visitas e reuniões em um calendário compartilhado com a equipe." },
 ];
 
-const PLANS = [
-  {
-    name: "Starter", price: "Grátis", period: "14 dias", popular: false,
-    features: ["Até 5 usuários", "Dashboard básico", "Pipeline de negociações", "Pix Grátis", "Follow-up de clientes", "Suporte por email"],
-    cta: "Começar grátis",
-  },
-  {
-    name: "Professional", price: "Sob consulta", period: "", popular: true,
-    features: ["Até 25 usuários", "Todas as funcionalidades", "Ranking e Modo TV", "Comissões avançadas", "Relatórios completos", "Suporte prioritário"],
-    cta: "Falar com consultor",
-  },
-  {
-    name: "Enterprise", price: "Sob consulta", period: "", popular: false,
-    features: ["Usuários ilimitados", "Suporte dedicado", "SLA garantido", "Onboarding personalizado", "API e integrações", "Treinamento da equipe"],
-    cta: "Falar com vendas",
-  },
-];
+// PLANS data removed
+
 
 const TESTIMONIALS = [
   { name: "Ricardo Mendes", role: "Diretor Comercial", company: "Mendes Imóveis", quote: "O Gestão Master transformou nossa gestão. Antes usávamos planilhas e perdíamos negociações. Hoje temos visão completa em tempo real.", stars: 5 },
@@ -99,8 +84,8 @@ const FAQS = [
   { q: "Posso usar no celular?", a: "Sim! O sistema é totalmente responsivo e pode ser instalado como aplicativo no seu celular, funcionando como um app nativo." },
   { q: "Meus dados estão seguros?", a: "Totalmente. Cada imobiliária tem seus dados isolados (multi-tenant), com criptografia e backups automáticos. Nenhum dado vaza entre empresas." },
   { q: "Como migro meus dados?", a: "Você pode importar dados via Excel/CSV diretamente pelo sistema. O processo é simples e guiado passo a passo." },
-  { q: "Tem período de teste?", a: "Sim! Oferecemos 14 dias grátis com acesso completo ao plano Professional. Sem necessidade de cartão de crédito." },
-  { q: "Posso cancelar a qualquer momento?", a: "Sim, sem fidelidade. Você pode cancelar ou fazer downgrade do plano quando quiser, sem taxas extras." },
+  { q: "Posso cancelar a qualquer momento?", a: "Sim, sem fidelidade. Você pode cancelar o serviço quando quiser, sem taxas extras." },
+
 ];
 
 const TABS = [
@@ -242,7 +227,7 @@ const Landing = () => {
           <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Gestão Master</span>
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#features" className="hover:text-white transition">Recursos</a>
-            <a href="#pricing" className="hover:text-white transition">Planos</a>
+{/* Planos link removed */}
             <a href="#faq" className="hover:text-white transition">FAQ</a>
             {formConfig.enabled && <a href="#contact" className="hover:text-white transition">Contato</a>}
             <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goLogin}>Entrar</Button>
@@ -260,7 +245,7 @@ const Landing = () => {
               className="md:hidden border-t border-white/5 bg-slate-950/95 backdrop-blur-xl overflow-hidden">
               <div className="px-4 py-4 flex flex-col gap-3">
                 <a href="#features" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Recursos</a>
-                <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Planos</a>
+                {/* Planos mobile link removed */}
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
                 {formConfig.enabled && <a href="#contact" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Contato</a>}
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
@@ -434,55 +419,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
-      <section id="pricing" className="py-20 sm:py-28 px-4 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent">
-        <div className="max-w-5xl mx-auto">
-          <FadeIn>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Planos que crescem com você</h2>
-              <p className="text-white/40 mb-6">Comece grátis e escale conforme sua operação.</p>
-              {/* Pricing toggle removed */}
-            </div>
-          </FadeIn>
-          <div className="grid md:grid-cols-3 gap-6">
-            {PLANS.map((plan, i) => (
-              <FadeIn key={i} delay={i * 0.1}>
-                <div className={`relative p-8 rounded-2xl border transition-all h-full flex flex-col ${
-                  plan.popular
-                    ? "bg-blue-500/10 border-blue-500/30 shadow-[0_0_40px_rgba(59,130,246,0.1)]"
-                    : "bg-white/[0.02] border-white/5 hover:border-white/10"
-                }`}>
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-xs font-bold px-4 py-1 rounded-full">
-                      Mais popular
-                    </div>
-                  )}
-                  <h3 className="text-lg font-bold text-white mb-2">{plan.name}</h3>
-                  <div className="mb-6">
-                    <span className="text-3xl font-extrabold text-white">
-                      {plan.price === "Grátis" ? "Grátis" : annual && plan.price !== "Sob consulta" ? "R$ 157" : plan.price}
-                    </span>
-                    <span className="text-white/40 text-sm">{plan.period}</span>
-                  </div>
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((f, j) => (
-                      <li key={j} className="flex items-center gap-2 text-sm text-white/60">
-                        <Check className="w-4 h-4 text-blue-400 flex-shrink-0" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button onClick={handleContactClick} disabled={!contactUrl}
-                    className={`w-full h-12 rounded-xl font-semibold ${
-                      plan.popular ? "bg-blue-500 hover:bg-blue-600 text-white" : "bg-white/10 hover:bg-white/15 text-white"
-                    }`}>
-                    {plan.cta}
-                  </Button>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+{/* ── PRICING SECTION REMOVED ── */}
 
       {/* ── TESTIMONIALS ── */}
       <section className="py-20 sm:py-28 px-4">
@@ -626,7 +563,7 @@ const Landing = () => {
               <h4 className="font-semibold text-white/70 mb-3 text-sm">Produto</h4>
               <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="#features" className="hover:text-white transition">Recursos</a></li>
-                <li><a href="#pricing" className="hover:text-white transition">Planos</a></li>
+                {/* Planos footer link removed */}
                 <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
