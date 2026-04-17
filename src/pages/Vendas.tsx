@@ -62,7 +62,7 @@ const Vendas = () => {
   const { brokers } = useBrokers();
 
   const availableYears = useMemo(() => {
-    const vendaOnly = sales.filter(s => s.tipo !== 'captacao');
+    const vendaOnly = sales.filter(s => s.tipo === 'venda' && s.parceria_tipo !== 'Agência');
     const years = [...new Set(vendaOnly.map(sale => {
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
       return dateStr ? parseInt(dateStr.substring(0, 4), 10) : NaN;
