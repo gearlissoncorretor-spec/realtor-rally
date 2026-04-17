@@ -262,6 +262,7 @@ const Landing = () => {
                 <a href="#features" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Recursos</a>
                 <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Preços</a>
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
+                {formConfig.enabled && <a href="#contact" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Contato</a>}
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
                   Saiba mais
                 </Button>
