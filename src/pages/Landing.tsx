@@ -58,6 +58,7 @@ const FEATURES = [
   { icon: Trophy, title: "Metas e Ranking", desc: "Gamifique resultados com metas individuais e por equipe. Ranking em tempo real no Modo TV." },
   { icon: DollarSign, title: "Comissões", desc: "Controle comissões com parcelas, datas de vencimento e status de pagamento." },
   { icon: FileText, title: "Relatórios Avançados", desc: "Gráficos dinâmicos, filtros por período e exportação. Dados para decisões estratégicas." },
+  { icon: DollarSign, title: "Pix Grátis", desc: "Integração para recebimento via Pix sem taxas bancárias abusivas. Gestão financeira simplificada." },
   { icon: Calendar, title: "Agenda Integrada", desc: "Eventos, visitas e reuniões em um calendário compartilhado com a equipe." },
 ];
 
