@@ -77,9 +77,9 @@ const PLANS = [
     cta: "Começar grátis",
   },
   {
-    name: "Professional", price: "R$ 197", period: "/mês", popular: true,
+    name: "Professional", price: "Sob consulta", period: "", popular: true,
     features: ["Até 25 usuários", "Todas as funcionalidades", "Ranking e Modo TV", "Comissões avançadas", "Relatórios completos", "Suporte prioritário"],
-    cta: "Assinar agora",
+    cta: "Falar com consultor",
   },
   {
     name: "Enterprise", price: "Sob consulta", period: "", popular: false,
@@ -242,7 +242,7 @@ const Landing = () => {
           <span className="text-xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Gestão Master</span>
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#features" className="hover:text-white transition">Recursos</a>
-            <a href="#pricing" className="hover:text-white transition">Preços</a>
+            <a href="#pricing" className="hover:text-white transition">Planos</a>
             <a href="#faq" className="hover:text-white transition">FAQ</a>
             {formConfig.enabled && <a href="#contact" className="hover:text-white transition">Contato</a>}
             <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10" onClick={goLogin}>Entrar</Button>
@@ -260,7 +260,7 @@ const Landing = () => {
               className="md:hidden border-t border-white/5 bg-slate-950/95 backdrop-blur-xl overflow-hidden">
               <div className="px-4 py-4 flex flex-col gap-3">
                 <a href="#features" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Recursos</a>
-                <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Preços</a>
+                <a href="#pricing" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Planos</a>
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
                 {formConfig.enabled && <a href="#contact" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Contato</a>}
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
@@ -441,14 +441,7 @@ const Landing = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Planos que crescem com você</h2>
               <p className="text-white/40 mb-6">Comece grátis e escale conforme sua operação.</p>
-              <div className="inline-flex items-center gap-3 bg-white/5 rounded-full p-1">
-                <button onClick={() => setAnnual(false)} className={`px-4 py-1.5 rounded-full text-sm transition ${!annual ? "bg-blue-500 text-white" : "text-white/50"}`}>
-                  Mensal
-                </button>
-                <button onClick={() => setAnnual(true)} className={`px-4 py-1.5 rounded-full text-sm transition ${annual ? "bg-blue-500 text-white" : "text-white/50"}`}>
-                  Anual <span className="text-green-400 text-xs ml-1">-20%</span>
-                </button>
-              </div>
+              {/* Pricing toggle removed */}
             </div>
           </FadeIn>
           <div className="grid md:grid-cols-3 gap-6">
@@ -633,7 +626,7 @@ const Landing = () => {
               <h4 className="font-semibold text-white/70 mb-3 text-sm">Produto</h4>
               <ul className="space-y-2 text-sm text-white/40">
                 <li><a href="#features" className="hover:text-white transition">Recursos</a></li>
-                <li><a href="#pricing" className="hover:text-white transition">Preços</a></li>
+                <li><a href="#pricing" className="hover:text-white transition">Planos</a></li>
                 <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
