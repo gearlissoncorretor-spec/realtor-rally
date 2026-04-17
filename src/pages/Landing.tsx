@@ -198,6 +198,22 @@ const Landing = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [annual, setAnnual] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [formConfig, setFormConfig] = useState({ enabled: true });
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      const { data, error } = await supabase
+        .from('system_settings')
+        .select('key, value')
+        .eq('key', 'contact_form_enabled')
+        .maybeSingle();
+      
+      if (!error && data) {
+        setFormConfig({ enabled: data.value === true || data.value === 'true' });
+      }
+    };
+    fetchConfig();
+  }, []);
 
   const goLogin = () => navigate("/auth");
   const supportPhone = (settings?.support_phone || '62982062205').replace(/\D/g, '');
@@ -500,6 +516,53 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* ── CONTACT ── */}
+      {formConfig.enabled && (
+        <section id="contact" className="py-20 sm:py-28 px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <FadeIn>
+                <div className="text-left space-y-6">
+                  <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">
+                    Fale com um de nossos<br />
+                    <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">especialistas</span>
+                  </h2>
+                  <p className="text-white/60 text-lg leading-relaxed">
+                    Estamos prontos para mostrar como o Gestão Master pode revolucionar a produtividade da sua imobiliária. 
+                    Preencha o formulário e nossa equipe entrará em contato em menos de 24 horas.
+                  </p>
+                  
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                        <Mail className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-white/40">E-mail</p>
+                        <p className="text-white font-medium">contato@gestaomaster.com</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                        <PhoneCall className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-white/40">WhatsApp</p>
+                        <p className="text-white font-medium">(62) 98206-2205</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+              
+              <FadeIn delay={0.2}>
+                <ContactForm />
+              </FadeIn>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── FAQ ── */}
       <section id="faq" className="py-20 sm:py-28 px-4 bg-gradient-to-b from-transparent via-blue-950/20 to-transparent">
