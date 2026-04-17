@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
           endpoint: subscription.endpoint,
           p256dh: keys.p256dh,
           auth: keys.auth,
-        }, { onConflict: 'user_id,endpoint' })
+        }, { onConflict: 'endpoint,user_id' })
 
       if (error) throw error
       return jsonResponse({ success: true })
