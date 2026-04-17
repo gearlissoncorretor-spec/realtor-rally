@@ -62,7 +62,7 @@ const Vendas = () => {
   const { brokers } = useBrokers();
 
   const availableYears = useMemo(() => {
-    const vendaOnly = sales.filter(s => s.tipo !== 'captacao');
+    const vendaOnly = sales.filter(s => s.tipo === 'venda' && s.parceria_tipo !== 'Agência');
     const years = [...new Set(vendaOnly.map(sale => {
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
       return dateStr ? parseInt(dateStr.substring(0, 4), 10) : NaN;
@@ -87,8 +87,8 @@ const Vendas = () => {
       const vis = (sale as any).visibilidade || 'auto';
       if (vis === 'venda' || vis === 'ambos') return true;
       if (vis === 'captacao') return false;
-      // auto: show if tipo is venda, or if captação from agency
-      return sale.tipo !== 'captacao' || sale.parceria_tipo === 'Agência';
+      // auto: show if tipo is venda AND it's not a listing-only partnership
+      return sale.tipo === 'venda' && sale.parceria_tipo !== 'Agência';
     });
   }, [sales]);
 

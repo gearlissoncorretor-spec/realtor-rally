@@ -245,12 +245,18 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
       const vgcValue = data.vgc > 0 ? data.vgc : data.property_value;
-      const isVenda = data.tipo === 'venda';
-      const commission_value = isVenda ? (vgcValue * Number(commissionRate)) / 100 : 0;
+      
+      // Regra de VGV: Captação não conta no VGV de vendas. 
+      // Vendas com parceria de agência (onde somos apenas captadores) também não contam.
+      const isOnlyCaptacao = data.tipo === 'captacao' || (data.tipo === 'venda' && data.parceria_tipo === 'Agência');
+      const vgvValue = isOnlyCaptacao ? 0 : data.property_value;
+      
+      // Comissão agora é calculada tanto para venda quanto para captação, se houver VGC
+      const commission_value = (vgcValue * Number(commissionRate)) / 100;
       
       await onSubmit({
         ...data,
-        vgv: isVenda ? data.property_value : 0,
+        vgv: vgvValue,
         vgc: vgcValue,
         commission_value,
         client_email: data.client_email || null,

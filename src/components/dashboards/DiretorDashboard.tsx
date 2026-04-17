@@ -113,7 +113,7 @@ const DiretorDashboard = () => {
   // ─── Filtered sales ───
   const filteredSales = useMemo(() => {
     return (sales || []).filter(sale => {
-      if (sale.tipo === 'captacao') return false;
+      if (sale.tipo === 'captacao' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
@@ -140,7 +140,7 @@ const DiretorDashboard = () => {
     if (prevMonth === 0) { prevMonth = 12; prevYear--; }
 
     return (sales || []).filter(sale => {
-      if (sale.tipo === 'captacao') return false;
+      if (sale.tipo === 'captacao' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
@@ -153,6 +153,24 @@ const DiretorDashboard = () => {
   // ─── KPI calculations ───
   const metrics = useMemo(() => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
+    const totalVGVCaptacao = (sales || []).filter(s => {
+      // Filtros de período e equipe para captação
+      const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
+      if (!isOnlyCaptacao) return false;
+      if (s.status === 'distrato') return false;
+      const rawDate = s.sale_date || s.created_at;
+      if (!rawDate) return false;
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return false;
+      if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
+      if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
+      if (filters.teamId !== 'all') {
+        const broker = brokers.find(b => b.id === s.broker_id);
+        if (!broker || broker.team_id !== filters.teamId) return false;
+      }
+      return true;
+    }).reduce((s, sale) => s + Number(sale.property_value || 0), 0);
+    
     const totalVGC = filteredSales.reduce((s, sale) => s + Number(sale.vgc || 0), 0);
     const totalSales = filteredSales.length;
     const confirmedSales = filteredSales.filter(s => s.status === 'confirmada');
@@ -229,7 +247,7 @@ const DiretorDashboard = () => {
     });
 
     return {
-      totalVGV, totalVGC, totalSales, ticketMedio, conversionRate,
+      totalVGV, totalVGVCaptacao, totalVGC, totalSales, ticketMedio, conversionRate,
       vgvChange, salesChange,
       totalBrokers, activeBrokersCount, activityRate,
       activeNegotiations, negotiationsVGV, pendingFollowUps,
@@ -329,7 +347,7 @@ const DiretorDashboard = () => {
 
     return monthNames.map((name, i) => {
       const monthSales = (sales || []).filter(sale => {
-        if (sale.tipo === 'captacao' || sale.status === 'distrato') return false;
+        if (sale.tipo === 'captacao' || sale.status === 'distrato' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
         const rawDate = sale.sale_date || sale.created_at;
         if (!rawDate) return false;
         const d = new Date(rawDate);
@@ -544,10 +562,10 @@ const DiretorDashboard = () => {
           Array.from({ length: 4 }).map((_, i) => <KPICardSkeleton key={i} />)
         ) : (
           <>
-            <KPICardCompact title="Vendas Realizadas" value={metrics.totalSales.toString()} change={metrics.salesChange} icon={<Home className="w-5 h-5" />} accent="text-primary" delay={0} />
-            <KPICardCompact title="VGV Total" value={formatCurrency(metrics.totalVGV)} change={metrics.vgvChange} icon={<DollarSign className="w-5 h-5" />} accent="text-emerald-500" delay={1} />
-            <KPICardCompact title="Meta Geral" value={`${metrics.monthlyTargetPercent.toFixed(0)}%`} subtitle={metrics.monthlyTargetValue > 0 ? `de ${formatCurrency(metrics.monthlyTargetValue)}` : 'Sem meta definida'} icon={<Target className="w-5 h-5" />} accent="text-amber-500" delay={2} />
-            <KPICardCompact title="Corretores Ativos" value={`${metrics.activeBrokersCount}`} subtitle={`de ${metrics.totalBrokers} — ${metrics.activityRate.toFixed(0)}% ativos`} icon={<Users className="w-5 h-5" />} accent="text-blue-500" delay={3} />
+            <KPICardCompact title="VGV Vendas" value={formatCurrency(metrics.totalVGV)} change={metrics.vgvChange} icon={<DollarSign className="w-5 h-5" />} accent="text-emerald-500" delay={0} />
+            <KPICardCompact title="VGV Captação" value={formatCurrency(metrics.totalVGVCaptacao)} icon={<Building className="w-5 h-5" />} accent="text-info" delay={1} />
+            <KPICardCompact title="Vendas Realizadas" value={metrics.totalSales.toString()} change={metrics.salesChange} icon={<Home className="w-5 h-5" />} accent="text-primary" delay={2} />
+            <KPICardCompact title="Meta Geral" value={`${metrics.monthlyTargetPercent.toFixed(0)}%`} subtitle={metrics.monthlyTargetValue > 0 ? `de ${formatCurrency(metrics.monthlyTargetValue)}` : 'Sem meta definida'} icon={<Target className="w-5 h-5" />} accent="text-amber-500" delay={3} />
           </>
         )}
       </div>
@@ -558,10 +576,10 @@ const DiretorDashboard = () => {
           Array.from({ length: 4 }).map((_, i) => <KPICardSkeleton key={i} />)
         ) : (
           <>
-            <KPICardCompact title="Negociações Ativas" value={metrics.activeNegotiations.toString()} subtitle={formatCurrency(metrics.negotiationsVGV)} icon={<Handshake className="w-5 h-5" />} accent="text-violet-500" delay={4} />
-            <KPICardCompact title="Follow-ups Pendentes" value={metrics.pendingFollowUps.toString()} icon={<Phone className="w-5 h-5" />} accent="text-orange-500" highlight={metrics.pendingFollowUps > 10} delay={5} />
-            <KPICardCompact title="Ticket Médio" value={formatCurrency(metrics.ticketMedio)} icon={<BarChart3 className="w-5 h-5" />} accent="text-cyan-500" delay={6} />
-            <KPICardCompact title="Tempo Médio Fechamento" value={`${metrics.avgCloseTime} dias`} icon={<Clock className="w-5 h-5" />} accent="text-pink-500" delay={7} />
+            <KPICardCompact title="Corretores Ativos" value={`${metrics.activeBrokersCount}`} subtitle={`de ${metrics.totalBrokers} — ${metrics.activityRate.toFixed(0)}% ativos`} icon={<Users className="w-5 h-5" />} accent="text-blue-500" delay={4} />
+            <KPICardCompact title="Negociações Ativas" value={metrics.activeNegotiations.toString()} subtitle={formatCurrency(metrics.negotiationsVGV)} icon={<Handshake className="w-5 h-5" />} accent="text-violet-500" delay={5} />
+            <KPICardCompact title="Follow-ups Pendentes" value={metrics.pendingFollowUps.toString()} icon={<Phone className="w-5 h-5" />} accent="text-orange-500" highlight={metrics.pendingFollowUps > 10} delay={6} />
+            <KPICardCompact title="Taxa de Conversão" value={`${metrics.conversionRate.toFixed(1)}%`} icon={<Activity className="w-5 h-5" />} accent="text-rose-500" delay={7} />
           </>
         )}
       </div>

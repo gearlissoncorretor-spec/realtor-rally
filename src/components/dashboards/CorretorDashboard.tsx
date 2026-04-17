@@ -49,7 +49,7 @@ const CorretorDashboard = () => {
   const currentYear = new Date().getFullYear();
 
   const brokerSales = useMemo(() =>
-    (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato' && s.tipo !== 'captacao'), [sales, brokerId]);
+    (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato' && s.tipo === 'venda' && s.parceria_tipo !== 'Agência'), [sales, brokerId]);
   const monthSales = useMemo(() =>
     brokerSales.filter(s => {
       const d = new Date(s.sale_date || s.created_at || '');
@@ -88,6 +88,7 @@ const CorretorDashboard = () => {
       const agencySales = (sales || []).filter(s => 
         s.agency_id === agency.id && 
         s.status !== 'distrato' &&
+        s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
         new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
       );
@@ -116,6 +117,7 @@ const CorretorDashboard = () => {
       const teamSales = (sales || []).filter(s => 
         teamBrokers.some(b => b.id === s.broker_id) && 
         s.status !== 'distrato' &&
+        s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
         new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
       );
@@ -141,6 +143,7 @@ const CorretorDashboard = () => {
       const bSales = (sales || []).filter(s => 
         s.broker_id === broker.id && 
         s.status !== 'distrato' &&
+        s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
         new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
       );
