@@ -247,7 +247,7 @@ const DiretorDashboard = () => {
     });
 
     return {
-      totalVGV, totalVGC, totalSales, ticketMedio, conversionRate,
+      totalVGV, totalVGVCaptacao, totalVGC, totalSales, ticketMedio, conversionRate,
       vgvChange, salesChange,
       totalBrokers, activeBrokersCount, activityRate,
       activeNegotiations, negotiationsVGV, pendingFollowUps,
