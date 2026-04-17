@@ -22,7 +22,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredScreen, 
   adminOnly,
   superAdminOnly,
-  allowWithoutCompany 
+  allowWithoutCompany,
+  allowLanding
 }) => {
   const { user, loading, hasAccess, profile, isAdmin, isDiretor, isSuperAdmin, isSocio, getUserRole, getDefaultRoute, error, company } = useAuth();
   const [timedOut, setTimedOut] = useState(false);
