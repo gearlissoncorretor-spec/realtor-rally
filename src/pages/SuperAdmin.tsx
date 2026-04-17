@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Building2, Plus, Users, Shield, LogOut, Pencil, Trash2, Ban, CheckCircle2, Crown, Briefcase, User, TrendingUp, AlertTriangle, Search, Copy, Check } from 'lucide-react';
+import { Building2, Plus, Users, Shield, LogOut, Pencil, Trash2, Ban, CheckCircle2, Crown, Briefcase, User, TrendingUp, AlertTriangle, Search, Copy, Check, PhoneCall, Mail, Settings2, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import Navigation from '@/components/Navigation';
@@ -69,6 +69,15 @@ const SuperAdmin = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('companies');
+
+  // Contact Form Submissions
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [submissionsLoading, setSubmissionsLoading] = useState(false);
+  const [contactSettings, setContactSettings] = useState({
+    enabled: true,
+    recipient: 'suporte@gestaomaster.com'
+  });
 
   // Create company + director flow
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -82,6 +91,7 @@ const SuperAdmin = () => {
   const [creatingCompany, setCreatingCompany] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [updatingSettings, setUpdatingSettings] = useState(false);
 
   // Edit company
   const [editCompany, setEditCompany] = useState<Company | null>(null);
