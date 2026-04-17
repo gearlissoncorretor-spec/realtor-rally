@@ -2,7 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { FloatingWhatsApp } from "@/components/FloatingWhatsApp";
 import {
   BarChart3, Users, Kanban, Target, Trophy, DollarSign,
