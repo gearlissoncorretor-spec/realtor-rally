@@ -300,7 +300,12 @@ const GestaoUsuarios = () => {
               </p>
             </div>
             {canManage && (
-              <CreateUserDialog teams={teams} onCreated={fetchData} allowedRoles={allowedRoles} />
+              <CreateUserDialog 
+                teams={teams} 
+                onCreated={fetchData} 
+                allowedRoles={allowedRoles} 
+                forcedTeamId={isGerente() && profile?.team_id ? profile.team_id : undefined}
+              />
             )}
           </div>
 
