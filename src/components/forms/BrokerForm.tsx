@@ -29,6 +29,7 @@ const brokerSchema = z.object({
   observations: z.string().max(200, 'Observação deve ter no máximo 200 caracteres').optional(),
   meta_monthly: z.number().min(0).optional(),
   avatar_url: z.string().optional(),
+  password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres').optional().or(z.literal('')),
 });
 
 type BrokerFormData = z.infer<typeof brokerSchema>;
@@ -92,6 +93,7 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
       observations: broker?.observations || '',
       meta_monthly: broker?.meta_monthly || 0,
       avatar_url: broker?.avatar_url || '',
+      password: '',
     },
   });
 
@@ -200,6 +202,22 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
                   )}
                 />
               </div>
+              
+              {!broker && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Senha (deixe em branco para gerar automaticamente)</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Mínimo 8 caracteres com letras e números" {...field} className="h-9" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField
