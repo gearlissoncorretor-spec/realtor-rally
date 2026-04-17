@@ -15,7 +15,7 @@ interface ProtectedRouteProps {
   allowLanding?: boolean;
 }
 
-const LOADING_TIMEOUT = 3000;
+const LOADING_TIMEOUT = 5000; // Increased from 3s to 5s for better mobile reliability
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
