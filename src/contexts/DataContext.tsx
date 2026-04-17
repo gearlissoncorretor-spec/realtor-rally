@@ -36,7 +36,7 @@ interface DataContextType {
   targetsError: Error | null;
   
   // CRUD functions
-  createBroker: (broker: BrokerInsert) => Promise<void>;
+  createBroker: (broker: BrokerInsert & { password?: string }) => Promise<void>;
   updateBroker: (id: string, broker: Partial<Broker>) => Promise<void>;
   deleteBroker: (id: string) => Promise<void>;
   
@@ -225,23 +225,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Broker Mutations
   const createBrokerMutation = useMutation({
-    mutationFn: async (broker: BrokerInsert) => {
+    mutationFn: async (broker: BrokerInsert & { password?: string }) => {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
       
       if (!token) throw new Error('Usuário não autenticado');
 
-      // Generate secure random password (guaranteed to have letters + numbers)
-      const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
-      const digits = '23456789';
-      const all = letters + digits + '!@#$%';
-      const rng = crypto.getRandomValues(new Uint8Array(12));
-      // First 2 chars: guaranteed letter + digit, rest random
-      const randomPassword = [
-        letters[rng[0] % letters.length],
-        digits[rng[1] % digits.length],
-        ...Array.from(rng.slice(2)).map(b => all[b % all.length]),
-      ].sort(() => Math.random() - 0.5).join('');
+      const generateRandomPassword = () => {
+        const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
+        const digits = '23456789';
+        const all = letters + digits + '!@#$%';
+        const rng = crypto.getRandomValues(new Uint8Array(12));
+        return [
+          letters[rng[0] % letters.length],
+          digits[rng[1] % digits.length],
+          ...Array.from(rng.slice(2)).map(b => all[b % all.length]),
+        ].sort(() => Math.random() - 0.5).join('');
+      };
+
+      const finalPassword = broker.password || generateRandomPassword();
 
       const response = await fetch(
         'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/create-user',
@@ -254,7 +256,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           body: JSON.stringify({
             full_name: broker.name,
             email: broker.email,
-            password: randomPassword,
+            password: finalPassword,
             role: 'corretor',
             allowed_screens: ['dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas', 'atividades', 'configuracoes', 'agenda', 'comissoes', 'instalar'],
             team_id: broker.team_id,
@@ -581,7 +583,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     brokersError: brokersError as Error | null,
     salesError: salesError as Error | null,
     targetsError: targetsError as Error | null,
-    createBroker: async (broker: BrokerInsert) => {
+    createBroker: async (broker: BrokerInsert & { password?: string }) => {
       await createBrokerMutation.mutateAsync(broker);
     },
     updateBroker: async (id: string, broker: Partial<Broker>) => {
