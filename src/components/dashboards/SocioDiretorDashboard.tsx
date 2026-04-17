@@ -70,6 +70,9 @@ const SocioDiretorDashboard = () => {
   const filteredSales = useMemo(() => {
     return (sales || []).filter(sale => {
       if (sale.status === 'distrato') return false;
+      // Para o VGV de vendas principal, ignoramos captações
+      if (sale.tipo === 'captacao' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
+
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
       const d = new Date(rawDate);
@@ -96,23 +99,38 @@ const SocioDiretorDashboard = () => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
     const totalSales = filteredSales.length;
     const ticketMedio = totalSales > 0 ? totalVGV / totalSales : 0;
-    const captacoes = filteredSales.filter(s => s.tipo === 'captacao').length;
     
-    // In a real scenario, leads would come from another table, but we use negotiations as a proxy if needed
+    // VGV de Captação calculado separadamente
+    const totalVGVCaptacao = (sales || []).filter(s => {
+      const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
+      if (!isOnlyCaptacao) return false;
+      if (s.status === 'distrato') return false;
+      
+      const rawDate = s.sale_date || s.created_at;
+      if (!rawDate) return false;
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return false;
+      
+      if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
+      if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
+      if (filters.agencyId !== 'all' && s.agency_id !== filters.agencyId) return false;
+      
+      return true;
+    }).reduce((s, sale) => s + Number(sale.property_value || 0), 0);
+    
     const leadsCount = (followUps || []).length;
-    
     const confirmedSales = filteredSales.filter(s => s.status === 'confirmada');
     const conversionRate = totalSales > 0 ? (confirmedSales.length / totalSales) * 100 : 0;
 
     return {
       totalVGV,
+      totalVGVCaptacao,
       totalSales,
       ticketMedio,
-      captacoes,
       leadsCount,
       conversionRate
     };
-  }, [filteredSales, negotiations]);
+  }, [filteredSales, sales, followUps, filters]);
 
   // Agency Stats
   const agencyStats = useMemo(() => {
@@ -326,9 +344,9 @@ const SocioDiretorDashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {[
           { label: 'Vendas Totais', value: metrics.totalSales, icon: Home, color: 'text-primary' },
-          { label: 'Valor Vendido', value: formatCurrency(metrics.totalVGV), icon: DollarSign, color: 'text-success' },
+          { label: 'VGV Vendas', value: formatCurrency(metrics.totalVGV), icon: DollarSign, color: 'text-success' },
+          { label: 'VGV Captação', value: formatCurrency(metrics.totalVGVCaptacao), icon: Building, color: 'text-warning' },
           { label: 'Ticket Médio', value: formatCurrency(metrics.ticketMedio), icon: TrendingUp, color: 'text-info' },
-          { label: 'Captações', value: metrics.captacoes, icon: Building, color: 'text-warning' },
           { label: 'Leads Gerados', value: metrics.leadsCount, icon: Users, color: 'text-purple-500' },
           { label: 'Taxa de Conversão', value: `${metrics.conversionRate.toFixed(1)}%`, icon: Target, color: 'text-rose-500' },
         ].map((kpi, idx) => (
