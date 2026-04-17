@@ -66,11 +66,16 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
   }, [brokers, teamFilter]);
 
   // Métricas principais
-  const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+  const totalVGV = filteredSales.reduce((sum, s) => {
+    const isVendaReal = s.tipo === 'venda' && s.parceria_tipo !== 'Agência';
+    return isVendaReal ? sum + Number(s.vgv || 0) : sum;
+  }, 0);
+  
   const totalVGVCaptacao = filteredSales.reduce((sum, s) => {
     const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
     return isOnlyCaptacao ? sum + Number(s.property_value || 0) : sum;
   }, 0);
+  
   const totalVGC = filteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
   const totalSales = filteredSales.filter(s => s.tipo === 'venda' && s.parceria_tipo !== 'Agência').length;
   const activeBrokers = filteredBrokers.filter(b => b.status === "ativo").length;

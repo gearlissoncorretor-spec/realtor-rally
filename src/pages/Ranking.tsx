@@ -219,8 +219,14 @@ const Ranking = () => {
     return teams.map(team => {
       const teamBrokers = brokers.filter(b => b.team_id === team.id);
       const teamBrokerIds = teamBrokers.map(b => b.id);
-      const teamSales = filteredSales.filter(s => teamBrokerIds.includes(s.broker_id || '') && s.status !== 'cancelada' && s.status !== 'distrato');
-      const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
+      const teamSales = filteredSales.filter(s => 
+        teamBrokerIds.includes(s.broker_id || '') && 
+        s.status !== 'cancelada' && 
+        s.status !== 'distrato' &&
+        s.tipo === 'venda' &&
+        s.parceria_tipo !== 'Agência'
+      );
+      const totalVGV = teamSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
       return { id: team.id, name: team.name, totalVGV, totalSales: teamSales.length, brokerCount: teamBrokers.length, position: 0 };
     }).filter(t => t.totalSales > 0 || t.brokerCount > 0).sort((a, b) => b.totalVGV - a.totalVGV).map((t, i) => ({ ...t, position: i + 1 }));
   }, [teams, brokers, filteredSales, isDiretor, isAdmin]);
