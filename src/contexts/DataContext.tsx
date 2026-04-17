@@ -276,7 +276,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const errorData = await response.json();
         throw new Error(errorData.error || 'Erro ao criar corretor');
       }
-      return { ...(await response.json()), tempPassword: randomPassword };
+      return { ...(await response.json()), tempPassword: finalPassword };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['brokers'] });
