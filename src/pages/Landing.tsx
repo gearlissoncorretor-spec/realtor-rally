@@ -84,8 +84,8 @@ const FAQS = [
   { q: "Posso usar no celular?", a: "Sim! O sistema é totalmente responsivo e pode ser instalado como aplicativo no seu celular, funcionando como um app nativo." },
   { q: "Meus dados estão seguros?", a: "Totalmente. Cada imobiliária tem seus dados isolados (multi-tenant), com criptografia e backups automáticos. Nenhum dado vaza entre empresas." },
   { q: "Como migro meus dados?", a: "Você pode importar dados via Excel/CSV diretamente pelo sistema. O processo é simples e guiado passo a passo." },
-  { q: "Tem período de teste?", a: "Sim! Oferecemos 14 dias grátis com acesso completo ao plano Professional. Sem necessidade de cartão de crédito." },
-  { q: "Posso cancelar a qualquer momento?", a: "Sim, sem fidelidade. Você pode cancelar ou fazer downgrade do plano quando quiser, sem taxas extras." },
+  { q: "Posso cancelar a qualquer momento?", a: "Sim, sem fidelidade. Você pode cancelar o serviço quando quiser, sem taxas extras." },
+
 ];
 
 const TABS = [
