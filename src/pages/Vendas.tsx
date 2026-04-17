@@ -87,8 +87,8 @@ const Vendas = () => {
       const vis = (sale as any).visibilidade || 'auto';
       if (vis === 'venda' || vis === 'ambos') return true;
       if (vis === 'captacao') return false;
-      // auto: show if tipo is venda, or if captação from agency
-      return sale.tipo !== 'captacao' || sale.parceria_tipo === 'Agência';
+      // auto: show if tipo is venda AND it's not a listing-only partnership
+      return sale.tipo === 'venda' && sale.parceria_tipo !== 'Agência';
     });
   }, [sales]);
 
