@@ -60,7 +60,14 @@ serve(async (req) => {
     }
 
     // Get request body
-    const body = await req.json()
+    let body;
+    try {
+      body = await req.json()
+    } catch (e) {
+      console.error('Error parsing request body:', e)
+      throw new Error('❌ JSON do corpo da requisição inválido')
+    }
+
     const {
       full_name,
       name,
@@ -81,14 +88,30 @@ serve(async (req) => {
       company_id,
       created_by: providedCreatedBy
     } = body
+    
     const resolvedName = (full_name || name || '').toString().trim()
     const createdByUserId = providedCreatedBy || user.id
-    console.log('Creating user:', { email, role, team_id, allowed_screens, company_id })
+    console.log('Creating user with data:', JSON.stringify({ 
+      email, 
+      role, 
+      team_id, 
+      resolvedName, 
+      company_id,
+      phone: !!phone,
+      cpf: !!cpf,
+      passwordProvided: !!password
+    }))
 
     // Validate required fields
     if (!resolvedName || !email || !password || !role) {
-      console.error('Missing required fields:', { resolvedName: !!resolvedName, email: !!email, password: !!password, role: !!role })
-      throw new Error('❌ Campos obrigatórios: nome, email, senha e cargo')
+      const missing = [];
+      if (!resolvedName) missing.push('nome');
+      if (!email) missing.push('email');
+      if (!password) missing.push('senha');
+      if (!role) missing.push('cargo');
+      
+      console.error('Missing required fields:', missing)
+      throw new Error(`❌ Campos obrigatórios faltando: ${missing.join(', ')}`)
     }
 
     // Validate email format
@@ -103,16 +126,21 @@ serve(async (req) => {
       console.error('Password too short')
       throw new Error('❌ A senha deve ter pelo menos 8 caracteres')
     }
-    if (!/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
-      console.error('Password lacks numbers or letters')
-      throw new Error('❌ A senha deve conter letras e números')
+    
+    // Check for at least one letter and one number
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    
+    if (!hasLetter || !hasNumber) {
+      console.error('Password lacks numbers or letters:', { hasLetter, hasNumber })
+      throw new Error('❌ A senha deve conter pelo menos uma letra e um número')
     }
 
     // Validate role is valid
-    const validRoles = ['admin', 'diretor', 'gerente', 'corretor', 'super_admin']
+    const validRoles = ['admin', 'diretor', 'gerente', 'corretor', 'super_admin', 'socio']
     if (!validRoles.includes(role)) {
       console.error('Invalid role:', role)
-      throw new Error('❌ Cargo inválido')
+      throw new Error(`❌ Cargo inválido: ${role}`)
     }
 
     // Gerentes só podem criar corretores da sua própria equipe
@@ -165,15 +193,21 @@ serve(async (req) => {
     // Create user in Supabase Auth
     console.log('Creating user in auth...')
     // Resolve company_id: use provided, or get from requesting user's profile
-    let targetCompanyId = company_id
+    let targetCompanyId = (company_id && company_id.trim() !== '') ? company_id : null
+    
     if (!targetCompanyId) {
       const { data: requesterProfile } = await supabaseClient
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
         .single()
-      targetCompanyId = requesterProfile?.company_id
+      targetCompanyId = requesterProfile?.company_id || null
     }
+
+    console.log('Sending to auth.admin.createUser:', JSON.stringify({
+      email,
+      user_metadata: { full_name: resolvedName, company_id: targetCompanyId }
+    }))
 
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
       email,
@@ -382,17 +416,29 @@ serve(async (req) => {
     // Map errors to safe client messages
     const msg = error.message || '';
     let clientMessage = 'Falha ao criar usuário';
-    if (msg.includes('already') || msg.includes('duplicate')) clientMessage = 'Este email já está em uso';
-    else if (msg.includes('Unauthorized') || msg.includes('Não autorizado')) clientMessage = 'Acesso não autorizado';
-    else if (msg.includes('senha') || msg.includes('Password') || msg.includes('password')) clientMessage = msg;
-    else if (msg.includes('Cargo') || msg.includes('cargo') || msg.includes('Gerentes')) clientMessage = msg;
-    else if (msg.startsWith('❌')) clientMessage = msg;
+    let statusCode = 400;
+
+    if (msg.includes('already') || msg.includes('duplicate')) {
+      clientMessage = 'Este email já está em uso';
+    } else if (msg.includes('Unauthorized') || msg.includes('Não autorizado')) {
+      clientMessage = 'Acesso não autorizado';
+      statusCode = 403;
+    } else if (msg.includes('senha') || msg.includes('Password') || msg.includes('password')) {
+      clientMessage = msg;
+    } else if (msg.includes('Cargo') || msg.includes('cargo') || msg.includes('Gerentes')) {
+      clientMessage = msg;
+    } else if (msg.startsWith('❌')) {
+      clientMessage = msg;
+    } else {
+      statusCode = 500;
+      clientMessage = `Erro interno: ${msg}`;
+    }
     
     return new Response(
       JSON.stringify({ error: clientMessage }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
+        status: statusCode 
       }
     )
   }
