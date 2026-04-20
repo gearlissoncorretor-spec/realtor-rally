@@ -247,6 +247,7 @@ const Acompanhamento = () => {
               {stages.map(stage => {
                 const stageCards = getCardsForStage(stage.id);
                 const stageVGV = stageCards.reduce((s, c) => s + c.value, 0);
+                const stageVGC = stageCards.reduce((s, c) => s + (c.vgc || 0), 0);
                 const pct = totalVGV > 0 ? (stageVGV / totalVGV) * 100 : 0;
 
                 return (
