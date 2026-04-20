@@ -14,7 +14,7 @@ import { TopBrokersRanking } from "@/components/sales/TopBrokersRanking";
 import { CaptacaoTab } from "@/components/sales/CaptacaoTab";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home, Download } from "lucide-react";
+import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home, Download, DollarSign, TrendingUp, Target } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { usePersistedFilters } from "@/hooks/usePersistedFilters";
