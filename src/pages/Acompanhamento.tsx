@@ -80,6 +80,7 @@ const Acompanhamento = () => {
 
   // KPI calculations
   const totalVGV = processCards.reduce((sum, c) => sum + c.value, 0);
+  const totalVGC = processCards.reduce((sum, c) => sum + (c.vgc || 0), 0);
   const totalCards = processCards.length;
   const avgTicket = totalCards > 0 ? totalVGV / totalCards : 0;
   const confirmedCount = processCards.filter(c => c.status === "confirmada").length;
