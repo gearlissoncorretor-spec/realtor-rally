@@ -53,8 +53,6 @@ const Acompanhamento = () => {
 
     return sales
       .filter(sale => {
-        // Only show vendas in pipeline, not captações
-        if (sale.tipo === 'captacao') return false;
         // Search filter only
         if (search) {
           const brokerName = getBrokerName(sale.broker_id).toLowerCase();
