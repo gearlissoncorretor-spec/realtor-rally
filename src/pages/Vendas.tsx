@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import { formatCurrency } from "@/utils/formatting";
 import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
