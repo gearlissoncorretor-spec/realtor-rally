@@ -36,7 +36,10 @@ export function ResponsiveStatCard({
   };
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card 
+      className={cn("overflow-hidden", className, onClick && "cursor-pointer")}
+      onClick={onClick}
+    >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className={cn("p-2 rounded-lg shrink-0", bgColor)}>
