@@ -29,7 +29,7 @@ import {
   Zap, Flame, Trophy, CheckSquare,
   ChevronRight, Calendar, MapPin,
   BarChart3, TrendingUp, DollarSign, Lightbulb, X,
-  AlertTriangle, MessageCircle, Briefcase, Activity, Rocket,
+  AlertTriangle, MessageCircle, Briefcase, Activity, Rocket, Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -251,6 +251,30 @@ const GerenteDashboard = () => {
             focusMode={focusMode}
             onToggleFocusMode={() => setFocusMode(!focusMode)}
           />
+
+          {/* Quick Summary Bar */}
+          <div className="flex items-center gap-4 sm:gap-8 bg-card/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-border/50 shadow-sm animate-fade-in self-start">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <DollarSign className="w-3 h-3" /> VGV
+              </span>
+              <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(monthVGV)}</span>
+            </div>
+            <div className="w-px h-8 bg-border/30" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" /> VGC
+              </span>
+              <span className="text-sm font-bold text-success tabular-nums">{formatCurrency(monthVGC)}</span>
+            </div>
+            <div className="w-px h-8 bg-border/30" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <Target className="w-3 h-3" /> Vendas
+              </span>
+              <span className="text-sm font-bold text-warning tabular-nums">{monthSales.length}</span>
+            </div>
+          </div>
 
           {/* Mobile Quick Actions */}
           {isMobile && !focusMode && (

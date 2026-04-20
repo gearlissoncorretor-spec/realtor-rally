@@ -97,6 +97,7 @@ const SocioDiretorDashboard = () => {
   // KPIs
   const metrics = useMemo(() => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
+    const totalVGC = filteredSales.reduce((s, sale) => s + Number(sale.vgc || 0), 0);
     const totalSales = filteredSales.length;
     const ticketMedio = totalSales > 0 ? totalVGV / totalSales : 0;
     
@@ -124,6 +125,7 @@ const SocioDiretorDashboard = () => {
 
     return {
       totalVGV,
+      totalVGC,
       totalVGVCaptacao,
       totalSales,
       ticketMedio,
@@ -251,7 +253,7 @@ const SocioDiretorDashboard = () => {
   return (
     <div className="space-y-6 pb-10">
       {/* Header with Group Name */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-2">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6 text-primary" />
@@ -260,6 +262,30 @@ const SocioDiretorDashboard = () => {
           <p className="text-muted-foreground text-sm">
             Acompanhamento estratégico consolidado de todas as unidades
           </p>
+        </div>
+
+        {/* Quick Summary Bar */}
+        <div className="flex items-center gap-4 sm:gap-8 bg-card/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-border/50 shadow-sm animate-fade-in self-start lg:self-center">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <DollarSign className="w-3 h-3" /> VGV
+            </span>
+            <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(metrics.totalVGV)}</span>
+          </div>
+          <div className="w-px h-8 bg-border/30" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" /> VGC
+            </span>
+            <span className="text-sm font-bold text-success tabular-nums">{formatCurrency(metrics.totalVGC)}</span>
+          </div>
+          <div className="w-px h-8 bg-border/30" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <Target className="w-3 h-3" /> Vendas
+            </span>
+            <span className="text-sm font-bold text-warning tabular-nums">{metrics.totalSales}</span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

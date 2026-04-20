@@ -261,7 +261,10 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     chartData,
     brokerRankings,
     quickStats,
-    monthlyGoal
+    monthlyGoal,
+    totalVGV,
+    totalVGC,
+    totalSales
   };
 }
 
@@ -296,7 +299,10 @@ const DiretorDashboardPage = () => {
     chartData,
     brokerRankings,
     quickStats,
-    monthlyGoal
+    monthlyGoal,
+    totalVGV,
+    totalVGC,
+    totalSales
   } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets);
 
   // Per-team breakdown for directors
@@ -377,16 +383,41 @@ const DiretorDashboardPage = () => {
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 min-h-screen">
         
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold text-foreground/95 tracking-tight">
-            {displayName}
-          </h1>
-          {subtitle && (
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {subtitle}
-            </p>
-          )}
+        {/* Header & Quick Summary */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-xl font-semibold text-foreground/95 tracking-tight">
+              {displayName}
+            </h1>
+            {subtitle && (
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4 sm:gap-8 bg-card/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-border/50 shadow-sm animate-fade-in">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <DollarSign className="w-3 h-3" /> VGV
+              </span>
+              <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(totalVGV)}</span>
+            </div>
+            <div className="w-px h-8 bg-border/30" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" /> VGC
+              </span>
+              <span className="text-sm font-bold text-success tabular-nums">{formatCurrency(totalVGC)}</span>
+            </div>
+            <div className="w-px h-8 bg-border/30" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <Target className="w-3 h-3" /> Vendas
+              </span>
+              <span className="text-sm font-bold text-warning tabular-nums">{totalSales}</span>
+            </div>
+          </div>
         </div>
 
         {/* Alerta de Negociações */}
