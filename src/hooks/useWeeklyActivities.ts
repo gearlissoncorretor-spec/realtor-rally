@@ -38,7 +38,7 @@ const DEFAULT_TASKS = [
 ];
 
 export const useWeeklyActivities = (brokerId?: string, weekStart?: string) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -48,9 +48,9 @@ export const useWeeklyActivities = (brokerId?: string, weekStart?: string) => {
     const now = new Date();
     return format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
   }, [weekStart]);
-
+  
   const { data: activities = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['weekly_activities', brokerId, currentWeekStart],
+    queryKey: ['weekly_activities', brokerId, currentWeekStart, user?.id],
     queryFn: async () => {
       let query = supabase
         .from('broker_weekly_activities')
