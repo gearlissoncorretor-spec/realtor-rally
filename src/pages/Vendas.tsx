@@ -108,6 +108,10 @@ const Vendas = () => {
     });
   }, [vendaSales, selectedYear, selectedMonth, statusFilter]);
 
+  const totalVGV = periodFilteredSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+  const totalVGC = periodFilteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
+  const totalSalesCount = periodFilteredSales.length;
+
   const searchFilteredSales = useMemo(() => {
     if (!searchTerm.trim()) return periodFilteredSales;
     const lowerSearch = searchTerm.toLowerCase();
