@@ -29,11 +29,14 @@ export interface TeamMember {
   team_id?: string;
 }
 
+import { useAuth } from '@/contexts/AuthContext';
+
 export const useTeams = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
   const fetchTeams = async () => {
     try {
