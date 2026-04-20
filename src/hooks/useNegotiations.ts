@@ -56,10 +56,12 @@ export interface UpdateNegotiationInput {
 }
 
 export const useNegotiations = () => {
-  const { user, profile, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy } = useAuth();
+  const { user, profile, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy, loading: authLoading, getUserRole } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { brokers, loading: brokersLoading } = useBrokers();
+
+  const userRole = getUserRole();
 
   // Get current user's broker for corretores
   const currentBroker = useMemo(() => {
@@ -68,7 +70,7 @@ export const useNegotiations = () => {
 
   // Fetch active negotiations (excludes venda_concluida and perdida)
   const { data: allNegotiations = [], isLoading: loadingActive, error: errorActive, refetch: refetchActive } = useQuery({
-    queryKey: ['negotiations', 'active'],
+    queryKey: ['negotiations', 'active', user?.id, userRole],
     queryFn: async () => {
       const allNegotiations: Negotiation[] = [];
       const PAGE_SIZE = 1000;
@@ -91,23 +93,23 @@ export const useNegotiations = () => {
 
       return allNegotiations;
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   // Fetch lost negotiations
   const { data: allLostNegotiations = [], isLoading: loadingLost, error: errorLost, refetch: refetchLost } = useQuery({
-    queryKey: ['negotiations', 'lost'],
+    queryKey: ['negotiations', 'lost', user?.id, userRole],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('negotiations')
-        .select('*')
-        .eq('status', 'perdida')
-        .order('updated_at', { ascending: false });
+          .from('negotiations')
+          .select('*')
+          .eq('status', 'perdida')
+          .order('updated_at', { ascending: false });
 
       if (error) throw error;
       return data as Negotiation[];
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   // Filter negotiations based on user role
