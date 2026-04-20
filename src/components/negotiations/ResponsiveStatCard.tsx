@@ -21,6 +21,7 @@ export function ResponsiveStatCard({
   label,
   sublabel,
   className,
+  onClick,
 }: ResponsiveStatCardProps) {
   // Calculate font size based on value length
   const getValueFontSize = (val: string | number) => {
