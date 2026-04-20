@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { FollowUpStatus } from './useFollowUps';
 
 export const useFollowUpStatuses = () => {
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: statuses = [], isLoading } = useQuery({
@@ -17,6 +19,7 @@ export const useFollowUpStatuses = () => {
       if (error) throw error;
       return data as FollowUpStatus[];
     },
+    enabled: !!user && !authLoading,
   });
 
   const invalidate = () => {
