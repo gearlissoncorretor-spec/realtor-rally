@@ -185,7 +185,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     staleTime: 2 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   const { 
@@ -193,7 +193,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: targetsLoading,
     error: targetsError 
   } = useQuery({
-    queryKey: ['targets', user?.id, teamId],
+    queryKey: ['targets', user?.id, teamId, userRole],
     queryFn: async () => {
       if (!user) return [];
       
