@@ -299,7 +299,10 @@ const DiretorDashboardPage = () => {
     chartData,
     brokerRankings,
     quickStats,
-    monthlyGoal
+    monthlyGoal,
+    totalVGV,
+    totalVGC,
+    totalSales
   } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets);
 
   // Per-team breakdown for directors
