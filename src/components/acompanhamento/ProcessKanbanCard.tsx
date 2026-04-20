@@ -67,7 +67,14 @@ const ProcessKanbanCard = ({ card, index }: ProcessKanbanCardProps) => {
             <div className="space-y-2">
               {/* Header: client + status */}
               <div className="flex items-start justify-between gap-2">
-                <h4 className="font-semibold text-sm text-foreground leading-tight">{card.clientName}</h4>
+                <div className="flex flex-col gap-1">
+                  <h4 className="font-semibold text-sm text-foreground leading-tight">{card.clientName}</h4>
+                  {card.tipo === 'captacao' && (
+                    <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[10px] h-4 w-fit px-1">
+                      Captação
+                    </Badge>
+                  )}
+                </div>
                 <Badge variant={statusVariant} className="text-[10px] px-1.5 py-0 shrink-0">
                   {statusLabel}
                 </Badge>
