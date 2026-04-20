@@ -280,9 +280,16 @@ const Acompanhamento = () => {
                             </>
                           )}
                         </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <Badge variant="secondary" className="text-xs">{stageCards.length} vendas</Badge>
-                          <span className="text-[10px] text-muted-foreground font-medium">{formatCurrency(stageVGV)}</span>
+                        <div className="flex flex-col mt-1">
+                          <div className="flex items-center justify-between">
+                            <Badge variant="secondary" className="text-xs">{stageCards.length} vendas</Badge>
+                            <span className="text-[10px] text-muted-foreground font-medium">{formatCurrency(stageVGV)}</span>
+                          </div>
+                          {stageVGC > 0 && (
+                            <div className="flex items-center justify-end mt-0.5">
+                              <span className="text-[9px] text-success font-semibold">VGC: {formatCurrency(stageVGC)}</span>
+                            </div>
+                          )}
                         </div>
                         {/* Mini progress bar */}
                         <div className="h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
