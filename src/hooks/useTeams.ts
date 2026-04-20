@@ -271,6 +271,8 @@ export const useTeams = () => {
   };
 
   useEffect(() => {
+    if (!user || authLoading) return;
+
     const loadData = async () => {
       setLoading(true);
       await Promise.all([fetchTeams(), fetchTeamMembers()]);
@@ -278,7 +280,7 @@ export const useTeams = () => {
     };
 
     loadData();
-  }, []);
+  }, [user, authLoading]);
 
   return {
     teams,
