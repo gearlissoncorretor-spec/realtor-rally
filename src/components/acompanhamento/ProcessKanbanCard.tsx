@@ -13,6 +13,8 @@ interface ProcessCardData {
   brokerName: string;
   brokerAvatar?: string;
   value: number;
+  vgc?: number;
+  tipo?: string;
   saleDate: string;
   stageId: string;
   status?: string;
