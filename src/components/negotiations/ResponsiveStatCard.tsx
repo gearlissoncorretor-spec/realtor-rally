@@ -10,6 +10,7 @@ interface ResponsiveStatCardProps {
   label: string;
   sublabel?: string;
   className?: string;
+  onClick?: () => void;
 }
 
 export function ResponsiveStatCard({
@@ -20,6 +21,7 @@ export function ResponsiveStatCard({
   label,
   sublabel,
   className,
+  onClick,
 }: ResponsiveStatCardProps) {
   // Calculate font size based on value length
   const getValueFontSize = (val: string | number) => {
@@ -34,7 +36,10 @@ export function ResponsiveStatCard({
   };
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card 
+      className={cn("overflow-hidden", className, onClick && "cursor-pointer")}
+      onClick={onClick}
+    >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className={cn("p-2 rounded-lg shrink-0", bgColor)}>
