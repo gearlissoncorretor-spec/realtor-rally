@@ -67,7 +67,7 @@ export const useWeeklyActivities = (brokerId?: string, weekStart?: string) => {
       if (error) throw error;
       return data as WeeklyActivity[];
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   // Create default tasks for a broker if they don't have any for this week
