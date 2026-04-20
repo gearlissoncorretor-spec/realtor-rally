@@ -97,6 +97,7 @@ const SocioDiretorDashboard = () => {
   // KPIs
   const metrics = useMemo(() => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
+    const totalVGC = filteredSales.reduce((s, sale) => s + Number(sale.vgc || 0), 0);
     const totalSales = filteredSales.length;
     const ticketMedio = totalSales > 0 ? totalVGV / totalSales : 0;
     
