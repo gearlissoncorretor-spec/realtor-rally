@@ -53,8 +53,6 @@ const Acompanhamento = () => {
 
     return sales
       .filter(sale => {
-        // Only show vendas in pipeline, not captações
-        if (sale.tipo === 'captacao') return false;
         // Search filter only
         if (search) {
           const brokerName = getBrokerName(sale.broker_id).toLowerCase();
@@ -69,7 +67,9 @@ const Acompanhamento = () => {
         propertyAddress: sale.property_address,
         brokerName: getBrokerName(sale.broker_id),
         brokerAvatar: getBrokerAvatar(sale.broker_id),
-        value: sale.property_value,
+        value: sale.property_value || 0,
+        vgc: Number(sale.vgc || 0),
+        tipo: sale.tipo,
         saleDate: sale.sale_date || new Date().toISOString().split("T")[0],
         stageId: sale.process_stage_id || firstStageId,
         status: sale.status || "pendente",
@@ -80,6 +80,7 @@ const Acompanhamento = () => {
 
   // KPI calculations
   const totalVGV = processCards.reduce((sum, c) => sum + c.value, 0);
+  const totalVGC = processCards.reduce((sum, c) => sum + (c.vgc || 0), 0);
   const totalCards = processCards.length;
   const avgTicket = totalCards > 0 ? totalVGV / totalCards : 0;
   const confirmedCount = processCards.filter(c => c.status === "confirmada").length;
@@ -212,11 +213,12 @@ const Acompanhamento = () => {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KPICard title="Total no Pipeline" value={String(totalCards)} icon={<Layers className="h-5 w-5 text-primary" />} />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <KPICard title="Total Pipeline" value={String(totalCards)} icon={<Layers className="h-5 w-5 text-primary" />} />
           <KPICard title="VGV Total" value={formatCurrency(totalVGV)} icon={<DollarSign className="h-5 w-5 text-primary" />} />
+          <KPICard title="VGC Total" value={formatCurrency(totalVGC)} icon={<TrendingUp className="h-5 w-5 text-success" />} />
           <KPICard title="Ticket Médio" value={formatCurrency(avgTicket)} icon={<BarChart3 className="h-5 w-5 text-primary" />} />
-          <KPICard title="Confirmadas" value={String(confirmedCount)} icon={<TrendingUp className="h-5 w-5 text-primary" />} trend={confirmedCount > 0 ? "up" : "neutral"} />
+          <KPICard title="Confirmadas" value={String(confirmedCount)} icon={<Check className="h-5 w-5 text-success" />} trend={confirmedCount > 0 ? "up" : "neutral"} />
         </div>
 
         {/* Filters */}
@@ -245,6 +247,7 @@ const Acompanhamento = () => {
               {stages.map(stage => {
                 const stageCards = getCardsForStage(stage.id);
                 const stageVGV = stageCards.reduce((s, c) => s + c.value, 0);
+                const stageVGC = stageCards.reduce((s, c) => s + (c.vgc || 0), 0);
                 const pct = totalVGV > 0 ? (stageVGV / totalVGV) * 100 : 0;
 
                 return (
@@ -277,9 +280,16 @@ const Acompanhamento = () => {
                             </>
                           )}
                         </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <Badge variant="secondary" className="text-xs">{stageCards.length} vendas</Badge>
-                          <span className="text-[10px] text-muted-foreground font-medium">{formatCurrency(stageVGV)}</span>
+                        <div className="flex flex-col mt-1">
+                          <div className="flex items-center justify-between">
+                            <Badge variant="secondary" className="text-xs">{stageCards.length} vendas</Badge>
+                            <span className="text-[10px] text-muted-foreground font-medium">{formatCurrency(stageVGV)}</span>
+                          </div>
+                          {stageVGC > 0 && (
+                            <div className="flex items-center justify-end mt-0.5">
+                              <span className="text-[9px] text-success font-semibold">VGC: {formatCurrency(stageVGC)}</span>
+                            </div>
+                          )}
                         </div>
                         {/* Mini progress bar */}
                         <div className="h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
