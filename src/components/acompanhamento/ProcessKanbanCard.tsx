@@ -95,7 +95,12 @@ const ProcessKanbanCard = ({ card, index }: ProcessKanbanCardProps) => {
 
               {/* Footer: value + time */}
               <div className="pt-2 border-t border-border/50 flex items-center justify-between">
-                <p className="text-sm font-bold text-primary">{formatCurrency(card.value)}</p>
+                <div className="flex flex-col">
+                  <p className="text-sm font-bold text-primary">{formatCurrency(card.value)}</p>
+                  {card.vgc !== undefined && card.vgc > 0 && (
+                    <p className="text-[10px] font-medium text-success">VGC: {formatCurrency(card.vgc)}</p>
+                  )}
+                </div>
                 <div className={`flex items-center gap-1 text-[10px] ${
                   urgency === "critical" ? "text-destructive" :
                   urgency === "warning" ? "text-amber-500" : "text-muted-foreground"
