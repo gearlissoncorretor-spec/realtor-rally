@@ -187,13 +187,39 @@ const CorretorDashboard = () => {
         <div className="space-y-5 max-w-5xl mx-auto">
 
           {/* Header */}
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-              {isMobile ? 'Meu Painel' : 'Central do Corretor'}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Olá, {profile?.full_name?.split(' ')[0] || 'Corretor'}! Seu resumo do dia.
-            </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                {isMobile ? 'Meu Painel' : 'Central do Corretor'}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Olá, {profile?.full_name?.split(' ')[0] || 'Corretor'}! Seu resumo do dia.
+              </p>
+            </div>
+
+            {/* Quick Summary Bar */}
+            <div className="flex items-center gap-4 sm:gap-8 bg-card/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-border/50 shadow-sm animate-fade-in self-start md:self-center">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" /> VGV
+                </span>
+                <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(monthVGV)}</span>
+              </div>
+              <div className="w-px h-8 bg-border/30" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> VGC
+                </span>
+                <span className="text-sm font-bold text-success tabular-nums">{formatCurrency(monthVGC)}</span>
+              </div>
+              <div className="w-px h-8 bg-border/30" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <Target className="w-3 h-3" /> Vendas
+                </span>
+                <span className="text-sm font-bold text-warning tabular-nums">{monthSales.length}</span>
+              </div>
+            </div>
           </div>
 
           {/* ========== 1. THREE MAIN CARDS ========== */}
