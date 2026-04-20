@@ -125,6 +125,7 @@ const SocioDiretorDashboard = () => {
 
     return {
       totalVGV,
+      totalVGC,
       totalVGVCaptacao,
       totalSales,
       ticketMedio,
