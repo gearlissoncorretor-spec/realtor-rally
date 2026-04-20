@@ -75,7 +75,7 @@ const ProcessKanbanCard = ({ card, index }: ProcessKanbanCardProps) => {
                     </Badge>
                   )}
                 </div>
-                <Badge variant={statusVariant} className="text-[10px] px-1.5 py-0 shrink-0">
+                <Badge variant={statusVariant} className="text-[11px] px-2 py-0.5 shrink-0 shadow-sm border-current/20">
                   {statusLabel}
                 </Badge>
               </div>
