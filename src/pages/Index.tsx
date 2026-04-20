@@ -261,7 +261,10 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     chartData,
     brokerRankings,
     quickStats,
-    monthlyGoal
+    monthlyGoal,
+    totalVGV,
+    totalVGC,
+    totalSales
   };
 }
 
