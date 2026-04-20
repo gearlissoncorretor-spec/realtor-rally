@@ -213,11 +213,12 @@ const Acompanhamento = () => {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KPICard title="Total no Pipeline" value={String(totalCards)} icon={<Layers className="h-5 w-5 text-primary" />} />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <KPICard title="Total Pipeline" value={String(totalCards)} icon={<Layers className="h-5 w-5 text-primary" />} />
           <KPICard title="VGV Total" value={formatCurrency(totalVGV)} icon={<DollarSign className="h-5 w-5 text-primary" />} />
+          <KPICard title="VGC Total" value={formatCurrency(totalVGC)} icon={<TrendingUp className="h-5 w-5 text-success" />} />
           <KPICard title="Ticket Médio" value={formatCurrency(avgTicket)} icon={<BarChart3 className="h-5 w-5 text-primary" />} />
-          <KPICard title="Confirmadas" value={String(confirmedCount)} icon={<TrendingUp className="h-5 w-5 text-primary" />} trend={confirmedCount > 0 ? "up" : "neutral"} />
+          <KPICard title="Confirmadas" value={String(confirmedCount)} icon={<Check className="h-5 w-5 text-success" />} trend={confirmedCount > 0 ? "up" : "neutral"} />
         </div>
 
         {/* Filters */}
