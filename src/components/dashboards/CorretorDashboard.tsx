@@ -74,6 +74,7 @@ const CorretorDashboard = () => {
   const primaryGoal = brokerGoals[0];
 
   const monthVGV = monthSales.reduce((sum, s) => sum + (s.vgv || 0), 0);
+  const monthVGC = monthSales.reduce((sum, s) => sum + (s.vgc || 0), 0);
 
   const metaValue = primaryGoal?.target_value || currentBroker?.meta_monthly || 0;
   const metaRealizado = primaryGoal?.current_value || monthVGV;
