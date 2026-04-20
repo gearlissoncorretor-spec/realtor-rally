@@ -59,7 +59,9 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, teamHierarchy, getUserRole } = useAuth();
+  const { user, teamHierarchy, getUserRole, loading: authLoading } = useAuth();
+  const userRole = getUserRole();
+  
   // Stable query key - use primitive values only
   const teamId = teamHierarchy?.team_id ?? null;
   
@@ -69,7 +71,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: brokersLoading,
     error: brokersError 
   } = useQuery({
-    queryKey: ['brokers', user?.id, teamId],
+    queryKey: ['brokers', user?.id, teamId, userRole],
     queryFn: async () => {
       if (!user) return [];
       
