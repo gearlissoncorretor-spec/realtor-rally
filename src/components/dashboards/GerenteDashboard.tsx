@@ -29,7 +29,7 @@ import {
   Zap, Flame, Trophy, CheckSquare,
   ChevronRight, Calendar, MapPin,
   BarChart3, TrendingUp, DollarSign, Lightbulb, X,
-  AlertTriangle, MessageCircle, Briefcase, Activity, Rocket,
+  AlertTriangle, MessageCircle, Briefcase, Activity, Rocket, Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
