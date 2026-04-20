@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
 
 export interface Commission {
   id: string;
@@ -46,9 +48,11 @@ export interface CommissionInsert {
 export const useCommissions = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user, loading: authLoading, getUserRole } = useAuth();
+  const userRole = getUserRole();
 
   const { data: commissions = [], isLoading } = useQuery({
-    queryKey: ['commissions'],
+    queryKey: ['commissions', user?.id, userRole],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('commissions')
@@ -57,6 +61,7 @@ export const useCommissions = () => {
       if (error) throw error;
       return data as Commission[];
     },
+    enabled: !!user && !authLoading,
   });
 
   const createCommission = useMutation({

@@ -62,8 +62,9 @@ export interface CreateFollowUpInput {
 
 export const useFollowUps = () => {
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading, getUserRole } = useAuth();
   const queryClient = useQueryClient();
+  const userRole = getUserRole();
 
   // Fetch statuses
   const { data: statuses = [], isLoading: loadingStatuses } = useQuery({
@@ -78,11 +79,12 @@ export const useFollowUps = () => {
       if (error) throw error;
       return data as FollowUpStatus[];
     },
+    enabled: !!user && !authLoading,
   });
 
   // Fetch follow-ups
   const { data: followUps = [], isLoading: loadingFollowUps, refetch } = useQuery({
-    queryKey: ['follow-ups'],
+    queryKey: ['follow-ups', user?.id, userRole],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('follow_ups')
@@ -95,6 +97,7 @@ export const useFollowUps = () => {
       if (error) throw error;
       return data as FollowUp[];
     },
+    enabled: !!user && !authLoading,
   });
 
   // Create follow-up

@@ -29,12 +29,13 @@ export interface CreateActivityInput {
 }
 
 export const useActivities = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading, getUserRole } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const userRole = getUserRole();
 
   const { data: activities = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['broker_activities'],
+    queryKey: ['broker_activities', user?.id, userRole],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('broker_activities')
@@ -44,7 +45,7 @@ export const useActivities = () => {
       if (error) throw error;
       return data as BrokerActivity[];
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   const createActivityMutation = useMutation({
