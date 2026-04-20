@@ -160,21 +160,43 @@ const Vendas = () => {
         <div className="max-w-[1400px] mx-auto space-y-6">
           
           {/* Header Premium */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-foreground tracking-tight">Painel de Vendas</h1>
-                  <p className="text-sm text-muted-foreground">
-                    Acompanhe resultados e performance da equipe
-                  </p>
-                </div>
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">Painel de Vendas</h1>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhe resultados e performance da equipe
+                </p>
               </div>
             </div>
-            
+
+            {/* Quick Summary Bar */}
+            <div className="flex items-center gap-4 sm:gap-8 bg-card/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-border/50 shadow-sm animate-fade-in self-start lg:self-center">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" /> VGV
+                </span>
+                <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(totalVGV)}</span>
+              </div>
+              <div className="w-px h-8 bg-border/30" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> VGC
+                </span>
+                <span className="text-sm font-bold text-success tabular-nums">{formatCurrency(totalVGC)}</span>
+              </div>
+              <div className="w-px h-8 bg-border/30" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                  <Target className="w-3 h-3" /> Vendas
+                </span>
+                <span className="text-sm font-bold text-warning tabular-nums">{totalSalesCount}</span>
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
               <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogTrigger asChild>
