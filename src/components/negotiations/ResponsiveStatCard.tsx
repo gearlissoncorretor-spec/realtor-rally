@@ -10,6 +10,7 @@ interface ResponsiveStatCardProps {
   label: string;
   sublabel?: string;
   className?: string;
+  onClick?: () => void;
 }
 
 export function ResponsiveStatCard({
