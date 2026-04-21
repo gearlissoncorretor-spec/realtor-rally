@@ -120,7 +120,320 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
 };
 
 const Navigation = () => {
-...
+  const location = useLocation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { hasAccess, isAdmin, isSuperAdmin, getUserRole, profile, user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { settings } = useOrganizationSettings();
+  const { displayName, subtitle } = useContextualIdentity();
+  const [commandOpen, setCommandOpen] = useState(false);
+  const pendingCount = usePendingUsersCount();
 
+  const allNavItems: NavItem[] = [
+    { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
+    { href: "/central-gestor", label: "Central do Gestor", icon: TrendingUp, screen: "central-gestor" },
+    { href: "/ranking", label: "Ranking", icon: Trophy, screen: "ranking" },
+    { href: "/vendas", label: "Vendas", icon: ShoppingBag, screen: "vendas" },
+    { href: "/negociacoes", label: "Negociações", icon: Handshake, screen: "negociacoes" },
+    { href: "/follow-up", label: "Follow-up / Clientes", icon: Users, screen: "follow-up" },
+    { href: "/metas", label: "Metas", icon: Target, screen: "metas" },
+    { href: "/meta-gestao", label: "Meta Gestão", icon: PieChart, screen: "meta-gestao" },
+    { href: "/atividades", label: "Atividades", icon: ClipboardList, screen: "atividades" },
+    { href: "/acompanhamento", label: "Status Vendas", icon: Wallet, screen: "acompanhamento" },
+    { href: "/comissoes", label: "Comissões", icon: Receipt, screen: "comissoes" },
+    { href: "/relatorios", label: "Relatórios", icon: FileBarChart, screen: "relatorios" },
+    { href: "/corretores", label: "Corretores", icon: Users, screen: "corretores" },
+    { href: "/equipes", label: "Equipes", icon: UsersRound, screen: "equipes" },
+    { href: "/x1", label: "X1", icon: Columns3, screen: "x1" },
+    { href: "/agenda", label: "Agenda", icon: CalendarDays, screen: "agenda" },
+    { href: "/gestao-usuarios", label: "Gestão de Usuários", icon: UserCog, screen: "gestao-usuarios" },
+    { href: "/configuracoes", label: "Configurações", icon: Settings, screen: "configuracoes" },
+    { href: "/instalar", label: "Instalar App", icon: Download, screen: "instalar" },
+    { href: "/super-admin", label: "Super Admin", icon: Shield, screen: "super-admin" },
+    { href: "/edital", label: "Edital do Sistema", icon: FileText, screen: "edital" },
+  ];
+
+  const navItems = allNavItems.filter(item => {
+    const userRole = getUserRole();
+    if (isSuperAdmin()) return item.screen === 'super-admin';
+    if (isAdmin()) return true;
+    if (item.screen === 'instalar') return true;
+    return roleHasScreenAccess(userRole, item.screen) && hasAccess(item.screen);
+  });
+
+  const navGroups: NavGroup[] = [
+    {
+      label: "Super Admin",
+      defaultOpen: true,
+      items: navItems.filter(i => ['super-admin'].includes(i.screen)),
+    },
+    {
+      label: "Principal",
+      defaultOpen: true,
+      items: navItems.filter(i => ['dashboard', 'central-gestor', 'ranking', 'agenda'].includes(i.screen)),
+    },
+    {
+      label: "Comercial",
+      defaultOpen: true,
+      items: navItems.filter(i => ['vendas', 'negociacoes', 'follow-up', 'acompanhamento'].includes(i.screen)),
+    },
+    {
+      label: "Produtividade",
+      items: navItems.filter(i => ['metas', 'meta-gestao', 'atividades', 'x1'].includes(i.screen)),
+    },
+    {
+      label: "Relatórios",
+      items: navItems.filter(i => ['relatorios'].includes(i.screen)),
+    },
+    {
+      label: "Gestão",
+      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios', 'comissoes'].includes(i.screen)),
+    },
+    {
+      label: "Sistema",
+      items: navItems.filter(i => ['configuracoes', 'instalar', 'edital'].includes(i.screen)),
+    },
+  ].filter(g => g.items.length > 0);
+
+  const userRole = getUserRole();
+  const roleLabelMap: Record<string, string> = {
+    admin: 'Admin',
+    diretor: 'Diretor',
+    socio: 'Sócio Diretor',
+    gerente: 'Gerente',
+    corretor: 'Corretor',
+    super_admin: 'Super Admin',
+  };
+
+  const renderLogo = () => (
+    <div className="flex items-center gap-3">
+      {settings?.logo_icon_url || settings?.logo_url ? (
+        <button onClick={() => navigate('/')} className="w-10 h-10 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden ring-1 ring-border/30" title="Ir ao Dashboard">
+          <img src={settings?.logo_icon_url || settings?.logo_url || ""} alt={displayName} className="w-full h-full object-contain" />
+        </button>
+      ) : (
+        <button onClick={() => navigate('/')} className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/20" title="Ir ao Dashboard">
+          <span className="text-base font-bold text-primary-foreground">{displayName.charAt(0).toUpperCase()}</span>
+        </button>
+      )}
+      <div className="min-w-0 flex-1">
+        <h1 className="text-base font-semibold text-foreground tracking-tight truncate leading-tight">{displayName}</h1>
+        {subtitle && <p className="text-[11px] text-muted-foreground font-medium truncate leading-tight mt-0.5">{subtitle}</p>}
+      </div>
+    </div>
+  );
+
+  const renderMobileLogo = () => (
+    <div className="flex items-center gap-3">
+      {settings?.logo_icon_url || settings?.logo_url ? (
+        <button onClick={() => navigate('/')} className="w-8 h-8 rounded-lg flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer overflow-hidden ring-1 ring-border/30" title="Ir ao Dashboard">
+          <img src={settings?.logo_icon_url || settings?.logo_url || ""} alt={displayName} className="w-full h-full object-contain" />
+        </button>
+      ) : (
+        <button onClick={() => navigate('/')} className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center hover:scale-105 transition-all duration-300 cursor-pointer shadow-md shadow-primary/20" title="Ir ao Dashboard">
+          <span className="text-sm font-bold text-primary-foreground">{displayName.charAt(0).toUpperCase()}</span>
+        </button>
+      )}
+      <div className="min-w-0">
+        <h1 className="text-sm font-semibold text-foreground tracking-tight truncate max-w-[120px] leading-tight">{displayName}</h1>
+      </div>
+    </div>
+  );
+
+  const renderUserProfile = () => (
+    <UserProfileDialog>
+      <button className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent/60 transition-all duration-200 w-full group">
+        <UserAvatar name={profile?.full_name} avatarUrl={profile?.avatar_url} size="md" />
+        <div className="text-left min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground truncate leading-tight">{profile?.full_name || 'Usuário'}</p>
+          <p className="text-[11px] text-muted-foreground truncate leading-tight">{profile?.email}</p>
+        </div>
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 font-medium shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+          {roleLabelMap[userRole] || userRole}
+        </Badge>
+      </button>
+    </UserProfileDialog>
+  );
+
+  const renderNavLink = (item: NavItem, onClick?: () => void) => {
+    const Icon = item.icon;
+    const isActive = location.pathname === item.href;
+    const showBadge = item.screen === 'gestao-usuarios' && pendingCount > 0;
+    return (
+      <Link
+        key={item.href}
+        to={item.href}
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-300 group relative overflow-hidden",
+          isActive
+            ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-1 ring-primary/20"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:translate-x-1"
+        )}
+      >
+        {isActive && (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+        )}
+        <Icon className={cn(
+          "w-[18px] h-[18px] shrink-0 transition-colors",
+          isActive ? "text-primary" : "text-muted-foreground/70 group-hover:text-foreground"
+        )} />
+        <span className="truncate">{item.label}</span>
+        {showBadge && (
+          <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center">
+            {pendingCount}
+          </Badge>
+        )}
+      </Link>
+    );
+  };
+
+  const renderGroupedNav = (onClick?: () => void) => (
+    <div className="space-y-3">
+      {navGroups.map((group) => {
+        const hasActive = group.items.some(i => location.pathname === i.href);
+        return (
+          <Collapsible key={group.label} defaultOpen={group.defaultOpen || hasActive}>
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors group">
+              <span>{group.label}</span>
+              <ChevronDown className="w-3 h-3 text-muted-foreground/40 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-0.5 mt-1">
+              {group.items.map(item => renderNavLink(item, onClick))}
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <>
+      <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
+
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-card/95 backdrop-blur-xl border-b border-border/40 z-50 flex items-center justify-between px-4">
+        {renderMobileLogo()}
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="rounded-lg h-8 w-8 p-0" onClick={() => setCommandOpen(true)}>
+            <Search className="w-4 h-4" />
+          </Button>
+          <UserProfileDialog>
+            <button className="p-1">
+              <UserAvatar name={profile?.full_name} avatarUrl={profile?.avatar_url} size="sm" />
+            </button>
+          </UserProfileDialog>
+          <ThemeToggle />
+        </div>
+      </div>
+
+      <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border/40 z-50 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-primary/[0.01] pointer-events-none" />
+        
+        <div className="relative p-5 flex flex-col h-full min-h-0">
+          <div className="mb-5 shrink-0">
+            {renderLogo()}
+          </div>
+
+          <button
+            onClick={() => setCommandOpen(true)}
+            className="flex items-center gap-2.5 px-3 py-2 mb-5 rounded-lg bg-muted/40 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border/50 transition-all duration-200 text-sm shrink-0 group"
+          >
+            <Search className="w-3.5 h-3.5 opacity-50 group-hover:opacity-80 transition-opacity" />
+            <span className="flex-1 text-left text-xs">Buscar...</span>
+            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/40 bg-background/60 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/60">
+              ⌘K
+            </kbd>
+          </button>
+
+          <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 hover:scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20 pr-1 -mr-1">
+            {renderGroupedNav()}
+          </div>
+          
+          <div className="mt-3 pt-3 border-t border-border/30 space-y-2 shrink-0">
+            {renderUserProfile()}
+            <div className="flex items-center justify-between px-2">
+              <AuthButton />
+              <ThemeToggle />
+            </div>
+            {user && (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex-1 justify-start text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sair
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0"
+                  onClick={() => window.location.reload()}
+                  title="Atualizar sistema"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+            <div className="px-2 pt-1">
+              <p className="text-[10px] text-muted-foreground/50 font-medium">Versão 3.1</p>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {isMobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => setIsMobileOpen(false)} />
+          <nav className="absolute left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border/40 flex flex-col overflow-hidden animate-slide-in-left">
+            <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-primary/[0.01] pointer-events-none" />
+            <div className="relative p-5 flex flex-col h-full min-h-0">
+              <div className="mb-5 shrink-0">{renderLogo()}</div>
+              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 hover:scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20 pr-1 -mr-1">
+                {renderGroupedNav(() => setIsMobileOpen(false))}
+              </div>
+              <div className="mt-3 pt-3 border-t border-border/30 space-y-2 shrink-0">
+                {renderUserProfile()}
+                <div className="flex items-center justify-between px-2">
+                  <AuthButton />
+                  <ThemeToggle />
+                </div>
+                {user && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1 justify-start text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+                      onClick={() => signOut()}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sair
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 shrink-0"
+                      onClick={() => window.location.reload()}
+                      title="Atualizar sistema"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+                <div className="px-2 pt-1">
+                  <p className="text-[10px] text-muted-foreground/50 font-medium">Versão 3.1</p>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
+      )}
+
+      <MobileBottomNav onMenuClick={() => setIsMobileOpen(!isMobileOpen)} />
+    </>
+  );
+};
 
 export default Navigation;
