@@ -354,8 +354,27 @@ const Atividades = () => {
               </h1>
             </div>
             
-            {/* Week Selector */}
-            <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              {/* Team Filter for Directors */}
+              {(isDiretor() || isAdmin()) && teams.length > 0 && (
+                <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
+                  <Filter className="w-4 h-4 text-emerald-600 ml-1" />
+                  <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                    <SelectTrigger className="border-0 bg-transparent focus:ring-0 font-semibold text-emerald-600 w-[180px]">
+                      <SelectValue placeholder="Filtrar por equipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Equipes</SelectItem>
+                      {teams.map(team => (
+                        <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Week Selector */}
+              <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
               <Button
                 variant="ghost"
                 size="icon"
