@@ -348,10 +348,11 @@ export const OriginAnalyticsDashboard: React.FC<OriginAnalyticsDashboardProps> =
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KPICard icon={<Users className="w-4 h-4" />} label="Total Leads" value={totals.totalLeads.toString()} />
-            <KPICard icon={<Target className="w-4 h-4" />} label="Total Vendas" value={totals.totalVendas.toString()} />
-            <KPICard icon={<TrendingUp className="w-4 h-4" />} label="Conversão Geral" value={`${Math.round(totals.conversaoGeral)}%`} accent={totals.conversaoGeral >= 30} />
-            <KPICard icon={<Award className="w-4 h-4" />} label="Ticket Médio" value={formatCurrency(totals.ticketMedioGeral)} />
+            <KPICard icon={<Users className="w-4 h-4" />} title="Total Leads" value={totals.totalLeads.toString()} />
+            <KPICard icon={<Target className="w-4 h-4" />} title="Total Vendas" value={totals.totalVendas.toString()} />
+            <KPICard icon={<TrendingUp className="w-4 h-4" />} title="Conversão Geral" value={`${Math.round(totals.conversaoGeral)}%`} trend={totals.conversaoGeral >= 30 ? "up" : "neutral"} />
+            <KPICard icon={<Award className="w-4 h-4" />} title="Ticket Médio" value={formatCurrency(totals.ticketMedioGeral)} />
+
           </div>
 
           {/* Best / Worst highlights */}
