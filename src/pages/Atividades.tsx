@@ -50,11 +50,13 @@ import {
   ChevronLeft,
   ChevronRight,
   ListTodo,
-  Zap
+  Zap,
+  Filter
 } from "lucide-react";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWeeklyActivities } from "@/hooks/useWeeklyActivities";
+import { useTeams } from "@/hooks/useTeams";
 import { CreateActivityDialog } from "@/components/activities/CreateActivityDialog";
 import { InlineActivityForm } from "@/components/activities/InlineActivityForm";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
