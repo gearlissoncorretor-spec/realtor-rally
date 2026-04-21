@@ -96,7 +96,7 @@ const Navigation = () => {
   const navItems = allNavItems.filter(item => {
     const userRole = getUserRole();
     if (isSuperAdmin()) return item.screen === 'super-admin';
-    if (isAdmin() || userRole === 'diretor') return true;
+    if (isAdmin()) return true;
     if (item.screen === 'instalar') return true;
     return roleHasScreenAccess(userRole, item.screen) && hasAccess(item.screen);
   });
