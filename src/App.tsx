@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, Component, ErrorInfo, ReactNode } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,9 @@ import { Toaster } from "@/components/ui/sonner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+
 import { AppUpdateManager } from "@/components/AppUpdateManager";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 import { OfflineProvider } from "@/components/OfflineIndicator";
@@ -47,6 +50,46 @@ const Comissoes = lazy(() => import("@/pages/Comissoes"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const Landing = lazy(() => import("@/pages/Landing"));
 const Edital = lazy(() => import("@/pages/Edital"));
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+          <div className="text-center space-y-4 max-w-md">
+            <h1 className="text-2xl font-bold text-foreground">Ops! Algo deu errado.</h1>
+            <p className="text-muted-foreground">Ocorreu um erro inesperado que impediu o carregamento da página.</p>
+            {this.state.error && (
+              <pre className="mt-2 p-4 bg-muted rounded-lg text-xs text-left overflow-auto max-h-40">
+                {this.state.error.message}
+              </pre>
+            )}
+            <Button onClick={() => window.location.reload()} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Recarregar Sistema
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -127,16 +170,19 @@ const AppShell = () => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <AuthProvider>
-        <Toaster />
-        <AppUpdateManager />
-        <InstallPrompt />
-        <AppShell />
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <AuthProvider>
+          <Toaster />
+          <AppUpdateManager />
+          <InstallPrompt />
+          <AppShell />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
+
 
 export default App;
