@@ -726,8 +726,9 @@ const FollowUpPage = () => {
                                     <MessageCircle className="w-3 h-3" />
                                     {followUp.client_phone}
                                   </a>
-                                )}
-                              </div>
+                                  )}
+                                  <p className="text-[10px] text-muted-foreground mt-1 uppercase">Origem: {followUp.origem}</p>
+                                </div>
                               <div className="flex flex-col items-end gap-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
