@@ -95,6 +95,7 @@ const FollowUpPage = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterBroker, setFilterBroker] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [filterOrigin, setFilterOrigin] = useState<string>("all");
   
   // Conversion dialog
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
@@ -171,10 +172,11 @@ const FollowUpPage = () => {
       
       const matchesStatus = filterStatus === 'all' || followUp.status === filterStatus;
       const matchesBroker = filterBroker === 'all' || followUp.broker_id === filterBroker;
+      const matchesOrigin = filterOrigin === 'all' || followUp.origem === filterOrigin;
       
-      return matchesSearch && matchesStatus && matchesBroker;
+      return matchesSearch && matchesStatus && matchesBroker && matchesOrigin;
     });
-  }, [followUps, searchTerm, filterStatus, filterBroker]);
+  }, [followUps, searchTerm, filterStatus, filterBroker, filterOrigin]);
 
   // Sort by urgency (overdue first, then today, then by date)
   const sortedFollowUps = useMemo(() => {
