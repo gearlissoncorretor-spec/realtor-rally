@@ -46,6 +46,7 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 const Comissoes = lazy(() => import("@/pages/Comissoes"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const Landing = lazy(() => import("@/pages/Landing"));
+const Edital = lazy(() => import("@/pages/Edital"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -117,6 +118,7 @@ const AppShell = () => (
           <Route path="/instalar" element={<ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>} />
           <Route path="/gestao-usuarios" element={<ProtectedRoute><LazyPage><GestaoUsuarios /></LazyPage></ProtectedRoute>} />
           <Route path="/super-admin" element={<ProtectedRoute superAdminOnly><LazyPage><SuperAdmin /></LazyPage></ProtectedRoute>} />
+          <Route path="/edital" element={<ProtectedRoute><LazyPage><Edital /></LazyPage></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
       </Routes>

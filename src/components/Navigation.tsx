@@ -26,7 +26,8 @@ import {
   RefreshCw,
   Shield,
   UserCog,
-  UsersRound
+  UsersRound,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,7 @@ const Navigation = () => {
     { href: "/configuracoes", label: "Configurações", icon: Settings, screen: "configuracoes" },
     { href: "/instalar", label: "Instalar App", icon: Download, screen: "instalar" },
     { href: "/super-admin", label: "Super Admin", icon: Shield, screen: "super-admin" },
+    { href: "/edital", label: "Edital do Sistema", icon: FileText, screen: "edital" },
   ];
 
   const navItems = allNavItems.filter(item => {
@@ -129,7 +131,7 @@ const Navigation = () => {
     },
     {
       label: "Sistema",
-      items: navItems.filter(i => ['configuracoes', 'instalar'].includes(i.screen)),
+      items: navItems.filter(i => ['configuracoes', 'instalar', 'edital'].includes(i.screen)),
     },
   ].filter(g => g.items.length > 0);
 
