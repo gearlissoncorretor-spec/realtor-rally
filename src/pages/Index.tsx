@@ -10,7 +10,7 @@ import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import React, { useState, useMemo, useEffect } from "react";
 import GerenteDashboard from "@/components/dashboards/GerenteDashboard";
 import CorretorDashboard from "@/components/dashboards/CorretorDashboard";
-import DiretorDashboard from "@/components/dashboards/DiretorDashboard";
+import UnifiedDirectorDashboard from "@/components/dashboards/UnifiedDirectorDashboard";
 import SocioDiretorDashboard from "@/components/dashboards/SocioDiretorDashboard";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
@@ -600,7 +600,7 @@ const DiretorDashboardPage = () => {
 
 // Dashboard principal - sempre renderiza o dashboard analítico com KPIs, gráficos e ranking
 const Index = () => {
-  const { isSocio } = useAuth();
+  const { isDiretor, isAdmin, isSocio } = useAuth();
 
   if (isSocio()) {
     return (
@@ -608,6 +608,17 @@ const Index = () => {
         <Navigation />
         <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
           <SocioDiretorDashboard />
+        </main>
+      </div>
+    );
+  }
+
+  if (isDiretor() || isAdmin()) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6">
+          <UnifiedDirectorDashboard />
         </main>
       </div>
     );
