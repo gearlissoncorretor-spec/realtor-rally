@@ -257,7 +257,7 @@ const UnifiedDirectorDashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <LazyComponentLoader fallback={<ChartSkeleton height={350} />}>
-                  <DashboardChart data={chartData} type="line" height={350} />
+                  <DashboardChart data={chartData} type="line" height={350} title="Evolução Mensal" />
                 </LazyComponentLoader>
               </Card>
 
