@@ -46,6 +46,7 @@ import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/h
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 import { formatCurrency } from "@/utils/formatting";
 import { format, isToday, isPast, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
