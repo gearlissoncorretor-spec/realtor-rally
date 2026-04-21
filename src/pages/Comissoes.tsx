@@ -318,8 +318,14 @@ const Comissoes = () => {
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              {showBroker && c.broker && (
-                <span className="font-semibold text-sm text-foreground truncate">{c.broker.name}</span>
+              {showBroker && (
+                c.broker ? (
+                  <span className="font-semibold text-sm text-foreground truncate">{c.broker.name}</span>
+                ) : (
+                  <span className="font-semibold text-sm text-indigo-600 flex items-center gap-1">
+                    <Store className="w-3.5 h-3.5" /> Loja
+                  </span>
+                )
               )}
               <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", config.color)}>
                 <StatusIcon className="w-3 h-3 mr-0.5" />{config.label}
