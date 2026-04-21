@@ -7,7 +7,7 @@ import type { Database } from '@/integrations/supabase/types';
 export interface Commission {
   id: string;
   sale_id: string | null;
-  broker_id: string;
+  broker_id: string | null;
   company_id: string | null;
   commission_percentage: number;
   commission_value: number;
@@ -43,6 +43,7 @@ export interface CommissionInsert {
   installments?: number;
   paid_installments?: number;
   observations?: string | null;
+  agency_id?: string | null;
 }
 
 export const useCommissions = () => {
