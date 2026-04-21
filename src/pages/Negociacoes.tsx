@@ -135,7 +135,16 @@ const Negociacoes = () => {
   const handleConfirmReturnToFollowUp = async () => {
     if (!selectedForFollowUp) return;
     try {
-      await createFollowUp({ broker_id: selectedForFollowUp.broker_id, client_name: selectedForFollowUp.client_name, client_phone: selectedForFollowUp.client_phone || undefined, property_interest: selectedForFollowUp.property_address, estimated_vgv: selectedForFollowUp.negotiated_value, observations: `Retornado da Negociação. ${selectedForFollowUp.observations || ''}`.trim(), status: 'novo_lead' });
+      await createFollowUp({ 
+        broker_id: selectedForFollowUp.broker_id, 
+        client_name: selectedForFollowUp.client_name, 
+        client_phone: selectedForFollowUp.client_phone || undefined, 
+        property_interest: selectedForFollowUp.property_address, 
+        estimated_vgv: selectedForFollowUp.negotiated_value, 
+        observations: `Retornado da Negociação. ${selectedForFollowUp.observations || ''}`.trim(), 
+        status: 'novo_lead',
+        origem: selectedForFollowUp.origem
+      });
       await deleteNegotiation(selectedForFollowUp.id);
       setSelectedForFollowUp(null);
       setReturnToFollowUpOpen(false);
