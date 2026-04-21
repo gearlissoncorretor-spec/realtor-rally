@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -61,6 +62,17 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatusManagerDialog";
 import { cn } from "@/lib/utils";
 
+const LEAD_ORIGIN_OPTIONS = [
+  "Marketplace",
+  "Tráfego Pago (Patrocinado)",
+  "Ação de Rua",
+  "Lista Imobiliária",
+  "Lista Pessoal",
+  "Anúncio Geral",
+  "Indicação",
+  "Outro"
+];
+
 const FollowUpPage = () => {
   const { user, profile, isCorretor } = useAuth();
   const { toast } = useToast();
@@ -84,6 +96,7 @@ const FollowUpPage = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterBroker, setFilterBroker] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [filterOrigin, setFilterOrigin] = useState<string>("all");
   
   // Conversion dialog
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
@@ -125,6 +138,7 @@ const FollowUpPage = () => {
     next_contact_date: '',
     observations: '',
     status: 'novo_lead',
+    origem: '',
     reminder_enabled: false,
   });
 
@@ -159,10 +173,11 @@ const FollowUpPage = () => {
       
       const matchesStatus = filterStatus === 'all' || followUp.status === filterStatus;
       const matchesBroker = filterBroker === 'all' || followUp.broker_id === filterBroker;
+      const matchesOrigin = filterOrigin === 'all' || followUp.origem === filterOrigin;
       
-      return matchesSearch && matchesStatus && matchesBroker;
+      return matchesSearch && matchesStatus && matchesBroker && matchesOrigin;
     });
-  }, [followUps, searchTerm, filterStatus, filterBroker]);
+  }, [followUps, searchTerm, filterStatus, filterBroker, filterOrigin]);
 
   // Sort by urgency (overdue first, then today, then by date)
   const sortedFollowUps = useMemo(() => {
@@ -252,6 +267,7 @@ const FollowUpPage = () => {
       next_contact_date: followUp.next_contact_date || '',
       observations: followUp.observations || '',
       status: followUp.status,
+      origem: followUp.origem,
       reminder_enabled: followUp.reminder_enabled || false,
     });
     setIsFormOpen(true);
@@ -269,6 +285,7 @@ const FollowUpPage = () => {
       next_contact_date: '',
       observations: '',
       status: 'novo_lead',
+      origem: '',
       reminder_enabled: false,
     });
   };
@@ -452,6 +469,26 @@ const FollowUpPage = () => {
                   )}
 
                   <div>
+                    <label className="text-sm font-medium">Origem do Lead *</label>
+                    <Select
+                      value={formData.origem}
+                      onValueChange={(value) => setFormData({ ...formData, origem: value })}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a origem" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LEAD_ORIGIN_OPTIONS.map((option) => (
+                          <SelectItem key={option} value={option}>
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <label className="text-sm font-medium">Nome do Cliente *</label>
                     <Input
                       value={formData.client_name}
@@ -615,6 +652,21 @@ const FollowUpPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+
+                <Select value={filterOrigin} onValueChange={setFilterOrigin}>
+                  <SelectTrigger className="w-full sm:w-44">
+                    <SelectValue placeholder="Filtrar origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as origens</SelectItem>
+                    {LEAD_ORIGIN_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 {!isCorretor() && (
                   <Select value={filterBroker} onValueChange={setFilterBroker}>
                     <SelectTrigger className="w-full sm:w-44">
@@ -675,8 +727,9 @@ const FollowUpPage = () => {
                                     <MessageCircle className="w-3 h-3" />
                                     {followUp.client_phone}
                                   </a>
-                                )}
-                              </div>
+                                  )}
+                                  <p className="text-[10px] text-muted-foreground mt-1 uppercase">Origem: {followUp.origem}</p>
+                                </div>
                               <div className="flex flex-col items-end gap-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -801,6 +854,7 @@ const FollowUpPage = () => {
                         <TableRow>
                           <TableHead>Cliente</TableHead>
                           <TableHead>Telefone</TableHead>
+                          <TableHead>Origem</TableHead>
                           <TableHead>Imóvel</TableHead>
                           <TableHead>VGV</TableHead>
                           <TableHead>Responsável</TableHead>
@@ -830,6 +884,11 @@ const FollowUpPage = () => {
                                     <MessageCircle className="w-4 h-4" />{followUp.client_phone}
                                   </a>
                                 ) : <span className="text-muted-foreground">-</span>}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px] uppercase font-normal">
+                                  {followUp.origem}
+                                </Badge>
                               </TableCell>
                               <TableCell>
                                 <ExpandableCell content={followUp.property_interest || 'Não definido'} maxLength={30} title="Imóvel de Interesse" />

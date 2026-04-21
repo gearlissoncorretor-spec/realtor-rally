@@ -1289,6 +1289,7 @@ export type Database = {
           id: string
           next_contact_date: string | null
           observations: string | null
+          origem: string
           property_interest: string | null
           reminder_enabled: boolean | null
           status: string
@@ -1307,6 +1308,7 @@ export type Database = {
           id?: string
           next_contact_date?: string | null
           observations?: string | null
+          origem: string
           property_interest?: string | null
           reminder_enabled?: boolean | null
           status?: string
@@ -1325,6 +1327,7 @@ export type Database = {
           id?: string
           next_contact_date?: string | null
           observations?: string | null
+          origem?: string
           property_interest?: string | null
           reminder_enabled?: boolean | null
           status?: string
@@ -1854,7 +1857,7 @@ export type Database = {
           loss_reason: string | null
           negotiated_value: number
           observations: string | null
-          origem: string | null
+          origem: string
           process_stage_id: string | null
           property_address: string
           property_type: string
@@ -1880,7 +1883,7 @@ export type Database = {
           loss_reason?: string | null
           negotiated_value: number
           observations?: string | null
-          origem?: string | null
+          origem: string
           process_stage_id?: string | null
           property_address: string
           property_type?: string
@@ -1906,7 +1909,7 @@ export type Database = {
           loss_reason?: string | null
           negotiated_value?: number
           observations?: string | null
-          origem?: string | null
+          origem?: string
           process_stage_id?: string | null
           property_address?: string
           property_type?: string
@@ -2266,7 +2269,7 @@ export type Database = {
           longitude: string | null
           mes: number | null
           notes: string | null
-          origem: string | null
+          origem: string
           pagos: number | null
           parceria_tipo: string | null
           process_stage_id: string | null
@@ -2309,7 +2312,7 @@ export type Database = {
           longitude?: string | null
           mes?: number | null
           notes?: string | null
-          origem?: string | null
+          origem: string
           pagos?: number | null
           parceria_tipo?: string | null
           process_stage_id?: string | null
@@ -2352,7 +2355,7 @@ export type Database = {
           longitude?: string | null
           mes?: number | null
           notes?: string | null
-          origem?: string | null
+          origem?: string
           pagos?: number | null
           parceria_tipo?: string | null
           process_stage_id?: string | null

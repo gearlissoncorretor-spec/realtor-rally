@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from "@/contexts/DataContext";
+import { OriginAnalyticsDashboard } from "@/components/dashboards/OriginAnalyticsDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeams } from "@/hooks/useTeams";
 import { useFollowUps } from "@/hooks/useFollowUps";
@@ -237,15 +238,18 @@ const UnifiedDirectorDashboard = () => {
 
       {!directorMode ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8 h-12 bg-muted/30 p-1">
+          <TabsList className="grid w-full grid-cols-4 mb-8 h-12 bg-muted/30 p-1">
             <TabsTrigger value="geral" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
               <LayoutDashboard className="w-4 h-4" /> Visão Geral
             </TabsTrigger>
             <TabsTrigger value="equipes" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
-              <Building2 className="w-4 h-4" /> Performance por Equipe
+              <Building2 className="w-4 h-4" /> Equipes
+            </TabsTrigger>
+            <TabsTrigger value="origem" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
+              <PieChart className="w-4 h-4" /> Origens
             </TabsTrigger>
             <TabsTrigger value="ranking" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
-              <Trophy className="w-4 h-4" /> Ranking de Corretores
+              <Trophy className="w-4 h-4" /> Ranking
             </TabsTrigger>
           </TabsList>
 
@@ -361,6 +365,10 @@ const UnifiedDirectorDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="origem" className="space-y-6">
+            <OriginAnalyticsDashboard />
           </TabsContent>
 
           <TabsContent value="ranking" className="space-y-6">

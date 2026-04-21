@@ -16,6 +16,17 @@ const PROPERTY_TYPES = [
   { value: 'rural', label: 'Rural' },
 ];
 
+const LEAD_ORIGIN_OPTIONS = [
+  "Marketplace",
+  "Tráfego Pago (Patrocinado)",
+  "Ação de Rua",
+  "Lista Imobiliária",
+  "Lista Pessoal",
+  "Anúncio Geral",
+  "Indicação",
+  "Outro"
+];
+
 const TEMPERATURE_OPTIONS = [
   { value: 'fria', label: '❄️ Fria', color: 'text-info', bg: 'bg-info/10 border-info/30' },
   { value: 'morna', label: '🌤️ Morna', color: 'text-warning', bg: 'bg-warning/10 border-warning/30' },
@@ -119,7 +130,22 @@ export const NegotiationFormDialog = ({
           </div>
           <div>
             <label className="text-sm font-medium">Origem do Lead *</label>
-            <Input value={formData.origem} onChange={(e) => setFormData({ ...formData, origem: e.target.value })} placeholder="Ex: WhatsApp, Instagram, Google" required />
+            <Select 
+              value={formData.origem} 
+              onValueChange={(v) => setFormData({ ...formData, origem: v })}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a origem" />
+              </SelectTrigger>
+              <SelectContent>
+                {LEAD_ORIGIN_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className="text-sm font-medium">Endereço do Imóvel *</label>

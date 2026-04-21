@@ -19,7 +19,7 @@ import {
 import {
   BarChart3, PieChart as PieIcon, TrendingUp, TrendingDown, Target,
   Users, User, Calendar, Filter, RotateCcw,
-  ArrowUpRight, ArrowDownRight, Award, AlertTriangle
+  ArrowUpRight, ArrowDownRight, Award, AlertTriangle, CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -388,6 +388,76 @@ export const OriginAnalyticsDashboard: React.FC<OriginAnalyticsDashboardProps> =
                 </CardContent>
               </Card>
             )}
+          </div>
+
+          {/* Intelligence Insights */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Award className="w-4 h-4 text-primary" /> Insights de Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {bestOrigin && (
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">{bestOrigin.name} é sua melhor origem</p>
+                      <p className="text-xs text-muted-foreground">Esta origem possui a maior taxa de fechamento ({Math.round(bestOrigin.conversao)}%). Foque seus investimentos aqui para maximizar o ROI.</p>
+                    </div>
+                  </div>
+                )}
+                {originsData.sort((a, b) => b.leads - a.leads)[0]?.name === "Marketplace" && (
+                  <div className="flex items-start gap-3">
+                    <TrendingUp className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">Marketplace gera alto volume</p>
+                      <p className="text-xs text-muted-foreground">Gera o maior volume de leads, mas a conversão costuma ser menor que a média geral. Exige um filtro inicial mais rigoroso.</p>
+                    </div>
+                  </div>
+                )}
+                {bestOrigin?.name === "Indicação" && (
+                  <div className="flex items-start gap-3">
+                    <Target className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">Indicação tem a maior qualidade</p>
+                      <p className="text-xs text-muted-foreground">Leads vindos de indicação possuem o menor ciclo de venda e maior taxa de confiança.</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-amber-500/20 bg-amber-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500" /> Oportunidades de Melhoria
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {worstOrigin && (
+                  <div className="flex items-start gap-3">
+                    <TrendingDown className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">{worstOrigin.name} tem conversão crítica</p>
+                      <p className="text-xs text-muted-foreground">Apenas {Math.round(worstOrigin.conversao)}% dos leads desta origem fecham negócio. Reavalie a abordagem ou a segmentação desta fonte.</p>
+                    </div>
+                  </div>
+                )}
+                {originsData.filter(o => o.leads > 5 && o.vendas === 0).length > 0 && (
+                  <div className="flex items-start gap-3">
+                    <User className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">Origens sem retorno detectadas</p>
+                      <p className="text-xs text-muted-foreground">
+                        {originsData.filter(o => o.leads > 5 && o.vendas === 0).map(o => o.name).join(', ')} estão gerando leads que não convertem.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Charts Row */}

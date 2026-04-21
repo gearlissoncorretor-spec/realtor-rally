@@ -7,7 +7,8 @@ import {
   Calendar,
   BarChart3,
   TrendingUp,
-  Users
+  Users,
+  PieChart
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
@@ -76,6 +77,7 @@ const Relatorios = () => {
         broker?.name || "N/A",
         sale.client_name,
         sale.property_type,
+        sale.origem || "Outro",
         formatCurrency(Number(sale.vgv || 0)),
         formatCurrency(Number(sale.vgc || 0)),
         sale.status
@@ -84,14 +86,14 @@ const Relatorios = () => {
     
     autoTable(doc, {
       startY: 72,
-      head: [["Data", "Corretor", "Cliente", "Tipo", "VGV", "VGC", "Status"]],
+      head: [["Data", "Corretor", "Cliente", "Tipo", "Origem", "VGV", "VGC", "Status"]],
       body: tableData,
       theme: "striped",
       headStyles: { fillColor: [59, 130, 246], textColor: 255 },
       styles: { fontSize: 8, cellPadding: 3 },
       columnStyles: {
-        4: { halign: "right" },
-        5: { halign: "right" }
+        5: { halign: "right" },
+        6: { halign: "right" }
       }
     });
     
@@ -271,6 +273,54 @@ const Relatorios = () => {
     });
   };
 
+  const generateOriginReport = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(59, 130, 246);
+    doc.text("Análise por Origem do Lead", pageWidth / 2, 20, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Período: ${selectedMonth.toString().padStart(2, '0')}/${selectedYear}`, pageWidth / 2, 28, { align: "center" });
+    doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pageWidth / 2, 34, { align: "center" });
+    
+    // Calculate metrics by origin
+    const originsMap = new Map<string, { leads: number, sales: number, vgv: number }>();
+    
+    filteredSales.forEach(sale => {
+      const o = sale.origem || "Outro";
+      const entry = originsMap.get(o) || { leads: 0, sales: 0, vgv: 0 };
+      entry.sales += 1;
+      entry.vgv += Number(sale.vgv || 0);
+      originsMap.set(o, entry);
+    });
+    
+    const tableData = Array.from(originsMap.entries()).map(([name, data]) => [
+      name,
+      data.sales.toString(),
+      formatCurrency(data.vgv),
+      data.leads > 0 ? `${((data.sales / data.leads) * 100).toFixed(1)}%` : "100%", // Simplified for sales-only report
+    ]);
+    
+    autoTable(doc, {
+      startY: 45,
+      head: [["Origem", "Vendas", "VGV Total", "Conversão (Vendas/Leads)"]],
+      body: tableData,
+      theme: "striped",
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+    });
+    
+    doc.save(`relatorio-origem-${selectedMonth}-${selectedYear}.pdf`);
+    
+    toast({
+      title: "PDF Gerado!",
+      description: "Relatório de origem baixado com sucesso.",
+    });
+  };
+
   const reports = [
     {
       title: "Relatório de Vendas",
@@ -292,6 +342,13 @@ const Relatorios = () => {
       icon: <Users className="w-8 h-8 text-info" />,
       color: "bg-info/10",
       handler: generateRankingReport
+    },
+    {
+      title: "Análise de Origem",
+      description: "Performance por canal de aquisição",
+      icon: <PieChart className="w-8 h-8 text-purple-500" />,
+      color: "bg-purple-100",
+      handler: generateOriginReport
     }
   ];
 

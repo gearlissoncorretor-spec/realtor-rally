@@ -14,6 +14,7 @@ export interface FollowUp {
   next_contact_date: string | null;
   observations: string | null;
   status: string;
+  origem: string;
   reminder_enabled: boolean;
   created_by: string | null;
   created_at: string;
@@ -57,6 +58,7 @@ export interface CreateFollowUpInput {
   next_contact_date?: string;
   observations?: string;
   status?: string;
+  origem: string;
   reminder_enabled?: boolean;
   company_id?: string;
   agency_id?: string;
@@ -119,10 +121,10 @@ export const useFollowUps = () => {
 
       const { data, error } = await supabase
         .from('follow_ups')
-        .insert({
+        .insert([{
           ...cleanedInput,
           created_by: user?.id,
-        })
+        }])
         .select()
         .maybeSingle();
       
@@ -192,7 +194,7 @@ export const useFollowUps = () => {
       // Create negotiation
       const { error: negError } = await supabase
         .from('negotiations')
-        .insert({
+        .insert([{
           broker_id: followUp.broker_id,
           client_name: followUp.client_name,
           client_phone: followUp.client_phone,
@@ -200,10 +202,11 @@ export const useFollowUps = () => {
           property_type: 'apartamento',
           negotiated_value: followUp.estimated_vgv,
           status: 'em_contato',
+          origem: followUp.origem,
           observations: `Convertido de Follow Up. ${followUp.observations || ''}`.trim(),
           company_id: profile?.company_id,
           agency_id: profile?.agency_id,
-        });
+        }]);
       
       if (negError) throw negError;
 

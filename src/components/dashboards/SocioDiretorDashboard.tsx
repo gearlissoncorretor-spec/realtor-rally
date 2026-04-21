@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { OriginAnalyticsDashboard } from './OriginAnalyticsDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -457,6 +458,8 @@ const SocioDiretorDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      <OriginAnalyticsDashboard />
 
       {/* Agency Rankings */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
