@@ -819,6 +819,20 @@ const FollowUpPage = () => {
                                   </a>
                                 ) : <span className="text-muted-foreground">-</span>}
                               </TableCell>
+                              <TableCell className="text-center">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleToggleReminder(followUp)}
+                                  title={followUp.reminder_enabled ? "Desativar Lembrete" : "Ativar Lembrete"}
+                                >
+                                  {followUp.reminder_enabled ? (
+                                    <Bell className="w-4 h-4 text-primary" />
+                                  ) : (
+                                    <BellOff className="w-4 h-4 text-muted-foreground/40" />
+                                  )}
+                                </Button>
+                              </TableCell>
                               <TableCell>
                                 <ExpandableCell content={followUp.property_interest || 'Não definido'} maxLength={30} title="Imóvel de Interesse" />
                               </TableCell>
