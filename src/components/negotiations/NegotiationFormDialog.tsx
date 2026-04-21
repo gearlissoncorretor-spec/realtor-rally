@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Thermometer } from "lucide-react";
 import { CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
-import { useNegotiationStatuses } from "@/hooks/useNegotiationStatuses";
+import { useProcessStages } from "@/hooks/useProcessStages";
 
 const PROPERTY_TYPES = [
   { value: 'apartamento', label: 'Apartamento' },
@@ -30,10 +30,11 @@ const DEFAULT_FORM: CreateNegotiationInput = {
   property_address: '',
   property_type: 'apartamento',
   negotiated_value: 0,
-  status: 'em_contato',
+  process_stage_id: '',
   start_date: new Date().toISOString().split('T')[0],
   observations: '',
   temperature: 'morna',
+  origem: '',
 };
 
 interface NegotiationFormDialogProps {
@@ -49,7 +50,7 @@ interface NegotiationFormDialogProps {
 export const NegotiationFormDialog = ({
   open, onOpenChange, editing, brokers, isCorretor, currentBrokerId, onSubmit,
 }: NegotiationFormDialogProps) => {
-  const { flowStatuses } = useNegotiationStatuses();
+  const { stages: flowStages } = useProcessStages();
   const [formData, setFormData] = useState<CreateNegotiationInput>(DEFAULT_FORM);
 
   useEffect(() => {
@@ -58,14 +59,15 @@ export const NegotiationFormDialog = ({
         broker_id: editing.broker_id,
         client_name: editing.client_name,
         client_email: editing.client_email || '',
-        client_phone: editing.client_phone || '',
+        client_phone: editing.client_phone,
         property_address: editing.property_address,
         property_type: editing.property_type,
         negotiated_value: editing.negotiated_value,
-        status: editing.status,
+        process_stage_id: editing.process_stage_id || '',
         start_date: editing.start_date,
         observations: editing.observations || '',
         temperature: editing.temperature || 'morna',
+        origem: editing.origem || '',
       });
     } else {
       setFormData(DEFAULT_FORM);
@@ -111,9 +113,13 @@ export const NegotiationFormDialog = ({
               <Input type="email" value={formData.client_email} onChange={(e) => setFormData({ ...formData, client_email: e.target.value })} placeholder="email@exemplo.com" />
             </div>
             <div>
-              <label className="text-sm font-medium">Telefone</label>
-              <Input value={formData.client_phone} onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })} placeholder="(00) 00000-0000" />
+              <label className="text-sm font-medium">Telefone *</label>
+              <Input value={formData.client_phone} onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })} placeholder="(00) 00000-0000" required />
             </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Origem do Lead *</label>
+            <Input value={formData.origem} onChange={(e) => setFormData({ ...formData, origem: e.target.value })} placeholder="Ex: WhatsApp, Instagram, Google" required />
           </div>
           <div>
             <label className="text-sm font-medium">Endereço do Imóvel *</label>
@@ -140,13 +146,16 @@ export const NegotiationFormDialog = ({
               <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} />
             </div>
             <div>
-              <label className="text-sm font-medium">Status</label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <label className="text-sm font-medium">Estágio do Processo *</label>
+              <Select value={formData.process_stage_id} onValueChange={(v) => setFormData({ ...formData, process_stage_id: v })} required>
+                <SelectTrigger><SelectValue placeholder="Selecione a etapa" /></SelectTrigger>
                 <SelectContent>
-                  {flowStatuses.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      <div className="flex items-center gap-2"><span>{s.icon}</span>{s.label}</div>
+                  {flowStages.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                        {s.title}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

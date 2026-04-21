@@ -8,6 +8,11 @@ interface NegotiationStatusBadgeProps {
   icon?: string;
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
+  stage?: {
+    id: string;
+    title: string;
+    color: string;
+  };
 }
 
 // Fallback colors for statuses not found in the custom list
@@ -54,10 +59,17 @@ export function NegotiationStatusBadge({
   icon,
   size = 'md',
   showIcon = true,
+  stage,
 }: NegotiationStatusBadgeProps) {
-  const displayLabel = label || FALLBACK_LABELS[status] || status;
-  const displayColor = color || FALLBACK_COLORS[status] || 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+  const displayLabel = stage?.title || label || FALLBACK_LABELS[status] || status;
+  const displayColor = stage ? `border-transparent` : (color || FALLBACK_COLORS[status] || 'bg-gray-500/10 text-gray-500 border-gray-500/20');
   const displayIcon = icon || FALLBACK_ICONS[status];
+  
+  const customStyles = stage ? {
+    backgroundColor: `${stage.color}15`, // 15 is ~8% opacity in hex
+    color: stage.color,
+    borderColor: `${stage.color}30`
+  } : {};
   
   const sizeClasses = {
     sm: 'text-[10px] px-1.5 py-0.5',
@@ -73,6 +85,7 @@ export function NegotiationStatusBadge({
         sizeClasses[size],
         "font-medium whitespace-nowrap"
       )}
+      style={customStyles}
     >
       {showIcon && displayIcon && (
         <span className="mr-1">{displayIcon}</span>

@@ -1852,6 +1852,7 @@ export type Database = {
           negotiated_value: number
           observations: string | null
           origem: string | null
+          process_stage_id: string | null
           property_address: string
           property_type: string
           start_date: string
@@ -1877,6 +1878,7 @@ export type Database = {
           negotiated_value: number
           observations?: string | null
           origem?: string | null
+          process_stage_id?: string | null
           property_address: string
           property_type?: string
           start_date?: string
@@ -1902,6 +1904,7 @@ export type Database = {
           negotiated_value?: number
           observations?: string | null
           origem?: string | null
+          process_stage_id?: string | null
           property_address?: string
           property_type?: string
           start_date?: string
@@ -1930,6 +1933,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "negotiations_process_stage_id_fkey"
+            columns: ["process_stage_id"]
+            isOneToOne: false
+            referencedRelation: "process_stages"
             referencedColumns: ["id"]
           },
         ]
@@ -1999,6 +2009,7 @@ export type Database = {
       }
       process_stages: {
         Row: {
+          agency_id: string | null
           color: string
           company_id: string | null
           created_at: string
@@ -2009,6 +2020,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agency_id?: string | null
           color?: string
           company_id?: string | null
           created_at?: string
@@ -2019,6 +2031,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agency_id?: string | null
           color?: string
           company_id?: string | null
           created_at?: string
@@ -2029,6 +2042,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "process_stages_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "process_stages_company_id_fkey"
             columns: ["company_id"]

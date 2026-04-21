@@ -27,7 +27,7 @@ interface NegotiationFormProps {
   isEditing: boolean;
   isCorretor: boolean;
   brokers: Array<{ id: string; name: string }>;
-  flowStatuses: Array<{ value: string; label: string; icon?: string }>;
+  flowStages: Array<{ id: string; title: string; color: string }>;
 }
 
 export function NegotiationForm({
@@ -38,7 +38,7 @@ export function NegotiationForm({
   isEditing,
   isCorretor,
   brokers,
-  flowStatuses,
+  flowStages,
 }: NegotiationFormProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -84,13 +84,23 @@ export function NegotiationForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Telefone</label>
+          <label className="text-sm font-medium">Telefone *</label>
           <Input
             value={formData.client_phone}
             onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
             placeholder="(00) 00000-0000"
+            required
           />
         </div>
+      </div>
+      <div>
+        <label className="text-sm font-medium">Origem do Lead *</label>
+        <Input
+          value={formData.origem}
+          onChange={(e) => setFormData({ ...formData, origem: e.target.value })}
+          placeholder="Ex: WhatsApp, Instagram, Google"
+          required
+        />
       </div>
 
       <div>
@@ -144,20 +154,21 @@ export function NegotiationForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Status</label>
+          <label className="text-sm font-medium">Estágio do Processo *</label>
           <Select
-            value={formData.status}
-            onValueChange={(value) => setFormData({ ...formData, status: value })}
+            value={formData.process_stage_id}
+            onValueChange={(value) => setFormData({ ...formData, process_stage_id: value })}
+            required
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder="Selecione a etapa" />
             </SelectTrigger>
             <SelectContent>
-              {flowStatuses.map((status) => (
-                <SelectItem key={status.value} value={status.value}>
+              {flowStages.map((stage) => (
+                <SelectItem key={stage.id} value={stage.id}>
                   <div className="flex items-center gap-2">
-                    <span>{status.icon}</span>
-                    {status.label}
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stage.color }} />
+                    {stage.title}
                   </div>
                 </SelectItem>
               ))}
