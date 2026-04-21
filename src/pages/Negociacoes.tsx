@@ -23,7 +23,7 @@ import { NegotiationFormDialog } from "@/components/negotiations/NegotiationForm
 import { NegotiationStatsCards } from "@/components/negotiations/NegotiationStatsCards";
 import { NegotiationActiveTable } from "@/components/negotiations/NegotiationActiveTable";
 import { NegotiationLostTable } from "@/components/negotiations/NegotiationLostTable";
-import { useNegotiationStatuses } from "@/hooks/useNegotiationStatuses";
+import { useProcessStages } from "@/hooks/useProcessStages";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SaleCelebration } from "@/components/SaleCelebration";
 
@@ -33,7 +33,7 @@ const Negociacoes = () => {
   const { brokers } = useBrokers();
   const { createSale, sales, refreshSales } = useData();
   const { createFollowUp } = useFollowUps();
-  const { flowStatuses, getStatusByValue } = useNegotiationStatuses();
+  const { stages: flowStages } = useProcessStages();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingNegotiation, setEditingNegotiation] = useState<Negotiation | null>(null);
@@ -64,12 +64,11 @@ const Negociacoes = () => {
   }, [sales]);
 
   const filteredNegotiations = useMemo(() => {
-    const terminalStatuses = ['perdida', 'venda_concluida'];
     return negotiations.filter(n => {
       const matchesSearch = n.client_name.toLowerCase().includes(searchTerm.toLowerCase()) || n.property_address.toLowerCase().includes(searchTerm.toLowerCase()) || n.observations?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = filterStatus === 'all' || n.status === filterStatus;
+      const matchesStatus = filterStatus === 'all' || n.process_stage_id === filterStatus;
       const matchesTemperature = filterTemperature === 'all' || n.temperature === filterTemperature;
-      return matchesSearch && matchesStatus && matchesTemperature && !terminalStatuses.includes(n.status);
+      return matchesSearch && matchesStatus && matchesTemperature;
     }).sort((a, b) => sortOrder === 'newest' ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   }, [negotiations, searchTerm, filterStatus, filterTemperature, sortOrder]);
 
@@ -80,10 +79,10 @@ const Negociacoes = () => {
   const stats = useMemo(() => {
     const allNegotiations = [...negotiations, ...lostNegotiations];
     const total = negotiations.length;
-    const emAprovacao = negotiations.filter(n => n.status === 'em_aprovacao' || n.status === 'em_analise' || n.status === 'proposta_enviada').length;
-    const clienteAprovado = negotiations.filter(n => n.status === 'cliente_aprovado' || n.status === 'aprovado').length;
-    const clienteReprovado = negotiations.filter(n => n.status === 'cliente_reprovado').length;
-    const emContato = negotiations.filter(n => n.status === 'em_contato').length;
+    const emAprovacao = negotiations.filter(n => n.stage?.title === 'Aguardando Aprovação' || n.stage?.title === 'Em Aprovação').length;
+    const clienteAprovado = negotiations.filter(n => n.stage?.title === 'Aprovado' || n.stage?.title === 'Cliente Aprovado').length;
+    const clienteReprovado = negotiations.filter(n => n.stage?.title === 'Cliente Reprovado').length;
+    const emContato = negotiations.filter(n => n.stage?.title === 'Em Contato').length;
     const valorTotal = negotiations.reduce((sum, n) => sum + Number(n.negotiated_value), 0);
     const perdidas = lostNegotiations.length;
     const valorPerdido = lostNegotiations.reduce((sum, n) => sum + Number(n.negotiated_value), 0);
@@ -102,7 +101,7 @@ const Negociacoes = () => {
   const handleEdit = (n: Negotiation) => { setEditingNegotiation(n); setIsFormOpen(true); };
 
   const getBrokerName = (brokerId: string) => brokers.find(b => b.id === brokerId)?.name || 'Não encontrado';
-  const isApproved = (status: string) => status === 'cliente_aprovado' || status === 'aprovado';
+  const isApproved = (n: Negotiation) => n.stage?.title === 'Aprovado' || n.stage?.title === 'Cliente Aprovado';
 
   const handleConfirmSale = async (data: SaleConversionData) => {
     if (!selectedForSale) return;
@@ -119,7 +118,7 @@ const Negociacoes = () => {
         gerente: data.gerente, origem: data.origem || selectedForSale.origem, sale_type: data.sale_type,
         estilo: data.estilo, produto: data.produto, visibilidade: 'venda', company_id: profile?.company_id || undefined,
       });
-      await updateNegotiation({ id: selectedForSale.id, status: 'venda_concluida' });
+      await updateNegotiation({ id: selectedForSale.id, status: 'venda_concluida', process_stage_id: flowStages.find(s => s.title === 'Venda Concluída' || s.title === 'Finalizado')?.id });
       refreshSales();
       setCelebrationData({ brokerName: getBrokerName(selectedForSale.broker_id), clientName: selectedForSale.client_name, saleValue: data.vgv });
       setCelebrationOpen(true);
@@ -129,7 +128,7 @@ const Negociacoes = () => {
 
   const handleConfirmLoss = async (lossReason: string) => {
     if (!selectedForLoss) return;
-    await updateNegotiation({ id: selectedForLoss.id, status: 'perdida', loss_reason: lossReason });
+    await updateNegotiation({ id: selectedForLoss.id, status: 'perdida', loss_reason: lossReason, process_stage_id: flowStages.find(s => s.title === 'Perdida')?.id });
     setSelectedForLoss(null);
   };
 
@@ -223,7 +222,7 @@ const Negociacoes = () => {
                     <SelectTrigger className="w-full sm:w-44 h-9 text-xs bg-background/50 border-border/50"><SelectValue placeholder="Status" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os Status</SelectItem>
-                      {flowStatuses.map((s) => <SelectItem key={s.value} value={s.value}><div className="flex items-center gap-2"><span>{s.icon}</span>{s.label}</div></SelectItem>)}
+                      {flowStages.map((s) => <SelectItem key={s.id} value={s.id}><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />{s.title}</div></SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Select value={filterTemperature} onValueChange={setFilterTemperature}>
@@ -264,7 +263,6 @@ const Negociacoes = () => {
               <NegotiationActiveTable
                 negotiations={filteredNegotiations}
                 getBrokerName={getBrokerName}
-                getStatusByValue={getStatusByValue}
                 isApproved={isApproved}
                 isStalled={isStalled}
                 onEdit={handleEdit}
