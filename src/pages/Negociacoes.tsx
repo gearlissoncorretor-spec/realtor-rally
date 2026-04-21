@@ -41,6 +41,7 @@ const Negociacoes = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterTemperature, setFilterTemperature] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("newest");
+  const [filterOrigin, setFilterOrigin] = useState<string>("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("active");
   const [statusManagerOpen, setStatusManagerOpen] = useState(false);
@@ -59,6 +60,17 @@ const Negociacoes = () => {
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
+  const LEAD_ORIGIN_OPTIONS = [
+    "Marketplace",
+    "Tráfego Pago (Patrocinado)",
+    "Ação de Rua",
+    "Lista Imobiliária",
+    "Lista Pessoal",
+    "Anúncio Geral",
+    "Indicação",
+    "Outro"
+  ];
+
   const salesFromNegotiations = useMemo(() => {
     return sales.filter(s => s.notes?.toLowerCase().includes('negociação') || s.notes?.toLowerCase().includes('negociacao')).length;
   }, [sales]);
@@ -68,9 +80,10 @@ const Negociacoes = () => {
       const matchesSearch = n.client_name.toLowerCase().includes(searchTerm.toLowerCase()) || n.property_address.toLowerCase().includes(searchTerm.toLowerCase()) || n.observations?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = filterStatus === 'all' || n.process_stage_id === filterStatus;
       const matchesTemperature = filterTemperature === 'all' || n.temperature === filterTemperature;
-      return matchesSearch && matchesStatus && matchesTemperature;
+      const matchesOrigin = filterOrigin === 'all' || n.origem === filterOrigin;
+      return matchesSearch && matchesStatus && matchesTemperature && matchesOrigin;
     }).sort((a, b) => sortOrder === 'newest' ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime() : new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  }, [negotiations, searchTerm, filterStatus, filterTemperature, sortOrder]);
+  }, [negotiations, searchTerm, filterStatus, filterTemperature, filterOrigin, sortOrder]);
 
   const filteredLostNegotiations = useMemo(() => {
     return lostNegotiations.filter(n => n.client_name.toLowerCase().includes(searchTerm.toLowerCase()) || n.property_address.toLowerCase().includes(searchTerm.toLowerCase()) || n.loss_reason?.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -239,6 +252,13 @@ const Negociacoes = () => {
                     <SelectContent>
                       <SelectItem value="all"><div className="flex items-center gap-2"><Thermometer className="w-4 h-4" />Todas</div></SelectItem>
                       {TEMPERATURE_OPTIONS.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterOrigin} onValueChange={setFilterOrigin}>
+                    <SelectTrigger className="w-full sm:w-40 h-9 text-xs bg-background/50 border-border/50"><SelectValue placeholder="Origem" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Origens</SelectItem>
+                      {LEAD_ORIGIN_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
                     </SelectContent>
                   </Select>
                   <Select value={sortOrder} onValueChange={setSortOrder}>
