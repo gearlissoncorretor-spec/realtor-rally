@@ -45,6 +45,7 @@ const commissionTypeLabels: Record<string, { label: string; color: string }> = {
   captacao: { label: "Captação", color: "bg-accent/10 text-accent-foreground border-accent/20" },
   indicacao: { label: "Indicação", color: "bg-success/10 text-success border-success/20" },
   bonus: { label: "Bônus", color: "bg-warning/10 text-warning border-warning/20" },
+  loja: { label: "Loja", color: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" },
   outro: { label: "Outro", color: "bg-muted text-muted-foreground border-border" },
 };
 
