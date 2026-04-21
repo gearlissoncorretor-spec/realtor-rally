@@ -479,23 +479,38 @@ const FollowUpPage = () => {
                         onChange={(e) => setFormData({ ...formData, next_contact_date: e.target.value })}
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium">Status</label>
-                      <Select
-                        value={formData.status}
-                        onValueChange={(value) => setFormData({ ...formData, status: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statuses.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              {status.icon} {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="flex flex-col gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Status</label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) => setFormData({ ...formData, status: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statuses.map((status) => (
+                              <SelectItem key={status.value} value={status.value}>
+                                {status.icon} {status.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-primary" />
+                          <div>
+                            <p className="text-sm font-medium">Lembrete de contato</p>
+                            <p className="text-[10px] text-muted-foreground">Notificar quando chegar a data</p>
+                          </div>
+                        </div>
+                        <Switch 
+                          checked={formData.reminder_enabled} 
+                          onCheckedChange={(checked) => setFormData({ ...formData, reminder_enabled: checked })} 
+                        />
+                      </div>
                     </div>
                   </div>
 
