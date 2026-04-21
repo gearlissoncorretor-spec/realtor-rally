@@ -16,11 +16,12 @@ import {
   DollarSign, Search, Filter, CheckCircle2, Clock, XCircle,
   CreditCard, Users, Calendar, Plus, AlertTriangle, Percent,
   Download, ChevronDown, ChevronUp, User, Wallet, HandCoins, Trash2,
-  Store,
+  Store, Receipt, TrendingUp, TrendingDown, LayoutDashboard
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useCommissions, Commission, CommissionInsert } from "@/hooks/useCommissions";
 import { useFinancialRecords } from "@/hooks/useFinancialRecords";
+import { useBrokerExpenses, BrokerExpenseInsert } from "@/hooks/useBrokerExpenses";
 
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import InstallmentTimeline from "@/components/commissions/InstallmentTimeline";
+
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pendente: { label: "A Receber", color: "bg-warning/10 text-warning border-warning/20", icon: Clock },
@@ -73,6 +75,7 @@ const months = [
 const Comissoes = () => {
   const { commissions, loading, updateCommission, createCommission, deleteCommission } = useCommissions();
   const { createRecord } = useFinancialRecords();
+  const { expenses, createExpense, deleteExpense, isLoading: loadingExpenses } = useBrokerExpenses();
 
   const { brokers } = useBrokers();
   const { sales } = useSales();
@@ -97,16 +100,13 @@ const Comissoes = () => {
   const [saving, setSaving] = useState(false);
   const [expandedBroker, setExpandedBroker] = useState<string | null>(null);
 
-  // Period filter
-  const currentYear = new Date().getFullYear();
-  const [filterMonth, setFilterMonth] = useState<string>((new Date().getMonth() + 1).toString());
-  const [filterYear, setFilterYear] = useState<string>(currentYear.toString());
-  const years = useMemo(() => {
-    const ySet = new Set<number>();
-    commissions.forEach(c => ySet.add(new Date(c.created_at).getFullYear()));
-    ySet.add(currentYear);
-    return [{ value: "all", label: "Todos os anos" }, ...Array.from(ySet).sort((a, b) => b - a).map(y => ({ value: y.toString(), label: y.toString() }))];
-  }, [commissions, currentYear]);
+  // Gatos (Gastos) tab state
+  const [newGastoDescricao, setNewGastoDescricao] = useState("");
+  const [newGastoCategoria, setNewGastoCategoria] = useState("Combustível / Transporte");
+  const [newGastoTipo, setNewGastoTipo] = useState("Variável");
+  const [newGastoValor, setNewGastoValor] = useState(0);
+  const [newGastoData, setNewGastoData] = useState(new Date().toISOString().split('T')[0]);
+  const [gastoTypeFilter, setGastoTypeFilter] = useState("all");
 
   // Manual creation state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -122,8 +122,22 @@ const Comissoes = () => {
   const [newObservations, setNewObservations] = useState("");
   const [newDescription, setNewDescription] = useState("");
 
+  // Period filter
+  const currentYear = new Date().getFullYear();
+  const [filterMonth, setFilterMonth] = useState<string>((new Date().getMonth() + 1).toString());
+  const [filterYear, setFilterYear] = useState<string>(currentYear.toString());
+  const years = useMemo(() => {
+    const ySet = new Set<number>();
+    commissions.forEach(c => ySet.add(new Date(c.created_at).getFullYear()));
+    ySet.add(currentYear);
+    return [{ value: "all", label: "Todos os anos" }, ...Array.from(ySet).sort((a, b) => b - a).map(y => ({ value: y.toString(), label: y.toString() }))];
+  }, [commissions, currentYear]);
+
   // Active tab
   const [activeTab, setActiveTab] = useState(isBrokerView ? "a_receber" : "lista");
+
+
+
 
   // Enrich commissions
   const enrichedCommissions = useMemo(() => {
@@ -175,7 +189,46 @@ const Comissoes = () => {
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
   }, [filtered]);
 
+  // Expenses calculations
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter(e => {
+      const eDate = new Date(e.data);
+      if (filterYear !== 'all' && eDate.getFullYear() !== Number(filterYear)) return false;
+      if (filterMonth !== 'all' && (eDate.getMonth() + 1) !== Number(filterMonth)) return false;
+      if (gastoTypeFilter !== 'all' && e.tipo !== gastoTypeFilter) return false;
+      return true;
+    });
+  }, [expenses, filterYear, filterMonth, gastoTypeFilter]);
+
+  const totalExpensesMonth = filteredExpenses.reduce((s, e) => s + Number(e.valor), 0);
+  const totalFixedExpenses = filteredExpenses.filter(e => e.tipo === 'Fixo').reduce((s, e) => s + Number(e.valor), 0);
+  const totalVariableExpenses = filteredExpenses.filter(e => e.tipo === 'Variável').reduce((s, e) => s + Number(e.valor), 0);
+  const revenueMonth = filtered.reduce((s, c) => s + Number(c.commission_value), 0);
+  const expensePercentage = revenueMonth > 0 ? (totalExpensesMonth / revenueMonth) * 100 : 0;
+
+  const handleRegisterGasto = async () => {
+    if (!newGastoDescricao || newGastoValor <= 0) {
+      toast({ title: "Campos obrigatórios", description: "Preencha a descrição e o valor.", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      await createExpense({
+        descricao: newGastoDescricao,
+        categoria: newGastoCategoria,
+        tipo: newGastoTipo,
+        valor: newGastoValor,
+        data: newGastoData,
+      });
+      setNewGastoDescricao("");
+      setNewGastoValor(0);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Split for broker view
+
   const comissoesAReceber = useMemo(() => filtered.filter(c => c.status === 'pendente' || c.status === 'parcial'), [filtered]);
   const comissoesRecebidas = useMemo(() => filtered.filter(c => c.status === 'pago'), [filtered]);
   const comissoesLoja = useMemo(() => filtered.filter(c => !c.broker_id), [filtered]);
@@ -562,7 +615,11 @@ const Comissoes = () => {
               <TabsTrigger value="recebidas" className="gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Recebidas ({comissoesRecebidas.length})
               </TabsTrigger>
+              <TabsTrigger value="gastos" className="gap-1.5">
+                <Receipt className="w-3.5 h-3.5" /> Controle de Gastos
+              </TabsTrigger>
             </TabsList>
+
 
             <TabsContent value="a_receber">
               {comissoesAReceber.length === 0 ? (
@@ -605,7 +662,11 @@ const Comissoes = () => {
               {(isDiretor() || isAdmin()) && (
                 <TabsTrigger value="loja" className="gap-1.5"><Store className="w-3.5 h-3.5" /> Comissão Loja</TabsTrigger>
               )}
+              <TabsTrigger value="gastos" className="gap-1.5">
+                <Receipt className="w-3.5 h-3.5" /> Controle de Gastos
+              </TabsTrigger>
             </TabsList>
+
 
             <TabsContent value="lista">
               <div className="flex gap-2 mb-3">
@@ -710,9 +771,200 @@ const Comissoes = () => {
                 </div>
               )}
             </TabsContent>
+          <TabsContent value="gastos">
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Card className="p-3 border-border/50">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="p-1.5 rounded-lg bg-destructive/10">
+                      <TrendingDown className="w-4 h-4 text-destructive" />
+                    </div>
+                    <span className="text-[10px] md:text-xs text-muted-foreground">Total Gastos</span>
+                  </div>
+                  <p className="text-sm md:text-lg font-bold text-foreground">{formatCurrency(totalExpensesMonth)}</p>
+                </Card>
+                <Card className="p-3 border-border/50">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="p-1.5 rounded-lg bg-blue-500/10">
+                      <LayoutDashboard className="w-4 h-4 text-blue-500" />
+                    </div>
+                    <span className="text-[10px] md:text-xs text-muted-foreground">Gastos Fixos</span>
+                  </div>
+                  <p className="text-sm md:text-lg font-bold text-foreground">{formatCurrency(totalFixedExpenses)}</p>
+                </Card>
+                <Card className="p-3 border-border/50">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="p-1.5 rounded-lg bg-warning/10">
+                      <TrendingUp className="w-4 h-4 text-warning" />
+                    </div>
+                    <span className="text-[10px] md:text-xs text-muted-foreground">Gastos Variáveis</span>
+                  </div>
+                  <p className="text-sm md:text-lg font-bold text-foreground">{formatCurrency(totalVariableExpenses)}</p>
+                </Card>
+                <Card className="p-3 border-border/50">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="p-1.5 rounded-lg bg-success/10">
+                      <Percent className="w-4 h-4 text-success" />
+                    </div>
+                    <span className="text-[10px] md:text-xs text-muted-foreground">% s/ Comissões</span>
+                  </div>
+                  <p className="text-sm md:text-lg font-bold text-foreground">{expensePercentage.toFixed(1)}%</p>
+                </Card>
+              </div>
+
+              {/* Registration Form */}
+              <Card className="p-4 border-border/50">
+                <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-success" /> Registrar Novo Gasto
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Descrição</Label>
+                    <Input 
+                      placeholder="Ex: Gasolina visita cliente" 
+                      value={newGastoDescricao} 
+                      onChange={(e) => setNewGastoDescricao(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Categoria</Label>
+                    <Select value={newGastoCategoria} onValueChange={setNewGastoCategoria}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Combustível / Transporte">Combustível / Transporte</SelectItem>
+                        <SelectItem value="Marketing / Anúncios">Marketing / Anúncios</SelectItem>
+                        <SelectItem value="Celular / Internet">Celular / Internet</SelectItem>
+                        <SelectItem value="CRECI / Anuidade">CRECI / Anuidade</SelectItem>
+                        <SelectItem value="Material de Escritório">Material de Escritório</SelectItem>
+                        <SelectItem value="Alimentação / Cliente">Alimentação / Cliente</SelectItem>
+                        <SelectItem value="Outros">Outros</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Tipo</Label>
+                    <Select value={newGastoTipo} onValueChange={setNewGastoTipo}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Fixo">Fixo</SelectItem>
+                        <SelectItem value="Variável">Variável</SelectItem>
+                        <SelectItem value="Pontual">Pontual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Valor</Label>
+                    <CurrencyInput 
+                      value={newGastoValor} 
+                      onChange={(val) => setNewGastoValor(val || 0)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Data</Label>
+                    <Input 
+                      type="date" 
+                      value={newGastoData} 
+                      onChange={(e) => setNewGastoData(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button 
+                      className="w-full gap-2 bg-success hover:bg-success/90" 
+                      onClick={handleRegisterGasto}
+                      disabled={saving}
+                    >
+                      <Plus className="w-4 h-4" /> Registrar Gasto
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Expenses Table */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-sm font-bold">Lançamentos do Mês</h3>
+                  <Select value={gastoTypeFilter} onValueChange={setGastoTypeFilter}>
+                    <SelectTrigger className="w-[150px] h-8 text-xs">
+                      <Filter className="w-3 h-3 mr-1" /><SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os tipos</SelectItem>
+                      <SelectItem value="Fixo">Fixo</SelectItem>
+                      <SelectItem value="Variável">Variável</SelectItem>
+                      <SelectItem value="Pontual">Pontual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="border rounded-lg overflow-hidden border-border/50">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-muted/50 text-muted-foreground">
+                        <th className="text-left p-3 font-medium">Data</th>
+                        <th className="text-left p-3 font-medium">Descrição</th>
+                        <th className="text-left p-3 font-medium">Categoria</th>
+                        <th className="text-left p-3 font-medium">Tipo</th>
+                        <th className="text-right p-3 font-medium">Valor</th>
+                        <th className="text-center p-3 font-medium w-16">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {filteredExpenses.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-muted-foreground">
+                            Nenhum gasto registrado para este período.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredExpenses.map((expense) => (
+                          <tr key={expense.id} className="hover:bg-accent/10 transition-colors">
+                            <td className="p-3 text-xs">{new Date(expense.data).toLocaleDateString('pt-BR')}</td>
+                            <td className="p-3 font-medium">{expense.descricao}</td>
+                            <td className="p-3 text-xs text-muted-foreground">{expense.categoria}</td>
+                            <td className="p-3">
+                              <Badge variant="outline" className={cn(
+                                "text-[10px] px-1.5 py-0",
+                                expense.tipo === 'Fixo' ? "bg-success/10 text-success border-success/20" :
+                                expense.tipo === 'Variável' ? "bg-warning/10 text-warning border-warning/20" :
+                                "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                              )}>
+                                {expense.tipo}
+                              </Badge>
+                            </td>
+                            <td className="p-3 text-right font-bold">{formatCurrency(Number(expense.valor))}</td>
+                            <td className="p-3 text-center">
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => deleteExpense(expense.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                    {filteredExpenses.length > 0 && (
+                      <tfoot className="bg-muted/30 font-bold border-t border-border">
+                        <tr>
+                          <td colSpan={4} className="p-3 text-right">Total:</td>
+                          <td className="p-3 text-right text-destructive">{formatCurrency(totalExpensesMonth)}</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
           </Tabs>
         )}
       </div>
+
 
       {/* Edit Commission Dialog */}
       <Dialog open={!!editingCommission} onOpenChange={(open) => !open && setEditingCommission(null)}>
