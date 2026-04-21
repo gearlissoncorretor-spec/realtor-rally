@@ -678,12 +678,33 @@ const FollowUpPage = () => {
                                 )}
                               </div>
                               <div className="flex flex-col items-end gap-1">
-                                <FollowUpStatusBadge
-                                  status={followUp.status}
-                                  label={statusConfig?.label}
-                                  color={statusConfig?.color}
-                                  icon={statusConfig?.icon}
-                                />
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="focus:outline-none hover:opacity-80 transition-opacity">
+                                      <FollowUpStatusBadge
+                                        status={followUp.status}
+                                        label={statusConfig?.label}
+                                        color={statusConfig?.color}
+                                        icon={statusConfig?.icon}
+                                      />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-56">
+                                    {statuses.map((s) => (
+                                      <DropdownMenuItem 
+                                        key={s.value} 
+                                        onClick={() => handleStatusChange(followUp.id, s.value)}
+                                        className={cn(followUp.status === s.value && "bg-accent font-medium")}
+                                      >
+                                        <span className="mr-2">{s.icon}</span> {s.label}
+                                      </DropdownMenuItem>
+                                    ))}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setStatusManagerOpen(true)}>
+                                      <Plus className="w-4 h-4 mr-2" /> Cadastrar Novo Status
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                                 {daysLabel && (
                                   <span className={cn(
                                     "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
