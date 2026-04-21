@@ -1116,6 +1116,65 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_records: {
+        Row: {
+          agency_id: string | null
+          category: string
+          commission_id: string | null
+          company_id: string
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          observations: string | null
+          payment_method: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          agency_id?: string | null
+          category: string
+          commission_id?: string | null
+          company_id: string
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          observations?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          agency_id?: string | null
+          category?: string
+          commission_id?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          observations?: string | null
+          payment_method?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_records_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "commissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follow_up_contacts: {
         Row: {
           agency_id: string | null

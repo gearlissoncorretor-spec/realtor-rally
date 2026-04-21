@@ -50,6 +50,8 @@ const Comissoes = lazy(() => import("@/pages/Comissoes"));
 const Onboarding = lazy(() => import("@/pages/Onboarding"));
 const Landing = lazy(() => import("@/pages/Landing"));
 const Edital = lazy(() => import("@/pages/Edital"));
+const Financeiro = lazy(() => import("@/pages/Financeiro"));
+
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -158,7 +160,9 @@ const AppShell = () => (
           <Route path="/configuracoes" element={<ProtectedRoute><LazyPage><Configuracoes /></LazyPage></ProtectedRoute>} />
           <Route path="/agenda" element={<ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>} />
           <Route path="/comissoes" element={<ProtectedRoute><LazyPage><Comissoes /></LazyPage></ProtectedRoute>} />
+          <Route path="/financeiro" element={<ProtectedRoute><LazyPage><Financeiro /></LazyPage></ProtectedRoute>} />
           <Route path="/instalar" element={<ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>} />
+
           <Route path="/gestao-usuarios" element={<ProtectedRoute><LazyPage><GestaoUsuarios /></LazyPage></ProtectedRoute>} />
           <Route path="/super-admin" element={<ProtectedRoute superAdminOnly><LazyPage><SuperAdmin /></LazyPage></ProtectedRoute>} />
           <Route path="/edital" element={<ProtectedRoute><LazyPage><Edital /></LazyPage></ProtectedRoute>} />

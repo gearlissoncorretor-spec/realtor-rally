@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useCommissions, Commission, CommissionInsert } from "@/hooks/useCommissions";
+import { useFinancialRecords } from "@/hooks/useFinancialRecords";
+
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,10 +33,12 @@ import InstallmentTimeline from "@/components/commissions/InstallmentTimeline";
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pendente: { label: "A Receber", color: "bg-warning/10 text-warning border-warning/20", icon: Clock },
-  pago: { label: "Recebida", color: "bg-success/10 text-success border-success/20", icon: CheckCircle2 },
+  a_pagar: { label: "A Pagar", color: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: CreditCard },
+  pago: { label: "Recebida/Paga", color: "bg-success/10 text-success border-success/20", icon: CheckCircle2 },
   parcial: { label: "Parcial", color: "bg-info/10 text-info border-info/20", icon: CreditCard },
   cancelado: { label: "Cancelado", color: "bg-destructive/10 text-destructive border-destructive/20", icon: XCircle },
 };
+
 
 const paymentMethodLabels: Record<string, string> = {
   pix: "PIX", transferencia: "Transferência", boleto: "Boleto",
@@ -68,6 +72,8 @@ const months = [
 
 const Comissoes = () => {
   const { commissions, loading, updateCommission, createCommission, deleteCommission } = useCommissions();
+  const { createRecord } = useFinancialRecords();
+
   const { brokers } = useBrokers();
   const { sales } = useSales();
   const { isDiretor, isAdmin, isGerente, isCorretor, user, profile } = useAuth();
@@ -217,7 +223,33 @@ const Comissoes = () => {
     }
   };
 
+  // Mark as to pay (creates financial record)
+  const handleMarkToPay = async (c: Commission) => {
+    try {
+      await updateCommission({
+        id: c.id,
+        status: 'a_pagar',
+      } as any);
+      
+      await createRecord({
+        description: `Comissão: ${c.description || (c.sale_id ? 'Venda' : 'Avulsa')}`,
+        value: Number(c.commission_value),
+        due_date: c.due_date || new Date().toISOString().split('T')[0],
+        status: 'pendente',
+        category: 'Comissão',
+        user_id: c.created_by || user?.id!,
+        company_id: c.company_id || profile?.company_id!,
+        commission_id: c.id,
+      });
+
+      toast({ title: '💰 Conta gerada!', description: 'A comissão foi marcada "A Pagar" e enviada ao Financeiro.' });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível atualizar.', variant: 'destructive' });
+    }
+  };
+
   const handleDeleteCommission = async (id: string) => {
+
     try {
       await deleteCommission(id);
       toast({ title: 'Comissão excluída', description: 'A comissão foi removida.' });
@@ -372,6 +404,17 @@ const Comissoes = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+          {c.status === 'pendente' && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-blue-500/50 text-blue-600 hover:bg-blue-50"
+              onClick={(e) => { e.stopPropagation(); handleMarkToPay(c); }}
+            >
+              <Wallet className="w-4 h-4" />
+              Enviar p/ Pagar
+            </Button>
+          )}
           {c.status !== 'pago' && c.status !== 'cancelado' && (
             <Button
               size="sm"
@@ -382,6 +425,7 @@ const Comissoes = () => {
               Já Recebi
             </Button>
           )}
+
           {canManage && (
             <Button
               size="sm"
