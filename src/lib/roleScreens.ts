@@ -6,14 +6,14 @@ export const ROLE_SCREENS: Record<string, string[]> = {
   socio: [
     'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
-    'ranking', 'acompanhamento', 'comissoes', 'relatorios',
+    'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
     'edital'
   ],
   diretor: [
     'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
-    'ranking', 'acompanhamento', 'comissoes', 'relatorios',
+    'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
     'edital'
   ],
@@ -22,15 +22,16 @@ export const ROLE_SCREENS: Record<string, string[]> = {
   gerente: [
     'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
-    'ranking', 'acompanhamento', 'comissoes', 'relatorios',
+    'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
     'edital'
   ],
   corretor: [
     'dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas',
-    'atividades', 'comissoes', 'configuracoes',
+    'atividades', 'comissoes', 'financeiro', 'configuracoes',
     'agenda', 'instalar', 'edital'
   ],
+
 };
 
 export const PATH_TO_SCREEN: Record<string, string> = {
@@ -55,7 +56,9 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/instalar': 'instalar',
   '/gestao-usuarios': 'gestao-usuarios',
   '/comissoes': 'comissoes',
+  '/financeiro': 'financeiro',
   '/edital': 'edital',
+
 };
 
 /** Check if a role has access to a given screen */
