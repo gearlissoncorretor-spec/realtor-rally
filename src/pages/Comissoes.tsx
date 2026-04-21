@@ -404,6 +404,17 @@ const Comissoes = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+          {c.status === 'pendente' && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-blue-500/50 text-blue-600 hover:bg-blue-50"
+              onClick={(e) => { e.stopPropagation(); handleMarkToPay(c); }}
+            >
+              <Wallet className="w-4 h-4" />
+              Enviar p/ Pagar
+            </Button>
+          )}
           {c.status !== 'pago' && c.status !== 'cancelado' && (
             <Button
               size="sm"
@@ -414,6 +425,7 @@ const Comissoes = () => {
               Já Recebi
             </Button>
           )}
+
           {canManage && (
             <Button
               size="sm"
