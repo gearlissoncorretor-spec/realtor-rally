@@ -1424,6 +1424,53 @@ export type Database = {
           },
         ]
       }
+      gastos_corretor: {
+        Row: {
+          categoria: string
+          company_id: string
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          categoria: string
+          company_id: string
+          created_at?: string
+          data?: string
+          descricao: string
+          id?: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+        }
+        Update: {
+          categoria?: string
+          company_id?: string
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gastos_corretor_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goal_progress: {
         Row: {
           agency_id: string | null
