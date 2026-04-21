@@ -252,7 +252,7 @@ const Auth = () => {
             <Globe className="w-4 h-4" /> Conheça o sistema
           </button>
           <p className="text-white/30 text-xs font-medium">
-            Versão 1.0 &nbsp;|&nbsp; © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
+            Versão 3.1 &nbsp;|&nbsp; © {new Date().getFullYear()} {orgName}. Todos os direitos reservados.
           </p>
         </div>
       </div>
