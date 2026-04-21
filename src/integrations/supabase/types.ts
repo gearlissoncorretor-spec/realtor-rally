@@ -1290,6 +1290,7 @@ export type Database = {
           next_contact_date: string | null
           observations: string | null
           property_interest: string | null
+          reminder_enabled: boolean | null
           status: string
           team_id: string | null
           updated_at: string
@@ -1307,6 +1308,7 @@ export type Database = {
           next_contact_date?: string | null
           observations?: string | null
           property_interest?: string | null
+          reminder_enabled?: boolean | null
           status?: string
           team_id?: string | null
           updated_at?: string
@@ -1324,6 +1326,7 @@ export type Database = {
           next_contact_date?: string | null
           observations?: string | null
           property_interest?: string | null
+          reminder_enabled?: boolean | null
           status?: string
           team_id?: string | null
           updated_at?: string
