@@ -1,0 +1,1 @@
+ALTER TABLE public.commissions ALTER COLUMN broker_id DROP NOT NULL;

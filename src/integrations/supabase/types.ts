@@ -959,7 +959,7 @@ export type Database = {
         Row: {
           agency_id: string | null
           base_value: number
-          broker_id: string
+          broker_id: string | null
           commission_percentage: number
           commission_type: string
           commission_value: number
@@ -982,7 +982,7 @@ export type Database = {
         Insert: {
           agency_id?: string | null
           base_value?: number
-          broker_id: string
+          broker_id?: string | null
           commission_percentage?: number
           commission_type?: string
           commission_value?: number
@@ -1005,7 +1005,7 @@ export type Database = {
         Update: {
           agency_id?: string | null
           base_value?: number
-          broker_id?: string
+          broker_id?: string | null
           commission_percentage?: number
           commission_type?: string
           commission_value?: number
