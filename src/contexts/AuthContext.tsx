@@ -169,11 +169,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let authChangeFired = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         if (!isMounted) return;
+        authChangeFired = true;
         
+        console.log('[AuthContext] onAuthStateChange event:', event, 'session:', !!newSession);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
@@ -187,20 +190,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         
         if (newSession?.user) {
-          setTimeout(() => {
-            if (!isMounted) return;
-            fetchProfile(newSession.user.id).finally(() => {
-              if (isMounted) {
-                setLoading(false);
-              }
-            });
-          }, 0);
+          fetchProfile(newSession.user.id).finally(() => {
+            if (isMounted) {
+              setLoading(false);
+            }
+          });
         } else {
           setLoading(false);
         }
       }
     );
 
+    // Complementary session check to ensure we don't get stuck if onAuthStateChange doesn't fire
     supabase.auth.getSession().then(({ data: { session: initialSession }, error: sessionError }) => {
       if (!isMounted) return;
       
@@ -211,14 +212,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       
-      if (!initialSession) {
+      // If authChangeFired is true, onAuthStateChange already handled it
+      if (!authChangeFired && initialSession) {
+        console.log('[AuthContext] Manually handling initial session from getSession');
+        setSession(initialSession);
+        setUser(initialSession.user);
+        fetchProfile(initialSession.user.id).finally(() => {
+          if (isMounted) {
+            setLoading(false);
+          }
+        });
+      } else if (!authChangeFired && !initialSession) {
+        console.log('[AuthContext] No session found from getSession');
         setLoading(false);
       }
     });
 
+    // Safety timeout: ensure loading is ALWAYS set to false after 15s max
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('[AuthContext] Safety timeout reached, forcing loading false');
+        setLoading(false);
+      }
+    }, 15000);
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
     };
   }, []);
 
