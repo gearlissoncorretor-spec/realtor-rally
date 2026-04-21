@@ -113,7 +113,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const screenToCheck = requiredScreen || PATH_TO_SCREEN[location.pathname];
   const userRole = getUserRole();
 
-  if (isDiretor() || isAdmin() || isSuperAdmin() || isSocio()) {
+  if (isAdmin() || isSuperAdmin()) {
     return <>{children}</>;
   }
 

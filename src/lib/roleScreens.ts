@@ -3,8 +3,20 @@
  * Used by ProtectedRoute and Navigation to avoid duplication.
  */
 export const ROLE_SCREENS: Record<string, string[]> = {
-  socio: ['*'],
-  diretor: ['*'],
+  socio: [
+    'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
+    'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
+    'ranking', 'acompanhamento', 'comissoes', 'relatorios',
+    'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
+    'edital'
+  ],
+  diretor: [
+    'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
+    'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
+    'ranking', 'acompanhamento', 'comissoes', 'relatorios',
+    'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
+    'edital'
+  ],
   admin: ['*'],
   super_admin: ['*'],
   gerente: [

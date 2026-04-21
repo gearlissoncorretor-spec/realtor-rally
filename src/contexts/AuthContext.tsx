@@ -330,8 +330,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const hasPermission = (screen: string, action: 'view' | 'create' | 'edit' | 'delete'): boolean => {
-    // Socios, admins, directors, super_admins have full access
-    if (userRole === 'super_admin' || userRole === 'socio' || userRole === 'admin' || userRole === 'diretor') return true;
+    // Super admins and admins have full access override
+    if (userRole === 'super_admin' || userRole === 'admin') return true;
 
     const perm = rolePermissions.find(p => p.role === (userRole ?? 'corretor') && p.screen === screen);
     if (!perm) return false;
@@ -410,7 +410,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const canAccessUserData = (userId: string): boolean => {
     if (!userRole || !user) return false;
     
-    if (userRole === 'super_admin' || userRole === 'socio' || userRole === 'diretor' || userRole === 'admin') return true;
+    if (userRole === 'super_admin' || userRole === 'admin') return true;
     
     if (userRole === 'gerente' && teamHierarchy) {
       return teamHierarchy.team_members.includes(userId);
