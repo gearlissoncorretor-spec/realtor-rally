@@ -141,7 +141,9 @@ const Navigation = () => {
     { href: "/atividades", label: "Atividades", icon: ClipboardList, screen: "atividades" },
     { href: "/acompanhamento", label: "Status Vendas", icon: Wallet, screen: "acompanhamento" },
     { href: "/comissoes", label: "Comissões", icon: Receipt, screen: "comissoes" },
+    { href: "/financeiro", label: "Financeiro", icon: Wallet, screen: "financeiro" },
     { href: "/relatorios", label: "Relatórios", icon: FileBarChart, screen: "relatorios" },
+
     { href: "/corretores", label: "Corretores", icon: Users, screen: "corretores" },
     { href: "/equipes", label: "Equipes", icon: UsersRound, screen: "equipes" },
     { href: "/x1", label: "X1", icon: Columns3, screen: "x1" },
@@ -187,8 +189,9 @@ const Navigation = () => {
     },
     {
       label: "Gestão",
-      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios', 'comissoes'].includes(i.screen)),
+      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios', 'comissoes', 'financeiro'].includes(i.screen)),
     },
+
     {
       label: "Sistema",
       items: navItems.filter(i => ['configuracoes', 'instalar', 'edital'].includes(i.screen)),
