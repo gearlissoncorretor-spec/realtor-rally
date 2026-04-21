@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { OriginAnalyticsDashboard } from './OriginAnalyticsDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
