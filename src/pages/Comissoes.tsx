@@ -75,6 +75,7 @@ const months = [
 const Comissoes = () => {
   const { commissions, loading, updateCommission, createCommission, deleteCommission } = useCommissions();
   const { createRecord } = useFinancialRecords();
+  const { expenses, createExpense, deleteExpense, isLoading: loadingExpenses } = useBrokerExpenses();
 
   const { brokers } = useBrokers();
   const { sales } = useSales();
@@ -99,33 +100,22 @@ const Comissoes = () => {
   const [saving, setSaving] = useState(false);
   const [expandedBroker, setExpandedBroker] = useState<string | null>(null);
 
+  // Gatos (Gastos) tab state
+  const [newGastoDescricao, setNewGastoDescricao] = useState("");
+  const [newGastoCategoria, setNewGastoCategoria] = useState("Combustível / Transporte");
+  const [newGastoTipo, setNewGastoTipo] = useState("Variável");
+  const [newGastoValor, setNewGastoValor] = useState(0);
+  const [newGastoData, setNewGastoData] = useState(new Date().toISOString().split('T')[0]);
+  const [gastoTypeFilter, setGastoTypeFilter] = useState("all");
+
   // Period filter
   const currentYear = new Date().getFullYear();
   const [filterMonth, setFilterMonth] = useState<string>((new Date().getMonth() + 1).toString());
   const [filterYear, setFilterYear] = useState<string>(currentYear.toString());
-  const years = useMemo(() => {
-    const ySet = new Set<number>();
-    commissions.forEach(c => ySet.add(new Date(c.created_at).getFullYear()));
-    ySet.add(currentYear);
-    return [{ value: "all", label: "Todos os anos" }, ...Array.from(ySet).sort((a, b) => b - a).map(y => ({ value: y.toString(), label: y.toString() }))];
-  }, [commissions, currentYear]);
-
-  // Manual creation state
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newBrokerId, setNewBrokerId] = useState("");
-  const [newSaleId, setNewSaleId] = useState("");
-  const [newBaseValue, setNewBaseValue] = useState(0);
-  const [newPercentage, setNewPercentage] = useState(5);
-  const [newDirectCommissionValue, setNewDirectCommissionValue] = useState(0);
-  const [newCommissionType, setNewCommissionType] = useState("venda");
-  const [newPaymentMethod, setNewPaymentMethod] = useState("");
-  const [newInstallments, setNewInstallments] = useState(1);
-  const [newDueDate, setNewDueDate] = useState("");
-  const [newObservations, setNewObservations] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-
+...
   // Active tab
   const [activeTab, setActiveTab] = useState(isBrokerView ? "a_receber" : "lista");
+
 
   // Enrich commissions
   const enrichedCommissions = useMemo(() => {
