@@ -10,11 +10,12 @@ export interface Negotiation {
   broker_id: string;
   client_name: string;
   client_email: string | null;
-  client_phone: string | null;
+  client_phone: string;
   property_address: string;
   property_type: string;
   negotiated_value: number;
   status: string;
+  process_stage_id: string | null;
   start_date: string;
   observations: string | null;
   loss_reason: string | null;
@@ -22,7 +23,12 @@ export interface Negotiation {
   created_at: string;
   updated_at: string;
   temperature: string;
-  origem: string | null;
+  origem: string;
+  stage?: {
+    id: string;
+    title: string;
+    color: string;
+  };
 }
 
 export interface CreateNegotiationInput {
@@ -84,7 +90,7 @@ export const useNegotiations = () => {
       while (hasMore) {
         const { data, error } = await supabase
           .from('negotiations')
-          .select('*')
+          .select('*, stage:process_stages(id, title, color)')
           .not('status', 'in', '("venda_concluida","perdida")')
           .order('start_date', { ascending: false })
           .range(from, from + PAGE_SIZE - 1);
@@ -106,7 +112,7 @@ export const useNegotiations = () => {
     queryFn: async () => {
       const { data, error } = await supabase
           .from('negotiations')
-          .select('*')
+          .select('*, stage:process_stages(id, title, color)')
           .eq('status', 'perdida')
           .order('updated_at', { ascending: false });
 
