@@ -405,7 +405,7 @@ const NegotiationsExportDialog = ({ isOpen, onClose, negotiations, brokers, acti
                         <td className="p-2 font-medium">{n.client_name}</td>
                         <td className="p-2 text-muted-foreground">{n.property_address}</td>
                         <td className="p-2">
-                          <Badge variant="outline" className="text-[10px] py-0 h-4">{getStatusLabel(n.status)}</Badge>
+                          <Badge variant="outline" className="text-[10px] py-0 h-4">{getStatusLabel(n)}</Badge>
                         </td>
                         <td className="p-2 text-right">{formatCurrency(n.negotiated_value)}</td>
                       </tr>
