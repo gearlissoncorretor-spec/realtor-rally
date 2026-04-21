@@ -352,6 +352,8 @@ export const OriginAnalyticsDashboard: React.FC<OriginAnalyticsDashboardProps> =
             <KPICard icon={<Target className="w-4 h-4" />} label="Total Vendas" value={totals.totalVendas.toString()} />
             <KPICard icon={<TrendingUp className="w-4 h-4" />} label="Conversão Geral" value={`${Math.round(totals.conversaoGeral)}%`} accent={totals.conversaoGeral >= 30} />
             <KPICard icon={<Award className="w-4 h-4" />} label="Ticket Médio" value={formatCurrency(totals.ticketMedioGeral)} />
+
+
           </div>
 
           {/* Best / Worst highlights */}
