@@ -71,7 +71,7 @@ const Navigation = () => {
   const allNavItems: NavItem[] = [
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
     { href: "/central-gestor", label: "Central do Gestor", icon: TrendingUp, screen: "central-gestor" },
-    { href: "/dashboard-equipes", label: "Dashboard Equipes", icon: Building2, screen: "dashboard-equipes" },
+    // { href: "/dashboard-equipes", label: "Dashboard Equipes", icon: Building2, screen: "dashboard-equipes" },
     { href: "/ranking", label: "Ranking", icon: Trophy, screen: "ranking" },
     { href: "/vendas", label: "Vendas", icon: ShoppingBag, screen: "vendas" },
     { href: "/negociacoes", label: "Negociações", icon: Handshake, screen: "negociacoes" },
@@ -110,7 +110,7 @@ const Navigation = () => {
     {
       label: "Principal",
       defaultOpen: true,
-      items: navItems.filter(i => ['dashboard', 'central-gestor', 'dashboard-equipes', 'ranking', 'agenda'].includes(i.screen)),
+      items: navItems.filter(i => ['dashboard', 'central-gestor', 'ranking', 'agenda'].includes(i.screen)),
     },
     {
       label: "Comercial",
