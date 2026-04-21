@@ -15,6 +15,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { 
   Plus, 
   Edit, 
@@ -31,12 +38,15 @@ import {
   StickyNote,
   ChevronDown,
   ChevronUp,
-  Settings
+  Settings,
+  Bell,
+  BellOff
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
 import { formatCurrency } from "@/utils/formatting";
 import { format, isToday, isPast, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -115,6 +125,7 @@ const FollowUpPage = () => {
     next_contact_date: '',
     observations: '',
     status: 'novo_lead',
+    reminder_enabled: false,
   });
 
   // Get current user's broker ID
@@ -241,6 +252,7 @@ const FollowUpPage = () => {
       next_contact_date: followUp.next_contact_date || '',
       observations: followUp.observations || '',
       status: followUp.status,
+      reminder_enabled: followUp.reminder_enabled || false,
     });
     setIsFormOpen(true);
   };
@@ -257,6 +269,7 @@ const FollowUpPage = () => {
       next_contact_date: '',
       observations: '',
       status: 'novo_lead',
+      reminder_enabled: false,
     });
   };
 
@@ -302,6 +315,25 @@ const FollowUpPage = () => {
   const getBrokerName = (brokerId: string) => {
     const broker = brokers.find(b => b.id === brokerId);
     return broker?.name || 'Não encontrado';
+  };
+
+  const handleStatusChange = async (followUpId: string, newStatus: string) => {
+    try {
+      await updateFollowUp({ id: followUpId, status: newStatus });
+    } catch (error) {
+      // Error handled by hook
+    }
+  };
+
+  const handleToggleReminder = async (followUp: FollowUpType) => {
+    try {
+      await updateFollowUp({ 
+        id: followUp.id, 
+        reminder_enabled: !followUp.reminder_enabled 
+      });
+    } catch (error) {
+      // Error handled by hook
+    }
   };
 
   const formatWhatsAppLink = (phone: string) => {
@@ -466,23 +498,38 @@ const FollowUpPage = () => {
                         onChange={(e) => setFormData({ ...formData, next_contact_date: e.target.value })}
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium">Status</label>
-                      <Select
-                        value={formData.status}
-                        onValueChange={(value) => setFormData({ ...formData, status: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statuses.map((status) => (
-                            <SelectItem key={status.value} value={status.value}>
-                              {status.icon} {status.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="flex flex-col gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Status</label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) => setFormData({ ...formData, status: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {statuses.map((status) => (
+                              <SelectItem key={status.value} value={status.value}>
+                                {status.icon} {status.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <Bell className="w-4 h-4 text-primary" />
+                          <div>
+                            <p className="text-sm font-medium">Lembrete de contato</p>
+                            <p className="text-[10px] text-muted-foreground">Notificar quando chegar a data</p>
+                          </div>
+                        </div>
+                        <Switch 
+                          checked={formData.reminder_enabled} 
+                          onCheckedChange={(checked) => setFormData({ ...formData, reminder_enabled: checked })} 
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -631,12 +678,33 @@ const FollowUpPage = () => {
                                 )}
                               </div>
                               <div className="flex flex-col items-end gap-1">
-                                <FollowUpStatusBadge
-                                  status={followUp.status}
-                                  label={statusConfig?.label}
-                                  color={statusConfig?.color}
-                                  icon={statusConfig?.icon}
-                                />
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="focus:outline-none hover:opacity-80 transition-opacity">
+                                      <FollowUpStatusBadge
+                                        status={followUp.status}
+                                        label={statusConfig?.label}
+                                        color={statusConfig?.color}
+                                        icon={statusConfig?.icon}
+                                      />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-56">
+                                    {statuses.map((s) => (
+                                      <DropdownMenuItem 
+                                        key={s.value} 
+                                        onClick={() => handleStatusChange(followUp.id, s.value)}
+                                        className={cn(followUp.status === s.value && "bg-accent font-medium")}
+                                      >
+                                        <span className="mr-2">{s.icon}</span> {s.label}
+                                      </DropdownMenuItem>
+                                    ))}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setStatusManagerOpen(true)}>
+                                      <Plus className="w-4 h-4 mr-2" /> Cadastrar Novo Status
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                                 {daysLabel && (
                                   <span className={cn(
                                     "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
@@ -647,6 +715,18 @@ const FollowUpPage = () => {
                                     {daysLabel}
                                   </span>
                                 )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6"
+                                  onClick={() => handleToggleReminder(followUp)}
+                                >
+                                  {followUp.reminder_enabled ? (
+                                    <Bell className="w-3 h-3 text-primary" />
+                                  ) : (
+                                    <BellOff className="w-3 h-3 text-muted-foreground/40" />
+                                  )}
+                                </Button>
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -725,6 +805,7 @@ const FollowUpPage = () => {
                           <TableHead>VGV</TableHead>
                           <TableHead>Responsável</TableHead>
                           <TableHead>Próximo Contato</TableHead>
+                          <TableHead className="text-center">Lembrete</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
@@ -776,8 +857,43 @@ const FollowUpPage = () => {
                                   </div>
                                 ) : <span className="text-muted-foreground">-</span>}
                               </TableCell>
+                              <TableCell className="text-center">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  onClick={() => handleToggleReminder(followUp)}
+                                  title={followUp.reminder_enabled ? "Desativar Lembrete" : "Ativar Lembrete"}
+                                >
+                                  {followUp.reminder_enabled ? (
+                                    <Bell className="w-4 h-4 text-primary" />
+                                  ) : (
+                                    <BellOff className="w-4 h-4 text-muted-foreground/40" />
+                                  )}
+                                </Button>
+                              </TableCell>
                               <TableCell>
-                                <FollowUpStatusBadge status={followUp.status} label={statusConfig?.label} color={statusConfig?.color} icon={statusConfig?.icon} />
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button className="focus:outline-none hover:opacity-80 transition-opacity">
+                                      <FollowUpStatusBadge status={followUp.status} label={statusConfig?.label} color={statusConfig?.color} icon={statusConfig?.icon} />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start" className="w-56">
+                                    {statuses.map((s) => (
+                                      <DropdownMenuItem 
+                                        key={s.value} 
+                                        onClick={() => handleStatusChange(followUp.id, s.value)}
+                                        className={cn(followUp.status === s.value && "bg-accent font-medium")}
+                                      >
+                                        <span className="mr-2">{s.icon}</span> {s.label}
+                                      </DropdownMenuItem>
+                                    ))}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setStatusManagerOpen(true)}>
+                                      <Plus className="w-4 h-4 mr-2" /> Cadastrar Novo Status
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center justify-end gap-1">
