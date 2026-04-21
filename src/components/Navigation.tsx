@@ -90,6 +90,7 @@ const Navigation = () => {
     { href: "/configuracoes", label: "Configurações", icon: Settings, screen: "configuracoes" },
     { href: "/instalar", label: "Instalar App", icon: Download, screen: "instalar" },
     { href: "/super-admin", label: "Super Admin", icon: Shield, screen: "super-admin" },
+    { href: "/edital", label: "Edital do Sistema", icon: FileText, screen: "edital" },
   ];
 
   const navItems = allNavItems.filter(item => {
