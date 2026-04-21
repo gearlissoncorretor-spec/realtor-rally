@@ -131,7 +131,7 @@ const Navigation = () => {
     },
     {
       label: "Sistema",
-      items: navItems.filter(i => ['configuracoes', 'instalar'].includes(i.screen)),
+      items: navItems.filter(i => ['configuracoes', 'instalar', 'edital'].includes(i.screen)),
     },
   ].filter(g => g.items.length > 0);
 
