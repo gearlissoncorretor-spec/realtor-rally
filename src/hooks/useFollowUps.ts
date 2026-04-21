@@ -57,6 +57,7 @@ export interface CreateFollowUpInput {
   next_contact_date?: string;
   observations?: string;
   status?: string;
+  reminder_enabled?: boolean;
   company_id?: string;
   agency_id?: string;
 }
