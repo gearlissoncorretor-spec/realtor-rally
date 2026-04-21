@@ -12,11 +12,12 @@ export const ROLE_SCREENS: Record<string, string[]> = {
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
+    'edital'
   ],
   corretor: [
     'dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas',
     'atividades', 'comissoes', 'configuracoes',
-    'agenda', 'instalar',
+    'agenda', 'instalar', 'edital'
   ],
 };
 
@@ -42,6 +43,7 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/instalar': 'instalar',
   '/gestao-usuarios': 'gestao-usuarios',
   '/comissoes': 'comissoes',
+  '/edital': 'edital',
 };
 
 /** Check if a role has access to a given screen */
