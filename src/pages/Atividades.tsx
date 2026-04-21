@@ -82,6 +82,7 @@ const Atividades = () => {
   const { brokers, loading: brokersLoading } = useBrokers();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
   const [selectedWeek, setSelectedWeek] = useState<string>(() => {
     const now = new Date();
     return format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
@@ -92,6 +93,7 @@ const Atividades = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isAddingTask, setIsAddingTask] = useState(false);
 
+  const { teams } = useTeams();
   const weekOptions = useMemo(() => getWeekOptions(), []);
 
   const { 
@@ -113,17 +115,22 @@ const Atividades = () => {
   
   // Filter brokers based on role
   const accessibleBrokers = useMemo(() => {
+    let filtered = brokers;
+    
     if (isDiretor() || isAdmin()) {
-      return brokers;
+      if (selectedTeamId !== 'all') {
+        filtered = brokers.filter(b => b.team_id === selectedTeamId);
+      }
+    } else if (isGerente() && userTeamId) {
+      filtered = brokers.filter(b => b.team_id === userTeamId);
+    } else if (isCorretor() && currentBroker) {
+      filtered = [currentBroker];
+    } else {
+      filtered = [];
     }
-    if (isGerente() && userTeamId) {
-      return brokers.filter(b => b.team_id === userTeamId);
-    }
-    if (isCorretor() && currentBroker) {
-      return [currentBroker];
-    }
-    return [];
-  }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin]);
+    
+    return filtered;
+  }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin, selectedTeamId]);
 
   // Initialize selected broker
   useEffect(() => {
