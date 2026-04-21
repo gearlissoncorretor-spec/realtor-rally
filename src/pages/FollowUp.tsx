@@ -38,7 +38,9 @@ import {
   StickyNote,
   ChevronDown,
   ChevronUp,
-  Settings
+  Settings,
+  Bell,
+  BellOff
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 import { useBrokers } from "@/hooks/useBrokers";
