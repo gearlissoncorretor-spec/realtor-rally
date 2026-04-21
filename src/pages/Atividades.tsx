@@ -50,11 +50,13 @@ import {
   ChevronLeft,
   ChevronRight,
   ListTodo,
-  Zap
+  Zap,
+  Filter
 } from "lucide-react";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWeeklyActivities } from "@/hooks/useWeeklyActivities";
+import { useTeams } from "@/hooks/useTeams";
 import { CreateActivityDialog } from "@/components/activities/CreateActivityDialog";
 import { InlineActivityForm } from "@/components/activities/InlineActivityForm";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
@@ -80,6 +82,7 @@ const Atividades = () => {
   const { brokers, loading: brokersLoading } = useBrokers();
   
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("all");
   const [selectedWeek, setSelectedWeek] = useState<string>(() => {
     const now = new Date();
     return format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
@@ -90,6 +93,7 @@ const Atividades = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isAddingTask, setIsAddingTask] = useState(false);
 
+  const { teams } = useTeams();
   const weekOptions = useMemo(() => getWeekOptions(), []);
 
   const { 
@@ -111,22 +115,33 @@ const Atividades = () => {
   
   // Filter brokers based on role
   const accessibleBrokers = useMemo(() => {
+    let filtered = brokers;
+    
     if (isDiretor() || isAdmin()) {
-      return brokers;
+      if (selectedTeamId !== 'all') {
+        filtered = brokers.filter(b => b.team_id === selectedTeamId);
+      }
+    } else if (isGerente() && userTeamId) {
+      filtered = brokers.filter(b => b.team_id === userTeamId);
+    } else if (isCorretor() && currentBroker) {
+      filtered = [currentBroker];
+    } else {
+      filtered = [];
     }
-    if (isGerente() && userTeamId) {
-      return brokers.filter(b => b.team_id === userTeamId);
-    }
-    if (isCorretor() && currentBroker) {
-      return [currentBroker];
-    }
-    return [];
-  }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin]);
+    
+    return filtered;
+  }, [brokers, currentBroker, userTeamId, isCorretor, isGerente, isDiretor, isAdmin, selectedTeamId]);
 
   // Initialize selected broker
   useEffect(() => {
-    if (accessibleBrokers.length > 0 && !selectedBrokerId) {
-      setSelectedBrokerId(accessibleBrokers[0].id);
+    if (accessibleBrokers.length > 0) {
+      // Check if current selected broker is still in the accessible list
+      const isStillAccessible = accessibleBrokers.some(b => b.id === selectedBrokerId);
+      if (!isStillAccessible) {
+        setSelectedBrokerId(accessibleBrokers[0].id);
+      }
+    } else {
+      setSelectedBrokerId("");
     }
   }, [accessibleBrokers, selectedBrokerId]);
 
@@ -330,53 +345,73 @@ const Atividades = () => {
           </TabsList>
 
           <TabsContent value="semanal">
-        <div className="space-y-6">
-           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="w-full text-center sm:text-left">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
-                <ClipboardList className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600" />
-                Gestão de Atividades Semanais
-              </h1>
-            </div>
-            
-            {/* Week Selector */}
-            <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToPreviousWeek}
-                className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              
-              <div className="flex items-center gap-2 min-w-[200px]">
-                <Calendar className="w-5 h-5 text-emerald-600" />
-                <Select value={selectedWeek} onValueChange={setSelectedWeek}>
-                  <SelectTrigger className="border-0 bg-transparent focus:ring-0 font-semibold text-emerald-600 w-auto">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {weekOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label} {option.isCurrent && "(Atual)"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="w-full text-center sm:text-left">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center justify-center sm:justify-start gap-2">
+                    <ClipboardList className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600" />
+                    Gestão de Atividades Semanais
+                  </h1>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  {/* Team Filter for Directors */}
+                  {(isDiretor() || isAdmin()) && teams.length > 0 && (
+                    <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
+                      <Filter className="w-4 h-4 text-emerald-600 ml-1" />
+                      <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                        <SelectTrigger className="border-0 bg-transparent focus:ring-0 font-semibold text-emerald-600 w-auto min-w-[150px]">
+                          <SelectValue placeholder="Filtrar por equipe" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todas as Equipes</SelectItem>
+                          {teams.map(team => (
+                            <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Week Selector */}
+                  <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border rounded-xl p-2 shadow-lg">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={goToPreviousWeek}
+                      className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    
+                    <div className="flex items-center gap-2 min-w-[200px]">
+                      <Calendar className="w-5 h-5 text-emerald-600" />
+                      <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+                        <SelectTrigger className="border-0 bg-transparent focus:ring-0 font-semibold text-emerald-600 w-auto">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {weekOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label} {option.isCurrent && "(Atual)"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={goToNextWeek}
+                      disabled={isCurrentWeek}
+                      className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 disabled:opacity-50"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={goToNextWeek}
-                disabled={isCurrentWeek}
-                className="h-9 w-9 text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 disabled:opacity-50"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
 
           {/* Broker Tabs */}
           {accessibleBrokers.length > 0 ? (
