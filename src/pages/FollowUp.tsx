@@ -793,6 +793,7 @@ const FollowUpPage = () => {
                           <TableHead>VGV</TableHead>
                           <TableHead>Responsável</TableHead>
                           <TableHead>Próximo Contato</TableHead>
+                          <TableHead className="text-center">Lembrete</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
