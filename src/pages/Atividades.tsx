@@ -134,8 +134,14 @@ const Atividades = () => {
 
   // Initialize selected broker
   useEffect(() => {
-    if (accessibleBrokers.length > 0 && !selectedBrokerId) {
-      setSelectedBrokerId(accessibleBrokers[0].id);
+    if (accessibleBrokers.length > 0) {
+      // Check if current selected broker is still in the accessible list
+      const isStillAccessible = accessibleBrokers.some(b => b.id === selectedBrokerId);
+      if (!isStillAccessible) {
+        setSelectedBrokerId(accessibleBrokers[0].id);
+      }
+    } else {
+      setSelectedBrokerId("");
     }
   }, [accessibleBrokers, selectedBrokerId]);
 
