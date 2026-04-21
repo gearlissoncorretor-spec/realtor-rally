@@ -22,7 +22,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
-import { useNegotiationStatuses } from "@/hooks/useNegotiationStatuses";
+import { useProcessStages } from "@/hooks/useProcessStages";
 
 interface NegotiationsExportDialogProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ type ExportField = {
   key: string;
   label: string;
   checked: boolean;
-  getValue: (negotiation: Negotiation, brokers: Broker[], getStatusLabel: (val: string) => string) => string;
+  getValue: (negotiation: Negotiation, brokers: Broker[], getStatusLabel: (n: Negotiation) => string) => string;
 };
 
 const INITIAL_FIELDS: ExportField[] = [
@@ -47,7 +47,7 @@ const INITIAL_FIELDS: ExportField[] = [
   { key: "property_address", label: "Empreendimento", checked: true, getValue: (n) => n.property_address || "" },
   { key: "property_type", label: "Tipo de Imóvel", checked: true, getValue: (n) => n.property_type || "" },
   { key: "negotiated_value", label: "Valor Negociado", checked: true, getValue: (n) => formatCurrency(Number(n.negotiated_value || 0)) },
-  { key: "status", label: "Status / Etapa", checked: true, getValue: (n, _, getLabel) => getLabel(n.status) },
+  { key: "status", label: "Status / Etapa", checked: true, getValue: (n, _, getLabel) => getLabel(n) },
   { key: "temperature", label: "Termômetro", checked: true, getValue: (n) => n.temperature === 'quente' ? '🔥 Quente' : n.temperature === 'morna' ? '🌤️ Morna' : '❄️ Fria' },
   { key: "start_date", label: "Data de Início", checked: true, getValue: (n) => n.start_date ? format(new Date(n.start_date), "dd/MM/yyyy", { locale: ptBR }) : "" },
   { key: "origem", label: "Origem", checked: false, getValue: (n) => n.origem || "" },
@@ -59,7 +59,7 @@ const INITIAL_FIELDS: ExportField[] = [
 const NegotiationsExportDialog = ({ isOpen, onClose, negotiations, brokers, activeTab = "active" }: NegotiationsExportDialogProps) => {
   const { toast } = useToast();
   const { settings: orgSettings } = useOrganizationSettings();
-  const { getStatusByValue } = useNegotiationStatuses();
+  const { stages } = useProcessStages();
   const [step, setStep] = useState<"filters" | "select" | "fields" | "preview">("filters");
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -77,10 +77,8 @@ const NegotiationsExportDialog = ({ isOpen, onClose, negotiations, brokers, acti
   const [fields, setFields] = useState<ExportField[]>(INITIAL_FIELDS);
   const [pdfOrientation, setPdfOrientation] = useState<"portrait" | "landscape">("landscape");
 
-  const getStatusLabel = (val: string) => {
-    if (val === 'perdida') return 'Perdida';
-    if (val === 'venda_concluida') return 'Venda Concluída';
-    return getStatusByValue(val)?.label || val;
+  const getStatusLabel = (n: Negotiation) => {
+    return n.stage?.title || n.status || 'N/A';
   };
 
   const filteredNegotiations = useMemo(() => {
@@ -256,7 +254,7 @@ const NegotiationsExportDialog = ({ isOpen, onClose, negotiations, brokers, acti
     onClose();
   };
 
-  const uniqueStatuses = [...new Set(negotiations.map(n => n.status).filter(Boolean))];
+  const uniqueStatuses = [...new Set(negotiations.map(n => n.process_stage_id).filter(Boolean))];
 
   return (
     <Dialog open={isOpen} onOpenChange={resetAndClose}>
@@ -333,7 +331,7 @@ const NegotiationsExportDialog = ({ isOpen, onClose, negotiations, brokers, acti
                   <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Todos" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os status</SelectItem>
-                    {uniqueStatuses.map(s => <SelectItem key={s!} value={s!}>{getStatusLabel(s!)}</SelectItem>)}
+                    {stages.map(s => <SelectItem key={s.id} value={s.id}>{s.title}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
