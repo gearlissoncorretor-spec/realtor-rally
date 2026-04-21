@@ -43,6 +43,7 @@ export interface CommissionInsert {
   installments?: number;
   paid_installments?: number;
   observations?: string | null;
+  agency_id?: string | null;
 }
 
 export const useCommissions = () => {
