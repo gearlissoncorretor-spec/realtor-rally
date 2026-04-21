@@ -29,14 +29,16 @@ export interface CreateNegotiationInput {
   broker_id: string;
   client_name: string;
   client_email?: string;
-  client_phone?: string;
+  client_phone: string;
   property_address: string;
   property_type?: string;
   negotiated_value: number;
   status?: string;
+  process_stage_id?: string;
   start_date?: string;
   observations?: string;
   temperature?: string;
+  origem: string;
 }
 
 export interface UpdateNegotiationInput {
@@ -49,10 +51,12 @@ export interface UpdateNegotiationInput {
   property_type?: string;
   negotiated_value?: number;
   status?: string;
+  process_stage_id?: string;
   start_date?: string;
   observations?: string;
   loss_reason?: string;
   temperature?: string;
+  origem?: string;
 }
 
 export const useNegotiations = () => {
