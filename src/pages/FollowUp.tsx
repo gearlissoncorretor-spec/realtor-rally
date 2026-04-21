@@ -317,6 +317,25 @@ const FollowUpPage = () => {
     return broker?.name || 'Não encontrado';
   };
 
+  const handleStatusChange = async (followUpId: string, newStatus: string) => {
+    try {
+      await updateFollowUp({ id: followUpId, status: newStatus });
+    } catch (error) {
+      // Error handled by hook
+    }
+  };
+
+  const handleToggleReminder = async (followUp: FollowUpType) => {
+    try {
+      await updateFollowUp({ 
+        id: followUp.id, 
+        reminder_enabled: !followUp.reminder_enabled 
+      });
+    } catch (error) {
+      // Error handled by hook
+    }
+  };
+
   const formatWhatsAppLink = (phone: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const phoneWithCountry = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
