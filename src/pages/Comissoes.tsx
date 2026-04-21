@@ -16,6 +16,7 @@ import {
   DollarSign, Search, Filter, CheckCircle2, Clock, XCircle,
   CreditCard, Users, Calendar, Plus, AlertTriangle, Percent,
   Download, ChevronDown, ChevronUp, User, Wallet, HandCoins, Trash2,
+  Store,
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useCommissions, Commission, CommissionInsert } from "@/hooks/useCommissions";
@@ -69,7 +70,7 @@ const Comissoes = () => {
   const { commissions, loading, updateCommission, createCommission, deleteCommission } = useCommissions();
   const { brokers } = useBrokers();
   const { sales } = useSales();
-  const { isDiretor, isAdmin, isGerente, isCorretor, user } = useAuth();
+  const { isDiretor, isAdmin, isGerente, isCorretor, user, profile } = useAuth();
   const { toast } = useToast();
   const canManage = isDiretor() || isAdmin() || isGerente();
   const isBrokerView = isCorretor() && !canManage;
@@ -171,6 +172,7 @@ const Comissoes = () => {
   // Split for broker view
   const comissoesAReceber = useMemo(() => filtered.filter(c => c.status === 'pendente' || c.status === 'parcial'), [filtered]);
   const comissoesRecebidas = useMemo(() => filtered.filter(c => c.status === 'pago'), [filtered]);
+  const comissoesLoja = useMemo(() => filtered.filter(c => !c.broker_id), [filtered]);
 
   // Export CSV
   const handleExportCSV = useCallback(() => {
@@ -257,12 +259,12 @@ const Comissoes = () => {
   };
 
   const handleCreate = async () => {
-    const brokerId = isBrokerView ? currentBroker?.id : newBrokerId;
+    const brokerId = isBrokerView ? currentBroker?.id : (newBrokerId === 'loja' ? null : newBrokerId);
     
     // For broker view: direct commission value; for manager view: base * percentage
     const finalCommissionValue = isBrokerView ? newDirectCommissionValue : (newBaseValue * newPercentage) / 100;
     
-    if (!brokerId || finalCommissionValue <= 0) {
+    if ((!brokerId && newBrokerId !== 'loja') || finalCommissionValue <= 0) {
       toast({ title: "Campos obrigatórios", description: "Preencha o valor da comissão.", variant: "destructive" });
       return;
     }
@@ -280,6 +282,7 @@ const Comissoes = () => {
         installments: newInstallments,
         due_date: newDueDate || null,
         observations: newObservations || null,
+        agency_id: profile?.agency_id || null,
       };
       await createCommission(data);
       toast({ title: "Comissão registrada", description: "Comissão cadastrada com sucesso." });
@@ -549,6 +552,9 @@ const Comissoes = () => {
             <TabsList>
               <TabsTrigger value="lista" className="gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Comissões</TabsTrigger>
               <TabsTrigger value="corretores" className="gap-1.5"><Users className="w-3.5 h-3.5" /> Por Corretor</TabsTrigger>
+              {(isDiretor() || isAdmin()) && (
+                <TabsTrigger value="loja" className="gap-1.5"><Store className="w-3.5 h-3.5" /> Comissão Loja</TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="lista">
@@ -638,6 +644,21 @@ const Comissoes = () => {
                   })
                 )}
               </div>
+            </TabsContent>
+            <TabsContent value="loja">
+              {comissoesLoja.length === 0 ? (
+                <Card className="p-10 text-center border-border/50">
+                  <Store className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão de loja encontrada</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Aqui ficam as comissões destinadas diretamente à imobiliária</p>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {comissoesLoja.map(c => (
+                    <CommissionCard key={c.id} c={c} showBroker={false} />
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         )}
@@ -746,6 +767,12 @@ const Comissoes = () => {
                 <Select value={newBrokerId} onValueChange={setNewBrokerId}>
                   <SelectTrigger className="text-sm"><SelectValue placeholder="Selecione o corretor..." /></SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="loja" className="font-bold text-primary">
+                      <div className="flex items-center gap-2">
+                        <Store className="w-4 h-4" />
+                        Comissão para a Loja
+                      </div>
+                    </SelectItem>
                     {brokers.filter(b => b.status === 'ativo').map(b => (
                       <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                     ))}
