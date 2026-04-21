@@ -853,6 +853,7 @@ const FollowUpPage = () => {
                         <TableRow>
                           <TableHead>Cliente</TableHead>
                           <TableHead>Telefone</TableHead>
+                          <TableHead>Origem</TableHead>
                           <TableHead>Imóvel</TableHead>
                           <TableHead>VGV</TableHead>
                           <TableHead>Responsável</TableHead>
@@ -882,6 +883,11 @@ const FollowUpPage = () => {
                                     <MessageCircle className="w-4 h-4" />{followUp.client_phone}
                                   </a>
                                 ) : <span className="text-muted-foreground">-</span>}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="text-[10px] uppercase font-normal">
+                                  {followUp.origem}
+                                </Badge>
                               </TableCell>
                               <TableCell>
                                 <ExpandableCell content={followUp.property_interest || 'Não definido'} maxLength={30} title="Imóvel de Interesse" />
