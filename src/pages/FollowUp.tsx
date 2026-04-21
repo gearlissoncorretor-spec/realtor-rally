@@ -125,6 +125,7 @@ const FollowUpPage = () => {
     next_contact_date: '',
     observations: '',
     status: 'novo_lead',
+    reminder_enabled: false,
   });
 
   // Get current user's broker ID
