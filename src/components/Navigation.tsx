@@ -26,7 +26,8 @@ import {
   RefreshCw,
   Shield,
   UserCog,
-  UsersRound
+  UsersRound,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
