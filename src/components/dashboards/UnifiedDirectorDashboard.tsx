@@ -5,6 +5,7 @@ import { useTeams } from "@/hooks/useTeams";
 import { useFollowUps } from "@/hooks/useFollowUps";
 import { useNegotiations } from "@/hooks/useNegotiations";
 import { formatCurrency } from "@/utils/formatting";
+import { cn } from "@/lib/utils";
 import { 
   TrendingUp, 
   DollarSign, 
