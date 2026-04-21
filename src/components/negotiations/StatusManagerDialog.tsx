@@ -3,12 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Edit2, Trash2, RotateCcw, GripVertical, Settings } from 'lucide-react';
-import { useNegotiationStatuses, NegotiationStatus } from '@/hooks/useNegotiationStatuses';
+import { Plus, Edit2, Trash2, Settings, Check, X } from 'lucide-react';
+import { useProcessStages, ProcessStage } from '@/hooks/useProcessStages';
 import { cn } from '@/lib/utils';
 
 interface StatusManagerDialogProps {
@@ -17,74 +15,51 @@ interface StatusManagerDialogProps {
 }
 
 const COLOR_OPTIONS = [
-  { value: 'bg-blue-500/10 text-blue-500 border-blue-500/20', label: 'Azul', preview: 'bg-blue-500' },
-  { value: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', label: 'Amarelo', preview: 'bg-yellow-500' },
-  { value: 'bg-green-500/10 text-green-500 border-green-500/20', label: 'Verde', preview: 'bg-green-500' },
-  { value: 'bg-red-500/10 text-red-500 border-red-500/20', label: 'Vermelho', preview: 'bg-red-500' },
-  { value: 'bg-purple-500/10 text-purple-500 border-purple-500/20', label: 'Roxo', preview: 'bg-purple-500' },
-  { value: 'bg-orange-500/10 text-orange-500 border-orange-500/20', label: 'Laranja', preview: 'bg-orange-500' },
-  { value: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20', label: 'Ciano', preview: 'bg-cyan-500' },
-  { value: 'bg-pink-500/10 text-pink-500 border-pink-500/20', label: 'Rosa', preview: 'bg-pink-500' },
-  { value: 'bg-gray-500/10 text-gray-500 border-gray-500/20', label: 'Cinza', preview: 'bg-gray-500' },
+  { value: '#3b82f6', label: 'Azul' },
+  { value: '#eab308', label: 'Amarelo' },
+  { value: '#22c55e', label: 'Verde' },
+  { value: '#ef4444', label: 'Vermelho' },
+  { value: '#8b5cf6', label: 'Roxo' },
+  { value: '#f97316', label: 'Laranja' },
+  { value: '#06b6d4', label: 'Ciano' },
+  { value: '#ec4899', label: 'Rosa' },
+  { value: '#6b7280', label: 'Cinza' },
 ];
-
-const ICON_OPTIONS = ['📞', '🟡', '🔴', '🟢', '📨', '🔍', '✅', '❌', '💰', '⏳', '📋', '🎯', '⚡', '🏠', '💼'];
 
 export function StatusManagerDialog({ open, onOpenChange }: StatusManagerDialogProps) {
   const { 
-    statuses, 
-    addStatus, 
-    updateStatus, 
-    deactivateStatus, 
-    reactivateStatus,
-    deleteStatus 
-  } = useNegotiationStatuses();
+    stages, 
+    createStage, 
+    updateStage, 
+    deleteStage 
+  } = useProcessStages();
   
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newStatus, setNewStatus] = useState({
-    value: '',
-    label: '',
+  const [editingTitle, setEditingTitle] = useState("");
+  const [newStage, setNewStage] = useState({
+    title: '',
     color: COLOR_OPTIONS[0].value,
-    icon: '📋',
-    order_index: 50,
-    is_active: true,
   });
 
-  const handleAddStatus = async () => {
-    if (!newStatus.label.trim()) return;
-    
-    const value = newStatus.label
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '_')
-      .replace(/[^a-z0-9_]/g, '');
-    
-    await addStatus({
-      ...newStatus,
-      value: value || `custom_${Date.now()}`,
-    });
-    
-    setNewStatus({
-      value: '',
-      label: '',
-      color: COLOR_OPTIONS[0].value,
-      icon: '📋',
-      order_index: 50,
-      is_active: true,
-    });
+  const handleAddStage = async () => {
+    if (!newStage.title.trim()) return;
+    await createStage(newStage.title.trim(), newStage.color);
+    setNewStage({ title: '', color: COLOR_OPTIONS[0].value });
     setIsAddingNew(false);
   };
 
-  const handleUpdateStatus = async (id: string, updates: Partial<NegotiationStatus>) => {
-    await updateStatus(id, updates);
+  const handleUpdateStage = async (id: string, title: string) => {
+    if (!title.trim()) return;
+    await updateStage(id, { title: title.trim() });
     setEditingId(null);
   };
 
-  // Separate active and inactive statuses
-  const activeStatuses = statuses.filter(s => s.is_active);
-  const inactiveStatuses = statuses.filter(s => !s.is_active);
+  const handleDeleteStage = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta etapa?')) {
+      await deleteStage(id);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,87 +67,48 @@ export function StatusManagerDialog({ open, onOpenChange }: StatusManagerDialogP
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Gerenciar Status de Negociação
+            Gerenciar Estágios do Processo
           </DialogTitle>
           <DialogDescription>
-            Personalize os status disponíveis para suas negociações. Status do sistema não podem ser excluídos.
+            Personalize as etapas do funil de vendas e negociações. Estas etapas são compartilhadas entre o Pipeline de Vendas e o Funil de Negociações.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Add New Status Button */}
           {!isAddingNew && (
             <Button onClick={() => setIsAddingNew(true)} className="w-full gap-2">
               <Plus className="h-4 w-4" />
-              Adicionar Novo Status
+              Adicionar Nova Etapa
             </Button>
           )}
 
-          {/* New Status Form */}
           {isAddingNew && (
             <Card className="border-dashed border-2 border-primary/30">
               <CardContent className="p-4 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Nome do Status *</Label>
-                    <Input
-                      value={newStatus.label}
-                      onChange={(e) => setNewStatus({ ...newStatus, label: e.target.value })}
-                      placeholder="Ex: Aguardando Documentos"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Ordem</Label>
-                    <Input
-                      type="number"
-                      value={newStatus.order_index}
-                      onChange={(e) => setNewStatus({ ...newStatus, order_index: Number(e.target.value) })}
-                      placeholder="1-100"
-                      min={1}
-                      max={97}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Nome da Etapa *</Label>
+                  <Input
+                    value={newStage.title}
+                    onChange={(e) => setNewStage({ ...newStage, title: e.target.value })}
+                    placeholder="Ex: Aguardando Documentos"
+                  />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Cor</Label>
-                    <Select
-                      value={newStatus.color}
-                      onValueChange={(value) => setNewStatus({ ...newStatus, color: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {COLOR_OPTIONS.map((color) => (
-                          <SelectItem key={color.value} value={color.value}>
-                            <div className="flex items-center gap-2">
-                              <div className={cn("w-3 h-3 rounded-full", color.preview)} />
-                              {color.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Ícone</Label>
-                    <Select
-                      value={newStatus.icon}
-                      onValueChange={(value) => setNewStatus({ ...newStatus, icon: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ICON_OPTIONS.map((icon) => (
-                          <SelectItem key={icon} value={icon}>
-                            <span className="text-lg">{icon}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-2">
+                  <Label>Cor</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {COLOR_OPTIONS.map((color) => (
+                      <button
+                        key={color.value}
+                        className={cn(
+                          "w-8 h-8 rounded-full border-2 transition-transform",
+                          newStage.color === color.value ? "border-foreground scale-110" : "border-transparent"
+                        )}
+                        style={{ backgroundColor: color.value }}
+                        onClick={() => setNewStage({ ...newStage, color: color.value })}
+                        title={color.label}
+                      />
+                    ))}
                   </div>
                 </div>
 
@@ -180,174 +116,71 @@ export function StatusManagerDialog({ open, onOpenChange }: StatusManagerDialogP
                   <Button variant="outline" onClick={() => setIsAddingNew(false)}>
                     Cancelar
                   </Button>
-                  <Button onClick={handleAddStatus} disabled={!newStatus.label.trim()}>
-                    Adicionar Status
+                  <Button onClick={handleAddStage} disabled={!newStage.title.trim()}>
+                    Adicionar Etapa
                   </Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Active Statuses */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Status Ativos</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">Etapas Atuais</h3>
             <div className="space-y-2">
-              {activeStatuses.sort((a, b) => a.order_index - b.order_index).map((status) => (
-                <Card key={status.id} className={cn(
-                  "transition-all",
-                  editingId === status.id && "ring-2 ring-primary"
-                )}>
+              {stages.map((stage) => (
+                <Card key={stage.id}>
                   <CardContent className="p-3">
-                    {editingId === status.id ? (
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label className="text-xs">Nome</Label>
-                            <Input
-                              value={status.label}
-                              onChange={(e) => updateStatus(status.id, { label: e.target.value })}
-                              disabled={status.is_system}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
+                        {editingId === stage.id ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input 
+                              value={editingTitle} 
+                              onChange={(e) => setEditingTitle(e.target.value)} 
+                              className="h-8"
+                              onKeyDown={(e) => e.key === 'Enter' && handleUpdateStage(stage.id, editingTitle)}
+                              autoFocus
                             />
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleUpdateStage(stage.id, editingTitle)}>
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingId(null)}>
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs">Ordem</Label>
-                            <Input
-                              type="number"
-                              value={status.order_index}
-                              onChange={(e) => updateStatus(status.id, { order_index: Number(e.target.value) })}
-                              disabled={status.is_system}
-                              min={1}
-                              max={97}
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <Label className="text-xs">Cor</Label>
-                            <Select
-                              value={status.color}
-                              onValueChange={(value) => updateStatus(status.id, { color: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {COLOR_OPTIONS.map((color) => (
-                                  <SelectItem key={color.value} value={color.value}>
-                                    <div className="flex items-center gap-2">
-                                      <div className={cn("w-3 h-3 rounded-full", color.preview)} />
-                                      {color.label}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-1">
-                            <Label className="text-xs">Ícone</Label>
-                            <Select
-                              value={status.icon || '📋'}
-                              onValueChange={(value) => updateStatus(status.id, { icon: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {ICON_OPTIONS.map((icon) => (
-                                  <SelectItem key={icon} value={icon}>
-                                    <span className="text-lg">{icon}</span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <Button size="sm" onClick={() => setEditingId(null)}>
-                          Concluir Edição
-                        </Button>
+                        ) : (
+                          <span className="font-medium">{stage.title}</span>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <GripVertical className="h-4 w-4 text-muted-foreground/50" />
-                          <span className="text-lg">{status.icon}</span>
-                          <Badge variant="outline" className={status.color}>
-                            {status.label}
-                          </Badge>
-                          {status.is_system && (
-                            <Badge variant="secondary" className="text-[10px]">
-                              Sistema
-                            </Badge>
-                          )}
-                        </div>
+                      
+                      {!editingId && (
                         <div className="flex items-center gap-1">
                           <Button
                             size="icon"
                             variant="ghost"
-                            onClick={() => setEditingId(status.id)}
+                            onClick={() => { setEditingId(stage.id); setEditingTitle(stage.title); }}
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
-                          {!status.is_system && (
+                          {!stage.is_default && (
                             <Button
                               size="icon"
                               variant="ghost"
                               className="text-destructive hover:text-destructive"
-                              onClick={() => deactivateStatus(status.id)}
+                              onClick={() => handleDeleteStage(stage.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
-
-          {/* Inactive Statuses */}
-          {inactiveStatuses.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Status Desativados</h3>
-              <div className="space-y-2">
-                {inactiveStatuses.map((status) => (
-                  <Card key={status.id} className="opacity-60">
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">{status.icon}</span>
-                          <Badge variant="outline" className={status.color}>
-                            {status.label}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => reactivateStatus(status.id)}
-                            className="gap-1"
-                          >
-                            <RotateCcw className="h-3 w-3" />
-                            Reativar
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => deleteStatus(status.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         <DialogFooter>
