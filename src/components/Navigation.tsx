@@ -370,6 +370,9 @@ const Navigation = () => {
                   </Button>
                 </div>
               )}
+              <div className="px-2 pt-1">
+                <p className="text-[10px] text-muted-foreground/50 font-medium">Versão 3.1</p>
+              </div>
             </div>
           </div>
         </nav>
