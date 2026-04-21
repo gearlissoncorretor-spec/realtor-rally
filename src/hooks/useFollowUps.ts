@@ -14,6 +14,7 @@ export interface FollowUp {
   next_contact_date: string | null;
   observations: string | null;
   status: string;
+  reminder_enabled: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
