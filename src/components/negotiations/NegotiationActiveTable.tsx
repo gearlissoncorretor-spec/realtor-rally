@@ -19,8 +19,7 @@ const TEMPERATURE_OPTIONS = [
 interface NegotiationActiveTableProps {
   negotiations: Negotiation[];
   getBrokerName: (id: string) => string;
-  getStatusByValue: (status: string) => any;
-  isApproved: (status: string) => boolean;
+  isApproved: (n: Negotiation) => boolean;
   isStalled: (n: Negotiation) => boolean;
   onEdit: (n: Negotiation) => void;
   onSaleConversion: (n: Negotiation) => void;
@@ -42,7 +41,7 @@ const getTemperatureBadge = (temperature: string) => {
 };
 
 export const NegotiationActiveTable = ({
-  negotiations, getBrokerName, getStatusByValue, isApproved, isStalled,
+  negotiations, getBrokerName, isApproved, isStalled,
   onEdit, onSaleConversion, onLoss, onReturnFollowUp, onNotes, onDelete, onNewNegotiation,
 }: NegotiationActiveTableProps) => (
   <Card>
@@ -61,8 +60,7 @@ export const NegotiationActiveTable = ({
           {/* Mobile */}
           <div className="block md:hidden space-y-3">
             {negotiations.map((n) => {
-              const statusConfig = getStatusByValue(n.status);
-              const canConvert = isApproved(n.status);
+              const canConvert = isApproved(n);
               return (
                 <Card key={n.id} className={`border ${isStalled(n) ? 'border-destructive/50 bg-destructive/5' : 'border-border/50'}`}>
                   <CardContent className="p-4 space-y-3">
@@ -74,8 +72,9 @@ export const NegotiationActiveTable = ({
                             <MessageCircle className="w-3 h-3" />{n.client_phone}
                           </a>
                         )}
+                        <p className="text-[10px] text-muted-foreground mt-1 uppercase">Origem: {n.origem || 'Não informada'}</p>
                       </div>
-                      <NegotiationStatusBadge status={n.status} label={statusConfig?.label} color={statusConfig?.color} icon={statusConfig?.icon} />
+                      <NegotiationStatusBadge status={n.status} stage={n.stage} />
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div><p className="text-xs text-muted-foreground">Imóvel</p><p className="truncate capitalize">{n.property_type}</p></div>
@@ -114,8 +113,7 @@ export const NegotiationActiveTable = ({
               </TableHeader>
               <TableBody>
                 {negotiations.map((n) => {
-                  const statusConfig = getStatusByValue(n.status);
-                  const canConvert = isApproved(n.status);
+                  const canConvert = isApproved(n);
                   return (
                     <TableRow key={n.id} className={isStalled(n) ? 'bg-destructive/5 border-l-2 border-l-destructive' : ''}>
                       <TableCell>
@@ -126,13 +124,14 @@ export const NegotiationActiveTable = ({
                               <MessageCircle className="w-3 h-3" />{n.client_phone}
                             </a>
                           )}
+                          <p className="text-[10px] text-muted-foreground mt-1 uppercase">Origem: {n.origem || 'Não informada'}</p>
                         </div>
                       </TableCell>
                       <TableCell><div className="max-w-[200px]"><p className="truncate">{n.property_address}</p><p className="text-xs text-muted-foreground capitalize">{n.property_type}</p></div></TableCell>
                       <TableCell>{getBrokerName(n.broker_id)}</TableCell>
                       <TableCell className="font-semibold text-primary">{formatCurrency(n.negotiated_value)}</TableCell>
                       <TableCell>{getTemperatureBadge(n.temperature)}</TableCell>
-                      <TableCell><NegotiationStatusBadge status={n.status} label={statusConfig?.label} color={statusConfig?.color} icon={statusConfig?.icon} /></TableCell>
+                      <TableCell><NegotiationStatusBadge status={n.status} stage={n.stage} /></TableCell>
                       <TableCell>{format(new Date(n.start_date), "dd/MM/yy", { locale: ptBR })}</TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1 flex-wrap">
