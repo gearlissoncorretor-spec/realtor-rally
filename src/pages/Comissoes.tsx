@@ -799,6 +799,7 @@ const Comissoes = () => {
                 <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="venda">Venda</SelectItem>
+                  <SelectItem value="loja">Comissão Loja</SelectItem>
                   <SelectItem value="captacao">Captação</SelectItem>
                   <SelectItem value="indicacao">Indicação</SelectItem>
                   <SelectItem value="bonus">Bônus</SelectItem>
