@@ -16,11 +16,12 @@ import {
   DollarSign, Search, Filter, CheckCircle2, Clock, XCircle,
   CreditCard, Users, Calendar, Plus, AlertTriangle, Percent,
   Download, ChevronDown, ChevronUp, User, Wallet, HandCoins, Trash2,
-  Store,
+  Store, Receipt, TrendingUp, TrendingDown, LayoutDashboard
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useCommissions, Commission, CommissionInsert } from "@/hooks/useCommissions";
 import { useFinancialRecords } from "@/hooks/useFinancialRecords";
+import { useBrokerExpenses, BrokerExpenseInsert } from "@/hooks/useBrokerExpenses";
 
 import { useBrokers } from "@/hooks/useBrokers";
 import { useSales } from "@/hooks/useSales";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import InstallmentTimeline from "@/components/commissions/InstallmentTimeline";
+
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   pendente: { label: "A Receber", color: "bg-warning/10 text-warning border-warning/20", icon: Clock },
