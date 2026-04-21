@@ -252,6 +252,7 @@ const FollowUpPage = () => {
       next_contact_date: followUp.next_contact_date || '',
       observations: followUp.observations || '',
       status: followUp.status,
+      reminder_enabled: followUp.reminder_enabled || false,
     });
     setIsFormOpen(true);
   };
