@@ -651,6 +651,21 @@ const FollowUpPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+
+                <Select value={filterOrigin} onValueChange={setFilterOrigin}>
+                  <SelectTrigger className="w-full sm:w-44">
+                    <SelectValue placeholder="Filtrar origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as origens</SelectItem>
+                    {LEAD_ORIGIN_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 {!isCorretor() && (
                   <Select value={filterBroker} onValueChange={setFilterBroker}>
                     <SelectTrigger className="w-full sm:w-44">
