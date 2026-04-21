@@ -715,6 +715,18 @@ const FollowUpPage = () => {
                                     {daysLabel}
                                   </span>
                                 )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6"
+                                  onClick={() => handleToggleReminder(followUp)}
+                                >
+                                  {followUp.reminder_enabled ? (
+                                    <Bell className="w-3 h-3 text-primary" />
+                                  ) : (
+                                    <BellOff className="w-3 h-3 text-muted-foreground/40" />
+                                  )}
+                                </Button>
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
