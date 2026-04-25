@@ -1,5 +1,5 @@
 import { lazy, Suspense, Component, ErrorInfo, ReactNode } from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
@@ -10,6 +10,7 @@ import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { AppUpdateManager } from "@/components/AppUpdateManager";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
@@ -128,6 +129,57 @@ const AuthenticatedLayout = () => {
   );
 };
 
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -4 }}
+        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+      >
+        <Routes location={location}>
+          <Route path="/landing" element={<LazyPage><Landing /></LazyPage>} />
+          <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
+          <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
+          <Route path="/onboarding" element={<ProtectedRoute allowWithoutCompany><LazyPage><Onboarding /></LazyPage></ProtectedRoute>} />
+          <Route element={<AuthenticatedLayout />}>
+            <Route path="/" element={<ProtectedRoute allowLanding><LazyPage><Home /></LazyPage></ProtectedRoute>} />
+            <Route path="/vendas" element={<ProtectedRoute><LazyPage><Vendas /></LazyPage></ProtectedRoute>} />
+            <Route path="/corretores" element={<ProtectedRoute><LazyPage><Corretores /></LazyPage></ProtectedRoute>} />
+            <Route path="/equipes" element={<ProtectedRoute><LazyPage><Equipes /></LazyPage></ProtectedRoute>} />
+            <Route path="/ranking" element={<ProtectedRoute><LazyPage><Ranking /></LazyPage></ProtectedRoute>} />
+            <Route path="/metas" element={<ProtectedRoute><LazyPage><Metas /></LazyPage></ProtectedRoute>} />
+            <Route path="/acompanhamento" element={<ProtectedRoute><LazyPage><Acompanhamento /></LazyPage></ProtectedRoute>} />
+            <Route path="/relatorios" element={<ProtectedRoute><LazyPage><Relatorios /></LazyPage></ProtectedRoute>} />
+            <Route path="/x1" element={<ProtectedRoute><LazyPage><X1 /></LazyPage></ProtectedRoute>} />
+            <Route path="/central-gestor" element={<ProtectedRoute><LazyPage><CentralGestor /></LazyPage></ProtectedRoute>} />
+            <Route path="/dashboard-equipes" element={<ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>} />
+
+            <Route path="/atividades" element={<ProtectedRoute><LazyPage><Atividades /></LazyPage></ProtectedRoute>} />
+            <Route path="/negociacoes" element={<ProtectedRoute><LazyPage><Negociacoes /></LazyPage></ProtectedRoute>} />
+            <Route path="/follow-up" element={<ProtectedRoute><LazyPage><FollowUp /></LazyPage></ProtectedRoute>} />
+            <Route path="/meta-gestao" element={<ProtectedRoute><LazyPage><MetaGestao /></LazyPage></ProtectedRoute>} />
+            <Route path="/configuracoes" element={<ProtectedRoute><LazyPage><Configuracoes /></LazyPage></ProtectedRoute>} />
+            <Route path="/agenda" element={<ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>} />
+            <Route path="/comissoes" element={<ProtectedRoute><LazyPage><Comissoes /></LazyPage></ProtectedRoute>} />
+            <Route path="/financeiro" element={<ProtectedRoute><LazyPage><Financeiro /></LazyPage></ProtectedRoute>} />
+            <Route path="/instalar" element={<ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>} />
+
+            <Route path="/gestao-usuarios" element={<ProtectedRoute><LazyPage><GestaoUsuarios /></LazyPage></ProtectedRoute>} />
+            <Route path="/super-admin" element={<ProtectedRoute superAdminOnly><LazyPage><SuperAdmin /></LazyPage></ProtectedRoute>} />
+            <Route path="/edital" element={<ProtectedRoute><LazyPage><Edital /></LazyPage></ProtectedRoute>} />
+          </Route>
+          <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 const AppShell = () => (
   <OfflineProvider>
     <Router future={{
@@ -135,40 +187,7 @@ const AppShell = () => (
       v7_relativeSplatPath: true
     }}>
       <DynamicTitleUpdater />
-      <Routes>
-        <Route path="/landing" element={<LazyPage><Landing /></LazyPage>} />
-        <Route path="/auth" element={<LazyPage><Auth /></LazyPage>} />
-        <Route path="/reset-password" element={<LazyPage><ResetPassword /></LazyPage>} />
-        <Route path="/onboarding" element={<ProtectedRoute allowWithoutCompany><LazyPage><Onboarding /></LazyPage></ProtectedRoute>} />
-        <Route element={<AuthenticatedLayout />}>
-          <Route path="/" element={<ProtectedRoute allowLanding><LazyPage><Home /></LazyPage></ProtectedRoute>} />
-          <Route path="/vendas" element={<ProtectedRoute><LazyPage><Vendas /></LazyPage></ProtectedRoute>} />
-          <Route path="/corretores" element={<ProtectedRoute><LazyPage><Corretores /></LazyPage></ProtectedRoute>} />
-          <Route path="/equipes" element={<ProtectedRoute><LazyPage><Equipes /></LazyPage></ProtectedRoute>} />
-          <Route path="/ranking" element={<ProtectedRoute><LazyPage><Ranking /></LazyPage></ProtectedRoute>} />
-          <Route path="/metas" element={<ProtectedRoute><LazyPage><Metas /></LazyPage></ProtectedRoute>} />
-          <Route path="/acompanhamento" element={<ProtectedRoute><LazyPage><Acompanhamento /></LazyPage></ProtectedRoute>} />
-          <Route path="/relatorios" element={<ProtectedRoute><LazyPage><Relatorios /></LazyPage></ProtectedRoute>} />
-          <Route path="/x1" element={<ProtectedRoute><LazyPage><X1 /></LazyPage></ProtectedRoute>} />
-          <Route path="/central-gestor" element={<ProtectedRoute><LazyPage><CentralGestor /></LazyPage></ProtectedRoute>} />
-          <Route path="/dashboard-equipes" element={<ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>} />
-          
-          <Route path="/atividades" element={<ProtectedRoute><LazyPage><Atividades /></LazyPage></ProtectedRoute>} />
-          <Route path="/negociacoes" element={<ProtectedRoute><LazyPage><Negociacoes /></LazyPage></ProtectedRoute>} />
-          <Route path="/follow-up" element={<ProtectedRoute><LazyPage><FollowUp /></LazyPage></ProtectedRoute>} />
-          <Route path="/meta-gestao" element={<ProtectedRoute><LazyPage><MetaGestao /></LazyPage></ProtectedRoute>} />
-          <Route path="/configuracoes" element={<ProtectedRoute><LazyPage><Configuracoes /></LazyPage></ProtectedRoute>} />
-          <Route path="/agenda" element={<ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>} />
-          <Route path="/comissoes" element={<ProtectedRoute><LazyPage><Comissoes /></LazyPage></ProtectedRoute>} />
-          <Route path="/financeiro" element={<ProtectedRoute><LazyPage><Financeiro /></LazyPage></ProtectedRoute>} />
-          <Route path="/instalar" element={<ProtectedRoute><LazyPage><Instalar /></LazyPage></ProtectedRoute>} />
-
-          <Route path="/gestao-usuarios" element={<ProtectedRoute><LazyPage><GestaoUsuarios /></LazyPage></ProtectedRoute>} />
-          <Route path="/super-admin" element={<ProtectedRoute superAdminOnly><LazyPage><SuperAdmin /></LazyPage></ProtectedRoute>} />
-          <Route path="/edital" element={<ProtectedRoute><LazyPage><Edital /></LazyPage></ProtectedRoute>} />
-        </Route>
-        <Route path="*" element={<LazyPage><NotFound /></LazyPage>} />
-      </Routes>
+      <AnimatedRoutes />
     </Router>
   </OfflineProvider>
 );
