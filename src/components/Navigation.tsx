@@ -27,7 +27,8 @@ import {
   Shield,
   UserCog,
   UsersRound,
-  FileText
+  FileText,
+  Inbox
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,7 @@ const Navigation = () => {
     { href: "/vendas", label: "Vendas", icon: ShoppingBag, screen: "vendas" },
     { href: "/negociacoes", label: "Negociações", icon: Handshake, screen: "negociacoes" },
     { href: "/follow-up", label: "Follow-up / Clientes", icon: Users, screen: "follow-up" },
+    { href: "/leads", label: "Leads", icon: Inbox, screen: "leads" },
     { href: "/metas", label: "Metas", icon: Target, screen: "metas" },
     { href: "/meta-gestao", label: "Meta Gestão", icon: PieChart, screen: "meta-gestao" },
     { href: "/atividades", label: "Atividades", icon: ClipboardList, screen: "atividades" },
@@ -177,7 +179,7 @@ const Navigation = () => {
     {
       label: "Comercial",
       defaultOpen: true,
-      items: navItems.filter(i => ['vendas', 'negociacoes', 'follow-up', 'acompanhamento'].includes(i.screen)),
+      items: navItems.filter(i => ['vendas', 'negociacoes', 'follow-up', 'leads', 'acompanhamento'].includes(i.screen)),
     },
     {
       label: "Produtividade",

@@ -33,3 +33,5 @@ project_id = "kwsnnwiwflsvsqiuzfja"
     verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
+  [functions.leads-webhook]
+    verify_jwt = false
