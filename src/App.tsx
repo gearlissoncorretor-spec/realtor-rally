@@ -1,5 +1,5 @@
 import { lazy, Suspense, Component, ErrorInfo, ReactNode } from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DataProvider } from "@/contexts/DataContext";
@@ -10,6 +10,7 @@ import { DynamicTitleUpdater } from "@/components/DynamicTitleUpdater";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { AppUpdateManager } from "@/components/AppUpdateManager";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
