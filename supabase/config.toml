@@ -1,34 +1,35 @@
 project_id = "kwsnnwiwflsvsqiuzfja"
 
-[functions.send-credentials]
-verify_jwt = false
-
-[functions.create-user]
-verify_jwt = false
-
-[functions.update-user-password]
-verify_jwt = false
-
-[functions.google-calendar]
-verify_jwt = false
-
-[functions.delete-broker]
-verify_jwt = false
-
-[functions.push-notifications]
-verify_jwt = false
-
-[functions.slack-notify]
-verify_jwt = false
-
-[functions.setup-company]
-verify_jwt = false
-
-[functions.update-user-email]
-verify_jwt = false
-
-[functions.generate-whatsapp-card]
-verify_jwt = false
-
-[functions.origin-insights]
-verify_jwt = false
+[functions]
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.create-user]
+    verify_jwt = false
+  [functions.delete-broker]
+    verify_jwt = false
+  [functions.generate-whatsapp-card]
+    verify_jwt = false
+  [functions.google-calendar]
+    verify_jwt = false
+  [functions.origin-insights]
+    verify_jwt = false
+  [functions.push-notifications]
+    verify_jwt = false
+  [functions.send-credentials]
+    verify_jwt = false
+  [functions.setup-company]
+    verify_jwt = false
+  [functions.slack-notify]
+    verify_jwt = false
+  [functions.update-user-email]
+    verify_jwt = false
+  [functions.update-user-password]
+    verify_jwt = false
+  [functions.send-transactional-email]
+    verify_jwt = true
+  [functions.preview-transactional-email]
+    verify_jwt = false
+  [functions.handle-email-unsubscribe]
+    verify_jwt = false
+  [functions.handle-email-suppression]
+    verify_jwt = false
