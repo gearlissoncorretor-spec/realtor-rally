@@ -1841,6 +1841,104 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          ad: string | null
+          adset: string | null
+          agency_id: string | null
+          campaign: string | null
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          raw_payload: Json | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          ad?: string | null
+          adset?: string | null
+          agency_id?: string | null
+          campaign?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          raw_payload?: Json | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          ad?: string | null
+          adset?: string | null
+          agency_id?: string | null
+          campaign?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          raw_payload?: Json | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       negotiation_notes: {
         Row: {
           agency_id: string | null
@@ -2926,6 +3024,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_lead: {
+        Args: {
+          _lead_agency_id: string
+          _lead_company_id: string
+          _lead_user_id: string
+          _viewer_id: string
+        }
+        Returns: boolean
+      }
       check_is_event_owner: {
         Args: { _event_id: string; _user_id: string }
         Returns: boolean
