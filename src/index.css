@@ -89,7 +89,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted-foreground: 215 25% 70%;
 
     --accent: 215 28% 18%;
     --accent-foreground: 210 40% 98%;
@@ -97,19 +97,19 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Border - subtle */
-    --border: 215 25% 18%;
-    --input: 215 25% 20%;
+    /* Border - subtle but visible */
+    --border: 215 25% 22%;
+    --input: 215 25% 22%;
     --ring: 217 91% 60%;
 
     /* Sidebar Deep Tech */
     --sidebar-background: 222 47% 5%;
-    --sidebar-foreground: 215 20% 70%;
+    --sidebar-foreground: 215 25% 80%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 210 40% 98%;
     --sidebar-accent: 217 33% 14%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 25% 14%;
+    --sidebar-border: 215 25% 18%;
     --sidebar-ring: 217 91% 60%;
 
     /* Gradients Deep Tech */
