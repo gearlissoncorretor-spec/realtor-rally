@@ -110,7 +110,8 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("setup-company error:", error);
-    return new Response(JSON.stringify({ error: error.message || "Erro interno" }), {
+    const message = error instanceof Error ? error.message : String(error);
+    return new Response(JSON.stringify({ error: message || "Erro interno" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

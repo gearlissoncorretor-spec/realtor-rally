@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import webpush from 'npm:web-push@3.6.7'
+import webpush from 'https://esm.sh/web-push@3.6.7'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -93,7 +93,8 @@ Deno.serve(async (req) => {
     return errorResponse('Unknown action', 400)
   } catch (error) {
     console.error('Push notification error:', error)
-    return errorResponse(error.message, 500)
+    const message = error instanceof Error ? error.message : String(error)
+    return errorResponse(message, 500)
   }
 })
 
@@ -274,7 +275,7 @@ async function checkAndNotify(supabase: any) {
       .select('user_id')
 
     if (allSubs?.length) {
-      const uniqueUsers = [...new Set(allSubs.map((s: any) => s.user_id))]
+      const uniqueUsers = [...new Set(allSubs.map((s: any) => s.user_id))] as string[]
       for (const userId of uniqueUsers) {
         for (const sale of newSales) {
           // Don't notify the broker who made the sale
