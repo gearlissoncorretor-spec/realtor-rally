@@ -5,6 +5,7 @@
 export const ROLE_SCREENS: Record<string, string[]> = {
   socio: [
     'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
+    'leads',
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
@@ -12,6 +13,7 @@ export const ROLE_SCREENS: Record<string, string[]> = {
   ],
   diretor: [
     'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
+    'leads',
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
@@ -21,13 +23,14 @@ export const ROLE_SCREENS: Record<string, string[]> = {
   super_admin: ['*'],
   gerente: [
     'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
+    'leads',
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
     'edital'
   ],
   corretor: [
-    'dashboard', 'vendas', 'negociacoes', 'follow-up', 'metas',
+    'dashboard', 'vendas', 'negociacoes', 'follow-up', 'leads', 'metas',
     'atividades', 'comissoes', 'financeiro', 'configuracoes',
     'agenda', 'instalar', 'edital'
   ],
@@ -50,6 +53,7 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/atividades': 'atividades',
   '/negociacoes': 'negociacoes',
   '/follow-up': 'follow-up',
+  '/leads': 'leads',
   '/meta-gestao': 'meta-gestao',
   '/configuracoes': 'configuracoes',
   '/agenda': 'agenda',

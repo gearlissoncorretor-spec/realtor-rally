@@ -53,6 +53,7 @@ const Landing = lazy(() => import("@/pages/Landing"));
 const Edital = lazy(() => import("@/pages/Edital"));
 const Financeiro = lazy(() => import("@/pages/Financeiro"));
 const Unsubscribe = lazy(() => import("@/pages/Unsubscribe"));
+const Leads = lazy(() => import("@/pages/Leads"));
 
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
@@ -164,6 +165,7 @@ const AnimatedRoutes = () => {
             <Route path="/atividades" element={<ProtectedRoute><LazyPage><Atividades /></LazyPage></ProtectedRoute>} />
             <Route path="/negociacoes" element={<ProtectedRoute><LazyPage><Negociacoes /></LazyPage></ProtectedRoute>} />
             <Route path="/follow-up" element={<ProtectedRoute><LazyPage><FollowUp /></LazyPage></ProtectedRoute>} />
+            <Route path="/leads" element={<ProtectedRoute><LazyPage><Leads /></LazyPage></ProtectedRoute>} />
             <Route path="/meta-gestao" element={<ProtectedRoute><LazyPage><MetaGestao /></LazyPage></ProtectedRoute>} />
             <Route path="/configuracoes" element={<ProtectedRoute><LazyPage><Configuracoes /></LazyPage></ProtectedRoute>} />
             <Route path="/agenda" element={<ProtectedRoute><LazyPage><Agenda /></LazyPage></ProtectedRoute>} />
