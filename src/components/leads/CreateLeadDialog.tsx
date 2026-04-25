@@ -48,7 +48,8 @@ export const CreateLeadDialog = ({ open, onOpenChange }: Props) => {
     setSubmitting(true);
     try {
       await createLead({
-        ...parsed.data,
+        name: parsed.data.name,
+        source: parsed.data.source,
         phone: parsed.data.phone || null,
         email: parsed.data.email || null,
         campaign: parsed.data.campaign || null,
