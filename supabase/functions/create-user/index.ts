@@ -422,7 +422,7 @@ serve(async (req) => {
     console.error('Error in create-user function:', error)
     
     // Map errors to safe client messages
-    const msg = error.message || '';
+    const msg = (error instanceof Error ? error.message : String(error)) || '';
     let clientMessage = 'Falha ao criar usuário';
     let statusCode = 400;
 
