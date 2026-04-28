@@ -773,7 +773,7 @@ const FollowUpPage = () => {
               ) : (
                 <>
                   {/* Mobile Card View */}
-                  <div className="block md:hidden space-y-3 p-3">
+                  <div className="block md:hidden space-y-5 p-3">
                     {sortedFollowUps.map((followUp) => {
                       const dateStatus = getDateStatus(followUp.next_contact_date);
                       const statusConfig = getStatusByValue(followUp.status);
