@@ -670,14 +670,15 @@ const Comissoes = () => {
         ) : (
           /* ===== MANAGER VIEW: Lista / Por Corretor ===== */
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="lista" className="gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Comissões</TabsTrigger>
+            <TabsList className="flex-wrap h-auto">
+              <TabsTrigger value="pendentes" className="gap-1.5"><Clock className="w-3.5 h-3.5" /> A Receber</TabsTrigger>
+              <TabsTrigger value="recebidas" className="gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Recebidas</TabsTrigger>
               <TabsTrigger value="corretores" className="gap-1.5"><Users className="w-3.5 h-3.5" /> Por Corretor</TabsTrigger>
               {(isDiretor() || isAdmin()) && (
-                <TabsTrigger value="loja" className="gap-1.5"><Store className="w-3.5 h-3.5" /> Comissão Loja</TabsTrigger>
+                <TabsTrigger value="loja" className="gap-1.5"><Store className="w-3.5 h-3.5" /> Loja</TabsTrigger>
               )}
               <TabsTrigger value="gastos" className="gap-1.5">
-                <Receipt className="w-3.5 h-3.5" /> Controle de Gastos
+                <Receipt className="w-3.5 h-3.5" /> Gastos
               </TabsTrigger>
             </TabsList>
 
