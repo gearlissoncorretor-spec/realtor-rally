@@ -114,16 +114,27 @@ const Ranking = () => {
   const filteredSales = useMemo(() => {
     const now = new Date();
     return sales.filter(sale => {
-      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      const dateToUse = sale.sale_date || sale.created_at;
+      if (!dateToUse) return false;
+      
+      const { day, month: saleMonth, year: saleYear } = parseDateSafe(dateToUse);
+      const saleDate = new Date(saleYear, saleMonth - 1, day);
+      
       if (quickPeriod === 'today') return saleDate.toDateString() === now.toDateString();
       if (quickPeriod === 'week') { const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7); return saleDate >= weekAgo; }
-      if (quickPeriod === 'quarter') { const cq = Math.floor(now.getMonth() / 3); return saleDate.getFullYear() === now.getFullYear() && Math.floor(saleDate.getMonth() / 3) === cq; }
-      if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear();
+      if (quickPeriod === 'quarter') { const cq = Math.floor(now.getMonth() / 3); return saleYear === now.getFullYear() && Math.floor((saleMonth - 1) / 3) === cq; }
+      if (quickPeriod === 'year') return saleYear === now.getFullYear();
       if (quickPeriod === 'all') return true;
+      
       const filterMonth = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
       const filterYear = selectedYear > 0 ? selectedYear : now.getFullYear();
-      return saleDate.getMonth() + 1 === filterMonth && saleDate.getFullYear() === filterYear;
+      
+      const matchesMonth = selectedMonth === 0 || saleMonth === filterMonth;
+      const matchesYear = selectedYear === 0 || saleYear === filterYear;
+      
+      return matchesMonth && matchesYear;
     });
+
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
 
   // Previous period sales for comparison
