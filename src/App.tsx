@@ -31,7 +31,6 @@ const Equipes = lazy(() => import("@/pages/Equipes"));
 const Ranking = lazy(() => import("@/pages/Ranking"));
 const Acompanhamento = lazy(() => import("@/pages/Acompanhamento"));
 const Relatorios = lazy(() => import("@/pages/Relatorios"));
-const BIAvancado = lazy(() => import("@/pages/BIAvancado"));
 const Configuracoes = lazy(() => import("@/pages/Configuracoes"));
 const Metas = lazy(() => import("@/pages/Metas"));
 const X1 = lazy(() => import("@/pages/X1"));
