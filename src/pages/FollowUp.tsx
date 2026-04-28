@@ -950,10 +950,12 @@ const FollowUpPage = () => {
                             <TableRow
                               key={followUp.id}
                               className={cn(
-                                dateStatus === 'overdue' && 'bg-destructive/5',
-                                dateStatus === 'today' && 'bg-yellow-500/5'
+                                "hover:bg-muted/30 transition-colors",
+                                dateStatus === 'overdue' && 'bg-destructive/5 hover:bg-destructive/10',
+                                dateStatus === 'today' && 'bg-yellow-500/5 hover:bg-yellow-500/10'
                               )}
                             >
+
                               <TableCell className="font-medium">{followUp.client_name}</TableCell>
                               <TableCell>
                                 {followUp.client_phone ? (
