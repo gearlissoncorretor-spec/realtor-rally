@@ -159,6 +159,7 @@ const AnimatedRoutes = () => {
             <Route path="/metas" element={<ProtectedRoute><LazyPage><Metas /></LazyPage></ProtectedRoute>} />
             <Route path="/acompanhamento" element={<ProtectedRoute><LazyPage><Acompanhamento /></LazyPage></ProtectedRoute>} />
             <Route path="/relatorios" element={<ProtectedRoute><LazyPage><Relatorios /></LazyPage></ProtectedRoute>} />
+            <Route path="/bi-avancado" element={<ProtectedRoute><LazyPage><BIAvancado /></LazyPage></ProtectedRoute>} />
             <Route path="/x1" element={<ProtectedRoute><LazyPage><X1 /></LazyPage></ProtectedRoute>} />
             <Route path="/central-gestor" element={<ProtectedRoute><LazyPage><CentralGestor /></LazyPage></ProtectedRoute>} />
             <Route path="/dashboard-equipes" element={<ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>} />
