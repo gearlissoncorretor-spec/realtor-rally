@@ -296,6 +296,21 @@ const Relatorios = () => {
     // Calculate metrics by origin
     const originsMap = new Map<string, { leads: number, sales: number, vgv: number }>();
     
+    // Process leads in the period
+    leads.forEach(lead => {
+      const { month: leadMonth, year: leadYear } = parseDateSafe(lead.created_at);
+      const matchesMonth = selectedMonth === 0 || leadMonth === selectedMonth;
+      const matchesYear = selectedYear === 0 || leadYear === selectedYear;
+      
+      if (matchesMonth && matchesYear) {
+        const o = lead.source || "Outro";
+        const entry = originsMap.get(o) || { leads: 0, sales: 0, vgv: 0 };
+        entry.leads += 1;
+        originsMap.set(o, entry);
+      }
+    });
+
+    // Process sales in the period
     filteredSales.forEach(sale => {
       const o = sale.origem || "Outro";
       const entry = originsMap.get(o) || { leads: 0, sales: 0, vgv: 0 };
@@ -306,19 +321,20 @@ const Relatorios = () => {
     
     const tableData = Array.from(originsMap.entries()).map(([name, data]) => [
       name,
+      data.leads.toString(),
       data.sales.toString(),
       formatCurrency(data.vgv),
-      data.leads > 0 ? `${((data.sales / data.leads) * 100).toFixed(1)}%` : "100%", // Simplified for sales-only report
+      data.leads > 0 ? `${((data.sales / data.leads) * 100).toFixed(1)}%` : "0%",
     ]);
     
     autoTable(doc, {
       startY: 45,
-      head: [["Origem", "Vendas", "VGV Total", "Conversão (Vendas/Leads)"]],
+      head: [["Origem", "Leads", "Vendas", "VGV Total", "Conversão"]],
       body: tableData,
       theme: "striped",
       headStyles: { fillColor: [59, 130, 246], textColor: 255 },
     });
-    
+
     doc.save(`relatorio-origem-${selectedMonth}-${selectedYear}.pdf`);
     
     toast({
