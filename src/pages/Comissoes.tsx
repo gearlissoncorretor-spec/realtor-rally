@@ -134,7 +134,16 @@ const Comissoes = () => {
   }, [commissions, currentYear]);
 
   // Active tab
-  const [activeTab, setActiveTab] = useState(isBrokerView ? "a_receber" : "lista");
+  const [activeTab, setActiveTab] = useState(isBrokerView ? "a_receber" : "pendentes");
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setFilterMonth((new Date().getMonth() + 1).toString());
+    setFilterYear(new Date().getFullYear().toString());
+    toast({ title: "Filtros limpos", description: "A visualização foi resetada para o período atual." });
+  }, [toast]);
+
 
 
 
