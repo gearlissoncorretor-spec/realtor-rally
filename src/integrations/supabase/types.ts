@@ -1116,6 +1116,193 @@ export type Database = {
         }
         Relationships: []
       }
+      facebook_connections: {
+        Row: {
+          access_token: string
+          agency_id: string | null
+          company_id: string | null
+          created_at: string
+          facebook_user_email: string | null
+          facebook_user_id: string
+          facebook_user_name: string | null
+          id: string
+          last_synced_at: string | null
+          scopes: string[] | null
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          agency_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          facebook_user_email?: string | null
+          facebook_user_id: string
+          facebook_user_name?: string | null
+          id?: string
+          last_synced_at?: string | null
+          scopes?: string[] | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          agency_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          facebook_user_email?: string | null
+          facebook_user_id?: string
+          facebook_user_name?: string | null
+          id?: string
+          last_synced_at?: string | null
+          scopes?: string[] | null
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      facebook_lead_forms: {
+        Row: {
+          agency_id: string | null
+          company_id: string | null
+          created_at: string
+          form_id: string
+          form_name: string | null
+          id: string
+          last_synced_at: string | null
+          leads_count: number
+          page_id: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          form_id: string
+          form_name?: string | null
+          id?: string
+          last_synced_at?: string | null
+          leads_count?: number
+          page_id: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          form_id?: string
+          form_name?: string | null
+          id?: string
+          last_synced_at?: string | null
+          leads_count?: number
+          page_id?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_lead_forms_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facebook_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          redirect_to: string | null
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          redirect_to?: string | null
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          redirect_to?: string | null
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      facebook_pages: {
+        Row: {
+          agency_id: string | null
+          category: string | null
+          company_id: string | null
+          connection_id: string
+          created_at: string
+          id: string
+          last_lead_at: string | null
+          page_access_token: string
+          page_id: string
+          page_name: string
+          picture_url: string | null
+          subscribed: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_id?: string | null
+          category?: string | null
+          company_id?: string | null
+          connection_id: string
+          created_at?: string
+          id?: string
+          last_lead_at?: string | null
+          page_access_token: string
+          page_id: string
+          page_name: string
+          picture_url?: string | null
+          subscribed?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_id?: string | null
+          category?: string | null
+          company_id?: string | null
+          connection_id?: string
+          created_at?: string
+          id?: string
+          last_lead_at?: string | null
+          page_access_token?: string
+          page_id?: string
+          page_name?: string
+          picture_url?: string | null
+          subscribed?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facebook_pages_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "facebook_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_records: {
         Row: {
           agency_id: string | null
