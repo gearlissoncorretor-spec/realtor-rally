@@ -460,6 +460,23 @@ const FollowUpPage = () => {
             </div>
             
             <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">Exportar</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExportCSV('filtered')}>
+                    Exportar Filtrados ({filteredFollowUps.length})
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportCSV('total')}>
+                    Exportar Total ({followUps.length})
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button
                 variant="outline"
                 size="icon"
