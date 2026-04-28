@@ -179,9 +179,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return q;
         };
         
-        // Single query with limit — most users won't have >1000 sales
-        const { data, error } = await buildQuery().limit(1000);
-        
+        // Fetch with a higher limit to ensure reports are complete for most companies
+        const { data, error } = await buildQuery().limit(5000);
+
         if (error) {
           console.error('Error fetching sales:', error);
           throw new Error(`Erro ao carregar vendas: ${error.message}`);
