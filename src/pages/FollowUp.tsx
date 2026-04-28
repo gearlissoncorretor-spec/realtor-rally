@@ -475,11 +475,11 @@ const FollowUpPage = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleExportCSV('filtered')}>
-                    Exportar Filtrados ({filteredFollowUps.length})
+                  <DropdownMenuItem onClick={() => handleExportPDF('filtered')}>
+                    Exportar PDF Filtrados ({filteredFollowUps.length})
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleExportCSV('total')}>
-                    Exportar Total ({followUps.length})
+                  <DropdownMenuItem onClick={() => handleExportPDF('total')}>
+                    Exportar PDF Total ({followUps.length})
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
