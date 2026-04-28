@@ -359,7 +359,7 @@ const FollowUpPage = () => {
     }
   };
 
-  const handleExportCSV = useCallback((type: 'filtered' | 'total') => {
+  const handleExportPDF = useCallback((type: 'filtered' | 'total') => {
     const dataToExport = type === 'filtered' ? sortedFollowUps : followUps;
     
     if (dataToExport.length === 0) {
@@ -371,8 +371,17 @@ const FollowUpPage = () => {
       return;
     }
 
-    const header = ['Cliente', 'Telefone', 'Origem', 'Imóvel de Interesse', 'VGV Estimado', 'Status', 'Próximo Contato', 'Responsável', 'Anotações', 'Criado em'];
-    const rows = dataToExport.map(f => {
+    const doc = new jsPDF('landscape');
+    
+    // Header
+    doc.setFontSize(18);
+    doc.text('Relatório de Follow-up / Clientes', 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Tipo: ${type === 'filtered' ? 'Filtrado' : 'Total'} | Data: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 14, 22);
+
+    const tableHeaders = [['Cliente', 'Telefone', 'Origem', 'Imóvel de Interesse', 'VGV', 'Status', 'Próximo Contato', 'Responsável']];
+    
+    const tableRows = dataToExport.map(f => {
       const statusObj = getStatusByValue(f.status);
       const brokerName = getBrokerName(f.broker_id);
       
@@ -381,32 +390,26 @@ const FollowUpPage = () => {
         f.client_phone || '',
         f.origem || '',
         f.property_interest || '',
-        f.estimated_vgv.toString(),
+        formatCurrency(f.estimated_vgv),
         statusObj?.label || f.status,
-        f.next_contact_date ? format(parseISO(f.next_contact_date), "dd/MM/yyyy") : '',
-        brokerName,
-        (f.observations || '').replace(/\n/g, ' '),
-        format(new Date(f.created_at), "dd/MM/yyyy HH:mm")
+        f.next_contact_date ? format(parseISO(f.next_contact_date), "dd/MM/yyyy") : '-',
+        brokerName
       ];
     });
 
-    const bom = '\uFEFF';
-    const csvContent = [header, ...rows]
-      .map(r => r.map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(';'))
-      .join('\n');
-    
-    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `follow_up_clientes_${type}_${format(new Date(), "dd-MM-yyyy")}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      startY: 28,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [66, 133, 244] }
+    });
+
+    doc.save(`follow_up_clientes_${type}_${format(new Date(), "dd-MM-yyyy")}.pdf`);
     
     toast({
       title: "Exportação concluída",
-      description: `${dataToExport.length} registros exportados com sucesso.`,
+      description: `${dataToExport.length} registros exportados para PDF com sucesso.`,
     });
   }, [sortedFollowUps, followUps, getStatusByValue, brokers, toast]);
 
