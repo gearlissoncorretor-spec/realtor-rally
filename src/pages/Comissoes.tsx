@@ -238,9 +238,11 @@ const Comissoes = () => {
 
   // Split for broker view
 
-  const comissoesAReceber = useMemo(() => filtered.filter(c => c.status === 'pendente' || c.status === 'parcial'), [filtered]);
+  const comissoesAReceber = useMemo(() => filtered.filter(c => c.status !== 'pago' && c.status !== 'cancelado'), [filtered]);
   const comissoesRecebidas = useMemo(() => filtered.filter(c => c.status === 'pago'), [filtered]);
   const comissoesLoja = useMemo(() => filtered.filter(c => !c.broker_id), [filtered]);
+  const comissoesCanceladas = useMemo(() => filtered.filter(c => c.status === 'cancelado'), [filtered]);
+
 
   // Export CSV
   const handleExportCSV = useCallback(() => {
