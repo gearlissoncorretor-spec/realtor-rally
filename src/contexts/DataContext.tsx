@@ -83,10 +83,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         const role = getUserRole();
         
-        // Gerente vê apenas corretores da sua equipe
-        if (role === 'gerente' && teamHierarchy?.team_id) {
-          query = query.eq('team_id', teamHierarchy.team_id);
+        // Gerente vê corretores da sua equipe ou agência
+        if (role === 'gerente') {
+          if (profile?.agency_id) {
+            query = query.eq('agency_id', profile.agency_id);
+          } else if (teamHierarchy?.team_id) {
+            query = query.eq('team_id', teamHierarchy.team_id);
+          }
         }
+
         // Corretor vê apenas seus próprios dados
         else if (role === 'corretor') {
           query = query.eq('user_id', user.id);
