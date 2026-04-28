@@ -188,7 +188,7 @@ const Navigation = () => {
     },
     {
       label: "Relatórios",
-      items: navItems.filter(i => ['relatorios'].includes(i.screen)),
+      items: navItems.filter(i => ['relatorios', 'bi-avancado'].includes(i.screen)),
     },
     {
       label: "Gestão",
