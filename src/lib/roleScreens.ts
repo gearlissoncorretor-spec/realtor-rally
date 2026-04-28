@@ -46,6 +46,7 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/metas': 'metas',
   '/acompanhamento': 'acompanhamento',
   '/relatorios': 'relatorios',
+  '/bi-avancado': 'bi-avancado',
   '/x1': 'x1',
   '/dashboard-equipes': 'dashboard-equipes',
   '/central-gestor': 'central-gestor',
