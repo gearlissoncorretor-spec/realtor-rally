@@ -404,11 +404,12 @@ const Relatorios = () => {
           />
         </div>
 
-        {salesLoading || brokersLoading ? (
+        {salesLoading || brokersLoading || leadsLoading ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">Carregando dados...</p>
           </div>
         ) : (
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map((report, index) => (
               <Card key={report.title} className="p-6 hover:shadow-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: `${(index + 3) * 0.1}s` }}>
