@@ -355,6 +355,57 @@ const FollowUpPage = () => {
     }
   };
 
+  const handleExportCSV = useCallback((type: 'filtered' | 'total') => {
+    const dataToExport = type === 'filtered' ? sortedFollowUps : followUps;
+    
+    if (dataToExport.length === 0) {
+      toast({
+        title: "Nada para exportar",
+        description: "Não há dados que correspondam aos filtros atuais.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const header = ['Cliente', 'Telefone', 'Origem', 'Imóvel de Interesse', 'VGV Estimado', 'Status', 'Próximo Contato', 'Responsável', 'Anotações', 'Criado em'];
+    const rows = dataToExport.map(f => {
+      const statusObj = getStatusByValue(f.status);
+      const brokerName = getBrokerName(f.broker_id);
+      
+      return [
+        f.client_name,
+        f.client_phone || '',
+        f.origem || '',
+        f.property_interest || '',
+        f.estimated_vgv.toString(),
+        statusObj?.label || f.status,
+        f.next_contact_date ? format(parseISO(f.next_contact_date), "dd/MM/yyyy") : '',
+        brokerName,
+        (f.observations || '').replace(/\n/g, ' '),
+        format(new Date(f.created_at), "dd/MM/yyyy HH:mm")
+      ];
+    });
+
+    const bom = '\uFEFF';
+    const csvContent = [header, ...rows]
+      .map(r => r.map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(';'))
+      .join('\n');
+    
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `follow_up_clientes_${type}_${format(new Date(), "dd-MM-yyyy")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Exportação concluída",
+      description: `${dataToExport.length} registros exportados com sucesso.`,
+    });
+  }, [sortedFollowUps, followUps, getStatusByValue, brokers, toast]);
+
   const formatWhatsAppLink = (phone: string) => {
     const cleanPhone = phone.replace(/\D/g, '');
     const phoneWithCountry = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
