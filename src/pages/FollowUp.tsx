@@ -499,9 +499,10 @@ const FollowUpPage = () => {
                     Novo Lead
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
+                    <UserPlus className="w-5 h-5 text-primary" />
                     {editingFollowUp ? 'Editar Follow Up' : 'Cadastrar Lead'}
                   </DialogTitle>
                   <DialogDescription>
@@ -510,89 +511,176 @@ const FollowUpPage = () => {
                       : 'Preencha os dados para cadastrar um novo cliente e iniciar o acompanhamento.'}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Broker selector */}
-                  {!isCorretor() && (
-                    <div>
-                      <label className="text-sm font-medium">Corretor Responsável *</label>
-                      <Select
-                        value={formData.broker_id}
-                        onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o corretor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {brokers.length === 0 ? (
-                            <div className="p-2 text-sm text-muted-foreground text-center">
-                              Nenhum corretor cadastrado
-                            </div>
-                          ) : (
-                            brokers.map((broker) => (
-                              <SelectItem key={broker.id} value={broker.id}>
-                                {broker.name}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      {brokers.length === 0 && (
-                        <p className="text-[10px] text-destructive mt-1">
-                          É necessário cadastrar corretores antes de criar leads.
-                        </p>
-                      )}
+                <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+                  {/* Seção: Informações do Cliente */}
+                  <div className="space-y-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5" /> Informações do Cliente
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium">Nome do Cliente *</label>
+                        <Input
+                          value={formData.client_name}
+                          onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                          placeholder="Nome completo"
+                          className="h-9 bg-background"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium">Telefone (WhatsApp)</label>
+                        <Input
+                          value={formData.client_phone}
+                          onChange={(e) => setFormData({ ...formData, client_phone: formatPhone(e.target.value) })}
+                          placeholder="(00) 00000-0000"
+                          maxLength={15}
+                          className="h-9 bg-background"
+                        />
+                      </div>
                     </div>
-                  )}
-
-                  <div>
-                    <label className="text-sm font-medium">Origem do Lead *</label>
-                    <Select
-                      value={formData.origem}
-                      onValueChange={(value) => setFormData({ ...formData, origem: value })}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a origem" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LEAD_ORIGIN_OPTIONS.map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium">Nome do Cliente *</label>
-                    <Input
-                      value={formData.client_name}
-                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                      placeholder="Nome do cliente"
-                      required
+                  {/* Seção: Interesse e Valores */}
+                  <div className="space-y-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <TrendingUp className="w-3.5 h-3.5" /> Interesse e Valores
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium">Imóvel de Interesse</label>
+                        <Input
+                          value={formData.property_interest}
+                          onChange={(e) => setFormData({ ...formData, property_interest: e.target.value })}
+                          placeholder="Ex: Apartamento 2 quartos na Zona Sul"
+                          className="h-9 bg-background"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">VGV Estimado</label>
+                          <CurrencyInput
+                            value={formData.estimated_vgv}
+                            onChange={(value) => setFormData({ ...formData, estimated_vgv: value })}
+                            placeholder="0,00"
+                            className="h-9 bg-background"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">Origem do Lead *</label>
+                          <Select
+                            value={formData.origem}
+                            onValueChange={(value) => setFormData({ ...formData, origem: value })}
+                            required
+                          >
+                            <SelectTrigger className="h-9 bg-background">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {LEAD_ORIGIN_OPTIONS.map((option) => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Seção: Agendamento e Responsável */}
+                  <div className="space-y-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5" /> Agendamento e Responsável
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        {!isCorretor() && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium">Corretor Responsável *</label>
+                            <Select
+                              value={formData.broker_id}
+                              onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
+                              required
+                            >
+                              <SelectTrigger className="h-9 bg-background">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {brokers.map((broker) => (
+                                  <SelectItem key={broker.id} value={broker.id}>{broker.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">Status</label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value) => setFormData({ ...formData, status: value })}
+                          >
+                            <SelectTrigger className="h-9 bg-background">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statuses.map((status) => (
+                                <SelectItem key={status.value} value={status.value}>
+                                  {status.icon} {status.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">Próximo Contato</label>
+                          <Input
+                            type="date"
+                            value={formData.next_contact_date}
+                            onChange={(e) => setFormData({ ...formData, next_contact_date: e.target.value })}
+                            className="h-9 bg-background px-3"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2.5 border rounded-lg bg-background shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <Bell className="w-3.5 h-3.5 text-primary" />
+                            <div className="leading-tight">
+                              <p className="text-[11px] font-bold">Lembrete</p>
+                              <p className="text-[9px] text-muted-foreground">Notificação ativa</p>
+                            </div>
+                          </div>
+                          <Switch 
+                            checked={formData.reminder_enabled} 
+                            onCheckedChange={(checked) => setFormData({ ...formData, reminder_enabled: checked })} 
+                            className="scale-90"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium">Observações Gerais</label>
+                    <Textarea
+                      value={formData.observations}
+                      onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
+                      placeholder="Histórico ou detalhes importantes..."
+                      rows={3}
+                      className="bg-muted/10"
                     />
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium">Telefone (WhatsApp)</label>
-                    <Input
-                      value={formData.client_phone}
-                      onChange={(e) => setFormData({ ...formData, client_phone: formatPhone(e.target.value) })}
-                      placeholder="(00) 00000-0000"
-                      maxLength={15}
-                    />
+                  <div className="flex gap-3 pt-2">
+                    <Button type="button" variant="outline" onClick={handleCloseForm} className="flex-1 h-10">
+                      Cancelar
+                    </Button>
+                    <Button type="submit" className="flex-1 h-10 shadow-lg" disabled={submitting}>
+                      {submitting ? 'Salvando...' : (editingFollowUp ? 'Salvar Alterações' : 'Cadastrar Lead')}
+                    </Button>
                   </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Imóvel de Interesse</label>
-                    <Input
-                      value={formData.property_interest}
-                      onChange={(e) => setFormData({ ...formData, property_interest: e.target.value })}
-                      placeholder="Ex: Apartamento 2 quartos na Zona Sul"
-                    />
-                  </div>
+                </form>
+              </DialogContent>
 
                   <div>
                     <label className="text-sm font-medium">VGV Estimado</label>
