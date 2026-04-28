@@ -143,17 +143,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             return [];
           }
-        } else if (role === 'gerente' && teamHierarchy?.team_id) {
-          const { data: teamBrokers } = await supabase
-            .from('brokers')
-            .select('id')
-            .eq('team_id', teamHierarchy.team_id);
+        } else if (role === 'gerente') {
+          let teamQuery = supabase.from('brokers').select('id');
+          if (profile?.agency_id) {
+            teamQuery = teamQuery.eq('agency_id', profile.agency_id);
+          } else if (teamHierarchy?.team_id) {
+            teamQuery = teamQuery.eq('team_id', teamHierarchy.team_id);
+          } else {
+            return [];
+          }
+
+          const { data: teamBrokers } = await teamQuery;
           
           if (teamBrokers && teamBrokers.length > 0) {
             brokerFilter = { type: 'in', value: teamBrokers.map(b => b.id) };
           }
         }
-        
+
         // Helper to build a fresh query each time
         const buildQuery = () => {
           let q = supabase
