@@ -583,8 +583,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     },
   });
 
-  // Real-time subscriptions are now handled by useRealtimeSync in App.tsx
-
   const value: DataContextType = {
     brokers,
     sales,
