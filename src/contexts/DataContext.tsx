@@ -66,6 +66,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const teamId = teamHierarchy?.team_id ?? null;
   
   // Queries com React Query - com filtros por hierarquia
+  // Otimização: Aumentando staleTime para dados menos voláteis
   const { 
     data: brokers = [], 
     isLoading: brokersLoading,
@@ -110,8 +111,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw err;
       }
     },
-    staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutos (corretores não mudam tanto)
+    gcTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !!user && !authLoading,
   });
@@ -179,8 +180,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return q;
         };
         
-        // Fetch with a higher limit to ensure reports are complete for most companies
-        const { data, error } = await buildQuery().limit(5000);
+        // Fetch with a limit to ensure performance in high scale
+        const { data, error } = await buildQuery().limit(2000);
 
         if (error) {
           console.error('Error fetching sales:', error);
@@ -193,7 +194,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw err;
       }
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 3 * 60 * 1000, // 3 minutos
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !!user && !authLoading,
@@ -209,7 +210,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user) return [];
       
       try {
-        // Confia no RLS para filtrar dados por perfil
         const query = supabase
           .from('targets')
           .select('*')
@@ -223,15 +223,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw new Error(`Erro ao carregar metas: ${error.message}`);
         }
         
-        // RLS já faz o filtro correto no banco
         return data as Target[];
       } catch (err) {
         console.error('Targets query failed:', err);
         throw err;
       }
     },
-    staleTime: 2 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 15 * 60 * 1000, // 15 minutos (metas mudam muito pouco)
+    gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !!user && !authLoading,
   });
