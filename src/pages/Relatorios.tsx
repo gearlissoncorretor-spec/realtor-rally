@@ -446,7 +446,7 @@ const Relatorios = () => {
           </div>
         )}
 
-        {!salesLoading && !brokersLoading && filteredSales.length === 0 && (
+        {!salesLoading && !brokersLoading && !leadsLoading && filteredSales.length === 0 && (
           <div className="text-center py-12 mt-6">
             <p className="text-muted-foreground">Nenhuma venda encontrada para o período selecionado.</p>
           </div>
