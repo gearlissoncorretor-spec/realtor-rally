@@ -141,18 +141,26 @@ const Ranking = () => {
   const previousPeriodSales = useMemo(() => {
     const now = new Date();
     return sales.filter(sale => {
-      const saleDate = new Date(sale.sale_date || sale.created_at || '');
+      const dateToUse = sale.sale_date || sale.created_at;
+      if (!dateToUse) return false;
+      
+      const { day, month: saleMonth, year: saleYear } = parseDateSafe(dateToUse);
+      const saleDate = new Date(saleYear, saleMonth - 1, day);
+
       if (quickPeriod === 'today') { const y = new Date(now); y.setDate(y.getDate() - 1); return saleDate.toDateString() === y.toDateString(); }
       if (quickPeriod === 'week') { const t = new Date(now); t.setDate(t.getDate() - 14); const o = new Date(now); o.setDate(o.getDate() - 7); return saleDate >= t && saleDate < o; }
-      if (quickPeriod === 'quarter') { const cq = Math.floor(now.getMonth() / 3); if (cq === 0) return saleDate.getFullYear() === now.getFullYear() - 1 && Math.floor(saleDate.getMonth() / 3) === 3; return saleDate.getFullYear() === now.getFullYear() && Math.floor(saleDate.getMonth() / 3) === cq - 1; }
-      if (quickPeriod === 'year') return saleDate.getFullYear() === now.getFullYear() - 1;
+      if (quickPeriod === 'quarter') { const cq = Math.floor(now.getMonth() / 3); if (cq === 0) return saleYear === now.getFullYear() - 1 && Math.floor((saleMonth - 1) / 3) === 3; return saleYear === now.getFullYear() && Math.floor((saleMonth - 1) / 3) === cq - 1; }
+      if (quickPeriod === 'year') return saleYear === now.getFullYear() - 1;
       if (quickPeriod === 'all') return false;
+      
       const fm = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
       const fy = selectedYear > 0 ? selectedYear : now.getFullYear();
       const pm = fm === 1 ? 12 : fm - 1;
       const py = fm === 1 ? fy - 1 : fy;
-      return saleDate.getMonth() + 1 === pm && saleDate.getFullYear() === py;
+      
+      return saleMonth === pm && saleYear === py;
     });
+
   }, [sales, selectedMonth, selectedYear, quickPeriod]);
 
   // All brokers including managers - used for summary stats
