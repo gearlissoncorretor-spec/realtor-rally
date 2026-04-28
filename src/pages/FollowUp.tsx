@@ -29,6 +29,7 @@ import {
   Trash2, 
   Search,
   Users,
+  UserPlus,
   DollarSign,
   Calendar,
   Clock,
@@ -43,7 +44,8 @@ import {
   Bell,
   BellOff,
   Download,
-  FileDown
+  FileDown,
+  TrendingUp
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 
@@ -499,9 +501,10 @@ const FollowUpPage = () => {
                     Novo Lead
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>
+                  <DialogTitle className="flex items-center gap-2">
+                    <UserPlus className="w-5 h-5 text-primary" />
                     {editingFollowUp ? 'Editar Follow Up' : 'Cadastrar Lead'}
                   </DialogTitle>
                   <DialogDescription>
@@ -510,159 +513,172 @@ const FollowUpPage = () => {
                       : 'Preencha os dados para cadastrar um novo cliente e iniciar o acompanhamento.'}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Broker selector */}
-                  {!isCorretor() && (
-                    <div>
-                      <label className="text-sm font-medium">Corretor Responsável *</label>
-                      <Select
-                        value={formData.broker_id}
-                        onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o corretor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {brokers.length === 0 ? (
-                            <div className="p-2 text-sm text-muted-foreground text-center">
-                              Nenhum corretor cadastrado
-                            </div>
-                          ) : (
-                            brokers.map((broker) => (
-                              <SelectItem key={broker.id} value={broker.id}>
-                                {broker.name}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      {brokers.length === 0 && (
-                        <p className="text-[10px] text-destructive mt-1">
-                          É necessário cadastrar corretores antes de criar leads.
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="text-sm font-medium">Origem do Lead *</label>
-                    <Select
-                      value={formData.origem}
-                      onValueChange={(value) => setFormData({ ...formData, origem: value })}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a origem" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LEAD_ORIGIN_OPTIONS.map((option) => (
-                          <SelectItem key={option} value={option}>
-                            {option}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Nome do Cliente *</label>
-                    <Input
-                      value={formData.client_name}
-                      onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                      placeholder="Nome do cliente"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Telefone (WhatsApp)</label>
-                    <Input
-                      value={formData.client_phone}
-                      onChange={(e) => setFormData({ ...formData, client_phone: formatPhone(e.target.value) })}
-                      placeholder="(00) 00000-0000"
-                      maxLength={15}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">Imóvel de Interesse</label>
-                    <Input
-                      value={formData.property_interest}
-                      onChange={(e) => setFormData({ ...formData, property_interest: e.target.value })}
-                      placeholder="Ex: Apartamento 2 quartos na Zona Sul"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium">VGV Estimado</label>
-                    <CurrencyInput
-                      value={formData.estimated_vgv}
-                      onChange={(value) => setFormData({ ...formData, estimated_vgv: value })}
-                      placeholder="0,00"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Data Próximo Contato</label>
-                      <Input
-                        type="date"
-                        value={formData.next_contact_date}
-                        onChange={(e) => setFormData({ ...formData, next_contact_date: e.target.value })}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-4">
-                      <div>
-                        <label className="text-sm font-medium">Status</label>
-                        <Select
-                          value={formData.status}
-                          onValueChange={(value) => setFormData({ ...formData, status: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {statuses.map((status) => (
-                              <SelectItem key={status.value} value={status.value}>
-                                {status.icon} {status.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+                  {/* Seção: Informações do Cliente */}
+                  <div className="space-y-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5" /> Informações do Cliente
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium">Nome do Cliente *</label>
+                        <Input
+                          value={formData.client_name}
+                          onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                          placeholder="Nome completo"
+                          className="h-9 bg-background"
+                          required
+                        />
                       </div>
-                      <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
-                        <div className="flex items-center gap-2">
-                          <Bell className="w-4 h-4 text-primary" />
-                          <div>
-                            <p className="text-sm font-medium">Lembrete de contato</p>
-                            <p className="text-[10px] text-muted-foreground">Notificar quando chegar a data</p>
-                          </div>
-                        </div>
-                        <Switch 
-                          checked={formData.reminder_enabled} 
-                          onCheckedChange={(checked) => setFormData({ ...formData, reminder_enabled: checked })} 
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium">Telefone (WhatsApp)</label>
+                        <Input
+                          value={formData.client_phone}
+                          onChange={(e) => setFormData({ ...formData, client_phone: formatPhone(e.target.value) })}
+                          placeholder="(00) 00000-0000"
+                          maxLength={15}
+                          className="h-9 bg-background"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium">Anotações</label>
+                  {/* Seção: Interesse e Valores */}
+                  <div className="space-y-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <TrendingUp className="w-3.5 h-3.5" /> Interesse e Valores
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium">Imóvel de Interesse</label>
+                        <Input
+                          value={formData.property_interest}
+                          onChange={(e) => setFormData({ ...formData, property_interest: e.target.value })}
+                          placeholder="Ex: Apartamento 2 quartos na Zona Sul"
+                          className="h-9 bg-background"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">VGV Estimado</label>
+                          <CurrencyInput
+                            value={formData.estimated_vgv}
+                            onChange={(value) => setFormData({ ...formData, estimated_vgv: value })}
+                            placeholder="0,00"
+                            className="h-9 bg-background"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">Origem do Lead *</label>
+                          <Select
+                            value={formData.origem}
+                            onValueChange={(value) => setFormData({ ...formData, origem: value })}
+                            required
+                          >
+                            <SelectTrigger className="h-9 bg-background">
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {LEAD_ORIGIN_OPTIONS.map((option) => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Seção: Agendamento e Responsável */}
+                  <div className="space-y-4 p-4 rounded-xl border border-border/50 bg-muted/20">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5" /> Agendamento e Responsável
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        {!isCorretor() && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium">Corretor Responsável *</label>
+                            <Select
+                              value={formData.broker_id}
+                              onValueChange={(value) => setFormData({ ...formData, broker_id: value })}
+                              required
+                            >
+                              <SelectTrigger className="h-9 bg-background">
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {brokers.map((broker) => (
+                                  <SelectItem key={broker.id} value={broker.id}>{broker.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">Status</label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value) => setFormData({ ...formData, status: value })}
+                          >
+                            <SelectTrigger className="h-9 bg-background">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statuses.map((status) => (
+                                <SelectItem key={status.value} value={status.value}>
+                                  {status.icon} {status.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium">Próximo Contato</label>
+                          <Input
+                            type="date"
+                            value={formData.next_contact_date}
+                            onChange={(e) => setFormData({ ...formData, next_contact_date: e.target.value })}
+                            className="h-9 bg-background px-3"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2.5 border rounded-lg bg-background shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <Bell className="w-3.5 h-3.5 text-primary" />
+                            <div className="leading-tight">
+                              <p className="text-[11px] font-bold">Lembrete</p>
+                              <p className="text-[9px] text-muted-foreground">Notificação ativa</p>
+                            </div>
+                          </div>
+                          <Switch 
+                            checked={formData.reminder_enabled} 
+                            onCheckedChange={(checked) => setFormData({ ...formData, reminder_enabled: checked })} 
+                            className="scale-90"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium">Observações Gerais</label>
                     <Textarea
                       value={formData.observations}
                       onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
-                      placeholder="Observações sobre o cliente..."
+                      placeholder="Histórico ou detalhes importantes..."
                       rows={3}
+                      className="bg-muted/10"
                     />
                   </div>
 
-                  <div className="flex gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={handleCloseForm} className="flex-1">
+                  <div className="flex gap-3 pt-2">
+                    <Button type="button" variant="outline" onClick={handleCloseForm} className="flex-1 h-10">
                       Cancelar
                     </Button>
-                    <Button type="submit" className="flex-1" disabled={submitting}>
-                      {submitting ? 'Salvando...' : (editingFollowUp ? 'Salvar' : 'Cadastrar Lead')}
+                    <Button type="submit" className="flex-1 h-10 shadow-lg" disabled={submitting}>
+                      {submitting ? 'Salvando...' : (editingFollowUp ? 'Salvar Alterações' : 'Cadastrar Lead')}
                     </Button>
                   </div>
                 </form>
@@ -773,7 +789,7 @@ const FollowUpPage = () => {
               ) : (
                 <>
                   {/* Mobile Card View */}
-                  <div className="block md:hidden space-y-3 p-3">
+                  <div className="block md:hidden space-y-5 p-3">
                     {sortedFollowUps.map((followUp) => {
                       const dateStatus = getDateStatus(followUp.next_contact_date);
                       const statusConfig = getStatusByValue(followUp.status);
@@ -950,8 +966,9 @@ const FollowUpPage = () => {
                             <TableRow
                               key={followUp.id}
                               className={cn(
-                                dateStatus === 'overdue' && 'bg-destructive/5',
-                                dateStatus === 'today' && 'bg-yellow-500/5'
+                                "hover:bg-muted/30 transition-colors",
+                                dateStatus === 'overdue' && 'bg-destructive/5 hover:bg-destructive/10',
+                                dateStatus === 'today' && 'bg-yellow-500/5 hover:bg-yellow-500/10'
                               )}
                             >
                               <TableCell className="font-medium">{followUp.client_name}</TableCell>
@@ -997,8 +1014,8 @@ const FollowUpPage = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
+                                  className="h-8 w-8"
                                   onClick={() => handleToggleReminder(followUp)}
-                                  title={followUp.reminder_enabled ? "Desativar Lembrete" : "Ativar Lembrete"}
                                 >
                                   {followUp.reminder_enabled ? (
                                     <Bell className="w-4 h-4 text-primary" />
@@ -1011,10 +1028,15 @@ const FollowUpPage = () => {
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <button className="focus:outline-none hover:opacity-80 transition-opacity">
-                                      <FollowUpStatusBadge status={followUp.status} label={statusConfig?.label} color={statusConfig?.color} icon={statusConfig?.icon} />
+                                      <FollowUpStatusBadge
+                                        status={followUp.status}
+                                        label={statusConfig?.label}
+                                        color={statusConfig?.color}
+                                        icon={statusConfig?.icon}
+                                      />
                                     </button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="start" className="w-56">
+                                  <DropdownMenuContent align="end" className="w-56">
                                     {statuses.map((s) => (
                                       <DropdownMenuItem 
                                         key={s.value} 
@@ -1031,21 +1053,21 @@ const FollowUpPage = () => {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-1">
-                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="gap-1" title="Converter em Negociação">
-                                    <Handshake className="w-4 h-4" /><span className="hidden lg:inline">Negociação</span>
+                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="h-8 gap-1">
+                                    <Handshake className="w-3.5 h-3.5" /> Negociação
                                   </Button>
-                                  <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} title="Notas">
+                                  <Button variant="outline" size="icon" onClick={() => handleOpenNotes(followUp)} className="h-8 w-8" title="Notas">
                                     <StickyNote className="w-4 h-4" />
                                   </Button>
-                                  <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} title="Registrar contato">
+                                  <Button variant="outline" size="icon" onClick={() => handleOpenContact(followUp)} className="h-8 w-8">
                                     <Phone className="w-4 h-4" />
                                   </Button>
-                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(followUp)}>
+                                  <Button variant="ghost" size="icon" onClick={() => handleEdit(followUp)} className="h-8 w-8">
                                     <Edit className="w-4 h-4" />
                                   </Button>
-                                  <Button variant="ghost" size="sm" onClick={() => setDeleteId(followUp.id)} className="text-destructive hover:text-destructive">
+                                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(followUp.id)} className="text-destructive h-8 w-8">
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </div>
@@ -1063,51 +1085,47 @@ const FollowUpPage = () => {
         </div>
       </div>
 
-      {/* Delete confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Follow Up</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Conversion dialog */}
       <ConvertToNegotiationDialog
-        followUp={selectedForConversion}
         open={convertDialogOpen}
         onOpenChange={setConvertDialogOpen}
+        followUp={selectedForConversion}
         onConfirm={handleConfirmConversion}
       />
 
-      {/* Add contact dialog */}
       <AddContactDialog
         open={contactDialogOpen}
         onOpenChange={setContactDialogOpen}
         onConfirm={handleConfirmContact}
       />
 
-      {/* Notes dialog */}
       <FollowUpNotesDialog
-        followUpId={selectedForNotes?.id || null}
-        clientName={selectedForNotes?.client_name || ''}
         open={notesDialogOpen}
         onOpenChange={setNotesDialogOpen}
+        followUpId={selectedForNotes?.id || ''}
+        clientName={selectedForNotes?.client_name || ''}
       />
 
       <FollowUpStatusManagerDialog
         open={statusManagerOpen}
         onOpenChange={setStatusManagerOpen}
       />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Lead?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O lead e todo o seu histórico serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Confirmar Exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
