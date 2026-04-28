@@ -591,26 +591,31 @@ const Comissoes = () => {
         </div>
 
         {/* Period Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4 items-center">
+          <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar..." value={searchTerm}
+            <Input placeholder="Buscar por corretor, cliente..." value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9" />
           </div>
-          <Select value={filterMonth} onValueChange={setFilterMonth}>
-            <SelectTrigger className="w-[140px] h-9">
-              <Calendar className="w-3.5 h-3.5 mr-1" /><SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={filterYear} onValueChange={setFilterYear}>
-            <SelectTrigger className="w-[110px] h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {years.map(y => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Select value={filterMonth} onValueChange={setFilterMonth}>
+              <SelectTrigger className="w-full sm:w-[140px] h-9">
+                <Calendar className="w-3.5 h-3.5 mr-1" /><SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterYear} onValueChange={setFilterYear}>
+              <SelectTrigger className="w-full sm:w-[110px] h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {years.map(y => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" size="sm" onClick={handleClearFilters} className="h-9 px-2 text-muted-foreground" title="Limpar filtros">
+              <XCircle className="w-4 h-4 mr-1" /> Limpar
+            </Button>
+          </div>
         </div>
 
         {/* Content */}
