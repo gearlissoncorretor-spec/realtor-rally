@@ -134,7 +134,16 @@ const Comissoes = () => {
   }, [commissions, currentYear]);
 
   // Active tab
-  const [activeTab, setActiveTab] = useState(isBrokerView ? "a_receber" : "lista");
+  const [activeTab, setActiveTab] = useState(isBrokerView ? "a_receber" : "pendentes");
+
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setFilterMonth((new Date().getMonth() + 1).toString());
+    setFilterYear(new Date().getFullYear().toString());
+    toast({ title: "Filtros limpos", description: "A visualização foi resetada para o período atual." });
+  }, [toast]);
+
 
 
 
@@ -229,9 +238,11 @@ const Comissoes = () => {
 
   // Split for broker view
 
-  const comissoesAReceber = useMemo(() => filtered.filter(c => c.status === 'pendente' || c.status === 'parcial'), [filtered]);
+  const comissoesAReceber = useMemo(() => filtered.filter(c => c.status !== 'pago' && c.status !== 'cancelado'), [filtered]);
   const comissoesRecebidas = useMemo(() => filtered.filter(c => c.status === 'pago'), [filtered]);
   const comissoesLoja = useMemo(() => filtered.filter(c => !c.broker_id), [filtered]);
+  const comissoesCanceladas = useMemo(() => filtered.filter(c => c.status === 'cancelado'), [filtered]);
+
 
   // Export CSV
   const handleExportCSV = useCallback(() => {
@@ -582,26 +593,31 @@ const Comissoes = () => {
         </div>
 
         {/* Period Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4 items-center">
+          <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar..." value={searchTerm}
+            <Input placeholder="Buscar por corretor, cliente..." value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)} className="pl-9 h-9" />
           </div>
-          <Select value={filterMonth} onValueChange={setFilterMonth}>
-            <SelectTrigger className="w-[140px] h-9">
-              <Calendar className="w-3.5 h-3.5 mr-1" /><SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={filterYear} onValueChange={setFilterYear}>
-            <SelectTrigger className="w-[110px] h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {years.map(y => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Select value={filterMonth} onValueChange={setFilterMonth}>
+              <SelectTrigger className="w-full sm:w-[140px] h-9">
+                <Calendar className="w-3.5 h-3.5 mr-1" /><SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterYear} onValueChange={setFilterYear}>
+              <SelectTrigger className="w-full sm:w-[110px] h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {years.map(y => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button variant="ghost" size="sm" onClick={handleClearFilters} className="h-9 px-2 text-muted-foreground" title="Limpar filtros">
+              <XCircle className="w-4 h-4 mr-1" /> Limpar
+            </Button>
+          </div>
         </div>
 
         {/* Content */}
@@ -656,43 +672,59 @@ const Comissoes = () => {
         ) : (
           /* ===== MANAGER VIEW: Lista / Por Corretor ===== */
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="lista" className="gap-1.5"><CreditCard className="w-3.5 h-3.5" /> Comissões</TabsTrigger>
+            <TabsList className="flex-wrap h-auto">
+              <TabsTrigger value="pendentes" className="gap-1.5"><Clock className="w-3.5 h-3.5" /> A Receber</TabsTrigger>
+              <TabsTrigger value="recebidas" className="gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Recebidas</TabsTrigger>
               <TabsTrigger value="corretores" className="gap-1.5"><Users className="w-3.5 h-3.5" /> Por Corretor</TabsTrigger>
               {(isDiretor() || isAdmin()) && (
-                <TabsTrigger value="loja" className="gap-1.5"><Store className="w-3.5 h-3.5" /> Comissão Loja</TabsTrigger>
+                <TabsTrigger value="loja" className="gap-1.5"><Store className="w-3.5 h-3.5" /> Loja</TabsTrigger>
               )}
               <TabsTrigger value="gastos" className="gap-1.5">
-                <Receipt className="w-3.5 h-3.5" /> Controle de Gastos
+                <Receipt className="w-3.5 h-3.5" /> Gastos
               </TabsTrigger>
             </TabsList>
 
 
-            <TabsContent value="lista">
+            <TabsContent value="pendentes">
               <div className="flex gap-2 mb-3">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[150px] h-9">
-                    <Filter className="w-3.5 h-3.5 mr-1" /><SelectValue placeholder="Status" />
+                  <SelectTrigger className="w-[150px] h-9 text-xs">
+                    <Filter className="w-3 h-3 mr-1" /><SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="all">Todos pendentes</SelectItem>
                     <SelectItem value="pendente">A Receber</SelectItem>
                     <SelectItem value="parcial">Parcial</SelectItem>
-                    <SelectItem value="pago">Recebida</SelectItem>
+                    <SelectItem value="a_pagar">A Pagar</SelectItem>
                     <SelectItem value="cancelado">Cancelado</SelectItem>
                     <SelectItem value="atrasado">⚠️ Atrasadas</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {filtered.length === 0 ? (
+              {comissoesAReceber.length === 0 ? (
                 <Card className="p-10 text-center border-border/50">
-                  <DollarSign className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground font-medium">Nenhuma comissão encontrada</p>
+                  <Clock className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão pendente</p>
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  {filtered.map(c => (
+                  {comissoesAReceber.map(c => (
+                    <CommissionCard key={c.id} c={c} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="recebidas">
+              {comissoesRecebidas.length === 0 ? (
+                <Card className="p-10 text-center border-border/50">
+                  <CheckCircle2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão recebida</p>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {comissoesRecebidas.map(c => (
                     <CommissionCard key={c.id} c={c} />
                   ))}
                 </div>
