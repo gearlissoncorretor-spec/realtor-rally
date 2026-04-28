@@ -683,31 +683,46 @@ const Comissoes = () => {
             </TabsList>
 
 
-            <TabsContent value="lista">
+            <TabsContent value="pendentes">
               <div className="flex gap-2 mb-3">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[150px] h-9">
-                    <Filter className="w-3.5 h-3.5 mr-1" /><SelectValue placeholder="Status" />
+                  <SelectTrigger className="w-[150px] h-9 text-xs">
+                    <Filter className="w-3 h-3 mr-1" /><SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="all">Todos pendentes</SelectItem>
                     <SelectItem value="pendente">A Receber</SelectItem>
                     <SelectItem value="parcial">Parcial</SelectItem>
-                    <SelectItem value="pago">Recebida</SelectItem>
+                    <SelectItem value="a_pagar">A Pagar</SelectItem>
                     <SelectItem value="cancelado">Cancelado</SelectItem>
                     <SelectItem value="atrasado">⚠️ Atrasadas</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {filtered.length === 0 ? (
+              {comissoesAReceber.length === 0 ? (
                 <Card className="p-10 text-center border-border/50">
-                  <DollarSign className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-muted-foreground font-medium">Nenhuma comissão encontrada</p>
+                  <Clock className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão pendente</p>
                 </Card>
               ) : (
                 <div className="space-y-3">
-                  {filtered.map(c => (
+                  {comissoesAReceber.map(c => (
+                    <CommissionCard key={c.id} c={c} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="recebidas">
+              {comissoesRecebidas.length === 0 ? (
+                <Card className="p-10 text-center border-border/50">
+                  <CheckCircle2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground font-medium">Nenhuma comissão recebida</p>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {comissoesRecebidas.map(c => (
                     <CommissionCard key={c.id} c={c} />
                   ))}
                 </div>
