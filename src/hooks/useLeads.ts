@@ -52,6 +52,9 @@ export const useLeads = () => {
   const { data: leads = [], isLoading, error } = useQuery({
     queryKey: ['leads', profile?.company_id],
     enabled: !!user && !!profile?.company_id,
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<Lead[]> => {
       const { data, error } = await supabase
         .from('leads')
@@ -59,7 +62,8 @@ export const useLeads = () => {
           *,
           responsible:profiles!leads_user_id_fkey ( id, full_name, email )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(1000);
 
       if (error) throw error;
       return (data as any[]) as Lead[];
