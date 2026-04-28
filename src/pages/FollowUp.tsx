@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,10 +42,9 @@ import {
   Settings,
   Bell,
   BellOff,
-  Download
+  FileDown
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
-import { useCallback } from "react";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -63,6 +62,9 @@ import { ExpandableCell } from "@/components/ExpandableCell";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatusManagerDialog";
 import { cn } from "@/lib/utils";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 const LEAD_ORIGIN_OPTIONS = [
   "Marketplace",
