@@ -42,9 +42,11 @@ import {
   Settings,
   Bell,
   BellOff,
+  Download,
   FileDown
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
+
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
