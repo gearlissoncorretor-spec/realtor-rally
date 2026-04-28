@@ -19,7 +19,7 @@ import {
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTeams } from "@/hooks/useTeams";
-import { formatCurrency, formatCurrencyCompact } from "@/utils/formatting";
+import { formatCurrency, formatCurrencyCompact, parseDateSafe } from "@/utils/formatting";
 import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
