@@ -29,6 +29,7 @@ import {
   Trash2, 
   Search,
   Users,
+  UserPlus,
   DollarSign,
   Calendar,
   Clock,
@@ -43,7 +44,8 @@ import {
   Bell,
   BellOff,
   Download,
-  FileDown
+  FileDown,
+  TrendingUp
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 
@@ -969,7 +971,6 @@ const FollowUpPage = () => {
                                 dateStatus === 'today' && 'bg-yellow-500/5 hover:bg-yellow-500/10'
                               )}
                             >
-
                               <TableCell className="font-medium">{followUp.client_name}</TableCell>
                               <TableCell>
                                 {followUp.client_phone ? (
@@ -1013,8 +1014,8 @@ const FollowUpPage = () => {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
+                                  className="h-8 w-8"
                                   onClick={() => handleToggleReminder(followUp)}
-                                  title={followUp.reminder_enabled ? "Desativar Lembrete" : "Ativar Lembrete"}
                                 >
                                   {followUp.reminder_enabled ? (
                                     <Bell className="w-4 h-4 text-primary" />
@@ -1027,10 +1028,15 @@ const FollowUpPage = () => {
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <button className="focus:outline-none hover:opacity-80 transition-opacity">
-                                      <FollowUpStatusBadge status={followUp.status} label={statusConfig?.label} color={statusConfig?.color} icon={statusConfig?.icon} />
+                                      <FollowUpStatusBadge
+                                        status={followUp.status}
+                                        label={statusConfig?.label}
+                                        color={statusConfig?.color}
+                                        icon={statusConfig?.icon}
+                                      />
                                     </button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="start" className="w-56">
+                                  <DropdownMenuContent align="end" className="w-56">
                                     {statuses.map((s) => (
                                       <DropdownMenuItem 
                                         key={s.value} 
@@ -1047,21 +1053,21 @@ const FollowUpPage = () => {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </TableCell>
-                              <TableCell>
+                              <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-1">
-                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="gap-1" title="Converter em Negociação">
-                                    <Handshake className="w-4 h-4" /><span className="hidden lg:inline">Negociação</span>
+                                  <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="h-8 gap-1">
+                                    <Handshake className="w-3.5 h-3.5" /> Negociação
                                   </Button>
-                                  <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} title="Notas">
+                                  <Button variant="outline" size="icon" onClick={() => handleOpenNotes(followUp)} className="h-8 w-8" title="Notas">
                                     <StickyNote className="w-4 h-4" />
                                   </Button>
-                                  <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} title="Registrar contato">
+                                  <Button variant="outline" size="icon" onClick={() => handleOpenContact(followUp)} className="h-8 w-8">
                                     <Phone className="w-4 h-4" />
                                   </Button>
-                                  <Button variant="ghost" size="sm" onClick={() => handleEdit(followUp)}>
+                                  <Button variant="ghost" size="icon" onClick={() => handleEdit(followUp)} className="h-8 w-8">
                                     <Edit className="w-4 h-4" />
                                   </Button>
-                                  <Button variant="ghost" size="sm" onClick={() => setDeleteId(followUp.id)} className="text-destructive hover:text-destructive">
+                                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(followUp.id)} className="text-destructive h-8 w-8">
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
                                 </div>
@@ -1079,51 +1085,47 @@ const FollowUpPage = () => {
         </div>
       </div>
 
-      {/* Delete confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Follow Up</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Conversion dialog */}
       <ConvertToNegotiationDialog
-        followUp={selectedForConversion}
         open={convertDialogOpen}
         onOpenChange={setConvertDialogOpen}
+        followUp={selectedForConversion}
         onConfirm={handleConfirmConversion}
       />
 
-      {/* Add contact dialog */}
       <AddContactDialog
         open={contactDialogOpen}
         onOpenChange={setContactDialogOpen}
         onConfirm={handleConfirmContact}
       />
 
-      {/* Notes dialog */}
       <FollowUpNotesDialog
-        followUpId={selectedForNotes?.id || null}
-        clientName={selectedForNotes?.client_name || ''}
         open={notesDialogOpen}
         onOpenChange={setNotesDialogOpen}
+        followUpId={selectedForNotes?.id || ''}
+        clientName={selectedForNotes?.client_name || ''}
       />
 
       <FollowUpStatusManagerDialog
         open={statusManagerOpen}
         onOpenChange={setStatusManagerOpen}
       />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Lead?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O lead e todo o seu histórico serão removidos permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Confirmar Exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
