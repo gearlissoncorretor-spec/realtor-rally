@@ -145,7 +145,6 @@ const Navigation = () => {
     { href: "/comissoes", label: "Comissões", icon: Receipt, screen: "comissoes" },
     { href: "/financeiro", label: "Financeiro", icon: Wallet, screen: "financeiro" },
     { href: "/relatorios", label: "Relatórios", icon: FileBarChart, screen: "relatorios" },
-    { href: "/bi-avancado", label: "BI Avançado", icon: TrendingUp, screen: "bi-avancado" },
 
     { href: "/corretores", label: "Corretores", icon: Users, screen: "corretores" },
     { href: "/equipes", label: "Equipes", icon: UsersRound, screen: "equipes" },
@@ -188,7 +187,7 @@ const Navigation = () => {
     },
     {
       label: "Relatórios",
-      items: navItems.filter(i => ['relatorios', 'bi-avancado'].includes(i.screen)),
+      items: navItems.filter(i => ['relatorios'].includes(i.screen)),
     },
     {
       label: "Gestão",
