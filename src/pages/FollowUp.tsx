@@ -41,9 +41,11 @@ import {
   ChevronUp,
   Settings,
   Bell,
-  BellOff
+  BellOff,
+  Download
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
+import { useCallback } from "react";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
