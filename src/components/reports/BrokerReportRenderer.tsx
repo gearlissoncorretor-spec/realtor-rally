@@ -34,7 +34,9 @@ export const BrokerReportRenderer = ({ broker, month, year, onComplete, onError 
     return sales.filter(s => {
       if (s.broker_id !== broker.id) return false;
       const p = parseDateSafe(s.sale_date);
-      return p.month === month && p.year === year;
+      const matchesMonth = month === 0 || p.month === month;
+      const matchesYear = year === 0 || p.year === year;
+      return matchesMonth && matchesYear;
     });
   }, [sales, broker.id, month, year]);
 
