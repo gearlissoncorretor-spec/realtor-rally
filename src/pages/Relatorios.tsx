@@ -28,18 +28,22 @@ const Relatorios = () => {
   const { toast } = useToast();
   const { sales, loading: salesLoading } = useSales();
   const { brokers, loading: brokersLoading } = useBrokers();
+  const { leads, loading: leadsLoading } = useLeads();
   
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
+      if (!sale.sale_date) return false;
       if (sale.tipo === 'captacao') return false;
-      const saleDate = new Date(sale.sale_date);
-      const saleMonth = saleDate.getMonth() + 1;
-      const saleYear = saleDate.getFullYear();
       
-      return saleMonth === selectedMonth && saleYear === selectedYear;
+      const { month: saleMonth, year: saleYear } = parseDateSafe(sale.sale_date);
+      
+      const matchesMonth = selectedMonth === 0 || saleMonth === selectedMonth;
+      const matchesYear = selectedYear === 0 || saleYear === selectedYear;
+      
+      return matchesMonth && matchesYear;
     });
   }, [sales, selectedMonth, selectedYear]);
 
