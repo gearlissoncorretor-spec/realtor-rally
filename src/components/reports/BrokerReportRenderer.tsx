@@ -44,7 +44,9 @@ export const BrokerReportRenderer = ({ broker, month, year, onComplete, onError 
     return negotiations.filter(n => {
       if (n.broker_id !== broker.id) return false;
       const p = parseDateSafe(n.start_date);
-      return p.month === month && p.year === year;
+      const matchesMonth = month === 0 || p.month === month;
+      const matchesYear = year === 0 || p.year === year;
+      return matchesMonth && matchesYear;
     });
   }, [negotiations, broker.id, month, year]);
 
@@ -52,7 +54,9 @@ export const BrokerReportRenderer = ({ broker, month, year, onComplete, onError 
     return activities.filter(a => {
       if (a.broker_id !== broker.id) return false;
       const p = parseDateSafe(a.activity_date);
-      return p.month === month && p.year === year;
+      const matchesMonth = month === 0 || p.month === month;
+      const matchesYear = year === 0 || p.year === year;
+      return matchesMonth && matchesYear;
     });
   }, [activities, broker.id, month, year]);
 
