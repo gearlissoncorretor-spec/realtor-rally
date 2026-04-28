@@ -9,7 +9,7 @@ export const ROLE_SCREENS: Record<string, string[]> = {
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
-    'edital'
+    'edital', 'bi-avancado'
   ],
   diretor: [
     'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
@@ -17,7 +17,7 @@ export const ROLE_SCREENS: Record<string, string[]> = {
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
-    'edital'
+    'edital', 'bi-avancado'
   ],
   admin: ['*'],
   super_admin: ['*'],
@@ -27,7 +27,7 @@ export const ROLE_SCREENS: Record<string, string[]> = {
     'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
     'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
     'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
-    'edital'
+    'edital', 'bi-avancado'
   ],
   corretor: [
     'dashboard', 'vendas', 'negociacoes', 'follow-up', 'leads', 'metas',
