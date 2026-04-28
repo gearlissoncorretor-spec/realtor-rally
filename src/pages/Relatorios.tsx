@@ -13,31 +13,37 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
+import { useLeads } from "@/hooks/useLeads";
+
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import PeriodFilter from "@/components/PeriodFilter";
-import { formatCurrency } from "@/utils/formatting";
+import { formatCurrency, parseDateSafe } from "@/utils/formatting";
 import BrokerReportDialog from "@/components/reports/BrokerReportDialog";
 
 const Relatorios = () => {
   const { toast } = useToast();
   const { sales, loading: salesLoading } = useSales();
   const { brokers, loading: brokersLoading } = useBrokers();
+  const { leads, loading: leadsLoading } = useLeads();
   
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
+      if (!sale.sale_date) return false;
       if (sale.tipo === 'captacao') return false;
-      const saleDate = new Date(sale.sale_date);
-      const saleMonth = saleDate.getMonth() + 1;
-      const saleYear = saleDate.getFullYear();
       
-      return saleMonth === selectedMonth && saleYear === selectedYear;
+      const { month: saleMonth, year: saleYear } = parseDateSafe(sale.sale_date);
+      
+      const matchesMonth = selectedMonth === 0 || saleMonth === selectedMonth;
+      const matchesYear = selectedYear === 0 || saleYear === selectedYear;
+      
+      return matchesMonth && matchesYear;
     });
   }, [sales, selectedMonth, selectedYear]);
 
@@ -290,6 +296,21 @@ const Relatorios = () => {
     // Calculate metrics by origin
     const originsMap = new Map<string, { leads: number, sales: number, vgv: number }>();
     
+    // Process leads in the period
+    leads.forEach(lead => {
+      const { month: leadMonth, year: leadYear } = parseDateSafe(lead.created_at);
+      const matchesMonth = selectedMonth === 0 || leadMonth === selectedMonth;
+      const matchesYear = selectedYear === 0 || leadYear === selectedYear;
+      
+      if (matchesMonth && matchesYear) {
+        const o = lead.source || "Outro";
+        const entry = originsMap.get(o) || { leads: 0, sales: 0, vgv: 0 };
+        entry.leads += 1;
+        originsMap.set(o, entry);
+      }
+    });
+
+    // Process sales in the period
     filteredSales.forEach(sale => {
       const o = sale.origem || "Outro";
       const entry = originsMap.get(o) || { leads: 0, sales: 0, vgv: 0 };
@@ -300,19 +321,20 @@ const Relatorios = () => {
     
     const tableData = Array.from(originsMap.entries()).map(([name, data]) => [
       name,
+      data.leads.toString(),
       data.sales.toString(),
       formatCurrency(data.vgv),
-      data.leads > 0 ? `${((data.sales / data.leads) * 100).toFixed(1)}%` : "100%", // Simplified for sales-only report
+      data.leads > 0 ? `${((data.sales / data.leads) * 100).toFixed(1)}%` : "0%",
     ]);
     
     autoTable(doc, {
       startY: 45,
-      head: [["Origem", "Vendas", "VGV Total", "Conversão (Vendas/Leads)"]],
+      head: [["Origem", "Leads", "Vendas", "VGV Total", "Conversão"]],
       body: tableData,
       theme: "striped",
       headStyles: { fillColor: [59, 130, 246], textColor: 255 },
     });
-    
+
     doc.save(`relatorio-origem-${selectedMonth}-${selectedYear}.pdf`);
     
     toast({
@@ -382,11 +404,12 @@ const Relatorios = () => {
           />
         </div>
 
-        {salesLoading || brokersLoading ? (
+        {salesLoading || brokersLoading || leadsLoading ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">Carregando dados...</p>
           </div>
         ) : (
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reports.map((report, index) => (
               <Card key={report.title} className="p-6 hover:shadow-lg transition-all duration-300 animate-fade-in" style={{ animationDelay: `${(index + 3) * 0.1}s` }}>
@@ -423,7 +446,7 @@ const Relatorios = () => {
           </div>
         )}
 
-        {!salesLoading && !brokersLoading && filteredSales.length === 0 && (
+        {!salesLoading && !brokersLoading && !leadsLoading && filteredSales.length === 0 && (
           <div className="text-center py-12 mt-6">
             <p className="text-muted-foreground">Nenhuma venda encontrada para o período selecionado.</p>
           </div>

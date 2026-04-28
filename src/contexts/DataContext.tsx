@@ -59,9 +59,9 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, teamHierarchy, getUserRole, loading: authLoading } = useAuth();
+  const { user, profile, teamHierarchy, getUserRole, loading: authLoading } = useAuth();
   const userRole = getUserRole();
-  
+
   // Stable query key - use primitive values only
   const teamId = teamHierarchy?.team_id ?? null;
   
@@ -83,10 +83,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         const role = getUserRole();
         
-        // Gerente vê apenas corretores da sua equipe
-        if (role === 'gerente' && teamHierarchy?.team_id) {
-          query = query.eq('team_id', teamHierarchy.team_id);
+        // Gerente vê corretores da sua equipe ou agência
+        if (role === 'gerente') {
+          if (profile?.agency_id) {
+            query = query.eq('agency_id', profile.agency_id);
+          } else if (teamHierarchy?.team_id) {
+            query = query.eq('team_id', teamHierarchy.team_id);
+          }
         }
+
         // Corretor vê apenas seus próprios dados
         else if (role === 'corretor') {
           query = query.eq('user_id', user.id);
@@ -138,17 +143,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             return [];
           }
-        } else if (role === 'gerente' && teamHierarchy?.team_id) {
-          const { data: teamBrokers } = await supabase
-            .from('brokers')
-            .select('id')
-            .eq('team_id', teamHierarchy.team_id);
+        } else if (role === 'gerente') {
+          let teamQuery = supabase.from('brokers').select('id');
+          if (profile?.agency_id) {
+            teamQuery = teamQuery.eq('agency_id', profile.agency_id);
+          } else if (teamHierarchy?.team_id) {
+            teamQuery = teamQuery.eq('team_id', teamHierarchy.team_id);
+          } else {
+            return [];
+          }
+
+          const { data: teamBrokers } = await teamQuery;
           
           if (teamBrokers && teamBrokers.length > 0) {
             brokerFilter = { type: 'in', value: teamBrokers.map(b => b.id) };
           }
         }
-        
+
         // Helper to build a fresh query each time
         const buildQuery = () => {
           let q = supabase
@@ -168,9 +179,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return q;
         };
         
-        // Single query with limit — most users won't have >1000 sales
-        const { data, error } = await buildQuery().limit(1000);
-        
+        // Fetch with a higher limit to ensure reports are complete for most companies
+        const { data, error } = await buildQuery().limit(5000);
+
         if (error) {
           console.error('Error fetching sales:', error);
           throw new Error(`Erro ao carregar vendas: ${error.message}`);

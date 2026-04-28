@@ -34,7 +34,9 @@ export const BrokerReportRenderer = ({ broker, month, year, onComplete, onError 
     return sales.filter(s => {
       if (s.broker_id !== broker.id) return false;
       const p = parseDateSafe(s.sale_date);
-      return p.month === month && p.year === year;
+      const matchesMonth = month === 0 || p.month === month;
+      const matchesYear = year === 0 || p.year === year;
+      return matchesMonth && matchesYear;
     });
   }, [sales, broker.id, month, year]);
 
@@ -42,7 +44,9 @@ export const BrokerReportRenderer = ({ broker, month, year, onComplete, onError 
     return negotiations.filter(n => {
       if (n.broker_id !== broker.id) return false;
       const p = parseDateSafe(n.start_date);
-      return p.month === month && p.year === year;
+      const matchesMonth = month === 0 || p.month === month;
+      const matchesYear = year === 0 || p.year === year;
+      return matchesMonth && matchesYear;
     });
   }, [negotiations, broker.id, month, year]);
 
@@ -50,7 +54,9 @@ export const BrokerReportRenderer = ({ broker, month, year, onComplete, onError 
     return activities.filter(a => {
       if (a.broker_id !== broker.id) return false;
       const p = parseDateSafe(a.activity_date);
-      return p.month === month && p.year === year;
+      const matchesMonth = month === 0 || p.month === month;
+      const matchesYear = year === 0 || p.year === year;
+      return matchesMonth && matchesYear;
     });
   }, [activities, broker.id, month, year]);
 
@@ -75,13 +81,15 @@ export const BrokerReportRenderer = ({ broker, month, year, onComplete, onError 
         const bSales = sales.filter(s => {
           if (s.broker_id !== b.id) return false;
           const p = parseDateSafe(s.sale_date);
-          return p.month === month && p.year === year;
+          const matchesMonth = month === 0 || p.month === month;
+          const matchesYear = year === 0 || p.year === year;
+          return matchesMonth && matchesYear;
         });
         const vgc = bSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
         return { id: b.id, name: b.name, vgc };
       })
       .sort((a, b) => b.vgc - a.vgc);
-    
+
     const position = allBrokerSales.findIndex(b => b.id === broker.id) + 1;
     const total = allBrokerSales.length;
     const avgVGC = allBrokerSales.length > 0 ? allBrokerSales.reduce((s, b) => s + b.vgc, 0) / allBrokerSales.length : 0;
