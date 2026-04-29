@@ -386,7 +386,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
               <p className="text-sm text-muted-foreground">
                 {hasActiveFilters
                   ? 'Nenhuma captação encontrada para os filtros aplicados.'
-                  : 'Nenhuma venda com captador registrada. Cadastre vendas do tipo Revenda para aparecerem aqui.'}
+                  : 'Nenhuma captação registrada. Apenas vendas de Revenda ou parcerias de captação aparecem aqui.'}
               </p>
             </div>
           </div>
