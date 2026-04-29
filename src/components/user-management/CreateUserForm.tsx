@@ -96,7 +96,8 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
       ...prev,
       role,
       allowed_screens: DEFAULT_PERMISSIONS[role],
-      team_id: undefined // Reset team selection when role changes
+      team_id: undefined, // Reset team selection when role changes
+      agency_id: isDiretor() ? prev.agency_id : profile?.agency_id // Auto-set agency for non-directors
     }));
   };
 
