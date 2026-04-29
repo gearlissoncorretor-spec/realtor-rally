@@ -452,11 +452,11 @@ const Vendas = () => {
                                 </div>
                                 <div>
                                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">VGV</p>
-                                  <p className="font-bold text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgv)}</p>
+                                  <p className="font-bold text-primary">{formatCurrency(Number(sale.vgv))}</p>
                                 </div>
                                 <div>
                                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Comissão</p>
-                                  <p className="font-bold text-success">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.vgc)}</p>
+                                  <p className="font-bold text-success">{formatCurrency(Number(sale.vgc))}</p>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2 pt-2 border-t border-border/30">
