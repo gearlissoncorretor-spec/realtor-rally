@@ -86,16 +86,17 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
     return new Date().toISOString().split('T')[0];
   };
 
-  const mapPropertyType = (tipo: string): 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural' => {
-    if (!tipo) return 'apartamento';
-    const tipoLower = tipo.toLowerCase();
-    if (tipoLower.includes('apartamento') || tipoLower.includes('apt')) return 'apartamento';
-    if (tipoLower.includes('casa')) return 'casa';
-    if (tipoLower.includes('terreno')) return 'terreno';
-    if (tipoLower.includes('comercial')) return 'comercial';
-    if (tipoLower.includes('rural')) return 'rural';
-    return 'apartamento';
+  const parseNumericValue = (value: any): number => {
+    if (value === null || value === undefined || value === '') return 0;
+    if (typeof value === 'number') return value;
+    
+    // If it's a string, remove currency symbols and non-numeric characters except for , and .
+    const cleaned = String(value).replace(/[^\d,.-]/g, '').replace(',', '.');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
   };
+
+  const mapPropertyType = (tipo: string): 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural' => {
 
   const mapStatus = (status: string): 'pendente' | 'confirmada' | 'cancelada' => {
     if (!status) return 'pendente';
