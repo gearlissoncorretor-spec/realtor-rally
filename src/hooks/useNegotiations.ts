@@ -20,6 +20,8 @@ export interface Negotiation {
   start_date: string;
   observations: string | null;
   loss_reason: string | null;
+  latitude: string | null;
+  longitude: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
