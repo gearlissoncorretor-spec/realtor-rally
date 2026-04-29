@@ -98,7 +98,9 @@ export const SalesTableRow = ({ sale, broker, onView, onEdit, onDelete }: SalesT
       <td className="p-4">
         <div className="truncate max-w-[180px]">
           <span className="font-medium text-foreground">{sale.property_address}</span>
-          <p className="text-xs text-muted-foreground capitalize">{sale.property_type}</p>
+          <p className="text-xs text-muted-foreground capitalize">
+            {sale.property_type} {sale.latitude && <span className="text-primary font-medium ml-1">• Código: {sale.latitude}</span>}
+          </p>
         </div>
       </td>
       
