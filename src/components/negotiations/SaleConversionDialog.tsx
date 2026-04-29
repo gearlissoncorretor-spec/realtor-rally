@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Loader2, DollarSign } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatting';
 import { Negotiation } from '@/hooks/useNegotiations';
 import { useBrokers } from '@/hooks/useBrokers';
 import { useTeams } from '@/hooks/useTeams';
@@ -66,6 +67,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
     vgv: 0,
     vgc: 0,
     sale_type: 'lancamento',
+    gerente: '',
   });
 
   // Get the broker's manager name automatically
@@ -163,7 +165,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
               <div>
                 <span className="text-muted-foreground">Valor Negociado:</span>{' '}
                 <span className="font-medium text-green-600">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(negotiation.negotiated_value)}
+                  {formatCurrency(Number(negotiation.negotiated_value || 0))}
                 </span>
               </div>
             </div>
@@ -272,7 +274,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
 
             <div className="space-y-2">
               <Label htmlFor="gerente">Gerente</Label>
-              {formData.sale_type === 'lancamento' ? (
+              {formData.sale_type === 'lancamento' && formData.gerente ? (
                 <Input
                   id="gerente"
                   value={formData.gerente || ''}

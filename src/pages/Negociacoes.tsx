@@ -13,6 +13,7 @@ import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/us
 import { useBrokers } from "@/hooks/useBrokers";
 import { useFollowUps } from "@/hooks/useFollowUps";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
 import { SaleConversionDialog, SaleConversionData } from "@/components/negotiations/SaleConversionDialog";
@@ -29,6 +30,7 @@ import { SaleCelebration } from "@/components/SaleCelebration";
 
 const Negociacoes = () => {
   const { user, profile, isCorretor } = useAuth();
+  const { toast } = useToast();
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
   const { createSale, sales, refreshSales } = useData();
@@ -119,24 +121,61 @@ const Negociacoes = () => {
   const handleConfirmSale = async (data: SaleConversionData) => {
     if (!selectedForSale) return;
     try {
-      await createSale({
-        tipo: 'venda', broker_id: selectedForSale.broker_id, client_name: selectedForSale.client_name,
-        client_email: selectedForSale.client_email, client_phone: selectedForSale.client_phone,
+      // First, create the sale record
+      const createdSale = await createSale({
+        tipo: 'venda',
+        broker_id: selectedForSale.broker_id,
+        client_name: selectedForSale.client_name,
+        client_email: selectedForSale.client_email,
+        client_phone: selectedForSale.client_phone,
         property_address: selectedForSale.property_address,
         property_type: (selectedForSale.property_type || 'apartamento') as any,
-        property_value: selectedForSale.negotiated_value, vgv: data.vgv, vgc: data.vgc,
-        sale_date: data.sale_date, contract_date: data.contract_date, status: 'confirmada',
+        property_value: Number(selectedForSale.negotiated_value || 0),
+        vgv: Number(data.vgv || 0),
+        vgc: Number(data.vgc || 0),
+        sale_date: data.sale_date,
+        contract_date: data.contract_date || null,
+        status: 'confirmada',
         notes: `Venda originada da negociação. ${data.notes || ''} ${selectedForSale.observations || ''}`.trim(),
-        vendedor: data.vendedor, captador: data.sale_type === 'revenda' ? data.captador : undefined,
-        gerente: data.gerente, origem: data.origem || selectedForSale.origem, sale_type: data.sale_type,
-        estilo: data.estilo, produto: data.produto, visibilidade: 'venda', company_id: profile?.company_id || undefined,
+        vendedor: data.vendedor,
+        captador: data.sale_type === 'revenda' ? data.captador : undefined,
+        gerente: data.gerente,
+        origem: data.origem || selectedForSale.origem,
+        sale_type: data.sale_type,
+        estilo: data.estilo,
+        produto: data.produto,
+        visibilidade: 'venda',
+        company_id: profile?.company_id || selectedForSale.company_id || undefined,
+        agency_id: profile?.agency_id || selectedForSale.agency_id || undefined,
       });
-      await updateNegotiation({ id: selectedForSale.id, status: 'venda_concluida', process_stage_id: flowStages.find(s => s.title === 'Venda Concluída' || s.title === 'Finalizado')?.id });
+
+      if (!createdSale) {
+        throw new Error("Falha ao criar o registro de venda.");
+      }
+
+      // Then, update the negotiation status
+      await updateNegotiation({ 
+        id: selectedForSale.id, 
+        status: 'venda_concluida', 
+        process_stage_id: flowStages.find(s => s.title === 'Venda Concluída' || s.title === 'Finalizado')?.id 
+      });
+
       refreshSales();
-      setCelebrationData({ brokerName: getBrokerName(selectedForSale.broker_id), clientName: selectedForSale.client_name, saleValue: data.vgv });
+      setCelebrationData({ 
+        brokerName: getBrokerName(selectedForSale.broker_id), 
+        clientName: selectedForSale.client_name, 
+        saleValue: data.vgv 
+      });
       setCelebrationOpen(true);
       setSelectedForSale(null);
-    } catch (error) { console.error('Erro ao converter negociação em venda:', error); }
+    } catch (error: any) {
+      console.error('Erro ao converter negociação em venda:', error);
+      toast({
+        title: "Erro na conversão",
+        description: error.message || "Não foi possível converter a negociação em venda. Verifique os dados e tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleConfirmLoss = async (lossReason: string) => {
