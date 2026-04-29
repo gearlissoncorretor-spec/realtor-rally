@@ -105,7 +105,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
       if (!captador) return;
       const existing = map.get(captador) || { name: captador, count: 0, vgv: 0 };
       existing.count += 1;
-      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+      existing.vgv += Number(sale.property_value || sale.vgv || 0);
       map.set(captador, existing);
     });
     return Array.from(map.values()).sort((a, b) => b.vgv - a.vgv);
