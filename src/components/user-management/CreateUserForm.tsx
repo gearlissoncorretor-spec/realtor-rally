@@ -6,10 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Shield, Eye, TrendingUp, Users, BarChart, Settings, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { UserPlus, Shield, Eye, TrendingUp, Users, BarChart, Settings, AlertCircle, CheckCircle2, XCircle, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTeams } from '@/hooks/useTeams';
+import { useAgencies } from '@/hooks/useAgencies';
+import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -65,7 +67,9 @@ interface CreateUserFormProps {
 
 export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
   const { toast } = useToast();
+  const { isDiretor } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
+  const { agencies, loading: agenciesLoading } = useAgencies();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -76,13 +80,15 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
     role: 'diretor' | 'gerente' | 'corretor' | undefined;
     allowed_screens: string[];
     team_id: string | undefined;
+    agency_id: string | undefined;
   }>({
     full_name: '',
     email: '',
     password: '',
     role: undefined,
     allowed_screens: [],
-    team_id: undefined
+    team_id: undefined,
+    agency_id: undefined
   });
 
   const handleRoleChange = (role: 'diretor' | 'gerente' | 'corretor') => {
@@ -154,6 +160,7 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         // mantém compatibilidade com a função (opcionais)
         allowed_screens: formData.allowed_screens,
         team_id: formData.team_id || null,
+        agency_id: formData.agency_id || null,
       };
 
       const response = await fetch(FUNCTIONS_URL, {
@@ -199,7 +206,8 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
         password: '',
         role: undefined,
         allowed_screens: [],
-        team_id: undefined
+        team_id: undefined,
+        agency_id: undefined
       });
 
       onUserCreated();
