@@ -79,6 +79,7 @@ export const NegotiationFormDialog = ({
         observations: editing.observations || '',
         temperature: editing.temperature || 'morna',
         origem: editing.origem || '',
+        latitude: editing.latitude || '',
       });
     } else {
       setFormData(DEFAULT_FORM);
@@ -164,6 +165,18 @@ export const NegotiationFormDialog = ({
             <div>
               <label className="text-sm font-medium">Valor Negociado *</label>
               <Input type="number" value={formData.negotiated_value || ''} onChange={(e) => setFormData({ ...formData, negotiated_value: Number(e.target.value) })} placeholder="0,00" required />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Código (Opcional)</label>
+              <Input value={formData.latitude || ''} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} placeholder="Código do imóvel" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Código (Opcional)</label>
+              <Input value={formData.latitude || ''} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} placeholder="Código do imóvel" />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

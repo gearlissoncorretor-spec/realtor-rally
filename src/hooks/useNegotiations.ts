@@ -20,6 +20,8 @@ export interface Negotiation {
   start_date: string;
   observations: string | null;
   loss_reason: string | null;
+  latitude: string | null;
+  longitude: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -48,6 +50,8 @@ export interface CreateNegotiationInput {
   observations?: string;
   temperature?: string;
   origem: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 export interface UpdateNegotiationInput {
@@ -66,6 +70,8 @@ export interface UpdateNegotiationInput {
   loss_reason?: string;
   temperature?: string;
   origem?: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 export const useNegotiations = () => {

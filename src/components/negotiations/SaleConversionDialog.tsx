@@ -87,12 +87,16 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
   // Reset form when negotiation changes or dialog opens
   useEffect(() => {
     if (negotiation && open) {
+      const broker = brokers.find(b => b.id === negotiation.broker_id);
       setFormData({
         sale_date: new Date().toISOString().split('T')[0],
         vgv: negotiation.negotiated_value,
         vgc: negotiation.negotiated_value * 0.06,
         sale_type: 'lancamento',
         gerente: brokerManager || '',
+        vendedor: broker?.name || '',
+        origem: negotiation.origem || '',
+        latitude: negotiation.latitude || '',
       });
     }
   }, [negotiation, open, brokerManager]);
@@ -328,7 +332,20 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
             )}
           </div>
 
-          {/* Campos opcionais adicionais */}
+          {/* Código e outros campos */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="latitude">Código (Opcional)</Label>
+              <Input
+                id="latitude"
+                value={formData.latitude || ''}
+                onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                placeholder="Código do imóvel"
+              />
+            </div>
+          </div>
+
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="estilo">Estilo</Label>
