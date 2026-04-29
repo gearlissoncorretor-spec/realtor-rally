@@ -2,6 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from "@/contexts/DataContext";
 import { OriginAnalyticsDashboard } from "@/components/dashboards/OriginAnalyticsDashboard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAgency } from "@/contexts/AgencyContext";
+import { useAgencies } from "@/hooks/useAgencies";
 import { useTeams } from "@/hooks/useTeams";
 import { useFollowUps } from "@/hooks/useFollowUps";
 import { useNegotiations } from "@/hooks/useNegotiations";
@@ -43,6 +45,8 @@ const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"
 
 const UnifiedDirectorDashboard = () => {
   const { brokers, sales, targets, brokersLoading, salesLoading } = useData();
+  const { selectedAgencyId } = useAgency();
+  const { agencies } = useAgencies();
   const { user } = useAuth();
   const { teams } = useTeams();
   const { followUps } = useFollowUps();
@@ -178,6 +182,30 @@ const UnifiedDirectorDashboard = () => {
       };
     }).sort((a, b) => b.vgv - a.vgv);
   }, [teams, brokers, filteredSales]);
+  
+  // Agency performance for comparison (when "all" is selected)
+  const agencyPerformance = useMemo(() => {
+    if (selectedAgencyId !== 'all') return [];
+    
+    return agencies.map(agency => {
+      const agencyBrokers = brokers.filter(b => b.agency_id === agency.id);
+      const aSales = filteredSales.filter(s => s.agency_id === agency.id);
+      const confirmed = aSales.filter(s => s.status === 'confirmada');
+      const vgv = confirmed.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+      const vgc = confirmed.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
+      
+      return {
+        id: agency.id,
+        name: agency.name,
+        salesCount: aSales.length,
+        confirmedCount: confirmed.length,
+        vgv,
+        vgc,
+        conversion: aSales.length > 0 ? (confirmed.length / aSales.length) * 100 : 0,
+        activeBrokers: agencyBrokers.filter(b => b.status === 'ativo').length
+      };
+    }).sort((a, b) => b.vgv - a.vgv);
+  }, [agencies, brokers, filteredSales, selectedAgencyId]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -238,12 +266,17 @@ const UnifiedDirectorDashboard = () => {
 
       {!directorMode ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8 h-12 bg-muted/30 p-1">
+          <TabsList className={cn("grid w-full mb-8 h-12 bg-muted/30 p-1", selectedAgencyId === 'all' ? "grid-cols-5" : "grid-cols-4")}>
             <TabsTrigger value="geral" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
               <LayoutDashboard className="w-4 h-4" /> Visão Geral
             </TabsTrigger>
+            {selectedAgencyId === 'all' && (
+              <TabsTrigger value="agencias" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
+                <Building2 className="w-4 h-4 text-primary" /> Lojas
+              </TabsTrigger>
+            )}
             <TabsTrigger value="equipes" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
-              <Building2 className="w-4 h-4" /> Equipes
+              <Users className="w-4 h-4" /> Equipes
             </TabsTrigger>
             <TabsTrigger value="origem" className="h-10 gap-2 text-xs font-bold uppercase tracking-wider">
               <PieChart className="w-4 h-4" /> Origens
@@ -369,6 +402,53 @@ const UnifiedDirectorDashboard = () => {
           
           <TabsContent value="origem" className="space-y-6">
             <OriginAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="agencias" className="space-y-6">
+            <Card className="border-border/50 overflow-hidden">
+              <CardHeader className="bg-muted/30 border-b border-border/50">
+                <CardTitle className="text-lg font-bold">Ranking de Lojas / Agências</CardTitle>
+                <CardDescription>Performance consolidada por unidade física</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border/50">
+                  {agencyPerformance.map((agency, idx) => (
+                    <div key={agency.id} className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:bg-muted/20 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center font-bold",
+                          idx === 0 ? "bg-warning/20 text-warning" : "bg-primary/10 text-primary"
+                        )}>
+                          {idx + 1}º
+                        </div>
+                        <div>
+                          <p className="font-bold text-base">{agency.name}</p>
+                          <p className="text-xs text-muted-foreground">{agency.activeBrokers} corretores ativos</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full md:w-auto">
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">VGV</p>
+                          <p className="text-sm font-bold text-primary">{formatCurrency(agency.vgv)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Vendas</p>
+                          <p className="text-sm font-bold">{agency.confirmedCount}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Conversão</p>
+                          <p className="text-sm font-bold">{agency.conversion.toFixed(1)}%</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">VGC</p>
+                          <p className="text-sm font-bold text-success">{formatCurrency(agency.vgc)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="ranking" className="space-y-6">
