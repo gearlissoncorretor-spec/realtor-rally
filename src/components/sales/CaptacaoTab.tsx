@@ -9,7 +9,7 @@ import { useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
 import type { Broker } from "@/contexts/DataContext";
-
+import { cn } from "@/lib/utils";
 const currentYear = new Date().getFullYear();
 
 interface CaptacaoTabProps {
@@ -39,14 +39,16 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
   ];
 
   // Filter sales visible in captação tab
-  // Show ALL sales that have a captador (revenda always has one, lançamento may have one)
   const captacaoSales = useMemo(() => {
     return sales.filter(sale => {
       // Must have a captador to appear in captação tab
       const hasCaptador = sale.captador && sale.captador.trim() !== '';
       if (!hasCaptador) return false;
-      // Lançamento never counts as captação
-      if ((sale as any).sale_type === 'lancamento') return false;
+      
+      // Vendas de lançamento NÃO entram como captação
+      const isLancamento = sale.sale_type === 'lancamento' || (sale as any).estilo?.toLowerCase() === 'lancamento';
+      if (isLancamento) return false;
+      
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
@@ -90,8 +92,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
     return result;
   }, [captacaoSales, searchTerm, brokers, parceriaFilter]);
 
-  // Metrics
-  const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
+  // Metrics - Para captação, usamos sempre o valor do imóvel (property_value)
+  const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.property_value || s.vgv || 0), 0);
   
   const totalCaptacoes = filteredSales.length;
 
@@ -103,7 +105,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
       if (!captador) return;
       const existing = map.get(captador) || { name: captador, count: 0, vgv: 0 };
       existing.count += 1;
-      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+      existing.vgv += Number(sale.property_value || sale.vgv || 0);
       map.set(captador, existing);
     });
     return Array.from(map.values()).sort((a, b) => b.vgv - a.vgv);
@@ -134,6 +136,11 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
     const yearFilteredSales = sales.filter(sale => {
       const hasCaptador = sale.captador && sale.captador.trim() !== '';
       if (!hasCaptador) return false;
+
+      // Vendas de lançamento NÃO entram como captação
+      const isLancamento = sale.sale_type === 'lancamento' || (sale as any).estilo?.toLowerCase() === 'lancamento';
+      if (isLancamento) return false;
+
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
       if (!dateStr) return false;
@@ -149,7 +156,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
       const month = parseInt(dateStr.substring(5, 7), 10) - 1;
       const existing = monthMap.get(month)!;
       existing.count += 1;
-      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+      existing.vgv += Number(sale.property_value || sale.vgv || 0);
     });
 
     return monthNames.map((name, i) => ({
@@ -379,7 +386,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
               <p className="text-sm text-muted-foreground">
                 {hasActiveFilters
                   ? 'Nenhuma captação encontrada para os filtros aplicados.'
-                  : 'Nenhuma venda com captador registrada. Cadastre vendas do tipo Revenda para aparecerem aqui.'}
+                  : 'Nenhuma captação registrada. Apenas vendas de Revenda ou parcerias de captação aparecem aqui.'}
               </p>
             </div>
           </div>
@@ -396,8 +403,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                         <p className="text-xs text-muted-foreground truncate">{sale.client_name}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Badge className="text-[10px] bg-primary/10 text-primary border-primary/20">
-                          {sale.sale_type === 'revenda' ? 'Revenda' : 'Lançamento'}
+                        <Badge className={cn("text-[10px]", sale.tipo === 'venda' ? "bg-primary/10 text-primary border-primary/20" : "bg-blue-500/10 text-blue-500 border-blue-500/20")}>
+                          {sale.tipo === 'venda' ? 'Venda c/ Captação' : 'Apenas Captação'}
                         </Badge>
                         {sale.parceria_tipo && (
                           <Badge className="text-[10px] bg-warning/10 text-warning border-warning/20">
@@ -482,8 +489,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                       <td className="p-3 text-sm text-foreground max-w-[200px] truncate">{sale.property_address}</td>
                       <td className="p-3 text-sm text-foreground max-w-[150px] truncate">{sale.client_name}</td>
                       <td className="p-3">
-                        <Badge variant="outline" className="text-[10px]">
-                          {sale.sale_type === 'revenda' ? 'Revenda' : 'Lançamento'}
+                        <Badge variant={sale.tipo === 'venda' ? "default" : "outline"} className="text-[10px]">
+                          {sale.tipo === 'venda' ? 'Venda c/ Captação' : 'Apenas Captação'}
                         </Badge>
                       </td>
                       <td className="p-3">

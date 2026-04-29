@@ -155,6 +155,11 @@ const DiretorDashboard = () => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
     const totalVGVCaptacao = (sales || []).filter(s => {
       if (s.status === 'distrato') return false;
+      
+      // Vendas de lançamento NÃO entram como captação
+      const isLancamento = s.sale_type === 'lancamento' || (s as any).estilo?.toLowerCase() === 'lancamento';
+      if (isLancamento) return false;
+
       const rawDate = s.sale_date || s.created_at;
       if (!rawDate) return false;
       const d = new Date(rawDate);

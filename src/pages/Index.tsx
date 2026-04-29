@@ -72,6 +72,10 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
   }, 0);
   
   const totalVGVCaptacao = filteredSales.reduce((sum, s) => {
+    // Vendas de lançamento NÃO entram como captação
+    const isLancamento = s.sale_type === 'lancamento' || (s as any).estilo?.toLowerCase() === 'lancamento';
+    if (isLancamento) return sum;
+
     // Todas as vendas de revenda têm um captador, e também incluímos vendas apenas de captação
     return sum + Number(s.property_value || 0);
   }, 0);
