@@ -24,15 +24,15 @@ const saleSchema = z.object({
   property_type: z.enum(['apartamento', 'casa', 'comercial', 'terreno', 'rural']),
   property_value: z.number().min(1, 'Valor do imóvel deve ser maior que 0'),
   vgv: z.number().optional(),
-  vgc: z.number().min(1, 'VGC deve ser maior que 0'),
+  vgc: z.number().optional(),
   status: z.enum(['pendente', 'confirmada', 'cancelada', 'distrato']),
   notes: z.string().optional(),
   commission_value: z.number().optional(),
   sale_type: z.enum(['lancamento', 'revenda']),
   sale_date: z.string().min(1, 'Data da venda é obrigatória'),
   origem: z.string().min(1, 'Origem é obrigatória'),
-  estilo: z.string().min(1, 'Estilo é obrigatório'),
-  produto: z.string().min(1, 'Produto é obrigatório'),
+  estilo: z.string().optional(),
+  produto: z.string().optional(),
   captador: z.string().optional().default(''),
   vendedor_nome: z.string().optional().default(''),
   vendedor_telefone: z.string().optional().default(''),
@@ -42,7 +42,8 @@ const saleSchema = z.object({
   pagos: z.number().min(0, 'Pagos deve ser maior ou igual a 0'),
   ano: z.number().min(2020, 'Ano deve ser válido').max(new Date().getFullYear() + 1),
   mes: z.number().min(1, 'Mês deve ser entre 1 e 12').max(12),
-  latitude: z.string().min(1, 'Latitude é obrigatória'),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
   is_partnership: z.boolean().optional().default(false),
 }).superRefine((data, ctx) => {
   if (data.sale_type === 'revenda' && (!data.captador || data.captador.trim() === '')) {
@@ -126,7 +127,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       notes: '',
       sale_type: defaultSaleType || 'lancamento',
       sale_date: new Date().toISOString().split('T')[0],
-      origem: '',
+      origem: 'Outro',
       estilo: '',
       produto: '',
       captador: '',
@@ -139,6 +140,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       ano: new Date().getFullYear(),
       mes: new Date().getMonth() + 1,
       latitude: '',
+      longitude: '',
       is_partnership: false,
     },
   });
@@ -188,7 +190,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           notes: sale.notes || '',
           sale_type: (sale.sale_type as 'lancamento' | 'revenda') || 'lancamento',
           sale_date: sale.sale_date || new Date().toISOString().split('T')[0],
-          origem: sale.origem || '',
+          origem: sale.origem || 'Outro',
           estilo: sale.estilo || '',
           produto: sale.produto || '',
           captador: sale.captador || '',
@@ -201,6 +203,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           ano: sale.ano || new Date().getFullYear(),
           mes: sale.mes || new Date().getMonth() + 1,
           latitude: sale.latitude || '',
+          longitude: sale.longitude || '',
           is_partnership: !!sale.is_partnership,
         });
       } else {
@@ -244,7 +247,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
     try {
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
-      const vgcValue = data.vgc > 0 ? data.vgc : data.property_value;
+      const vgcValue = (data.vgc && data.vgc > 0) ? data.vgc : data.property_value;
       
       // Regra de VGV: Captação não conta no VGV de vendas. 
       // Vendas com parceria de agência (onde somos apenas captadores) também não contam.
@@ -863,9 +866,23 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 name="latitude"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Latitude *</FormLabel>
+                    <FormLabel>Latitude</FormLabel>
                     <FormControl>
                       <Input placeholder="-23.550520" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="longitude"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Longitude</FormLabel>
+                    <FormControl>
+                      <Input placeholder="-46.633308" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

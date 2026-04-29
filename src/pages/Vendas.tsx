@@ -13,6 +13,7 @@ import { SalesInsightsPanel } from "@/components/sales/SalesInsightsPanel";
 import { SalesTableRow } from "@/components/sales/SalesTableRow";
 import { TopBrokersRanking } from "@/components/sales/TopBrokersRanking";
 import { CaptacaoTab } from "@/components/sales/CaptacaoTab";
+import { SaleCelebration } from "@/components/SaleCelebration";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home, Download, DollarSign, TrendingUp, Target } from "lucide-react";
@@ -58,6 +59,12 @@ const Vendas = () => {
     propertyValue: number; vgc: number; commissionRate: number;
   } | null>(null);
   const [defaultSaleType, setDefaultSaleType] = useState<'lancamento' | 'revenda'>('lancamento');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<{
+    brokerName: string;
+    clientName: string;
+    saleValue: number;
+  } | null>(null);
   
   const { sales, loading, createSale, updateSale, deleteSale, refreshSales } = useSales();
   const { brokers } = useBrokers();
@@ -216,34 +223,36 @@ const Vendas = () => {
                     onSubmit={async (data) => {
                       try {
                         const saleData = {
-                          tipo: data.tipo!,
-                          client_name: data.client_name!,
-                          property_address: data.property_address!,
-                          property_type: data.property_type!,
-                          broker_id: data.broker_id!,
-                          status: data.status!,
-                          origem: data.origem!,
-                          estilo: data.estilo!,
-                          produto: data.produto!,
-                          captador: data.captador!,
+                          tipo: data.tipo,
+                          visibilidade: data.visibilidade || 'auto',
+                          client_name: data.client_name,
+                          property_address: data.property_address,
+                          property_type: data.property_type,
+                          broker_id: data.broker_id,
+                          status: data.status,
+                          origem: data.origem,
+                          estilo: data.estilo || null,
+                          produto: data.produto || null,
+                          captador: data.captador || null,
                           vendedor_nome: data.vendedor_nome || null,
                           vendedor_telefone: data.vendedor_telefone || null,
                           vendedor_creci: data.vendedor_creci || null,
                           parceria_tipo: data.parceria_tipo || null,
-                          gerente: data.gerente!,
-                          latitude: data.latitude!,
-                          sale_type: data.sale_type!,
-                          sale_date: data.sale_date!,
+                          gerente: data.gerente || null,
+                          latitude: data.latitude || null,
+                          sale_type: data.sale_type,
+                          sale_date: data.sale_date,
                           client_email: data.client_email || null,
                           client_phone: data.client_phone || null,
                           notes: data.notes || null,
                           property_value: Number(data.property_value),
-                          vgv: Number(data.vgv || data.property_value),
+                          vgv: Number(data.vgv),
                           vgc: Number(data.vgc),
                           commission_value: Number(data.commission_value || 0),
                           pagos: Number(data.pagos || 0),
-                          ano: Number(data.ano),
-                          mes: Number(data.mes),
+                          ano: data.ano ? Number(data.ano) : new Date().getFullYear(),
+                          mes: data.mes ? Number(data.mes) : new Date().getMonth() + 1,
+                          is_partnership: !!data.is_partnership,
                         };
 
                         if (selectedSale) {
@@ -251,16 +260,26 @@ const Vendas = () => {
                           toast({ title: data.tipo === 'captacao' ? "Captação atualizada" : "Venda atualizada", description: "Registro atualizado com sucesso." });
                         } else {
                           const createdSale = await createSale(saleData);
-                          toast({ title: data.tipo === 'captacao' ? "Captação criada" : "Venda criada", description: "Registro criado com sucesso." });
+                          
+                          if (data.tipo === 'venda' && data.status === 'confirmada') {
+                            const broker = brokers.find(b => b.id === data.broker_id);
+                            setCelebrationData({
+                              brokerName: broker?.name || 'Corretor',
+                              clientName: data.client_name,
+                              saleValue: Number(data.property_value),
+                            });
+                            setShowCelebration(true);
+                          }
+
                           if (createdSale && data.tipo === 'venda') {
-                            const broker = brokers.find(b => b.id === saleData.broker_id);
+                            const broker = brokers.find(b => b.id === data.broker_id);
                             setCommissionSaleData({
                               saleId: createdSale.id,
-                              brokerId: saleData.broker_id || '',
+                              brokerId: data.broker_id || '',
                               brokerName: broker?.name || 'Corretor',
-                              clientName: saleData.client_name,
-                              propertyValue: Number(saleData.property_value || 0),
-                              vgc: Number(saleData.vgc || saleData.property_value || 0),
+                              clientName: data.client_name,
+                              propertyValue: Number(data.property_value || 0),
+                              vgc: Number(data.vgc || data.property_value || 0),
                               commissionRate: Number(broker?.commission_rate || 5),
                             });
                             setCommissionDialogOpen(true);
@@ -268,8 +287,13 @@ const Vendas = () => {
                         }
                         setIsFormOpen(false);
                         setSelectedSale(null);
-                      } catch (error) {
-                        toast({ title: "Erro", description: "Não foi possível salvar o registro.", variant: "destructive" });
+                      } catch (error: any) {
+                        console.error('Error submitting sale:', error);
+                        toast({ 
+                          title: "Erro ao salvar", 
+                          description: error.message || "Não foi possível salvar o registro.", 
+                          variant: "destructive" 
+                        });
                       }
                     }}
                     sale={selectedSale}
@@ -559,6 +583,15 @@ const Vendas = () => {
         brokers={brokers}
         activeTab={activeTab}
       />
+      {celebrationData && (
+        <SaleCelebration
+          open={showCelebration}
+          onOpenChange={setShowCelebration}
+          brokerName={celebrationData.brokerName}
+          clientName={celebrationData.clientName}
+          saleValue={celebrationData.saleValue}
+        />
+      )}
     </div>
   );
 };
