@@ -72,8 +72,8 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
   }, 0);
   
   const totalVGVCaptacao = filteredSales.reduce((sum, s) => {
-    const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
-    return isOnlyCaptacao ? sum + Number(s.property_value || 0) : sum;
+    // Todas as vendas de revenda têm um captador, e também incluímos vendas apenas de captação
+    return sum + Number(s.property_value || 0);
   }, 0);
   
   const totalVGC = filteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
