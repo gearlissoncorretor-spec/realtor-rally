@@ -14,15 +14,20 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Wallet, Search, Filter, CheckCircle2, Clock, AlertTriangle,
   CreditCard, Calendar, Plus, Download, ChevronDown, ChevronUp, Trash2,
-  TrendingDown, TrendingUp, DollarSign, PieChart,
+  TrendingDown, TrendingUp, DollarSign, PieChart, BarChart3, LineChart
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useFinancialRecords, FinancialRecord, FinancialRecordInsert } from "@/hooks/useFinancialRecords";
+import { useCashFlow } from "@/hooks/useCashFlow";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid, Legend
+} from "recharts";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   pendente: { label: "Pendente", color: "bg-warning/10 text-warning border-warning/20", icon: Clock },
@@ -75,6 +80,8 @@ const Financeiro = () => {
     });
   }, [records, statusFilter, categoryFilter, searchTerm]);
 
+  const { cashFlow, loading: loadingCashFlow } = useCashFlow();
+
   // Dashboard Metrics
   const metrics = useMemo(() => {
     const now = new Date();
@@ -88,17 +95,51 @@ const Financeiro = () => {
 
     const totalToPay = records.filter(r => r.status !== 'pago').reduce((s, r) => s + Number(r.value), 0);
     const totalPaidMonth = monthlyRecords.filter(r => r.status === 'pago').reduce((s, r) => s + Number(r.value), 0);
-    const commissionsPending = records.filter(r => r.category === 'Comissão' && r.status !== 'pago').reduce((s, r) => s + Number(r.value), 0);
-    const commissionsPaidMonth = monthlyRecords.filter(r => r.category === 'Comissão' && r.status === 'pago').reduce((s, r) => s + Number(r.value), 0);
+    
+    // Improved Receivables from CashFlow
+    const totalReceivable = cashFlow
+      .filter(i => i.type === 'income' && i.status !== 'pago')
+      .reduce((s, i) => s + Number(i.value), 0);
+      
+    const netProfitMonth = cashFlow
+      .filter(i => {
+        const d = new Date(i.due_date);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear && i.status === 'pago';
+      })
+      .reduce((s, i) => s + Number(i.value), 0);
 
     return {
       totalToPay,
       totalPaidMonth,
-      commissionsPending,
-      commissionsPaidMonth,
+      totalReceivable,
+      netProfitMonth,
       overdueCount: records.filter(r => r.status === 'atrasado').length,
     };
-  }, [records]);
+  }, [records, cashFlow]);
+
+  // Chart Data for Cash Flow
+  const chartData = useMemo(() => {
+    const months: Record<string, { month: string, income: number, expense: number, profit: number }> = {};
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = d.toLocaleDateString('pt-BR', { month: 'short' });
+      months[key] = { month: key, income: 0, expense: 0, profit: 0 };
+    }
+
+    cashFlow.forEach(item => {
+      const d = new Date(item.due_date);
+      const key = d.toLocaleDateString('pt-BR', { month: 'short' });
+      if (months[key]) {
+        if (item.type === 'income') months[key].income += Number(item.value);
+        else months[key].expense += Math.abs(Number(item.value));
+        months[key].profit = months[key].income - months[key].expense;
+      }
+    });
+
+    return Object.values(months);
+  }, [cashFlow]);
 
   const handleSave = async () => {
     if (!formData.description || !formData.value || !formData.due_date) {
