@@ -42,7 +42,9 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
-        setPreviewData(jsonData.slice(0, 5)); // Preview first 5 rows
+        if (jsonData.length > 0) {
+          setPreviewData(jsonData.slice(0, 5) as ExcelRow[]);
+        }
       } catch (error) {
         toast({
           title: "Erro ao ler arquivo",
@@ -57,27 +59,25 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
 
   const findBrokerByName = (name: string) => {
     if (!name) return null;
+    const nameLower = name.toLowerCase().trim();
     return brokers.find(broker => 
-      broker.name.toLowerCase().includes(name.toLowerCase()) ||
-      name.toLowerCase().includes(broker.name.toLowerCase())
+      broker.name.toLowerCase().includes(nameLower) ||
+      nameLower.includes(broker.name.toLowerCase())
     );
   };
 
   const formatDateToISO = (dateValue: any): string => {
     if (!dateValue) return new Date().toISOString().split('T')[0];
     
-    // If it's already a string in the format YYYY-MM-DD, return as is
     if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
       return dateValue;
     }
     
-    // If it's an Excel date number
     if (typeof dateValue === 'number') {
       const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
       return excelDate.toISOString().split('T')[0];
     }
     
-    // Try to parse as regular date
     const parsedDate = new Date(dateValue);
     if (!isNaN(parsedDate.getTime())) {
       return parsedDate.toISOString().split('T')[0];
@@ -90,19 +90,28 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
     if (value === null || value === undefined || value === '') return 0;
     if (typeof value === 'number') return value;
     
-    // If it's a string, remove currency symbols and non-numeric characters except for , and .
     const cleaned = String(value).replace(/[^\d,.-]/g, '').replace(',', '.');
     const parsed = parseFloat(cleaned);
     return isNaN(parsed) ? 0 : parsed;
   };
 
-  const mapPropertyType = (tipo: string): 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural' => {
+  const mapPropertyType = (tipo: any): 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural' => {
+    if (!tipo) return 'apartamento';
+    const tipoLower = String(tipo).toLowerCase();
+    if (tipoLower.includes('apartamento') || tipoLower.includes('apt')) return 'apartamento';
+    if (tipoLower.includes('casa')) return 'casa';
+    if (tipoLower.includes('terreno') || tipoLower.includes('lote')) return 'terreno';
+    if (tipoLower.includes('comercial')) return 'comercial';
+    if (tipoLower.includes('rural') || tipoLower.includes('fazenda')) return 'rural';
+    return 'apartamento';
+  };
 
-  const mapStatus = (status: string): 'pendente' | 'confirmada' | 'cancelada' => {
+  const mapStatus = (status: any): 'pendente' | 'confirmada' | 'cancelada' | 'distrato' => {
     if (!status) return 'pendente';
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes('fechado') || statusLower.includes('confirmada')) return 'confirmada';
+    const statusLower = String(status).toLowerCase();
+    if (statusLower.includes('fechado') || statusLower.includes('confirmada') || statusLower.includes('concluída')) return 'confirmada';
     if (statusLower.includes('cancelada') || statusLower.includes('cancelado')) return 'cancelada';
+    if (statusLower.includes('distrato')) return 'distrato';
     return 'pendente';
   };
 
@@ -127,7 +136,6 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
 
         for (const [index, row] of jsonData.entries()) {
           try {
-            // Helper to get value from row with multiple possible keys
             const getVal = (keys: string[]) => {
               for (const key of keys) {
                 if (row[key] !== undefined) return row[key];
@@ -141,25 +149,31 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
             const produto = getVal(['PRODUTO', 'produto', 'Produto', 'IMOVEL', 'Imóvel', 'Imovel', 'DESCRIÇÃO']) || '';
             const produtoStr = String(produto);
             const produtoParts = produtoStr.split(' ');
-            const clientName = produtoParts.length > 3 ? produtoParts.slice(-2).join(' ') : `Cliente ${getVal(['GID', 'gid', 'ID']) || index + 1}`;
             
-            const vgv = Number(getVal(['VGV', 'vgv', 'VALOR', 'Valor', 'PREÇO', 'Preço']) || 0);
-            const vgc = Number(getVal(['VGC', 'vgc', 'COMISSÃO', 'Comissão', 'COMISSAO', 'Comissao']) || 0);
+            // Tenta pegar o nome do cliente de forma mais inteligente
+            let clientName = getVal(['CLIENTE', 'cliente', 'NOME', 'Nome', 'COMPRADOR', 'Comprador']);
+            if (!clientName) {
+               clientName = produtoParts.length > 3 ? produtoParts.slice(-2).join(' ') : `Cliente ${getVal(['GID', 'gid', 'ID']) || index + 1}`;
+            }
+            
+            const vgv = parseNumericValue(getVal(['VGV', 'vgv', 'VALOR', 'Valor', 'PREÇO', 'Preço']));
+            const vgc = parseNumericValue(getVal(['VGC', 'vgc', 'COMISSÃO', 'Comissão', 'COMISSAO', 'Comissao']));
 
             const saleData = {
-              client_name: clientName,
+              tipo: 'venda',
+              client_name: String(clientName),
               client_phone: null,
               client_email: null,
               property_address: produtoStr || `Imóvel ${getVal(['GID', 'gid']) || index + 1}`,
-              property_type: mapPropertyType(String(getVal(['TIPO', 'tipo', 'ESTILO', 'estilo', 'Estilo']) || '')),
+              property_type: mapPropertyType(getVal(['TIPO', 'tipo', 'ESTILO', 'estilo', 'Estilo'])),
               property_value: vgv,
               vgv: vgv,
               vgc: vgc,
-              commission_value: vgc * 0.1, // assuming 10%
+              commission_value: vgc * 0.1,
               broker_id: broker?.id || null,
               sale_date: formatDateToISO(getVal(['DATA COMPETÊNCIA', 'data_competencia', 'DATA COMPETENCIA', 'DATA', 'Data', 'DATA_COMPETENCIA'])),
               contract_date: formatDateToISO(getVal(['DATA VENCIMENTO', 'data_vencimento', 'DATA VENCIMENTO', 'VENCIMENTO', 'Vencimento', 'DATA_VENCIMENTO'])),
-              status: mapStatus(String(getVal(['STATUS', 'status', 'SITUAÇÃO', 'Situacao']) || '')),
+              status: mapStatus(getVal(['STATUS', 'status', 'SITUAÇÃO', 'Situacao'])),
               notes: `GID: ${getVal(['GID', 'gid']) || ''} | Importado automaticamente`,
               origem: String(getVal(['ORIGEM', 'origem', 'Origem', 'FONTE']) || 'Importado'),
               estilo: String(getVal(['ESTILO', 'estilo', 'Estilo']) || ''),
@@ -167,16 +181,16 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               vendedor: String(vendedorName),
               captador: String(getVal(['CAPTADOR', 'captador', 'Captador']) || ''),
               gerente: String(getVal(['GERENTE', 'gerente', 'Gerente']) || ''),
-              pagos: Number(getVal(['PAGOS', 'pagos', 'Pagos']) || 0),
+              pagos: parseNumericValue(getVal(['PAGOS', 'pagos', 'Pagos'])),
               ano: Number(getVal(['ANO', 'ano', 'Ano']) || new Date().getFullYear()),
               mes: Number(getVal(['MÊS', 'MES', 'mes', 'Mês']) || new Date().getMonth() + 1),
               latitude: String(getVal(['LATITUDE', 'latitude', 'Latitude']) || ''),
-              sale_type: 'revenda' as const // Default to revenda for imported data usually
+              sale_type: 'revenda' as const,
+              visibilidade: 'venda'
             };
 
-            // Validation
-            if (!saleData.property_address || saleData.property_value <= 0) {
-              errors.push(`Linha ${index + 2}: Dados insuficientes (endereço ou valor inválido)`);
+            if (!saleData.property_address || (saleData.vgv <= 0 && saleData.vgc <= 0)) {
+              errors.push(`Linha ${index + 2}: Dados insuficientes (endereço ou valores zerados)`);
               errorCount++;
               continue;
             }
@@ -190,7 +204,6 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
           }
         }
 
-        // Show detailed results
         const message = `${successCount} vendas importadas com sucesso.${errorCount > 0 ? ` ${errorCount} erros encontrados.` : ''}`;
         
         toast({
@@ -199,7 +212,6 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
           variant: successCount > 0 ? "default" : "destructive",
         });
 
-        // Log errors to console for debugging
         if (errors.length > 0) {
           console.log('Erros de importação:', errors);
         }
@@ -239,7 +251,6 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* File Upload */}
           <div className="space-y-2">
             <Label htmlFor="excel-file">Selecionar arquivo Excel</Label>
             <Input
@@ -250,11 +261,10 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               ref={fileInputRef}
             />
             <p className="text-sm text-muted-foreground">
-              Aceita arquivos .xlsx e .xls. Formato esperado: GID, DATA COMPETÊNCIA, DATA VENCIMENTO, ORIGEM, ESTILO, PRODUTO, VGV, VGC, TIPO, VENDEDOR, CAPTADOR, GERENTE, STATUS, PAGOS, ANO, MÊS, LATITUDE.
+              Aceita arquivos .xlsx e .xls. Formato flexível: Identifica colunas como VGV, Valor, VGC, Comissão, Corretor, etc.
             </p>
           </div>
 
-          {/* Preview */}
           {previewData.length > 0 && (
             <div className="space-y-2">
               <Label>Prévia dos dados (primeiras 5 linhas)</Label>
@@ -287,45 +297,31 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
             </div>
           )}
 
-          {/* Mapping Info */}
           <div className="bg-muted/50 p-4 rounded-lg">
             <h4 className="font-medium mb-2 flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
-              Mapeamento de colunas da planilha
+              Mapeamento inteligente
             </h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <strong>Colunas principais:</strong>
+                <strong>Reconhecimento:</strong>
                 <ul className="mt-1 space-y-1 text-muted-foreground">
-                  <li>• GID - Identificador único</li>
-                  <li>• DATA COMPETÊNCIA - Data da venda</li>
-                  <li>• DATA VENCIMENTO - Data do contrato</li>
-                  <li>• PRODUTO - Endereço do imóvel</li>
-                  <li>• VGV - Valor do imóvel</li>
-                  <li>• VGC - Valor da comissão</li>
+                  <li>• Valores com prefixos (R$, $) e separadores (virgula/ponto)</li>
+                  <li>• Datas em diversos formatos</li>
+                  <li>• Nomes de colunas alternativos</li>
                 </ul>
               </div>
               <div>
-                <strong>Informações adicionais:</strong>
+                <strong>Associação:</strong>
                 <ul className="mt-1 space-y-1 text-muted-foreground">
-                  <li>• TIPO/ESTILO - Tipo do imóvel</li>
-                  <li>• VENDEDOR - Nome do corretor</li>
-                  <li>• STATUS - Status da venda</li>
-                  <li>• ORIGEM - Origem da venda</li>
-                  <li>• CAPTADOR/GERENTE - Equipe</li>
-                  <li>• ANO/MÊS - Período da venda</li>
+                  <li>• Corretores buscados pelo nome</li>
+                  <li>• Status e Tipos de imóvel aproximados</li>
+                  <li>• Cliente extraído da descrição se faltar coluna</li>
                 </ul>
               </div>
             </div>
-            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                <strong>Importante:</strong> O sistema irá mapear automaticamente os corretores pelo campo VENDEDOR. 
-                Vendas sem corretor correspondente serão importadas sem associação.
-              </p>
-            </div>
           </div>
 
-          {/* Actions */}
           <div className="flex justify-between">
             <Button
               variant="outline"
