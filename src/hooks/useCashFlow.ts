@@ -24,7 +24,7 @@ export const useCashFlow = () => {
         .order('due_date', { ascending: true });
       
       if (error) throw error;
-      return data as CashFlowItem[];
+      return (data as unknown) as CashFlowItem[];
     },
     enabled: !!user && !authLoading,
   });
