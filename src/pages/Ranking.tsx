@@ -227,7 +227,7 @@ const Ranking = () => {
       const captador = sale.captador.trim();
       const existing = captadorMap.get(captador) || { name: captador, count: 0, vgv: 0 };
       existing.count += 1;
-      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+      existing.vgv += Number(sale.property_value || sale.vgv || 0);
       captadorMap.set(captador, existing);
     });
     return Array.from(captadorMap.values()).sort((a, b) => b.vgv - a.vgv || b.count - a.count).map((cap, i) => {
