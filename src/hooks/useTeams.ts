@@ -30,6 +30,7 @@ export interface TeamMember {
 }
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useAgency } from '@/contexts/AgencyContext';
 
 export const useTeams = () => {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -37,13 +38,19 @@ export const useTeams = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { selectedAgencyId } = useAgency();
 
   const fetchTeams = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('teams')
-        .select('*')
-        .order('name');
+        .select('*');
+
+      if (selectedAgencyId !== 'all') {
+        query = query.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data, error } = await query.order('name');
 
       if (error) throw error;
       setTeams(data || []);
