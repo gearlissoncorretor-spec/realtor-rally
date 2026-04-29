@@ -126,41 +126,51 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
 
         for (const [index, row] of jsonData.entries()) {
           try {
-            // Map broker based on VENDEDOR field
-            const vendedorName = row.VENDEDOR || row.vendedor || row.VENDEDOR || '';
-            const broker = findBrokerByName(vendedorName);
+            // Helper to get value from row with multiple possible keys
+            const getVal = (keys: string[]) => {
+              for (const key of keys) {
+                if (row[key] !== undefined) return row[key];
+              }
+              return null;
+            };
+
+            const vendedorName = getVal(['VENDEDOR', 'vendedor', 'Vendedor', 'CORRETOR', 'Corretor']) || '';
+            const broker = findBrokerByName(String(vendedorName));
             
-            // Extract client name from PRODUTO field (everything after the last space)
-            const produto = row.PRODUTO || row.produto || '';
-            const produtoParts = produto.split(' ');
-            const clientName = produtoParts.length > 3 ? produtoParts.slice(-2).join(' ') : `Cliente ${row.GID || index + 1}`;
+            const produto = getVal(['PRODUTO', 'produto', 'Produto', 'IMOVEL', 'Imóvel', 'Imovel', 'DESCRIÇÃO']) || '';
+            const produtoStr = String(produto);
+            const produtoParts = produtoStr.split(' ');
+            const clientName = produtoParts.length > 3 ? produtoParts.slice(-2).join(' ') : `Cliente ${getVal(['GID', 'gid', 'ID']) || index + 1}`;
             
+            const vgv = Number(getVal(['VGV', 'vgv', 'VALOR', 'Valor', 'PREÇO', 'Preço']) || 0);
+            const vgc = Number(getVal(['VGC', 'vgc', 'COMISSÃO', 'Comissão', 'COMISSAO', 'Comissao']) || 0);
+
             const saleData = {
               client_name: clientName,
               client_phone: null,
               client_email: null,
-              property_address: produto || `Imóvel ${row.GID || index + 1}`,
-              property_type: mapPropertyType(row.TIPO || row.ESTILO || row.tipo || row.estilo),
-              property_value: Number(row.VGV || 0),
-              vgv: Number(row.VGV || 0),
-              vgc: Number(row.VGC || 0),
-              commission_value: Number(row.VGC || 0) * 0.1, // Assuming 10% commission
+              property_address: produtoStr || `Imóvel ${getVal(['GID', 'gid']) || index + 1}`,
+              property_type: mapPropertyType(String(getVal(['TIPO', 'tipo', 'ESTILO', 'estilo', 'Estilo']) || '')),
+              property_value: vgv,
+              vgv: vgv,
+              vgc: vgc,
+              commission_value: vgc * 0.1, // assuming 10%
               broker_id: broker?.id || null,
-              sale_date: formatDateToISO(row['DATA COMPETÊNCIA'] || row.data_competencia || row.DATA_COMPETENCIA),
-              contract_date: formatDateToISO(row['DATA VENCIMENTO'] || row.data_vencimento || row.DATA_VENCIMENTO),
-              status: mapStatus(row.STATUS || row.status || ''),
-              notes: `GID: ${row.GID || ''} | Importado automaticamente`,
-              origem: row.ORIGEM || row.origem || '',
-              estilo: row.ESTILO || row.estilo || '',
-              produto: produto,
-              vendedor: row.VENDEDOR || row.vendedor || '',
-              captador: row.CAPTADOR || row.captador || '',
-              gerente: row.GERENTE || row.gerente || '',
-              pagos: Number(row.PAGOS || row.pagos || 0),
-              ano: Number(row.ANO || row.ano || new Date().getFullYear()),
-              mes: Number(row.MÊS || row.MES || row.mes || new Date().getMonth() + 1),
-              latitude: row.LATITUDE || row.latitude || '',
-              sale_type: 'lancamento'
+              sale_date: formatDateToISO(getVal(['DATA COMPETÊNCIA', 'data_competencia', 'DATA COMPETENCIA', 'DATA', 'Data', 'DATA_COMPETENCIA'])),
+              contract_date: formatDateToISO(getVal(['DATA VENCIMENTO', 'data_vencimento', 'DATA VENCIMENTO', 'VENCIMENTO', 'Vencimento', 'DATA_VENCIMENTO'])),
+              status: mapStatus(String(getVal(['STATUS', 'status', 'SITUAÇÃO', 'Situacao']) || '')),
+              notes: `GID: ${getVal(['GID', 'gid']) || ''} | Importado automaticamente`,
+              origem: String(getVal(['ORIGEM', 'origem', 'Origem', 'FONTE']) || 'Importado'),
+              estilo: String(getVal(['ESTILO', 'estilo', 'Estilo']) || ''),
+              produto: produtoStr,
+              vendedor: String(vendedorName),
+              captador: String(getVal(['CAPTADOR', 'captador', 'Captador']) || ''),
+              gerente: String(getVal(['GERENTE', 'gerente', 'Gerente']) || ''),
+              pagos: Number(getVal(['PAGOS', 'pagos', 'Pagos']) || 0),
+              ano: Number(getVal(['ANO', 'ano', 'Ano']) || new Date().getFullYear()),
+              mes: Number(getVal(['MÊS', 'MES', 'mes', 'Mês']) || new Date().getMonth() + 1),
+              latitude: String(getVal(['LATITUDE', 'latitude', 'Latitude']) || ''),
+              sale_type: 'revenda' as const // Default to revenda for imported data usually
             };
 
             // Validation
