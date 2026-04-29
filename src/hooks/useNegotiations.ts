@@ -24,6 +24,8 @@ export interface Negotiation {
   updated_at: string;
   temperature: string;
   origem: string;
+  company_id: string | null;
+  agency_id: string | null;
   stage?: {
     id: string;
     title: string;

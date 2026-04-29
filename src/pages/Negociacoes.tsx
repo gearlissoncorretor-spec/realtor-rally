@@ -13,6 +13,7 @@ import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/us
 import { useBrokers } from "@/hooks/useBrokers";
 import { useFollowUps } from "@/hooks/useFollowUps";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
 import { SaleConversionDialog, SaleConversionData } from "@/components/negotiations/SaleConversionDialog";
@@ -29,6 +30,7 @@ import { SaleCelebration } from "@/components/SaleCelebration";
 
 const Negociacoes = () => {
   const { user, profile, isCorretor } = useAuth();
+  const { toast } = useToast();
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
   const { brokers } = useBrokers();
   const { createSale, sales, refreshSales } = useData();
