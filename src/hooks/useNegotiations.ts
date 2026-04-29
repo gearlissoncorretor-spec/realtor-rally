@@ -92,10 +92,16 @@ export const useNegotiations = () => {
       let hasMore = true;
 
       while (hasMore) {
-        const { data, error } = await supabase
+        let query = supabase
           .from('negotiations')
           .select('*, stage:process_stages(id, title, color)')
-          .not('status', 'in', '("venda_concluida","perdida")')
+          .not('status', 'in', '("venda_concluida","perdida")');
+        
+        if (selectedAgencyId !== 'all') {
+          query = query.eq('agency_id', selectedAgencyId);
+        }
+
+        const { data, error } = await query
           .order('start_date', { ascending: false })
           .range(from, from + PAGE_SIZE - 1);
 
@@ -112,12 +118,18 @@ export const useNegotiations = () => {
 
   // Fetch lost negotiations
   const { data: allLostNegotiations = [], isLoading: loadingLost, error: errorLost, refetch: refetchLost } = useQuery({
-    queryKey: ['negotiations', 'lost', user?.id, userRole],
+    queryKey: ['negotiations', 'lost', user?.id, userRole, selectedAgencyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
           .from('negotiations')
           .select('*, stage:process_stages(id, title, color)')
-          .eq('status', 'perdida')
+          .eq('status', 'perdida');
+      
+      if (selectedAgencyId !== 'all') {
+        query = query.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data, error } = await query
           .order('updated_at', { ascending: false });
 
       if (error) throw error;
