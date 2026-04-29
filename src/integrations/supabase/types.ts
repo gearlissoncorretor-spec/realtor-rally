@@ -955,6 +955,53 @@ export type Database = {
           },
         ]
       }
+      commission_rules: {
+        Row: {
+          agencia_percent: number | null
+          captador_percent: number | null
+          company_id: string | null
+          created_at: string | null
+          gerente_percent: number | null
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string | null
+          vendedor_percent: number | null
+        }
+        Insert: {
+          agencia_percent?: number | null
+          captador_percent?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          gerente_percent?: number | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string | null
+          vendedor_percent?: number | null
+        }
+        Update: {
+          agencia_percent?: number | null
+          captador_percent?: number | null
+          company_id?: string | null
+          created_at?: string | null
+          gerente_percent?: number | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string | null
+          vendedor_percent?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commissions: {
         Row: {
           agency_id: string | null
@@ -3208,7 +3255,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_cash_flow: {
+        Row: {
+          category: string | null
+          company_id: string | null
+          description: string | null
+          due_date: string | null
+          status: string | null
+          type: string | null
+          value: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_view_lead: {
