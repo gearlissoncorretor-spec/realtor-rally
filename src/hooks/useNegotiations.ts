@@ -50,6 +50,8 @@ export interface CreateNegotiationInput {
   observations?: string;
   temperature?: string;
   origem: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 export interface UpdateNegotiationInput {
