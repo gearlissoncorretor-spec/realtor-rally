@@ -30,8 +30,7 @@ export const SalesMetricsCards = ({ sales, previousPeriodSales = [] }: SalesMetr
   
   const totalVGV = activeSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
   const totalVGVCaptacao = activeSales.reduce((sum, s) => {
-    const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
-    return isOnlyCaptacao ? sum + Number(s.property_value || 0) : sum;
+    return sum + Number(s.property_value || 0);
   }, 0);
   const totalVGC = activeSales.reduce((sum, sale) => sum + Number(sale.vgc || 0), 0);
   const vgcPercentage = totalVGV > 0 ? (totalVGC / totalVGV) * 100 : 0;

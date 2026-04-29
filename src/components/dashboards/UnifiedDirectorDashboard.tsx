@@ -101,6 +101,9 @@ const UnifiedDirectorDashboard = () => {
   const totalVGC = filteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
   const totalSales = filteredSales.filter(s => s.tipo === 'venda' && s.parceria_tipo !== 'Agência').length;
   
+  // VGV de Captação (VGV de todas as propriedades negociadas)
+  const totalVGVCaptacao = filteredSales.reduce((sum, s) => sum + Number(s.property_value || 0), 0);
+  
   // Meta calculation
   const monthlyGoal = useMemo(() => {
     if (!targets || targets.length === 0 || filters.month === 0) {
@@ -210,7 +213,7 @@ const UnifiedDirectorDashboard = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Top Fixed Hero Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <KPICard
           title="VGV Total"
           value={formatCurrency(totalVGV)}
@@ -221,6 +224,11 @@ const UnifiedDirectorDashboard = () => {
           title="VGC Total"
           value={formatCurrency(totalVGC)}
           icon={<TrendingUp className="w-6 h-6 text-success" />}
+        />
+        <KPICard
+          title="VGV Captação"
+          value={formatCurrency(totalVGVCaptacao)}
+          icon={<Building2 className="w-6 h-6 text-info" />}
         />
         <KPICard
           title="Total de Vendas"

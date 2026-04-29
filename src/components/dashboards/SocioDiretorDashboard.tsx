@@ -104,8 +104,6 @@ const SocioDiretorDashboard = () => {
     
     // VGV de Captação calculado separadamente
     const totalVGVCaptacao = (sales || []).filter(s => {
-      const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
-      if (!isOnlyCaptacao) return false;
       if (s.status === 'distrato') return false;
       
       const rawDate = s.sale_date || s.created_at;

@@ -154,9 +154,6 @@ const DiretorDashboard = () => {
   const metrics = useMemo(() => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
     const totalVGVCaptacao = (sales || []).filter(s => {
-      // Filtros de período e equipe para captação
-      const isOnlyCaptacao = s.tipo === 'captacao' || (s.tipo === 'venda' && s.parceria_tipo === 'Agência');
-      if (!isOnlyCaptacao) return false;
       if (s.status === 'distrato') return false;
       const rawDate = s.sale_date || s.created_at;
       if (!rawDate) return false;
