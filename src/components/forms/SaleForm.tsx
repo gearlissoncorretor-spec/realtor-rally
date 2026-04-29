@@ -127,7 +127,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       notes: '',
       sale_type: defaultSaleType || 'lancamento',
       sale_date: new Date().toISOString().split('T')[0],
-      origem: '',
+      origem: 'Outro',
       estilo: '',
       produto: '',
       captador: '',
@@ -140,6 +140,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       ano: new Date().getFullYear(),
       mes: new Date().getMonth() + 1,
       latitude: '',
+      longitude: '',
       is_partnership: false,
     },
   });
@@ -189,7 +190,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           notes: sale.notes || '',
           sale_type: (sale.sale_type as 'lancamento' | 'revenda') || 'lancamento',
           sale_date: sale.sale_date || new Date().toISOString().split('T')[0],
-          origem: sale.origem || '',
+          origem: sale.origem || 'Outro',
           estilo: sale.estilo || '',
           produto: sale.produto || '',
           captador: sale.captador || '',
@@ -202,6 +203,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
           ano: sale.ano || new Date().getFullYear(),
           mes: sale.mes || new Date().getMonth() + 1,
           latitude: sale.latitude || '',
+          longitude: sale.longitude || '',
           is_partnership: !!sale.is_partnership,
         });
       } else {
@@ -864,9 +866,23 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 name="latitude"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Latitude *</FormLabel>
+                    <FormLabel>Latitude</FormLabel>
                     <FormControl>
                       <Input placeholder="-23.550520" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="longitude"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Longitude</FormLabel>
+                    <FormControl>
+                      <Input placeholder="-46.633308" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
