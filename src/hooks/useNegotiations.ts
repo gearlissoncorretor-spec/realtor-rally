@@ -70,6 +70,8 @@ export interface UpdateNegotiationInput {
   loss_reason?: string;
   temperature?: string;
   origem?: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 export const useNegotiations = () => {
