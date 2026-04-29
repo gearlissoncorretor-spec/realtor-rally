@@ -30,6 +30,9 @@ export const SalesMetricsCards = ({ sales, previousPeriodSales = [] }: SalesMetr
   
   const totalVGV = activeSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
   const totalVGVCaptacao = activeSales.reduce((sum, s) => {
+    // Vendas de lançamento NÃO entram como captação
+    const isLancamento = s.sale_type === 'lancamento' || (s as any).estilo?.toLowerCase() === 'lancamento';
+    if (isLancamento) return sum;
     return sum + Number(s.property_value || 0);
   }, 0);
   const totalVGC = activeSales.reduce((sum, sale) => sum + Number(sale.vgc || 0), 0);
