@@ -489,8 +489,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
                       <td className="p-3 text-sm text-foreground max-w-[200px] truncate">{sale.property_address}</td>
                       <td className="p-3 text-sm text-foreground max-w-[150px] truncate">{sale.client_name}</td>
                       <td className="p-3">
-                        <Badge variant="outline" className="text-[10px]">
-                          {sale.sale_type === 'revenda' ? 'Revenda' : 'Lançamento'}
+                        <Badge variant={sale.tipo === 'venda' ? "default" : "outline"} className="text-[10px]">
+                          {sale.tipo === 'venda' ? 'Venda c/ Captação' : 'Apenas Captação'}
                         </Badge>
                       </td>
                       <td className="p-3">
