@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAgency } from '@/contexts/AgencyContext';
 import { toast } from 'sonner';
 
 export type LeadStatus = 'novo' | 'atendimento' | 'convertido' | 'perdido';
@@ -47,21 +48,28 @@ export interface CreateLeadInput {
 
 export const useLeads = () => {
   const { user, profile } = useAuth();
+  const { selectedAgencyId } = useAgency();
   const queryClient = useQueryClient();
 
   const { data: leads = [], isLoading, error } = useQuery({
-    queryKey: ['leads', profile?.company_id],
+    queryKey: ['leads', profile?.company_id, selectedAgencyId],
     enabled: !!user && !!profile?.company_id,
     staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<Lead[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('leads')
         .select(`
           *,
           responsible:profiles!leads_user_id_fkey ( id, full_name, email )
-        `)
+        `);
+
+      if (selectedAgencyId !== 'all') {
+        query = query.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .limit(1000);
 

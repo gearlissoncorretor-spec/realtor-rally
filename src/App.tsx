@@ -2,6 +2,7 @@ import { lazy, Suspense, Component, ErrorInfo, ReactNode } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AgencyProvider } from "@/contexts/AgencyContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -201,10 +202,12 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <AuthProvider>
-          <Toaster />
+          <AgencyProvider>
+            <Toaster />
           <AppUpdateManager />
           <InstallPrompt />
           <AppShell />
+          </AgencyProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

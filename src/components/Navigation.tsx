@@ -45,6 +45,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { CommandPalette } from "@/components/CommandPalette";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { AgencySelector } from "@/components/AgencySelector";
 
 interface NavItem {
   href: string;
@@ -337,6 +338,10 @@ const Navigation = () => {
         <div className="relative p-5 flex flex-col h-full min-h-0">
           <div className="mb-5 shrink-0">
             {renderLogo()}
+          </div>
+
+          <div className="mb-4">
+            <AgencySelector />
           </div>
 
           <button

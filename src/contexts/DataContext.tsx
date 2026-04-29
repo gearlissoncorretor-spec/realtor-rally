@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from './AuthContext';
+import { useAgency } from './AgencyContext';
 import type { Database } from '@/integrations/supabase/types';
 
 // Use Supabase types directly
@@ -60,6 +61,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, profile, teamHierarchy, getUserRole, loading: authLoading } = useAuth();
+  const { selectedAgencyId } = useAgency();
   const userRole = getUserRole();
 
   // Stable query key - use primitive values only
@@ -72,7 +74,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: brokersLoading,
     error: brokersError 
   } = useQuery({
-    queryKey: ['brokers', user?.id, teamId, userRole],
+    queryKey: ['brokers', user?.id, teamId, userRole, selectedAgencyId],
     queryFn: async () => {
       if (!user) return [];
       
@@ -81,6 +83,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('brokers')
           .select('*')
           .order('created_at', { ascending: false });
+        
+        if (selectedAgencyId !== 'all') {
+          query = query.eq('agency_id', selectedAgencyId);
+        }
         
         const role = getUserRole();
         
@@ -122,7 +128,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: salesLoading,
     error: salesError 
   } = useQuery({
-    queryKey: ['sales', user?.id, teamId, userRole],
+    queryKey: ['sales', user?.id, teamId, userRole, selectedAgencyId],
     queryFn: async () => {
       if (!user) return [];
       
@@ -171,6 +177,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             `)
             .order('created_at', { ascending: false });
           
+          if (selectedAgencyId !== 'all') {
+            q = q.eq('agency_id', selectedAgencyId);
+          }
+          
           if (brokerFilter.type === 'eq') {
             q = q.eq('broker_id', brokerFilter.value as string);
           } else if (brokerFilter.type === 'in') {
@@ -205,16 +215,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: targetsLoading,
     error: targetsError 
   } = useQuery({
-    queryKey: ['targets', user?.id, teamId, userRole],
+    queryKey: ['targets', user?.id, teamId, userRole, selectedAgencyId],
     queryFn: async () => {
       if (!user) return [];
       
       try {
-        const query = supabase
+        let query = supabase
           .from('targets')
           .select('*')
           .order('year', { ascending: false })
           .order('month', { ascending: false });
+        
+        if (selectedAgencyId !== 'all') {
+          query = query.eq('agency_id', selectedAgencyId);
+        }
         
         const { data, error } = await query;
         

@@ -30,6 +30,7 @@ export interface TeamMember {
 }
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useAgency } from '@/contexts/AgencyContext';
 
 export const useTeams = () => {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -37,13 +38,19 @@ export const useTeams = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { selectedAgencyId } = useAgency();
 
   const fetchTeams = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('teams')
-        .select('*')
-        .order('name');
+        .select('*');
+
+      if (selectedAgencyId !== 'all') {
+        query = query.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data, error } = await query.order('name');
 
       if (error) throw error;
       setTeams(data || []);
@@ -60,9 +67,15 @@ export const useTeams = () => {
   const fetchTeamMembers = async () => {
     try {
       // Fetch brokers from brokers table
-      const { data: brokersData, error: brokersError } = await supabase
+      let brokersQuery = supabase
         .from('brokers')
-        .select('id, name, email, team_id, status, user_id')
+        .select('id, name, email, team_id, status, user_id');
+
+      if (selectedAgencyId !== 'all') {
+        brokersQuery = brokersQuery.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data: brokersData, error: brokersError } = await brokersQuery
         .order('name');
 
       if (brokersError) throw brokersError;
@@ -280,7 +293,7 @@ export const useTeams = () => {
     };
 
     loadData();
-  }, [user, authLoading]);
+  }, [user, authLoading, selectedAgencyId]);
 
   return {
     teams,

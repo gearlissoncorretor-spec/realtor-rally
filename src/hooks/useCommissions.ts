@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAgency } from '@/contexts/AgencyContext';
 import type { Database } from '@/integrations/supabase/types';
 
 export interface Commission {
@@ -50,15 +51,21 @@ export const useCommissions = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user, loading: authLoading, getUserRole } = useAuth();
+  const { selectedAgencyId } = useAgency();
   const userRole = getUserRole();
 
   const { data: commissions = [], isLoading } = useQuery({
-    queryKey: ['commissions', user?.id, userRole],
+    queryKey: ['commissions', user?.id, userRole, selectedAgencyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('commissions')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      if (selectedAgencyId !== 'all') {
+        query = query.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
       return data as Commission[];
     },

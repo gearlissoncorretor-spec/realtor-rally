@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAgency } from '@/contexts/AgencyContext';
 
 export interface FinancialRecord {
   id: string;
@@ -38,15 +39,21 @@ export const useFinancialRecords = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user, loading: authLoading, getUserRole } = useAuth();
+  const { selectedAgencyId } = useAgency();
   const userRole = getUserRole();
 
   const { data: records = [], isLoading } = useQuery({
-    queryKey: ['financial_records', user?.id, userRole],
+    queryKey: ['financial_records', user?.id, userRole, selectedAgencyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('financial_records')
-        .select('*')
-        .order('due_date', { ascending: true });
+        .select('*');
+
+      if (selectedAgencyId !== 'all') {
+        query = query.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data, error } = await query.order('due_date', { ascending: true });
       if (error) throw error;
       
       // Client-side check for "atrasado" status

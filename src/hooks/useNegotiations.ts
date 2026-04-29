@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAgency } from '@/contexts/AgencyContext';
 import { useToast } from '@/hooks/use-toast';
 import { useBrokers } from '@/hooks/useBrokers';
 
@@ -69,6 +70,7 @@ export interface UpdateNegotiationInput {
 
 export const useNegotiations = () => {
   const { user, profile, isCorretor, isGerente, isDiretor, isAdmin, teamHierarchy, loading: authLoading, getUserRole } = useAuth();
+  const { selectedAgencyId } = useAgency();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { brokers, loading: brokersLoading } = useBrokers();
@@ -82,7 +84,7 @@ export const useNegotiations = () => {
 
   // Fetch active negotiations (excludes venda_concluida and perdida)
   const { data: allNegotiations = [], isLoading: loadingActive, error: errorActive, refetch: refetchActive } = useQuery({
-    queryKey: ['negotiations', 'active', user?.id, userRole],
+    queryKey: ['negotiations', 'active', user?.id, userRole, selectedAgencyId],
     queryFn: async () => {
       const allNegotiations: Negotiation[] = [];
       const PAGE_SIZE = 1000;
@@ -90,10 +92,16 @@ export const useNegotiations = () => {
       let hasMore = true;
 
       while (hasMore) {
-        const { data, error } = await supabase
+        let query = supabase
           .from('negotiations')
           .select('*, stage:process_stages(id, title, color)')
-          .not('status', 'in', '("venda_concluida","perdida")')
+          .not('status', 'in', '("venda_concluida","perdida")');
+        
+        if (selectedAgencyId !== 'all') {
+          query = query.eq('agency_id', selectedAgencyId);
+        }
+
+        const { data, error } = await query
           .order('start_date', { ascending: false })
           .range(from, from + PAGE_SIZE - 1);
 
@@ -110,12 +118,18 @@ export const useNegotiations = () => {
 
   // Fetch lost negotiations
   const { data: allLostNegotiations = [], isLoading: loadingLost, error: errorLost, refetch: refetchLost } = useQuery({
-    queryKey: ['negotiations', 'lost', user?.id, userRole],
+    queryKey: ['negotiations', 'lost', user?.id, userRole, selectedAgencyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
           .from('negotiations')
           .select('*, stage:process_stages(id, title, color)')
-          .eq('status', 'perdida')
+          .eq('status', 'perdida');
+      
+      if (selectedAgencyId !== 'all') {
+        query = query.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data, error } = await query
           .order('updated_at', { ascending: false });
 
       if (error) throw error;
