@@ -583,6 +583,15 @@ const Vendas = () => {
         brokers={brokers}
         activeTab={activeTab}
       />
+      {celebrationData && (
+        <SaleCelebration
+          open={showCelebration}
+          onOpenChange={setShowCelebration}
+          brokerName={celebrationData.brokerName}
+          clientName={celebrationData.clientName}
+          saleValue={celebrationData.saleValue}
+        />
+      )}
     </div>
   );
 };
