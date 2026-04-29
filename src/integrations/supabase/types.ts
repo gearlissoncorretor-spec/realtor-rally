@@ -2943,6 +2943,7 @@ export type Database = {
         Row: {
           achieved_sales_count: number | null
           achieved_value: number | null
+          agency_id: string | null
           broker_id: string | null
           company_id: string | null
           created_at: string | null
@@ -2958,6 +2959,7 @@ export type Database = {
         Insert: {
           achieved_sales_count?: number | null
           achieved_value?: number | null
+          agency_id?: string | null
           broker_id?: string | null
           company_id?: string | null
           created_at?: string | null
@@ -2973,6 +2975,7 @@ export type Database = {
         Update: {
           achieved_sales_count?: number | null
           achieved_value?: number | null
+          agency_id?: string | null
           broker_id?: string | null
           company_id?: string | null
           created_at?: string | null
@@ -2986,6 +2989,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "targets_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "targets_broker_id_fkey"
             columns: ["broker_id"]
@@ -3276,6 +3286,10 @@ export type Database = {
           _lead_user_id: string
           _viewer_id: string
         }
+        Returns: boolean
+      }
+      check_agency_access: {
+        Args: { _agency_id: string; _company_id: string }
         Returns: boolean
       }
       check_is_event_owner: {
