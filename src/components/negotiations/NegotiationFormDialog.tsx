@@ -175,6 +175,12 @@ export const NegotiationFormDialog = ({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
+              <label className="text-sm font-medium">Código (Opcional)</label>
+              <Input value={formData.latitude || ''} onChange={(e) => setFormData({ ...formData, latitude: e.target.value })} placeholder="Código do imóvel" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
               <label className="text-sm font-medium">Data de Início</label>
               <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} />
             </div>
