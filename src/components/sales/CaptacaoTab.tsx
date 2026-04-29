@@ -156,7 +156,7 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
       const month = parseInt(dateStr.substring(5, 7), 10) - 1;
       const existing = monthMap.get(month)!;
       existing.count += 1;
-      existing.vgv += Number(sale.vgv || sale.property_value || 0);
+      existing.vgv += Number(sale.property_value || sale.vgv || 0);
     });
 
     return monthNames.map((name, i) => ({
