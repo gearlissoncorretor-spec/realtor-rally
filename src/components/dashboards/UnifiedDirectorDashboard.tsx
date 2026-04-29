@@ -226,6 +226,11 @@ const UnifiedDirectorDashboard = () => {
           icon={<TrendingUp className="w-6 h-6 text-success" />}
         />
         <KPICard
+          title="VGV Captação"
+          value={formatCurrency(totalVGVCaptacao)}
+          icon={<Building2 className="w-6 h-6 text-info" />}
+        />
+        <KPICard
           title="Total de Vendas"
           value={totalSales.toString()}
           icon={<Target className="w-6 h-6 text-warning" />}
