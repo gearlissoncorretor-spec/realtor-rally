@@ -336,43 +336,76 @@ export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
             </div>
           </div>
 
-          {formData.role === 'gerente' && (
-            <div className="space-y-2">
-              <Label htmlFor="team">Equipe *</Label>
-              {teamsLoading ? (
-                <div className="text-sm text-muted-foreground">Carregando equipes...</div>
-              ) : teams.length === 0 ? (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Nenhuma equipe encontrada. Crie uma equipe primeiro na página de Equipes.
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <Select 
-                  value={formData.team_id || ''} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a equipe do gerente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teams.map((team) => (
-                      <SelectItem key={team.id} value={team.id}>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          {team.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <p className="text-xs text-muted-foreground">
-                O gerente terá acesso apenas aos corretores desta equipe
-              </p>
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isDiretor() && (
+              <div className="space-y-2">
+                <Label htmlFor="agency">Agência / Unidade *</Label>
+                {agenciesLoading ? (
+                  <div className="text-sm text-muted-foreground animate-pulse">Carregando agências...</div>
+                ) : (
+                  <Select 
+                    value={formData.agency_id || ''} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, agency_id: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a unidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {agencies.map((agency) => (
+                        <SelectItem key={agency.id} value={agency.id}>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            {agency.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  O usuário será vinculado a esta unidade específica
+                </p>
+              </div>
+            )}
+
+            {formData.role === 'gerente' && (
+              <div className="space-y-2">
+                <Label htmlFor="team">Equipe *</Label>
+                {teamsLoading ? (
+                  <div className="text-sm text-muted-foreground">Carregando equipes...</div>
+                ) : teams.length === 0 ? (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Nenhuma equipe encontrada. Crie uma equipe primeiro na página de Equipes.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Select 
+                    value={formData.team_id || ''} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, team_id: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a equipe do gerente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teams.map((team) => (
+                        <SelectItem key={team.id} value={team.id}>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {team.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  O gerente terá acesso apenas aos corretores desta equipe
+                </p>
+              </div>
+            )}
+          </div>
 
           {formData.role && (
             <div className="space-y-4">
