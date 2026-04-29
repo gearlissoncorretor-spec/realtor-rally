@@ -866,23 +866,9 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 name="latitude"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Latitude</FormLabel>
+                    <FormLabel>Código</FormLabel>
                     <FormControl>
-                      <Input placeholder="-23.550520" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="longitude"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Longitude</FormLabel>
-                    <FormControl>
-                      <Input placeholder="-46.633308" {...field} />
+                      <Input placeholder="Código do imóvel" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
