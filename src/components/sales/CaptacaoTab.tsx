@@ -9,7 +9,7 @@ import { useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
 import type { Broker } from "@/contexts/DataContext";
-
+import { cn } from "@/lib/utils";
 const currentYear = new Date().getFullYear();
 
 interface CaptacaoTabProps {
