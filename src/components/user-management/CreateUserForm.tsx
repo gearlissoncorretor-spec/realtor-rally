@@ -67,7 +67,7 @@ interface CreateUserFormProps {
 
 export const CreateUserForm = ({ onUserCreated }: CreateUserFormProps) => {
   const { toast } = useToast();
-  const { isDiretor } = useAuth();
+  const { isDiretor, profile } = useAuth();
   const { teams, loading: teamsLoading } = useTeams();
   const { agencies, loading: agenciesLoading } = useAgencies();
   const [loading, setLoading] = useState(false);
