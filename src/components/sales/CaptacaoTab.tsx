@@ -92,8 +92,8 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
     return result;
   }, [captacaoSales, searchTerm, brokers, parceriaFilter]);
 
-  // Metrics
-  const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.vgv || s.property_value || 0), 0);
+  // Metrics - Para captação, usamos sempre o valor do imóvel (property_value)
+  const totalVGV = filteredSales.reduce((sum, s) => sum + Number(s.property_value || s.vgv || 0), 0);
   
   const totalCaptacoes = filteredSales.length;
 
