@@ -302,8 +302,10 @@ const Atividades = () => {
   };
 
   const getProgress = (meta: number, realizado: number) => {
-    if (meta === 0) return 0;
-    return Math.min(100, Math.round((realizado / meta) * 100));
+    const safeMeta = Number(meta) || 0;
+    const safeRealizado = Number(realizado) || 0;
+    if (safeMeta === 0) return 0;
+    return Math.min(100, Math.round((safeRealizado / safeMeta) * 100));
   };
 
   const getProgressColor = (progress: number) => {
