@@ -220,7 +220,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user) return [];
       
       try {
-        const query = supabase
+        let query = supabase
           .from('targets')
           .select('*')
           .order('year', { ascending: false })
