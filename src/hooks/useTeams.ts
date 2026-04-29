@@ -60,9 +60,15 @@ export const useTeams = () => {
   const fetchTeamMembers = async () => {
     try {
       // Fetch brokers from brokers table
-      const { data: brokersData, error: brokersError } = await supabase
+      let brokersQuery = supabase
         .from('brokers')
-        .select('id, name, email, team_id, status, user_id')
+        .select('id, name, email, team_id, status, user_id');
+
+      if (selectedAgencyId !== 'all') {
+        brokersQuery = brokersQuery.eq('agency_id', selectedAgencyId);
+      }
+
+      const { data: brokersData, error: brokersError } = await brokersQuery
         .order('name');
 
       if (brokersError) throw brokersError;
@@ -280,7 +286,7 @@ export const useTeams = () => {
     };
 
     loadData();
-  }, [user, authLoading]);
+  }, [user, authLoading, selectedAgencyId]);
 
   return {
     teams,
