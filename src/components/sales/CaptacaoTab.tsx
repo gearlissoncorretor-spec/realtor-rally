@@ -136,6 +136,11 @@ export const CaptacaoTab = ({ sales, brokers, loading, onRegisterSale, onEdit, o
     const yearFilteredSales = sales.filter(sale => {
       const hasCaptador = sale.captador && sale.captador.trim() !== '';
       if (!hasCaptador) return false;
+
+      // Vendas de lançamento NÃO entram como captação
+      const isLancamento = sale.sale_type === 'lancamento' || (sale as any).estilo?.toLowerCase() === 'lancamento';
+      if (isLancamento) return false;
+
       if (sale.status === 'cancelada' || sale.status === 'distrato') return false;
       const dateStr = sale.sale_date || (sale.created_at ? sale.created_at.substring(0, 10) : '');
       if (!dateStr) return false;
