@@ -219,6 +219,10 @@ const Ranking = () => {
     filteredSales.forEach(sale => {
       if (!sale.captador || sale.captador.trim() === '') return;
       if (sale.status === 'cancelada' || sale.status === 'distrato') return;
+      
+      // Vendas de lançamento NÃO entram como captação
+      const isLancamento = sale.sale_type === 'lancamento' || (sale as any).estilo?.toLowerCase() === 'lancamento';
+      if (isLancamento) return;
       if (teamBrokerIds && sale.broker_id && !teamBrokerIds.has(sale.broker_id)) return;
       const captador = sale.captador.trim();
       const existing = captadorMap.get(captador) || { name: captador, count: 0, vgv: 0 };
