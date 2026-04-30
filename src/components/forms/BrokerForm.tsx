@@ -106,13 +106,15 @@ export const BrokerForm: React.FC<BrokerFormProps> = ({
     setSubmitting(true);
     setFormError(null);
     try {
+      const { password, ...otherData } = data;
       const submitData = {
-        ...data,
+        ...otherData,
         cpf: data.cpf?.trim() || null,
         phone: data.phone?.trim() || null,
         creci: data.creci?.trim() || null,
         birthday: data.birthday?.trim() || null,
         avatar_url: avatarUrl || null,
+        ...(broker ? {} : { password }), // Only include password if creating new broker
       };
       await onSubmit(submitData);
       form.reset();
