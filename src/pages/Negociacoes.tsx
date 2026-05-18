@@ -189,20 +189,29 @@ const Negociacoes = () => {
   const handleConfirmReturnToFollowUp = async () => {
     if (!selectedForFollowUp) return;
     try {
+      const allowedOrigens = ["Marketplace","Tráfego Pago (Patrocinado)","Ação de Rua","Lista Imobiliária","Lista Pessoal","Anúncio Geral","Indicação","Outro"];
+      const safeOrigem = allowedOrigens.includes(selectedForFollowUp.origem) ? selectedForFollowUp.origem : 'Outro';
       await createFollowUp({ 
         broker_id: selectedForFollowUp.broker_id, 
         client_name: selectedForFollowUp.client_name, 
         client_phone: selectedForFollowUp.client_phone || undefined, 
         property_interest: selectedForFollowUp.property_address, 
-        estimated_vgv: selectedForFollowUp.negotiated_value, 
+        estimated_vgv: Number(selectedForFollowUp.negotiated_value) || 0, 
         observations: `Retornado da Negociação. ${selectedForFollowUp.observations || ''}`.trim(), 
         status: 'novo_lead',
-        origem: selectedForFollowUp.origem
+        origem: safeOrigem,
       });
       await deleteNegotiation(selectedForFollowUp.id);
       setSelectedForFollowUp(null);
       setReturnToFollowUpOpen(false);
-    } catch {}
+    } catch (error: any) {
+      console.error('Erro ao voltar para Follow Up:', error);
+      toast({
+        title: 'Erro ao voltar para Follow Up',
+        description: error?.message || 'Não foi possível mover a negociação. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDelete = async () => { if (deleteId) { await deleteNegotiation(deleteId); setDeleteId(null); } };
