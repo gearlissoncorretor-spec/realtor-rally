@@ -290,39 +290,22 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
             </div>
           </div>
 
-          {/* Origem da Venda - Combobox com digitação livre */}
-          <div className="space-y-2 relative">
-            <Label htmlFor="origem">Origem da Venda</Label>
-            <Input
-              id="origem"
-              placeholder="Digite ou selecione a origem..."
+          {/* Origem da Venda */}
+          <div className="space-y-2">
+            <Label htmlFor="origem">Origem da Venda *</Label>
+            <Select
               value={formData.origem || ''}
-              onFocus={() => setShowOrigemDropdown(true)}
-              onBlur={() => setTimeout(() => setShowOrigemDropdown(false), 200)}
-              onChange={(e) => {
-                setFormData({ ...formData, origem: e.target.value });
-                setShowOrigemDropdown(true);
-              }}
-              autoComplete="off"
-            />
-            {showOrigemDropdown && filteredOrigens.length > 0 && (
-              <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-lg border border-border bg-popover shadow-lg">
-                {filteredOrigens.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors text-popover-foreground"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setFormData({ ...formData, origem: opt });
-                      setShowOrigemDropdown(false);
-                    }}
-                  >
-                    {opt}
-                  </button>
+              onValueChange={(value) => setFormData({ ...formData, origem: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a origem" />
+              </SelectTrigger>
+              <SelectContent>
+                {ORIGENS_PREDEFINIDAS.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                 ))}
-              </div>
-            )}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Código e outros campos */}
