@@ -39,21 +39,14 @@ export interface SaleConversionData {
 }
 
 const ORIGENS_PREDEFINIDAS = [
+  'Marketplace',
+  'Tráfego Pago (Patrocinado)',
+  'Ação de Rua',
+  'Lista Imobiliária',
+  'Lista Pessoal',
+  'Anúncio Geral',
   'Indicação',
-  'Tráfego Pago',
-  'OLX',
-  'Instagram',
-  'Facebook',
-  'Google Ads',
-  'WhatsApp',
-  'Site',
-  'Plantão',
-  'Stand de Vendas',
-  'Portal Imobiliário',
-  'Placa',
-  'Evento',
-  'Parceiro',
-  'Outro'
+  'Outro',
 ];
 
 export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfirm }: SaleConversionDialogProps) {
