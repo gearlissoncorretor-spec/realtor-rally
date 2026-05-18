@@ -104,10 +104,6 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
     }
   }, [formData.sale_type, brokerManager]);
 
-  const filteredOrigens = ORIGENS_PREDEFINIDAS.filter(opt =>
-    opt.toLowerCase().includes((formData.origem || '').toLowerCase())
-  );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!negotiation) return;
