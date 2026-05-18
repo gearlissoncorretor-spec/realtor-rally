@@ -53,7 +53,6 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
   const { brokers } = useBrokers();
   const { teams } = useTeams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showOrigemDropdown, setShowOrigemDropdown] = useState(false);
 
   const [formData, setFormData] = useState<SaleConversionData>({
     sale_date: new Date().toISOString().split('T')[0],
