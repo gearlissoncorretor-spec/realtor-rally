@@ -263,7 +263,7 @@ export const useNotificationSystem = () => {
   }, [user, profile?.company_id, config.metaAtRisk, sendNotification, isDiretor, isGerente, isAdmin]);
 
   const runAllChecks = useCallback(async () => {
-    if (permission !== 'granted') return;
+    if (!user) return;
     await Promise.all([
       checkStaleNegotiations(),
       checkOverdueFollowUps(),
@@ -272,18 +272,18 @@ export const useNotificationSystem = () => {
       checkBrokerInactivity(),
       checkMetaAtRisk(),
     ]);
-  }, [permission, checkStaleNegotiations, checkOverdueFollowUps, checkGoalDeadlines, checkBrokerBirthdays, checkBrokerInactivity, checkMetaAtRisk]);
+  }, [user, checkStaleNegotiations, checkOverdueFollowUps, checkGoalDeadlines, checkBrokerBirthdays, checkBrokerInactivity, checkMetaAtRisk]);
 
-  // Run checks on mount and every 15 minutes
+  // Run checks on mount and every 15 minutes (persists to DB regardless of browser permission)
   useEffect(() => {
-    if (!user || permission !== 'granted') return;
+    if (!user) return;
     const timer = setTimeout(() => runAllChecks(), 5000);
     intervalRef.current = setInterval(runAllChecks, 15 * 60 * 1000);
     return () => {
       clearTimeout(timer);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [user, permission, runAllChecks]);
+  }, [user, runAllChecks]);
 
   const updateConfig = useCallback((updates: Partial<NotificationConfig>) => {
     setConfig(prev => {
