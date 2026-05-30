@@ -40,6 +40,7 @@ import AuthButton from "@/components/AuthButton";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useContextualIdentity } from "@/hooks/useContextualIdentity";
 import { UserAvatar } from "@/components/UserAvatar";
+import { NotificationBell } from "@/components/NotificationBell";
 import { UserProfileDialog } from "@/components/UserProfileDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -323,6 +324,7 @@ const Navigation = () => {
           <Button variant="ghost" size="sm" className="rounded-lg h-8 w-8 p-0" onClick={() => setCommandOpen(true)}>
             <Search className="w-4 h-4" />
           </Button>
+          <NotificationBell />
           <UserProfileDialog>
             <button className="p-1">
               <UserAvatar name={profile?.full_name} avatarUrl={profile?.avatar_url} size="sm" />
@@ -363,7 +365,10 @@ const Navigation = () => {
             {renderUserProfile()}
             <div className="flex items-center justify-between px-2">
               <AuthButton />
-              <ThemeToggle />
+              <div className="flex items-center gap-1">
+                <NotificationBell />
+                <ThemeToggle />
+              </div>
             </div>
             {user && (
               <div className="flex items-center gap-1">

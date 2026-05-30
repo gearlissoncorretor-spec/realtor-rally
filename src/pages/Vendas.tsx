@@ -5,6 +5,7 @@ import SaleDetailsDialog from "@/components/SaleDetailsDialog";
 import ExcelImport from "@/components/ExcelImport";
 import CommissionDialog from "@/components/commissions/CommissionDialog";
 import SalesExportDialog from "@/components/sales/SalesExportDialog";
+import { BrandedReportDialog } from "@/components/reports/BrandedReportDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -308,7 +309,9 @@ const Vendas = () => {
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">Exportar</span>
               </Button>
-              
+
+              <BrandedReportDialog sales={sales} brokers={brokers} />
+
               <ExcelImport onImportComplete={() => refreshSales()} />
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { persistNotification } from '@/hooks/useNotifications';
 
 interface NotificationConfig {
   staleNegotiations: boolean;
@@ -106,15 +107,14 @@ export const useNotificationSystem = () => {
       .lt('updated_at', twoDaysAgo.toISOString());
     if (!error && data && data.length > 0) {
       const totalValue = data.reduce((s, n) => s + Number(n.negotiated_value || 0), 0);
-      sendNotification(
-        `⚠️ ${data.length} negociação(ões) parada(s)`,
-        `VGV em risco: R$ ${(totalValue / 1000).toFixed(0)}k. Clientes: ${data.slice(0, 2).map(d => d.client_name).join(', ')}`,
-        'stale-negotiations'
-      );
+      const title = `⚠️ ${data.length} negociação(ões) parada(s)`;
+      const body = `VGV em risco: R$ ${(totalValue / 1000).toFixed(0)}k. Clientes: ${data.slice(0, 2).map(d => d.client_name).join(', ')}`;
+      sendNotification(title, body, 'stale-negotiations');
       toast.warning(`${data.length} negociação(ões) sem atualização há mais de 2 dias`);
+      await persistNotification({ userId: user.id, companyId: profile?.company_id, type: 'stale-negotiations', title, body, linkTo: '/negociacoes', severity: 'warning' });
       setCooldown('stale');
     }
-  }, [user, config.staleNegotiations, sendNotification]);
+  }, [user, profile?.company_id, config.staleNegotiations, sendNotification]);
 
   const checkOverdueFollowUps = useCallback(async () => {
     if (!user || !config.overdueFollowUps || isInCooldown('overdue')) return;
@@ -125,15 +125,14 @@ export const useNotificationSystem = () => {
       .lt('next_contact_date', today)
       .not('status', 'eq', 'convertido');
     if (!error && data && data.length > 0) {
-      sendNotification(
-        `📞 ${data.length} follow-up(s) vencido(s)`,
-        `Clientes aguardando: ${data.slice(0, 3).map(d => d.client_name).join(', ')}`,
-        'overdue-followups'
-      );
+      const title = `📞 ${data.length} follow-up(s) vencido(s)`;
+      const body = `Clientes aguardando: ${data.slice(0, 3).map(d => d.client_name).join(', ')}`;
+      sendNotification(title, body, 'overdue-followups');
       toast.warning(`${data.length} follow-up(s) com data de contato vencida`);
+      await persistNotification({ userId: user.id, companyId: profile?.company_id, type: 'overdue-followups', title, body, linkTo: '/follow-up', severity: 'warning' });
       setCooldown('overdue');
     }
-  }, [user, config.overdueFollowUps, sendNotification]);
+  }, [user, profile?.company_id, config.overdueFollowUps, sendNotification]);
 
   const checkGoalDeadlines = useCallback(async () => {
     if (!user || !config.goalDeadlines || isInCooldown('goals')) return;
@@ -149,16 +148,15 @@ export const useNotificationSystem = () => {
     if (!error && data && data.length > 0) {
       const behind = data.filter(g => g.current_value < g.target_value * 0.8);
       if (behind.length > 0) {
-        sendNotification(
-          `🎯 ${behind.length} meta(s) próxima(s) do prazo`,
-          `Metas em risco: ${behind.slice(0, 2).map(g => g.title).join(', ')}`,
-          'goal-deadlines'
-        );
+        const title = `🎯 ${behind.length} meta(s) próxima(s) do prazo`;
+        const body = `Metas em risco: ${behind.slice(0, 2).map(g => g.title).join(', ')}`;
+        sendNotification(title, body, 'goal-deadlines');
         toast.warning(`${behind.length} meta(s) vencem em breve e estão abaixo de 80%`);
+        await persistNotification({ userId: user.id, companyId: profile?.company_id, type: 'goal-deadlines', title, body, linkTo: '/metas', severity: 'warning' });
         setCooldown('goals');
       }
     }
-  }, [user, config.goalDeadlines, sendNotification]);
+  }, [user, profile?.company_id, config.goalDeadlines, sendNotification]);
 
   const checkBrokerBirthdays = useCallback(async () => {
     if (!user || !config.brokerBirthdays || isInCooldown('birthdays')) return;
@@ -181,16 +179,15 @@ export const useNotificationSystem = () => {
 
       if (birthdayBrokers.length > 0) {
         const names = birthdayBrokers.map((b: any) => b.name).join(', ');
-        sendNotification(
-          `🎂 Aniversário hoje!`,
-          `Parabéns para: ${names}`,
-          'broker-birthdays'
-        );
+        const title = `🎂 Aniversário hoje!`;
+        const body = `Parabéns para: ${names}`;
+        sendNotification(title, body, 'broker-birthdays');
         toast.info(`🎂 Aniversariante(s) de hoje: ${names}`);
+        await persistNotification({ userId: user.id, companyId: profile?.company_id, type: 'broker-birthdays', title, body, linkTo: '/corretores', severity: 'success' });
         setCooldown('birthdays');
       }
     }
-  }, [user, config.brokerBirthdays, sendNotification]);
+  }, [user, profile?.company_id, config.brokerBirthdays, sendNotification]);
 
   const checkBrokerInactivity = useCallback(async () => {
     if (!user || !config.brokerInactivity || isInCooldown('inactivity')) return;
@@ -215,15 +212,14 @@ export const useNotificationSystem = () => {
     const inactive = activeBrokers.filter(b => !activeSellers.has(b.id));
 
     if (inactive.length > 0) {
-      sendNotification(
-        `🔕 ${inactive.length} corretor(es) sem atividade`,
-        `Sem vendas há 5+ dias: ${inactive.slice(0, 3).map(b => b.name).join(', ')}`,
-        'broker-inactivity'
-      );
+      const title = `🔕 ${inactive.length} corretor(es) sem atividade`;
+      const body = `Sem vendas há 5+ dias: ${inactive.slice(0, 3).map(b => b.name).join(', ')}`;
+      sendNotification(title, body, 'broker-inactivity');
       toast.warning(`${inactive.length} corretor(es) sem atividade há mais de 5 dias`);
+      await persistNotification({ userId: user.id, companyId: profile?.company_id, type: 'broker-inactivity', title, body, linkTo: '/corretores', severity: 'warning' });
       setCooldown('inactivity');
     }
-  }, [user, config.brokerInactivity, sendNotification, isDiretor, isGerente, isAdmin]);
+  }, [user, profile?.company_id, config.brokerInactivity, sendNotification, isDiretor, isGerente, isAdmin]);
 
   const checkMetaAtRisk = useCallback(async () => {
     if (!user || !config.metaAtRisk || isInCooldown('meta-risk')) return;
@@ -257,18 +253,17 @@ export const useNotificationSystem = () => {
     const expectedPercent = (dayOfMonth / totalDays) * 100;
 
     if (percentAchieved < expectedPercent * 0.7) {
-      sendNotification(
-        `🚨 Meta mensal em risco!`,
-        `Apenas ${percentAchieved.toFixed(0)}% atingido (esperado: ${expectedPercent.toFixed(0)}%). Ação urgente necessária.`,
-        'meta-at-risk'
-      );
+      const title = `🚨 Meta mensal em risco!`;
+      const body = `Apenas ${percentAchieved.toFixed(0)}% atingido (esperado: ${expectedPercent.toFixed(0)}%). Ação urgente necessária.`;
+      sendNotification(title, body, 'meta-at-risk');
       toast.error(`Meta mensal em risco: ${percentAchieved.toFixed(0)}% atingido`);
+      await persistNotification({ userId: user.id, companyId: profile?.company_id, type: 'meta-at-risk', title, body, linkTo: '/metas', severity: 'error' });
       setCooldown('meta-risk');
     }
-  }, [user, config.metaAtRisk, sendNotification, isDiretor, isGerente, isAdmin]);
+  }, [user, profile?.company_id, config.metaAtRisk, sendNotification, isDiretor, isGerente, isAdmin]);
 
   const runAllChecks = useCallback(async () => {
-    if (permission !== 'granted') return;
+    if (!user) return;
     await Promise.all([
       checkStaleNegotiations(),
       checkOverdueFollowUps(),
@@ -277,18 +272,18 @@ export const useNotificationSystem = () => {
       checkBrokerInactivity(),
       checkMetaAtRisk(),
     ]);
-  }, [permission, checkStaleNegotiations, checkOverdueFollowUps, checkGoalDeadlines, checkBrokerBirthdays, checkBrokerInactivity, checkMetaAtRisk]);
+  }, [user, checkStaleNegotiations, checkOverdueFollowUps, checkGoalDeadlines, checkBrokerBirthdays, checkBrokerInactivity, checkMetaAtRisk]);
 
-  // Run checks on mount and every 15 minutes
+  // Run checks on mount and every 15 minutes (persists to DB regardless of browser permission)
   useEffect(() => {
-    if (!user || permission !== 'granted') return;
+    if (!user) return;
     const timer = setTimeout(() => runAllChecks(), 5000);
     intervalRef.current = setInterval(runAllChecks, 15 * 60 * 1000);
     return () => {
       clearTimeout(timer);
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [user, permission, runAllChecks]);
+  }, [user, runAllChecks]);
 
   const updateConfig = useCallback((updates: Partial<NotificationConfig>) => {
     setConfig(prev => {

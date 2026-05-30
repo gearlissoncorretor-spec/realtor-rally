@@ -2388,6 +2388,48 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          company_id: string | null
+          created_at: string
+          id: string
+          link_to: string | null
+          metadata: Json | null
+          read: boolean
+          severity: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          link_to?: string | null
+          metadata?: Json | null
+          read?: boolean
+          severity?: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          link_to?: string | null
+          metadata?: Json | null
+          read?: boolean
+          severity?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       organization_settings: {
         Row: {
           company_id: string | null
