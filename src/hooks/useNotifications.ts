@@ -116,7 +116,7 @@ export async function persistNotification(opts: {
     .limit(1);
   if (existing && existing.length > 0) return;
 
-  await supabase.from('notifications').insert({
+  await supabase.from('notifications').insert([{
     user_id: opts.userId,
     company_id: opts.companyId ?? null,
     type: opts.type,
@@ -124,6 +124,6 @@ export async function persistNotification(opts: {
     body: opts.body ?? null,
     link_to: opts.linkTo ?? null,
     severity: opts.severity ?? 'info',
-    metadata: opts.metadata ?? {},
-  });
+    metadata: (opts.metadata ?? {}) as never,
+  }]);
 }
