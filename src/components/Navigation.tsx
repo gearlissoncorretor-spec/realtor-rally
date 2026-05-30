@@ -365,7 +365,10 @@ const Navigation = () => {
             {renderUserProfile()}
             <div className="flex items-center justify-between px-2">
               <AuthButton />
-              <ThemeToggle />
+              <div className="flex items-center gap-1">
+                <NotificationBell />
+                <ThemeToggle />
+              </div>
             </div>
             {user && (
               <div className="flex items-center gap-1">
