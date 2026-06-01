@@ -3342,6 +3342,62 @@ export type Database = {
         Args: { _event_id: string; _user_id: string }
         Returns: boolean
       }
+      convert_negotiation_to_sale: {
+        Args: {
+          p_completed_stage_id?: string
+          p_negotiation_id: string
+          p_sale_data: Json
+        }
+        Returns: {
+          agency_id: string | null
+          ano: number | null
+          bloco: string | null
+          broker_id: string | null
+          captador: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          commission_value: number | null
+          company_id: string | null
+          contract_date: string | null
+          created_at: string | null
+          estilo: string | null
+          gerente: string | null
+          id: string
+          is_partnership: boolean | null
+          latitude: string | null
+          longitude: string | null
+          mes: number | null
+          notes: string | null
+          origem: string
+          pagos: number | null
+          parceria_tipo: string | null
+          process_stage_id: string | null
+          produto: string | null
+          property_address: string
+          property_type: Database["public"]["Enums"]["property_type"]
+          property_value: number
+          sale_date: string | null
+          sale_type: string | null
+          status: Database["public"]["Enums"]["sale_status"] | null
+          tipo: string
+          unidade: string | null
+          updated_at: string | null
+          vendedor: string | null
+          vendedor_creci: string | null
+          vendedor_nome: string | null
+          vendedor_telefone: string | null
+          vgc: number
+          vgv: number
+          visibilidade: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sales"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_current_user_admin_status: { Args: never; Returns: boolean }
       get_manager_user_ids: { Args: never; Returns: string[] }
       get_my_company_id: { Args: never; Returns: string }
