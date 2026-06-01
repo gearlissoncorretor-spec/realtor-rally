@@ -1,40 +1,44 @@
 /**
  * Centralized role-based screen access configuration.
  * Used by ProtectedRoute and Navigation to avoid duplication.
+ *
+ * Hierarchy: super_admin > admin > sócio > diretor > gerente > corretor
+ * Each higher role inherits everything below + extras.
  */
-export const ROLE_SCREENS: Record<string, string[]> = {
-  socio: [
-    'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
-    'leads',
-    'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
-    'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
-    'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
-    'edital'
-  ],
-  diretor: [
-    'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
-    'leads',
-    'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
-    'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
-    'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
-    'edital'
-  ],
-  admin: ['*'],
-  super_admin: ['*'],
-  gerente: [
-    'dashboard', 'central-gestor', 'dashboard-equipes', 'vendas', 'negociacoes', 'follow-up',
-    'leads',
-    'metas', 'meta-gestao', 'atividades', 'corretores', 'equipes',
-    'ranking', 'acompanhamento', 'comissoes', 'financeiro', 'relatorios',
-    'x1', 'configuracoes', 'agenda', 'instalar', 'gestao-usuarios',
-    'edital'
-  ],
-  corretor: [
-    'dashboard', 'vendas', 'negociacoes', 'follow-up', 'leads', 'metas',
-    'atividades', 'comissoes', 'financeiro', 'configuracoes',
-    'agenda', 'instalar', 'edital'
-  ],
 
+// Corretor: own pipeline + dia-a-dia
+const CORRETOR_SCREENS = [
+  'dashboard', 'vendas', 'negociacoes', 'follow-up', 'leads', 'metas',
+  'atividades', 'comissoes', 'financeiro', 'configuracoes',
+  'agenda', 'instalar', 'edital',
+];
+
+// Gerente: tudo do corretor + visão de equipe (sem gestão de usuários nem relatórios estratégicos)
+const GERENTE_SCREENS = [
+  ...CORRETOR_SCREENS,
+  'dashboard-equipes', 'equipes', 'corretores', 'ranking',
+  'acompanhamento', 'x1', 'meta-gestao',
+];
+
+// Diretor: tudo do gerente + relatórios estratégicos + central gestor
+const DIRETOR_SCREENS = [
+  ...GERENTE_SCREENS,
+  'central-gestor', 'relatorios',
+];
+
+// Sócio: tudo do diretor + gestão de usuários
+const SOCIO_SCREENS = [
+  ...DIRETOR_SCREENS,
+  'gestao-usuarios',
+];
+
+export const ROLE_SCREENS: Record<string, string[]> = {
+  super_admin: ['*'],
+  admin: ['*'],
+  socio: SOCIO_SCREENS,
+  diretor: DIRETOR_SCREENS,
+  gerente: GERENTE_SCREENS,
+  corretor: CORRETOR_SCREENS,
 };
 
 export const PATH_TO_SCREEN: Record<string, string> = {
@@ -49,7 +53,6 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/x1': 'x1',
   '/dashboard-equipes': 'dashboard-equipes',
   '/central-gestor': 'central-gestor',
-  
   '/atividades': 'atividades',
   '/negociacoes': 'negociacoes',
   '/follow-up': 'follow-up',
@@ -62,7 +65,6 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/comissoes': 'comissoes',
   '/financeiro': 'financeiro',
   '/edital': 'edital',
-
 };
 
 /** Check if a role has access to a given screen */
