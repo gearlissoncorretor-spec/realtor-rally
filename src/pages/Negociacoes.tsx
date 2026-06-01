@@ -15,6 +15,7 @@ import { useFollowUps } from "@/hooks/useFollowUps";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useData } from "@/contexts/DataContext";
+import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "@/utils/formatting";
 import { SaleConversionDialog, SaleConversionData } from "@/components/negotiations/SaleConversionDialog";
 import { LossReasonDialog } from "@/components/negotiations/LossReasonDialog";
@@ -29,11 +30,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SaleCelebration } from "@/components/SaleCelebration";
 
 const Negociacoes = () => {
-  const { user, profile, isCorretor } = useAuth();
+  const { user, isCorretor } = useAuth();
   const { toast } = useToast();
-  const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation } = useNegotiations();
+  const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation, refreshNegotiations } = useNegotiations();
   const { brokers } = useBrokers();
-  const { createSale, sales, refreshSales } = useData();
+  const { sales, refreshSales } = useData();
   const { createFollowUp } = useFollowUps();
   const { stages: flowStages } = useProcessStages();
   
@@ -121,48 +122,42 @@ const Negociacoes = () => {
   const handleConfirmSale = async (data: SaleConversionData) => {
     if (!selectedForSale) return;
     try {
-      // First, create the sale record
-      const createdSale = await createSale({
-        tipo: 'venda',
-        broker_id: selectedForSale.broker_id,
-        client_name: selectedForSale.client_name,
-        client_email: selectedForSale.client_email,
-        client_phone: selectedForSale.client_phone,
-        property_address: selectedForSale.property_address,
-        property_type: (selectedForSale.property_type || 'apartamento') as any,
-        property_value: Number(selectedForSale.negotiated_value || 0),
-        vgv: Number(data.vgv || 0),
-        vgc: Number(data.vgc || 0),
-        sale_date: data.sale_date,
-        contract_date: data.contract_date || null,
-        status: 'confirmada',
-        notes: `Venda originada da negociação. ${data.notes || ''} ${selectedForSale.observations || ''}`.trim(),
-        vendedor: data.vendedor,
-        vendedor_nome: data.vendedor,
-        captador: data.sale_type === 'revenda' ? data.captador : undefined,
-        gerente: data.gerente,
-        origem: data.origem || selectedForSale.origem,
-        sale_type: data.sale_type,
-        estilo: data.estilo,
-        produto: data.produto,
-        latitude: data.latitude,
-        visibilidade: 'venda',
-        company_id: profile?.company_id || selectedForSale.company_id || undefined,
-        agency_id: profile?.agency_id || selectedForSale.agency_id || undefined,
+      const completedStageId = flowStages.find(s => s.title === 'Venda Concluída' || s.title === 'Finalizado')?.id ?? null;
+      const { data: createdSale, error } = await (supabase as any).rpc('convert_negotiation_to_sale', {
+        p_negotiation_id: selectedForSale.id,
+        p_completed_stage_id: completedStageId,
+        p_sale_data: {
+          status: 'confirmada',
+          sale_date: data.sale_date,
+          contract_date: data.contract_date || null,
+          property_value: Number(selectedForSale.negotiated_value || 0),
+          vendedor: data.vendedor || null,
+          vendedor_nome: data.vendedor || null,
+          captador: data.sale_type === 'revenda' ? data.captador || null : null,
+          gerente: data.gerente || null,
+          origem: data.origem || selectedForSale.origem || 'Outro',
+          sale_type: data.sale_type,
+          estilo: data.estilo || null,
+          produto: data.produto || null,
+          latitude: data.latitude || null,
+          notes: data.notes || '',
+          pagos: data.pagos ?? 0,
+          ano: data.ano,
+          mes: data.mes,
+          vgv: Number(data.vgv || 0),
+          vgc: Number(data.vgc || 0),
+          visibilidade: 'venda',
+        },
       });
+
+      if (error) throw error;
 
       if (!createdSale) {
         throw new Error("Falha ao criar o registro de venda.");
       }
 
-      // Then, update the negotiation status
-      await updateNegotiation({ 
-        id: selectedForSale.id, 
-        status: 'venda_concluida', 
-        process_stage_id: flowStages.find(s => s.title === 'Venda Concluída' || s.title === 'Finalizado')?.id 
-      });
-
       refreshSales();
+      refreshNegotiations();
       setCelebrationData({ 
         brokerName: getBrokerName(selectedForSale.broker_id), 
         clientName: selectedForSale.client_name, 
