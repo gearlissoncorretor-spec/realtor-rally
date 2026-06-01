@@ -25,7 +25,8 @@ const severityColor: Record<AppNotification['severity'], string> = {
 
 export const NotificationBell = () => {
   const navigate = useNavigate();
-  const { notifications, unreadCount, markRead, markAllRead, remove } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, remove, hasMore, loadMore, isFetching } = useNotifications();
+
 
   const handleClick = (n: AppNotification) => {
     if (!n.read) markRead(n.id);
@@ -114,7 +115,21 @@ export const NotificationBell = () => {
               })}
             </ul>
           )}
+          {hasMore && notifications.length > 0 && (
+            <div className="p-2 border-t">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs h-8"
+                onClick={() => loadMore()}
+                disabled={isFetching}
+              >
+                {isFetching ? 'Carregando…' : 'Carregar mais'}
+              </Button>
+            </div>
+          )}
         </ScrollArea>
+
       </PopoverContent>
     </Popover>
   );

@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import InstallmentTimeline from "@/components/commissions/InstallmentTimeline";
+import { BrandedCommissionsReportDialog } from "@/components/commissions/BrandedCommissionsReportDialog";
 
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
@@ -551,6 +552,7 @@ const Comissoes = () => {
             <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-1.5">
               <Download className="w-4 h-4" /> Exportar
             </Button>
+            <BrandedCommissionsReportDialog commissions={commissions as any} brokers={brokers} />
             <Button onClick={() => setShowCreateDialog(true)} size="sm" className="gap-1.5">
               <Plus className="w-4 h-4" /> Nova Comissão
             </Button>

@@ -68,6 +68,7 @@ import { FollowUpStatusManagerDialog } from "@/components/followup/FollowUpStatu
 import { cn } from "@/lib/utils";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { BrandedFollowUpReportDialog } from '@/components/followup/BrandedFollowUpReportDialog';
 
 
 const LEAD_ORIGIN_OPTIONS = [
@@ -485,6 +486,8 @@ const FollowUpPage = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <BrandedFollowUpReportDialog followUps={filteredFollowUps as any} brokers={brokers} getStatusLabel={(s) => getStatusByValue(s)?.label || s} filteredCount={filteredFollowUps.length} />
+
 
               <Button
                 variant="outline"
