@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import InstallmentTimeline from "@/components/commissions/InstallmentTimeline";
+import { BrandedCommissionsReportDialog } from "@/components/commissions/BrandedCommissionsReportDialog";
 
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {

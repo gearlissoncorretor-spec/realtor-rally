@@ -485,6 +485,8 @@ const FollowUpPage = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <BrandedFollowUpReportDialog followUps={filteredFollowUps as any} brokers={brokers} getStatusLabel={(s) => getStatusByValue(s)?.label || s} filteredCount={filteredFollowUps.length} />
+
 
               <Button
                 variant="outline"
