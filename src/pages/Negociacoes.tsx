@@ -30,7 +30,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SaleCelebration } from "@/components/SaleCelebration";
 
 const Negociacoes = () => {
-  const { user, profile, isCorretor } = useAuth();
+  const { user, isCorretor } = useAuth();
   const { toast } = useToast();
   const { negotiations, lostNegotiations, loading, createNegotiation, updateNegotiation, deleteNegotiation, refreshNegotiations } = useNegotiations();
   const { brokers } = useBrokers();
@@ -144,10 +144,10 @@ const Negociacoes = () => {
           pagos: data.pagos ?? 0,
           ano: data.ano,
           mes: data.mes,
+          vgv: Number(data.vgv || 0),
+          vgc: Number(data.vgc || 0),
           visibilidade: 'venda',
         },
-        vgv: Number(data.vgv || 0),
-        vgc: Number(data.vgc || 0),
       });
 
       if (error) throw error;
