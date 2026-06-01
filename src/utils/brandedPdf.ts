@@ -29,31 +29,42 @@ async function loadImageAsDataUrl(url: string): Promise<string | null> {
   }
 }
 
-export interface BrandedSalesReportOptions {
-  sales: Sale[];
-  brokers: Broker[];
+interface BrandingContext {
+  doc: jsPDF;
+  pageW: number;
+  pageH: number;
+  primary: [number, number, number];
+  secondary: [number, number, number];
   branding: OrganizationSettings | null;
+  logoData: string | null;
   periodLabel: string;
-  authorName?: string;
 }
 
-export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions): Promise<jsPDF> {
-  const { sales, brokers, branding, periodLabel, authorName } = opts;
-
+async function initBrandingContext(
+  branding: OrganizationSettings | null,
+  periodLabel: string,
+): Promise<BrandingContext> {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const primary = hexToRgb(branding?.primary_color || '#3b82f6');
   const secondary = hexToRgb(branding?.secondary_color || '#1e293b');
-
   const logoUrl = branding?.logo_icon_url || branding?.logo_url || null;
   const logoData = logoUrl ? await loadImageAsDataUrl(logoUrl) : null;
+  return { doc, pageW, pageH, primary, secondary, branding, logoData, periodLabel };
+}
 
-  // ===== COVER PAGE =====
+function drawCover(
+  ctx: BrandingContext,
+  reportTitle: string,
+  kpis: { label: string; value: string }[],
+  authorName?: string,
+) {
+  const { doc, pageW, pageH, primary, secondary, branding, logoData, periodLabel } = ctx;
+
   doc.setFillColor(primary[0], primary[1], primary[2]);
   doc.rect(0, 0, pageW, pageH, 'F');
 
-  // Subtle overlay
   doc.setFillColor(secondary[0], secondary[1], secondary[2]);
   doc.setGState(new (doc as any).GState({ opacity: 0.25 }));
   doc.rect(0, pageH * 0.55, pageW, pageH * 0.45, 'F');
@@ -63,47 +74,41 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
     try {
       doc.addImage(logoData, 'PNG', pageW / 2 - 40, 140, 80, 80, undefined, 'FAST');
     } catch {
-      // ignore image errors
+      /* ignore */
     }
   }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(32);
-  doc.text('Relatório de Vendas', pageW / 2, 280, { align: 'center' });
+  doc.text(reportTitle, pageW / 2, 280, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(14);
   doc.text(branding?.organization_name || 'Imobiliária', pageW / 2, 310, { align: 'center' });
 
   doc.setFontSize(11);
-  doc.setTextColor(255, 255, 255);
   doc.text(periodLabel, pageW / 2, 340, { align: 'center' });
 
-  // Bottom info card
+  // Bottom KPI card
   doc.setFillColor(255, 255, 255);
   doc.setGState(new (doc as any).GState({ opacity: 0.95 }));
   doc.roundedRect(60, pageH - 200, pageW - 120, 130, 12, 12, 'F');
   doc.setGState(new (doc as any).GState({ opacity: 1 }));
 
-  const validSales = sales.filter((s) => s.status !== 'distrato' && s.status !== 'cancelada');
-  const totalVGV = validSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
-  const totalVGC = validSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
-  const ticketMedio = validSales.length > 0 ? totalVGV / validSales.length : 0;
-
-  doc.setTextColor(40, 40, 40);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text('VGV TOTAL', 90, pageH - 160);
-  doc.text('VGC TOTAL', pageW / 2 - 40, pageH - 160);
-  doc.text('VENDAS', pageW - 160, pageH - 160);
-
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(primary[0], primary[1], primary[2]);
-  doc.text(formatCurrency(totalVGV), 90, pageH - 138);
-  doc.text(formatCurrency(totalVGC), pageW / 2 - 40, pageH - 138);
-  doc.text(String(validSales.length), pageW - 160, pageH - 138);
+  const cols = Math.min(kpis.length, 3);
+  const colW = (pageW - 120) / cols;
+  kpis.slice(0, 3).forEach((kpi, i) => {
+    const x = 60 + i * colW;
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(kpi.label.toUpperCase(), x + 30, pageH - 160);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(primary[0], primary[1], primary[2]);
+    doc.text(kpi.value, x + 30, pageH - 138);
+  });
 
   doc.setTextColor(120, 120, 120);
   doc.setFont('helvetica', 'normal');
@@ -112,10 +117,13 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
     `Gerado em ${format(new Date(), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}${authorName ? ` por ${authorName}` : ''}`,
     pageW / 2,
     pageH - 90,
-    { align: 'center' }
+    { align: 'center' },
   );
+}
 
-  // ===== HEADER/FOOTER for content pages =====
+function makeHeaderFooter(ctx: BrandingContext) {
+  const { doc, pageW, pageH, primary, branding, logoData, periodLabel } = ctx;
+
   const drawHeader = (title: string) => {
     doc.setFillColor(primary[0], primary[1], primary[2]);
     doc.rect(0, 0, pageW, 60, 'F');
@@ -123,7 +131,7 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
       try {
         doc.addImage(logoData, 'PNG', 30, 14, 32, 32, undefined, 'FAST');
       } catch {
-        // ignore
+        /* ignore */
       }
     }
     doc.setTextColor(255, 255, 255);
@@ -148,7 +156,38 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
     doc.text(`Página ${pageNum}`, pageW - 30, pageH - 16, { align: 'right' });
   };
 
-  // ===== PAGE 2: METRICS SUMMARY =====
+  return { drawHeader, drawFooter };
+}
+
+// =====================================================================
+// 1. SALES report (existing)
+// =====================================================================
+export interface BrandedSalesReportOptions {
+  sales: Sale[];
+  brokers: Broker[];
+  branding: OrganizationSettings | null;
+  periodLabel: string;
+  authorName?: string;
+}
+
+export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions): Promise<jsPDF> {
+  const { sales, brokers, branding, periodLabel, authorName } = opts;
+  const ctx = await initBrandingContext(branding, periodLabel);
+  const { doc, pageW, primary, secondary } = ctx;
+
+  const validSales = sales.filter((s) => s.status !== 'distrato' && s.status !== 'cancelada');
+  const totalVGV = validSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
+  const totalVGC = validSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
+  const ticketMedio = validSales.length > 0 ? totalVGV / validSales.length : 0;
+
+  drawCover(ctx, 'Relatório de Vendas', [
+    { label: 'VGV Total', value: formatCurrency(totalVGV) },
+    { label: 'VGC Total', value: formatCurrency(totalVGC) },
+    { label: 'Vendas', value: String(validSales.length) },
+  ], authorName);
+
+  const { drawHeader, drawFooter } = makeHeaderFooter(ctx);
+
   doc.addPage();
   drawHeader('Resumo Executivo');
 
@@ -188,7 +227,6 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
   });
   y += 175;
 
-  // Top brokers ranking
   doc.setTextColor(secondary[0], secondary[1], secondary[2]);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
@@ -205,23 +243,14 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
     byBroker.set(s.broker_id, cur);
   });
   const ranking = Array.from(byBroker.entries())
-    .map(([id, v]) => ({
-      name: brokers.find((b) => b.id === id)?.name || 'Sem corretor',
-      ...v,
-    }))
+    .map(([id, v]) => ({ name: brokers.find((b) => b.id === id)?.name || 'Sem corretor', ...v }))
     .sort((a, b) => b.vgv - a.vgv)
     .slice(0, 10);
 
   autoTable(doc, {
     startY: y + 5,
     head: [['#', 'Corretor', 'Vendas', 'VGV', 'VGC']],
-    body: ranking.map((r, i) => [
-      `${i + 1}º`,
-      r.name,
-      String(r.count),
-      formatCurrency(r.vgv),
-      formatCurrency(r.vgc),
-    ]),
+    body: ranking.map((r, i) => [`${i + 1}º`, r.name, String(r.count), formatCurrency(r.vgv), formatCurrency(r.vgc)]),
     theme: 'striped',
     headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
     styles: { font: 'helvetica', fontSize: 9, cellPadding: 6 },
@@ -230,7 +259,6 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
   });
   drawFooter();
 
-  // ===== PAGE 3+: DETAILED SALES LIST =====
   doc.addPage();
   drawHeader('Vendas detalhadas');
 
@@ -254,9 +282,368 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
     alternateRowStyles: { fillColor: [248, 250, 252] },
     margin: { top: 80, bottom: 50, left: 30, right: 30 },
     didDrawPage: () => {
-      if (doc.getCurrentPageInfo().pageNumber > 2) {
-        drawHeader('Vendas detalhadas');
-      }
+      if (doc.getCurrentPageInfo().pageNumber > 2) drawHeader('Vendas detalhadas');
+      drawFooter();
+    },
+  });
+
+  return doc;
+}
+
+// =====================================================================
+// 2. NEGOTIATIONS report
+// =====================================================================
+export interface NegotiationLike {
+  client_name: string;
+  client_phone?: string | null;
+  property_address: string;
+  property_type?: string;
+  negotiated_value: number;
+  temperature?: string;
+  origem?: string;
+  status?: string;
+  start_date?: string;
+  broker_id: string;
+  stage?: { title?: string; color?: string } | null;
+}
+
+export interface BrandedNegotiationsReportOptions {
+  negotiations: NegotiationLike[];
+  lostNegotiations?: NegotiationLike[];
+  brokers: Broker[];
+  branding: OrganizationSettings | null;
+  periodLabel: string;
+  authorName?: string;
+}
+
+export async function generateBrandedNegotiationsReport(
+  opts: BrandedNegotiationsReportOptions,
+): Promise<jsPDF> {
+  const { negotiations, lostNegotiations = [], brokers, branding, periodLabel, authorName } = opts;
+  const ctx = await initBrandingContext(branding, periodLabel);
+  const { doc, pageW, primary, secondary } = ctx;
+
+  const totalValor = negotiations.reduce((s, n) => s + Number(n.negotiated_value || 0), 0);
+  const valorPerdido = lostNegotiations.reduce((s, n) => s + Number(n.negotiated_value || 0), 0);
+
+  drawCover(ctx, 'Relatório de Negociações', [
+    { label: 'Em Andamento', value: String(negotiations.length) },
+    { label: 'Valor em Pipeline', value: formatCurrency(totalValor) },
+    { label: 'Perdidas', value: String(lostNegotiations.length) },
+  ], authorName);
+
+  const { drawHeader, drawFooter } = makeHeaderFooter(ctx);
+
+  // Stage breakdown
+  doc.addPage();
+  drawHeader('Pipeline por etapa');
+
+  const byStage = new Map<string, { count: number; valor: number }>();
+  negotiations.forEach((n) => {
+    const key = n.stage?.title || n.status || 'Sem etapa';
+    const cur = byStage.get(key) || { count: 0, valor: 0 };
+    cur.count += 1;
+    cur.valor += Number(n.negotiated_value || 0);
+    byStage.set(key, cur);
+  });
+
+  autoTable(doc, {
+    startY: 100,
+    head: [['Etapa', 'Negociações', 'Valor Total']],
+    body: Array.from(byStage.entries())
+      .sort((a, b) => b[1].valor - a[1].valor)
+      .map(([stage, v]) => [stage, String(v.count), formatCurrency(v.valor)]),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 10, cellPadding: 6 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 30, right: 30 },
+  });
+
+  // Top brokers
+  const finalY = (doc as any).lastAutoTable?.finalY || 200;
+  doc.setTextColor(secondary[0], secondary[1], secondary[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('Top corretores por valor em pipeline', 30, finalY + 30);
+
+  const byBroker = new Map<string, { count: number; valor: number }>();
+  negotiations.forEach((n) => {
+    const cur = byBroker.get(n.broker_id) || { count: 0, valor: 0 };
+    cur.count += 1;
+    cur.valor += Number(n.negotiated_value || 0);
+    byBroker.set(n.broker_id, cur);
+  });
+
+  autoTable(doc, {
+    startY: finalY + 40,
+    head: [['#', 'Corretor', 'Negociações', 'Pipeline']],
+    body: Array.from(byBroker.entries())
+      .map(([id, v]) => ({ name: brokers.find((b) => b.id === id)?.name || 'Sem corretor', ...v }))
+      .sort((a, b) => b.valor - a.valor)
+      .slice(0, 10)
+      .map((r, i) => [`${i + 1}º`, r.name, String(r.count), formatCurrency(r.valor)]),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 9, cellPadding: 6 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 30, right: 30 },
+  });
+  drawFooter();
+
+  // Detailed
+  doc.addPage();
+  drawHeader('Negociações em andamento');
+
+  autoTable(doc, {
+    startY: 80,
+    head: [['Cliente', 'Corretor', 'Etapa', 'Valor', 'Temperatura', 'Origem']],
+    body: negotiations
+      .slice()
+      .sort((a, b) => Number(b.negotiated_value || 0) - Number(a.negotiated_value || 0))
+      .map((n) => [
+        n.client_name,
+        brokers.find((b) => b.id === n.broker_id)?.name || '-',
+        n.stage?.title || n.status || '-',
+        formatCurrency(Number(n.negotiated_value || 0)),
+        n.temperature || '-',
+        n.origem || '-',
+      ]),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 5 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { top: 80, bottom: 50, left: 30, right: 30 },
+    didDrawPage: () => {
+      if (doc.getCurrentPageInfo().pageNumber > 3) drawHeader('Negociações em andamento');
+      drawFooter();
+    },
+  });
+
+  if (lostNegotiations.length > 0) {
+    doc.addPage();
+    drawHeader('Negociações perdidas');
+    autoTable(doc, {
+      startY: 80,
+      head: [['Cliente', 'Corretor', 'Valor', 'Motivo']],
+      body: lostNegotiations.map((n) => [
+        n.client_name,
+        brokers.find((b) => b.id === n.broker_id)?.name || '-',
+        formatCurrency(Number(n.negotiated_value || 0)),
+        (n as any).loss_reason || '-',
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [180, 50, 50], textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 5 },
+      alternateRowStyles: { fillColor: [253, 246, 246] },
+      margin: { top: 80, bottom: 50, left: 30, right: 30 },
+      didDrawPage: () => drawFooter(),
+    });
+  }
+
+  return doc;
+}
+
+// =====================================================================
+// 3. FOLLOW-UP report
+// =====================================================================
+export interface FollowUpLike {
+  client_name: string;
+  client_phone?: string | null;
+  property_interest?: string | null;
+  estimated_vgv: number;
+  next_contact_date?: string | null;
+  status: string;
+  origem?: string;
+  broker_id: string;
+}
+
+export interface BrandedFollowUpReportOptions {
+  followUps: FollowUpLike[];
+  brokers: Broker[];
+  branding: OrganizationSettings | null;
+  periodLabel: string;
+  statusLabel?: (status: string) => string;
+  authorName?: string;
+}
+
+export async function generateBrandedFollowUpReport(
+  opts: BrandedFollowUpReportOptions,
+): Promise<jsPDF> {
+  const { followUps, brokers, branding, periodLabel, statusLabel, authorName } = opts;
+  const ctx = await initBrandingContext(branding, periodLabel);
+  const { doc, primary, secondary } = ctx;
+
+  const totalVGV = followUps.reduce((s, f) => s + Number(f.estimated_vgv || 0), 0);
+  const ativos = followUps.filter((f) => f.status !== 'perdido' && f.status !== 'convertido').length;
+
+  drawCover(ctx, 'Relatório de Follow-up', [
+    { label: 'Total de Clientes', value: String(followUps.length) },
+    { label: 'VGV Estimado', value: formatCurrency(totalVGV) },
+    { label: 'Em Acompanhamento', value: String(ativos) },
+  ], authorName);
+
+  const { drawHeader, drawFooter } = makeHeaderFooter(ctx);
+
+  doc.addPage();
+  drawHeader('Distribuição por status');
+
+  const byStatus = new Map<string, { count: number; vgv: number }>();
+  followUps.forEach((f) => {
+    const k = statusLabel ? statusLabel(f.status) : f.status;
+    const cur = byStatus.get(k) || { count: 0, vgv: 0 };
+    cur.count += 1;
+    cur.vgv += Number(f.estimated_vgv || 0);
+    byStatus.set(k, cur);
+  });
+
+  autoTable(doc, {
+    startY: 100,
+    head: [['Status', 'Clientes', 'VGV Estimado']],
+    body: Array.from(byStatus.entries())
+      .sort((a, b) => b[1].vgv - a[1].vgv)
+      .map(([k, v]) => [k, String(v.count), formatCurrency(v.vgv)]),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 10, cellPadding: 6 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 30, right: 30 },
+  });
+  drawFooter();
+
+  doc.addPage();
+  drawHeader('Clientes detalhados');
+
+  autoTable(doc, {
+    startY: 80,
+    head: [['Cliente', 'Telefone', 'Corretor', 'Interesse', 'VGV', 'Status', 'Próx. Contato']],
+    body: followUps
+      .slice()
+      .sort((a, b) => Number(b.estimated_vgv || 0) - Number(a.estimated_vgv || 0))
+      .map((f) => [
+        f.client_name,
+        f.client_phone || '-',
+        brokers.find((b) => b.id === f.broker_id)?.name || '-',
+        f.property_interest || '-',
+        formatCurrency(Number(f.estimated_vgv || 0)),
+        statusLabel ? statusLabel(f.status) : f.status,
+        f.next_contact_date ? format(new Date(f.next_contact_date), 'dd/MM/yyyy', { locale: ptBR }) : '-',
+      ]),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 5 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { top: 80, bottom: 50, left: 30, right: 30 },
+    didDrawPage: () => {
+      if (doc.getCurrentPageInfo().pageNumber > 2) drawHeader('Clientes detalhados');
+      drawFooter();
+    },
+  });
+
+  return doc;
+}
+
+// =====================================================================
+// 4. COMMISSIONS report
+// =====================================================================
+export interface CommissionLike {
+  broker_id: string | null;
+  base_value: number;
+  commission_percentage: number;
+  commission_value: number;
+  commission_type?: string;
+  description?: string | null;
+  status: string;
+  due_date?: string | null;
+  payment_date?: string | null;
+}
+
+export interface BrandedCommissionsReportOptions {
+  commissions: CommissionLike[];
+  brokers: Broker[];
+  branding: OrganizationSettings | null;
+  periodLabel: string;
+  authorName?: string;
+}
+
+export async function generateBrandedCommissionsReport(
+  opts: BrandedCommissionsReportOptions,
+): Promise<jsPDF> {
+  const { commissions, brokers, branding, periodLabel, authorName } = opts;
+  const ctx = await initBrandingContext(branding, periodLabel);
+  const { doc, primary, secondary } = ctx;
+
+  const totalComissao = commissions.reduce((s, c) => s + Number(c.commission_value || 0), 0);
+  const recebidas = commissions.filter((c) => c.status === 'recebida' || c.status === 'paga');
+  const totalRecebido = recebidas.reduce((s, c) => s + Number(c.commission_value || 0), 0);
+  const pendentes = commissions.filter((c) => c.status === 'pendente');
+  const totalPendente = pendentes.reduce((s, c) => s + Number(c.commission_value || 0), 0);
+
+  drawCover(ctx, 'Relatório de Comissões', [
+    { label: 'Total Comissão', value: formatCurrency(totalComissao) },
+    { label: 'Recebido', value: formatCurrency(totalRecebido) },
+    { label: 'Pendente', value: formatCurrency(totalPendente) },
+  ], authorName);
+
+  const { drawHeader, drawFooter } = makeHeaderFooter(ctx);
+
+  // Per broker
+  doc.addPage();
+  drawHeader('Comissões por corretor');
+
+  const byBroker = new Map<string, { count: number; total: number; recebido: number; pendente: number }>();
+  commissions.forEach((c) => {
+    const k = c.broker_id || '—';
+    const cur = byBroker.get(k) || { count: 0, total: 0, recebido: 0, pendente: 0 };
+    cur.count += 1;
+    cur.total += Number(c.commission_value || 0);
+    if (c.status === 'recebida' || c.status === 'paga') cur.recebido += Number(c.commission_value || 0);
+    if (c.status === 'pendente') cur.pendente += Number(c.commission_value || 0);
+    byBroker.set(k, cur);
+  });
+
+  autoTable(doc, {
+    startY: 100,
+    head: [['Corretor', 'Qtd', 'Total', 'Recebido', 'Pendente']],
+    body: Array.from(byBroker.entries())
+      .map(([id, v]) => ({ name: brokers.find((b) => b.id === id)?.name || 'Sem corretor', ...v }))
+      .sort((a, b) => b.total - a.total)
+      .map((r) => [r.name, String(r.count), formatCurrency(r.total), formatCurrency(r.recebido), formatCurrency(r.pendente)]),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 9, cellPadding: 6 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 30, right: 30 },
+  });
+  drawFooter();
+
+  // Detailed
+  doc.addPage();
+  drawHeader('Comissões detalhadas');
+
+  autoTable(doc, {
+    startY: 80,
+    head: [['Corretor', 'Descrição', 'Tipo', 'Base', '%', 'Comissão', 'Status', 'Vencimento']],
+    body: commissions
+      .slice()
+      .sort((a, b) => (b.due_date || '').localeCompare(a.due_date || ''))
+      .map((c) => [
+        brokers.find((b) => b.id === c.broker_id)?.name || '-',
+        c.description || '-',
+        c.commission_type || '-',
+        formatCurrency(Number(c.base_value || 0)),
+        `${Number(c.commission_percentage || 0).toFixed(2)}%`,
+        formatCurrency(Number(c.commission_value || 0)),
+        c.status,
+        c.due_date ? format(new Date(c.due_date), 'dd/MM/yyyy', { locale: ptBR }) : '-',
+      ]),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 8, cellPadding: 5 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { top: 80, bottom: 50, left: 30, right: 30 },
+    didDrawPage: () => {
+      if (doc.getCurrentPageInfo().pageNumber > 2) drawHeader('Comissões detalhadas');
       drawFooter();
     },
   });
