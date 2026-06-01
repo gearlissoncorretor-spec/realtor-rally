@@ -25,7 +25,8 @@ const severityColor: Record<AppNotification['severity'], string> = {
 
 export const NotificationBell = () => {
   const navigate = useNavigate();
-  const { notifications, unreadCount, markRead, markAllRead, remove } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, remove, hasMore, loadMore, isFetching } = useNotifications();
+
 
   const handleClick = (n: AppNotification) => {
     if (!n.read) markRead(n.id);
