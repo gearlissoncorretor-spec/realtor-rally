@@ -215,6 +215,14 @@ const Negociacoes = () => {
 
   const handleDelete = async () => { if (deleteId) { await deleteNegotiation(deleteId); setDeleteId(null); } };
 
+  const handleKanbanStageChange = async (negotiationId: string, stageId: string) => {
+    try {
+      await updateNegotiation({ id: negotiationId, process_stage_id: stageId });
+    } catch (e) {
+      console.error('Erro ao mover negociação:', e);
+    }
+  };
+
   const stalledNegotiations = useMemo(() => {
     const now = new Date();
     return negotiations.filter(n => Math.floor((now.getTime() - new Date(n.updated_at).getTime()) / (1000 * 60 * 60 * 24)) >= 3);
