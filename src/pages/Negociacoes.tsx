@@ -333,33 +333,71 @@ const Negociacoes = () => {
 
           {/* Tabs with badges */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
-              <TabsTrigger value="active" className="gap-2">
-                <Handshake className="w-4 h-4" />
-                Em Andamento
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.total}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="lost" className="gap-2">
-                <XCircle className="w-4 h-4" />
-                Perdidas
-                <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.perdidas}</Badge>
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <TabsList className="grid grid-cols-2 max-w-md flex-1">
+                <TabsTrigger value="active" className="gap-2">
+                  <Handshake className="w-4 h-4" />
+                  Em Andamento
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.total}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="lost" className="gap-2">
+                  <XCircle className="w-4 h-4" />
+                  Perdidas
+                  <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.perdidas}</Badge>
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="active">
-              <NegotiationActiveTable
-                negotiations={filteredNegotiations}
-                getBrokerName={getBrokerName}
-                isApproved={isApproved}
-                isStalled={isStalled}
-                onEdit={handleEdit}
-                onSaleConversion={(n) => { setSelectedForSale(n); setSaleConversionOpen(true); }}
-                onLoss={(n) => { setSelectedForLoss(n); setLossDialogOpen(true); }}
-                onReturnFollowUp={(n) => { setSelectedForFollowUp(n); setReturnToFollowUpOpen(true); }}
-                onNotes={(n) => { setSelectedForNotes(n); setNotesDialogOpen(true); }}
-                onDelete={setDeleteId}
-                onNewNegotiation={() => { setEditingNegotiation(null); setIsFormOpen(true); }}
-              />
+              {activeTab === 'active' && (
+                <ToggleGroup
+                  type="single"
+                  value={viewMode}
+                  onValueChange={(v) => v && setViewMode(v as 'table' | 'kanban')}
+                  variant="outline"
+                  size="sm"
+                >
+                  <ToggleGroupItem value="table" aria-label="Visualização em tabela">
+                    <TableIcon className="w-4 h-4 mr-1" />
+                    Tabela
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="kanban" aria-label="Visualização em kanban">
+                    <LayoutGrid className="w-4 h-4 mr-1" />
+                    Kanban
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
+            </div>
+
+            <TabsContent value="active" className="mt-4">
+              {viewMode === 'kanban' ? (
+                <NegotiationKanbanBoard
+                  negotiations={filteredNegotiations}
+                  stages={flowStages}
+                  getBrokerName={getBrokerName}
+                  isStalled={isStalled}
+                  isApproved={isApproved}
+                  onStageChange={handleKanbanStageChange}
+                  onEdit={handleEdit}
+                  onNotes={(n) => { setSelectedForNotes(n); setNotesDialogOpen(true); }}
+                  onSaleConversion={(n) => { setSelectedForSale(n); setSaleConversionOpen(true); }}
+                  onLoss={(n) => { setSelectedForLoss(n); setLossDialogOpen(true); }}
+                  onReturnFollowUp={(n) => { setSelectedForFollowUp(n); setReturnToFollowUpOpen(true); }}
+                  onDelete={setDeleteId}
+                />
+              ) : (
+                <NegotiationActiveTable
+                  negotiations={filteredNegotiations}
+                  getBrokerName={getBrokerName}
+                  isApproved={isApproved}
+                  isStalled={isStalled}
+                  onEdit={handleEdit}
+                  onSaleConversion={(n) => { setSelectedForSale(n); setSaleConversionOpen(true); }}
+                  onLoss={(n) => { setSelectedForLoss(n); setLossDialogOpen(true); }}
+                  onReturnFollowUp={(n) => { setSelectedForFollowUp(n); setReturnToFollowUpOpen(true); }}
+                  onNotes={(n) => { setSelectedForNotes(n); setNotesDialogOpen(true); }}
+                  onDelete={setDeleteId}
+                  onNewNegotiation={() => { setEditingNegotiation(null); setIsFormOpen(true); }}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="lost">
