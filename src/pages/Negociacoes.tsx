@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Handshake, Settings, Clock, Thermometer, XCircle, X, AlertTriangle, Undo2, Trash2, Download } from "lucide-react";
+import { Plus, Search, Handshake, Settings, Clock, Thermometer, XCircle, X, AlertTriangle, Undo2, Trash2, Download, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { NegotiationKanbanBoard } from "@/components/negotiations/NegotiationKanbanBoard";
 import NegotiationsExportDialog from "@/components/negotiations/NegotiationsExportDialog";
 import { BrandedNegotiationsReportDialog } from "@/components/negotiations/BrandedNegotiationsReportDialog";
 import { useNegotiations, CreateNegotiationInput, Negotiation } from "@/hooks/useNegotiations";
@@ -61,6 +63,7 @@ const Negociacoes = () => {
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedForNotes, setSelectedForNotes] = useState<Negotiation | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
@@ -212,6 +215,14 @@ const Negociacoes = () => {
 
   const handleDelete = async () => { if (deleteId) { await deleteNegotiation(deleteId); setDeleteId(null); } };
 
+  const handleKanbanStageChange = async (negotiationId: string, stageId: string) => {
+    try {
+      await updateNegotiation({ id: negotiationId, process_stage_id: stageId });
+    } catch (e) {
+      console.error('Erro ao mover negociação:', e);
+    }
+  };
+
   const stalledNegotiations = useMemo(() => {
     const now = new Date();
     return negotiations.filter(n => Math.floor((now.getTime() - new Date(n.updated_at).getTime()) / (1000 * 60 * 60 * 24)) >= 3);
@@ -322,33 +333,71 @@ const Negociacoes = () => {
 
           {/* Tabs with badges */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
-              <TabsTrigger value="active" className="gap-2">
-                <Handshake className="w-4 h-4" />
-                Em Andamento
-                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.total}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="lost" className="gap-2">
-                <XCircle className="w-4 h-4" />
-                Perdidas
-                <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.perdidas}</Badge>
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <TabsList className="grid grid-cols-2 max-w-md flex-1">
+                <TabsTrigger value="active" className="gap-2">
+                  <Handshake className="w-4 h-4" />
+                  Em Andamento
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.total}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="lost" className="gap-2">
+                  <XCircle className="w-4 h-4" />
+                  Perdidas
+                  <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px] font-bold">{stats.perdidas}</Badge>
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="active">
-              <NegotiationActiveTable
-                negotiations={filteredNegotiations}
-                getBrokerName={getBrokerName}
-                isApproved={isApproved}
-                isStalled={isStalled}
-                onEdit={handleEdit}
-                onSaleConversion={(n) => { setSelectedForSale(n); setSaleConversionOpen(true); }}
-                onLoss={(n) => { setSelectedForLoss(n); setLossDialogOpen(true); }}
-                onReturnFollowUp={(n) => { setSelectedForFollowUp(n); setReturnToFollowUpOpen(true); }}
-                onNotes={(n) => { setSelectedForNotes(n); setNotesDialogOpen(true); }}
-                onDelete={setDeleteId}
-                onNewNegotiation={() => { setEditingNegotiation(null); setIsFormOpen(true); }}
-              />
+              {activeTab === 'active' && (
+                <ToggleGroup
+                  type="single"
+                  value={viewMode}
+                  onValueChange={(v) => v && setViewMode(v as 'table' | 'kanban')}
+                  variant="outline"
+                  size="sm"
+                >
+                  <ToggleGroupItem value="table" aria-label="Visualização em tabela">
+                    <TableIcon className="w-4 h-4 mr-1" />
+                    Tabela
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="kanban" aria-label="Visualização em kanban">
+                    <LayoutGrid className="w-4 h-4 mr-1" />
+                    Kanban
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              )}
+            </div>
+
+            <TabsContent value="active" className="mt-4">
+              {viewMode === 'kanban' ? (
+                <NegotiationKanbanBoard
+                  negotiations={filteredNegotiations}
+                  stages={flowStages}
+                  getBrokerName={getBrokerName}
+                  isStalled={isStalled}
+                  isApproved={isApproved}
+                  onStageChange={handleKanbanStageChange}
+                  onEdit={handleEdit}
+                  onNotes={(n) => { setSelectedForNotes(n); setNotesDialogOpen(true); }}
+                  onSaleConversion={(n) => { setSelectedForSale(n); setSaleConversionOpen(true); }}
+                  onLoss={(n) => { setSelectedForLoss(n); setLossDialogOpen(true); }}
+                  onReturnFollowUp={(n) => { setSelectedForFollowUp(n); setReturnToFollowUpOpen(true); }}
+                  onDelete={setDeleteId}
+                />
+              ) : (
+                <NegotiationActiveTable
+                  negotiations={filteredNegotiations}
+                  getBrokerName={getBrokerName}
+                  isApproved={isApproved}
+                  isStalled={isStalled}
+                  onEdit={handleEdit}
+                  onSaleConversion={(n) => { setSelectedForSale(n); setSaleConversionOpen(true); }}
+                  onLoss={(n) => { setSelectedForLoss(n); setLossDialogOpen(true); }}
+                  onReturnFollowUp={(n) => { setSelectedForFollowUp(n); setReturnToFollowUpOpen(true); }}
+                  onNotes={(n) => { setSelectedForNotes(n); setNotesDialogOpen(true); }}
+                  onDelete={setDeleteId}
+                  onNewNegotiation={() => { setEditingNegotiation(null); setIsFormOpen(true); }}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="lost">
