@@ -248,6 +248,9 @@ const Landing = () => {
                 {/* Planos mobile link removed */}
                 <a href="#faq" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>FAQ</a>
                 {formConfig.enabled && <a href="#contact" className="text-white/60 hover:text-white py-2" onClick={() => setMobileMenu(false)}>Contato</a>}
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 w-full" onClick={() => { setMobileMenu(false); goLogin(); }}>
+                  Entrar
+                </Button>
                 <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full" onClick={handleContactClick} disabled={!contactUrl}>
                   Saiba mais
                 </Button>
