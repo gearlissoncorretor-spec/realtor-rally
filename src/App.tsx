@@ -38,6 +38,7 @@ const X1 = lazy(() => import("@/pages/X1"));
 const DashboardEquipes = lazy(() => import("@/pages/DashboardEquipes"));
 
 const Atividades = lazy(() => import("@/pages/Atividades"));
+const Rotina = lazy(() => import("@/pages/Rotina"));
 const Negociacoes = lazy(() => import("@/pages/Negociacoes"));
 const MetaGestao = lazy(() => import("@/pages/MetaGestao"));
 const FollowUp = lazy(() => import("@/pages/FollowUp"));
@@ -164,6 +165,7 @@ const AnimatedRoutes = () => {
             <Route path="/dashboard-equipes" element={<ProtectedRoute><LazyPage><DashboardEquipes /></LazyPage></ProtectedRoute>} />
 
             <Route path="/atividades" element={<ProtectedRoute><LazyPage><Atividades /></LazyPage></ProtectedRoute>} />
+            <Route path="/rotina" element={<ProtectedRoute><LazyPage><Rotina /></LazyPage></ProtectedRoute>} />
             <Route path="/negociacoes" element={<ProtectedRoute><LazyPage><Negociacoes /></LazyPage></ProtectedRoute>} />
             <Route path="/follow-up" element={<ProtectedRoute><LazyPage><FollowUp /></LazyPage></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><LazyPage><Leads /></LazyPage></ProtectedRoute>} />

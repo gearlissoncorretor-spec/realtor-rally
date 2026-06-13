@@ -28,7 +28,8 @@ import {
   UserCog,
   UsersRound,
   FileText,
-  Inbox
+  Inbox,
+  ListChecks
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -143,6 +144,7 @@ const Navigation = () => {
     { href: "/metas", label: "Metas", icon: Target, screen: "metas" },
     { href: "/meta-gestao", label: "Meta Gestão", icon: PieChart, screen: "meta-gestao" },
     { href: "/atividades", label: "Atividades", icon: ClipboardList, screen: "atividades" },
+    { href: "/rotina", label: "Rotina", icon: ListChecks, screen: "rotina" },
     { href: "/acompanhamento", label: "Status Vendas", icon: Wallet, screen: "acompanhamento" },
     { href: "/comissoes", label: "Comissões", icon: Receipt, screen: "comissoes" },
     { href: "/financeiro", label: "Financeiro", icon: Wallet, screen: "financeiro" },
@@ -185,7 +187,7 @@ const Navigation = () => {
     },
     {
       label: "Produtividade",
-      items: navItems.filter(i => ['metas', 'meta-gestao', 'atividades', 'x1'].includes(i.screen)),
+      items: navItems.filter(i => ['rotina', 'metas', 'meta-gestao', 'atividades', 'x1'].includes(i.screen)),
     },
     {
       label: "Relatórios",

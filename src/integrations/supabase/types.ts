@@ -2727,6 +2727,57 @@ export type Database = {
           },
         ]
       }
+      routine_items: {
+        Row: {
+          company_id: string | null
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          order_index: number
+          priority: string
+          recurring: boolean
+          scheduled_date: string
+          scheduled_time: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          priority?: string
+          recurring?: boolean
+          scheduled_date?: string
+          scheduled_time?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string | null
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          priority?: string
+          recurring?: boolean
+          scheduled_date?: string
+          scheduled_time?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           agency_id: string | null
