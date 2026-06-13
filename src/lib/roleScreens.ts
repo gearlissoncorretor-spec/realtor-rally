@@ -9,7 +9,7 @@
 // Corretor: own pipeline + dia-a-dia
 const CORRETOR_SCREENS = [
   'dashboard', 'vendas', 'negociacoes', 'follow-up', 'leads', 'metas',
-  'atividades', 'comissoes', 'financeiro', 'configuracoes',
+  'atividades', 'rotina', 'comissoes', 'financeiro', 'configuracoes',
   'agenda', 'instalar', 'edital',
 ];
 
@@ -54,6 +54,7 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/dashboard-equipes': 'dashboard-equipes',
   '/central-gestor': 'central-gestor',
   '/atividades': 'atividades',
+  '/rotina': 'rotina',
   '/negociacoes': 'negociacoes',
   '/follow-up': 'follow-up',
   '/leads': 'leads',
