@@ -28,7 +28,8 @@ import {
   UserCog,
   UsersRound,
   FileText,
-  Inbox
+  Inbox,
+  ListChecks
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
