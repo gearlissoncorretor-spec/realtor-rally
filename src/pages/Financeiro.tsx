@@ -212,7 +212,7 @@ const Financeiro = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-black text-foreground">{formatCurrency(metrics.totalToPay)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(metrics.totalToPay)}</p>
               <p className="text-[10px] text-muted-foreground mt-1">Contas pendentes</p>
             </CardContent>
           </Card>
@@ -224,7 +224,7 @@ const Financeiro = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-black text-foreground">{formatCurrency(metrics.totalReceivable)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(metrics.totalReceivable)}</p>
               <p className="text-[10px] text-muted-foreground mt-1">Comissões projetadas</p>
             </CardContent>
           </Card>
@@ -236,7 +236,7 @@ const Financeiro = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-black text-foreground">{formatCurrency(metrics.netProfitMonth)}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(metrics.netProfitMonth)}</p>
               <p className="text-[10px] text-muted-foreground mt-1">Recebido - Pago</p>
             </CardContent>
           </Card>
@@ -248,7 +248,7 @@ const Financeiro = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={cn("text-2xl font-black", metrics.overdueCount > 0 ? "text-destructive" : "text-foreground")}>{metrics.overdueCount}</p>
+              <p className={cn("text-2xl font-bold", metrics.overdueCount > 0 ? "text-destructive" : "text-foreground")}>{metrics.overdueCount}</p>
               <p className="text-[10px] text-muted-foreground mt-1">Vencidas e não pagas</p>
             </CardContent>
           </Card>
@@ -302,7 +302,7 @@ const Financeiro = () => {
                         <p className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3" /> Vencimento: {new Date(record.due_date).toLocaleDateString('pt-BR')}</p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <p className="text-2xl font-black">{formatCurrency(Number(record.value))}</p>
+                        <p className="text-2xl font-bold">{formatCurrency(Number(record.value))}</p>
                         <div className="flex gap-2">
                           {record.status !== 'pago' && <Button size="sm" onClick={() => handleMarkAsPaid(record)}>Pagar</Button>}
                           <Button size="icon" variant="ghost" onClick={() => openEdit(record)}><Plus className="w-4 h-4 rotate-45" /></Button>

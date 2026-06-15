@@ -139,7 +139,7 @@ const CommissionDialog = ({ isOpen, onClose, saleData }: CommissionDialogProps) 
           {/* Calculated commission */}
           <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
             <p className="text-xs text-muted-foreground mb-1">Valor da Comissão</p>
-            <p className="text-2xl font-black text-success">{formatCurrency(commissionValue)}</p>
+            <p className="text-2xl font-bold text-success">{formatCurrency(commissionValue)}</p>
           </div>
 
           {/* Payment details */}

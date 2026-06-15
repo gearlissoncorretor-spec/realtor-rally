@@ -68,7 +68,7 @@ const AgendaSummaryCards = ({ events, currentDate }: AgendaSummaryCardsProps) =>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{card.label}</p>
-              <p className="text-3xl font-bold text-foreground mt-1">{card.count}</p>
+              <p className="text-2xl font-bold text-foreground mt-1 tabular-nums">{card.count}</p>
             </div>
             <card.icon className={`w-8 h-8 ${card.iconColor} opacity-80`} />
           </div>

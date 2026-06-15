@@ -540,7 +540,7 @@ const Comissoes = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-xl lg:text-2xl font-black text-foreground flex items-center gap-2">
+            <h1 className="text-xl lg:text-2xl font-bold text-foreground flex items-center gap-2">
               <Wallet className="w-6 h-6 text-success" />
               {isBrokerView ? 'Minhas Comissões' : 'Controle de Comissões'}
             </h1>
@@ -1014,7 +1014,7 @@ const Comissoes = () => {
             <div className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-3 text-center">
                 <p className="text-xs text-muted-foreground">Valor da Comissão</p>
-                <p className="text-2xl font-black text-success">{formatCurrency(Number(editingCommission.commission_value))}</p>
+                <p className="text-2xl font-bold text-success">{formatCurrency(Number(editingCommission.commission_value))}</p>
               </div>
 
               <div className="space-y-1.5">
@@ -1168,7 +1168,7 @@ const Comissoes = () => {
                 {newBaseValue > 0 && newPercentage !== 100 && (
                   <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
                     <p className="text-xs text-muted-foreground mb-1">Valor Calculado</p>
-                    <p className="text-2xl font-black text-success">{formatCurrency(newCommissionValue)}</p>
+                    <p className="text-2xl font-bold text-success">{formatCurrency(newCommissionValue)}</p>
                   </div>
                 )}
               </>
@@ -1177,7 +1177,7 @@ const Comissoes = () => {
             {isBrokerView && newDirectCommissionValue > 0 && (
               <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Sua Comissão</p>
-                <p className="text-2xl font-black text-success">{formatCurrency(newDirectCommissionValue)}</p>
+                <p className="text-2xl font-bold text-success">{formatCurrency(newDirectCommissionValue)}</p>
               </div>
             )}
 

@@ -247,7 +247,7 @@ const MonthlyGoalDashboard = ({ targetValue, achievedValue, monthDate }: Monthly
               </div>
             </div>
             <div className="text-center">
-              <p className={cn("text-3xl font-bold", getProbabilityColor())}>{probability}%</p>
+              <p className={cn("text-2xl font-bold tabular-nums", getProbabilityColor())}>{probability}%</p>
               <p className="text-[10px] text-muted-foreground mt-1">de atingir a meta</p>
             </div>
             <div className="text-xs text-muted-foreground space-y-1">
