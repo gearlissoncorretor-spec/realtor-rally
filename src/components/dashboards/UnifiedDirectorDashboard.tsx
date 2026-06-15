@@ -516,11 +516,11 @@ const UnifiedDirectorDashboard = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Status Atual</p>
-                      <p className="text-2xl font-black text-primary">{monthlyGoal.label}</p>
+                      <p className="text-2xl font-bold text-primary">{monthlyGoal.label}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Expectativa Final</p>
-                      <p className="text-2xl font-black text-success">92%</p>
+                      <p className="text-2xl font-bold text-success">92%</p>
                     </div>
                   </div>
                   <Progress value={monthlyGoal.percent} className="h-4" />
