@@ -326,6 +326,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return true;
     }
 
+    // Rotina is available to all authenticated roles by default
+    if (screen === 'rotina' && ['corretor', 'gerente', 'diretor', 'admin', 'socio'].includes(userRole ?? '')) {
+      return true;
+    }
+
     return false;
   };
 
