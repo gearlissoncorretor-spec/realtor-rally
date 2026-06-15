@@ -53,7 +53,7 @@ const KPICard = ({ title, value, change, icon, trend = "neutral", className, var
             <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2 opacity-80">
               {title}
             </p>
-            <p className="text-3xl lg:text-4xl font-black text-foreground tracking-tighter truncate tabular-nums">
+            <p className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight truncate tabular-nums">
               {value}
             </p>
             {change !== undefined && (

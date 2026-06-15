@@ -540,7 +540,7 @@ const CorretorDashboard = () => {
             {metaValue > 0 ? (
               <div className="space-y-4">
                 <div className="text-center">
-                  <p className="text-4xl lg:text-5xl font-bold text-foreground">{formatCurrency(metaRealizado)}</p>
+                  <p className="text-2xl lg:text-3xl font-bold text-foreground tabular-nums">{formatCurrency(metaRealizado)}</p>
                   <p className="text-sm text-muted-foreground mt-1">de {formatCurrency(metaValue)}</p>
                 </div>
                 <Progress value={Math.min(metaPercent, 100)} className="h-4" />
@@ -558,7 +558,7 @@ const CorretorDashboard = () => {
               </div>
             ) : (
               <div className="text-center space-y-3">
-                <p className="text-4xl font-bold text-foreground">{formatCurrency(monthVGV)}</p>
+                <p className="text-2xl lg:text-3xl font-bold text-foreground tabular-nums">{formatCurrency(monthVGV)}</p>
                 <p className="text-sm text-muted-foreground">VGV do mês • {monthSales.length} venda{monthSales.length !== 1 ? 's' : ''}</p>
                 <p className="text-xs text-muted-foreground">Nenhuma meta definida para este mês</p>
               </div>

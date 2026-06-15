@@ -27,7 +27,7 @@ const VGCPercentageCard = ({ sales, className }: VGCPercentageCardProps) => {
           <p className="text-sm font-medium text-muted-foreground mb-1">
             Porcentagem VGC
           </p>
-          <p className="text-3xl font-bold text-success mb-2">
+          <p className="text-2xl font-bold text-success mb-2 tabular-nums">
             {formatPercentage(vgcPercentage)}
           </p>
           <div className="flex items-center gap-2 text-sm">
