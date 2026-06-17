@@ -24,7 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserManagementHub } from "@/components/UserManagementHub";
+// UserManagementHub moved to /gestao-usuarios
 import TeamManager from "@/components/TeamManager";
 import TeamMemberManager from "@/components/TeamMemberManager";
 import BrandingSettings from "@/components/BrandingSettings";
@@ -34,7 +34,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
 import SlackSettings from "@/components/SlackSettings";
-import { RolePermissionsManager } from "@/components/RolePermissionsManager";
+// RolePermissionsManager moved to /gestao-usuarios
 import AgencyManager from "@/components/AgencyManager";
 
 const Configuracoes = () => {
@@ -278,31 +278,8 @@ const Configuracoes = () => {
               </CollapsibleSection>
             )}
 
-            {/* Role Permissions Matrix - Admins and Directors */}
-            {(isAdmin() || isDiretor()) && (
-              <CollapsibleSection
-                title="Permissões por Perfil"
-                icon={<Shield className="h-5 w-5 text-primary" />}
-                description="Configure ações permitidas (ver, criar, editar, excluir) por perfil e tela"
-                isOpen={openSections.rolePermissions}
-                onToggle={() => toggleSection('rolePermissions')}
-              >
-                <RolePermissionsManager />
-              </CollapsibleSection>
-            )}
+            {/* Gestão de Usuários e Permissões foram centralizadas em /gestao-usuarios */}
 
-            {/* User Management - Admins */}
-            {isAdmin() && (
-              <CollapsibleSection
-                title="Gestão de Usuários"
-                icon={<Database className="h-5 w-5 text-success" />}
-                description="Criar, aprovar e gerenciar usuários"
-                isOpen={openSections.userManagement}
-                onToggle={() => toggleSection('userManagement')}
-              >
-                <UserManagementHub />
-              </CollapsibleSection>
-            )}
           </div>
         </div>
       </div>

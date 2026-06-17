@@ -20,17 +20,17 @@ const GERENTE_SCREENS = [
   'acompanhamento', 'x1', 'meta-gestao',
 ];
 
-// Diretor: tudo do gerente + relatórios estratégicos + central gestor
+// Diretor da Loja: tudo do gerente + relatórios + central gestor + gestão de usuários
 const DIRETOR_SCREENS = [
   ...GERENTE_SCREENS,
-  'central-gestor', 'relatorios',
+  'central-gestor', 'relatorios', 'gestao-usuarios',
 ];
 
-// Sócio: tudo do diretor + gestão de usuários
+// Sócio: alias de Diretor da Loja (mesmas permissões)
 const SOCIO_SCREENS = [
   ...DIRETOR_SCREENS,
-  'gestao-usuarios',
 ];
+
 
 export const ROLE_SCREENS: Record<string, string[]> = {
   super_admin: ['*'],

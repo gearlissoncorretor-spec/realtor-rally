@@ -194,25 +194,30 @@ const Navigation = () => {
       items: navItems.filter(i => ['relatorios'].includes(i.screen)),
     },
     {
-      label: "Gestão",
-      items: navItems.filter(i => ['corretores', 'equipes', 'gestao-usuarios', 'comissoes', 'financeiro'].includes(i.screen)),
+      label: "Administração",
+      items: navItems.filter(i => ['gestao-usuarios', 'corretores', 'equipes', 'configuracoes'].includes(i.screen)),
     },
-
+    {
+      label: "Financeiro",
+      items: navItems.filter(i => ['comissoes', 'financeiro'].includes(i.screen)),
+    },
     {
       label: "Sistema",
-      items: navItems.filter(i => ['configuracoes', 'instalar', 'edital'].includes(i.screen)),
+      items: navItems.filter(i => ['instalar', 'edital'].includes(i.screen)),
     },
+
   ].filter(g => g.items.length > 0);
 
   const userRole = getUserRole();
   const roleLabelMap: Record<string, string> = {
-    admin: 'Admin',
-    diretor: 'Diretor',
-    socio: 'Sócio Diretor',
+    admin: 'Admin Dev',
+    diretor: 'Diretor da Loja',
+    socio: 'Diretor da Loja',
     gerente: 'Gerente',
     corretor: 'Corretor',
     super_admin: 'Super Admin',
   };
+
 
   const renderLogo = () => (
     <div className="flex items-center gap-3">
