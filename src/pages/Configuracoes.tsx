@@ -24,7 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserManagementHub } from "@/components/UserManagementHub";
+// UserManagementHub moved to /gestao-usuarios
 import TeamManager from "@/components/TeamManager";
 import TeamMemberManager from "@/components/TeamMemberManager";
 import BrandingSettings from "@/components/BrandingSettings";
@@ -34,7 +34,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import ScreenAccessManager from "@/components/ScreenAccessManager";
 import TeamLogoSettings from "@/components/TeamLogoSettings";
 import SlackSettings from "@/components/SlackSettings";
-import { RolePermissionsManager } from "@/components/RolePermissionsManager";
+// RolePermissionsManager moved to /gestao-usuarios
 import AgencyManager from "@/components/AgencyManager";
 
 const Configuracoes = () => {
