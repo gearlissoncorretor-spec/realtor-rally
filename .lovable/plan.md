@@ -1,83 +1,99 @@
+# Reestruturação de Usuários, Permissões e Telas
 
-# Corrigir Tela de Acesso Restrito e Botao Voltar
+Objetivo: simplificar a administração, centralizar a gestão de usuários numa única tela e clarificar a matriz de permissões por perfil.
 
-## Problema Identificado
+## 1. Matriz de perfis (hierarquia)
 
-Quando um corretor acessa a aplicacao e cai na tela "Acesso Restrito", ele fica preso em um loop:
-1. O botao **"Ir para Inicio"** redireciona para `/` (que e a mesma rota que negou acesso), criando um ciclo infinito
-2. O botao **"Voltar"** usa `window.history.back()` que nao ajuda se o usuario acabou de entrar no app - ele precisa de uma opcao para **sair e fazer login com outro usuario**
+| Perfil | Acesso |
+|---|---|
+| **Admin Dev** (`admin` / `super_admin`) | Tudo, sem restrições — incluindo logs, configurações avançadas, todas as lojas |
+| **Diretor da Loja** (`socio` + `diretor` unificados como "Diretor da Loja") | Tudo da loja: usuários, equipes, permissões, relatórios, configurações da loja |
+| **Gerente** | Sua equipe: visualizar e editar dados básicos dos corretores, solicitar reset de senha. Sem configurações críticas |
+| **Corretor** | Apenas dados operacionais próprios |
 
-Alem disso, a funcao `getDefaultRoute()` sempre retorna `/` sem considerar quais telas o usuario realmente tem acesso.
+> Nota: hoje o sistema tem 5 níveis (`super_admin > socio > admin > diretor > gerente > corretor`). A nova estrutura colapsa para 4 níveis lógicos. `super_admin` continua como Admin Dev global; `socio` e `diretor` passam a ter as mesmas permissões dentro da loja (rótulo unificado "Diretor da Loja"); papel `admin` fica reservado a equipe interna.
 
-## Solucao
+## 2. Tela única "Gestão de Usuários" (`/gestao-usuarios`)
 
-### 1. Corrigir `getDefaultRoute()` no AuthContext
-Alterar a funcao para que retorne a primeira rota que o usuario tem permissao de acessar, em vez de sempre retornar `/`.
+Consolidar em **uma única página com abas**, substituindo as telas hoje espalhadas (`UserManagementHub`, `RolePermissionsManager` em Configurações, formulários soltos):
 
-Logica:
-- Verificar `allowed_screens` do perfil
-- Retornar a primeira tela permitida (priorizando `dashboard` > `vendas` > outras)
-- Se nenhuma tela for permitida, retornar `/auth` (tela de login)
-
-### 2. Corrigir a tela AccessDeniedMessage
-- Substituir o botao "Voltar" por um botao **"Sair / Trocar conta"** que faz logout e redireciona para `/auth`
-- Manter o botao "Ir para Inicio" mas agora apontando para a rota correta (via `getDefaultRoute()` corrigido)
-
-### 3. Garantir que ProtectedRoute redirecione corretamente
-- Se o usuario nao tem acesso a tela atual, em vez de mostrar Access Denied, redirecionar automaticamente para a rota padrao do usuario
-
----
-
-## Detalhes Tecnicos
-
-### Arquivo: `src/contexts/AuthContext.tsx`
-Alterar `getDefaultRoute()`:
-```typescript
-const getDefaultRoute = (): string => {
-  const screens = profile?.allowed_screens || [];
-  const screenToRoute: Record<string, string> = {
-    'dashboard': '/',
-    'vendas': '/vendas',
-    'negociacoes': '/negociacoes',
-    'follow-up': '/follow-up',
-    'metas': '/metas',
-    'atividades': '/atividades',
-    'tarefas-kanban': '/tarefas-kanban',
-    'corretores': '/corretores',
-    'equipes': '/equipes',
-    'ranking': '/ranking',
-    'acompanhamento': '/acompanhamento',
-    'relatorios': '/relatorios',
-    'configuracoes': '/configuracoes',
-    'agenda': '/agenda',
-  };
-  
-  const priority = ['dashboard', 'vendas', 'negociacoes', 'metas', 'atividades'];
-  for (const screen of priority) {
-    if (screens.includes(screen)) {
-      return screenToRoute[screen] || '/';
-    }
-  }
-  
-  if (screens.length > 0 && screenToRoute[screens[0]]) {
-    return screenToRoute[screens[0]];
-  }
-  
-  return '/';
-};
+```text
+┌─ Gestão de Usuários ──────────────────────────────┐
+│ [Lista] [Criar] [Pendências] [Permissões] [Logs]  │
+├───────────────────────────────────────────────────┤
+│ Busca: nome | email | perfil | loja | equipe |    │
+│        status                                     │
+│                                                   │
+│ Linha do usuário → ações inline:                  │
+│   ✎ Editar  🔑 Senha  🔄 Perfil  🏪 Loja/Equipe   │
+│   ⏸ Ativar/Desativar  🗑 Excluir                  │
+└───────────────────────────────────────────────────┘
 ```
 
-### Arquivo: `src/components/AccessDeniedMessage.tsx`
-- Substituir botao "Voltar" por botao "Trocar Conta" que chama `signOut()` e navega para `/auth`
-- Manter botao "Ir para Inicio" que agora usara a rota correta
+Abas:
+- **Lista** — busca + filtros (nome, email, perfil, loja, equipe, status), ações inline
+- **Criar** — formulário de cadastro
+- **Pendências** — aprovações de signup
+- **Permissões** — matriz por perfil (atual `RolePermissionsManager`)
+- **Logs** — audit_logs filtrado por usuários (Admin Dev e Diretor)
 
-### Arquivo: `src/components/ProtectedRoute.tsx`
-- Quando o acesso for negado, em vez de mostrar `<AccessDenied />`, redirecionar com `<Navigate to={getDefaultRoute()} />` (apenas se a rota padrao for diferente da atual, para evitar loop infinito)
-- Se a rota padrao for a mesma da atual, ai sim mostrar Access Denied com opcao de logout
+## 3. Consolidação de menus
 
----
+Reorganizar a navegação para reduzir cliques:
 
-## Arquivos Modificados
-1. `src/contexts/AuthContext.tsx` - getDefaultRoute() inteligente
-2. `src/components/AccessDeniedMessage.tsx` - botao "Trocar Conta" com logout
-3. `src/components/ProtectedRoute.tsx` - redirecionamento automatico
+**Antes** (menus separados): Configurações · Gestão de Usuários · Equipes · Corretores · Permissões (dentro de Config)
+
+**Depois**:
+- **Administração** (novo grupo no menu, só para Diretor+/Admin)
+  - Gestão de Usuários (tudo de pessoas)
+  - Equipes & Lojas (agencies + teams numa só tela com abas)
+  - Configurações da Loja (branding, parâmetros, integrações)
+- Cadastros operacionais (Vendas, Negociações, etc.) permanecem como estão
+
+## 4. Matriz de permissões revisada
+
+Atualizar `src/lib/roleScreens.ts` para refletir os 4 níveis:
+
+| Tela | Admin Dev | Diretor Loja | Gerente | Corretor |
+|---|---|---|---|---|
+| Dashboard, Vendas, Negociações, Follow-up, Metas, Atividades, Agenda, Comissões | ✓ | ✓ | ✓ | ✓ |
+| Equipes, Corretores, Ranking, X1, Acompanhamento, Meta-Gestão, Dashboard Equipes | ✓ | ✓ | ✓ | — |
+| Central Gestor, Relatórios | ✓ | ✓ | — | — |
+| Gestão de Usuários, Permissões, Equipes & Lojas, Configurações da Loja | ✓ | ✓ | — | — |
+| Logs, Super Admin, Parâmetros do Sistema | ✓ | — | — | — |
+
+Botões CRUD (criar/editar/excluir/exportar) controlados pela matriz `role_permissions` já existente — Diretor pode customizar para Gerente/Corretor.
+
+## 5. Implementação técnica
+
+### Backend (1 migração)
+- Garantir que policies em `profiles` permitam Diretor da Loja gerenciar usuários da própria `company_id` (criar/editar/excluir/promover entre corretor↔gerente↔diretor, exceto promover a admin/super_admin)
+- Trigger `prevent_privilege_escalation` continua bloqueando escalada para admin/super_admin
+- Função `can_manage_user(target_id)` SECURITY DEFINER para uso em policies e no frontend
+
+### Frontend
+- `src/pages/GestaoUsuarios.tsx` — refatorar para abas Lista/Criar/Pendências/Permissões/Logs
+- `src/components/gestao-usuarios/UsersList.tsx` — ações inline (ativar, desativar, excluir, mudar perfil, reset senha, mudar loja/equipe)
+- `src/components/gestao-usuarios/EditUserDialog.tsx` — campos perfil, loja, equipe, status
+- `src/components/Navigation.tsx` — novo grupo "Administração" para Diretor+
+- `src/lib/roleScreens.ts` — nova matriz
+- `src/contexts/AuthContext.tsx` — helper `isDiretor()` passa a cobrir socio+diretor
+- Remover/redirecionar telas duplicadas: `UserManagementHub`, aba de permissões dentro de Configurações
+
+### Edge functions
+- `create-user` e `update-user-*` já existem — adicionar verificação de "pode promover até nível X" baseado no perfil do chamador
+
+## 6. Entregáveis
+
+1. Migração SQL com policies revisadas + função `can_manage_user`
+2. Tela `/gestao-usuarios` unificada com 5 abas
+3. Navegação reagrupada com seção "Administração"
+4. Matriz de permissões atualizada em `roleScreens.ts`
+5. Edge functions com guard de hierarquia
+6. Documento `docs/permissoes.md` com a matriz final
+
+## Fora de escopo
+
+- Mudanças visuais profundas (mantém o design system atual)
+- Mudar nomes de papéis no banco (`socio`/`diretor` continuam existindo — só o rótulo na UI vira "Diretor da Loja")
+- Multi-loja por usuário (1 usuário continua em 1 company_id)
