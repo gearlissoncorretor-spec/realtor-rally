@@ -12,6 +12,11 @@ import UserCard, { type UserData } from '@/components/gestao-usuarios/UserCard';
 import CreateUserDialog from '@/components/gestao-usuarios/CreateUserDialog';
 import EditUserDialog from '@/components/gestao-usuarios/EditUserDialog';
 import TransferTeamDialog from '@/components/gestao-usuarios/TransferTeamDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PendingApprovals } from '@/components/user-management/PendingApprovals';
+import { RolePermissionsManager } from '@/components/RolePermissionsManager';
+import { Clock, Shield } from 'lucide-react';
+
 
 const GestaoUsuarios = () => {
   const { user, profile, isAdmin, isDiretor, isGerente, isSocio } = useAuth();
@@ -280,10 +285,11 @@ const GestaoUsuarios = () => {
   const allowedRoles = isAdmin()
     ? ['admin', 'socio', 'diretor', 'gerente', 'corretor']
     : isDiretor()
-      ? ['gerente', 'corretor']
+      ? ['diretor', 'gerente', 'corretor']
       : isGerente()
         ? ['corretor']
         : [];
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -309,45 +315,78 @@ const GestaoUsuarios = () => {
             )}
           </div>
 
-          <UserFilters
-            search={search}
-            onSearchChange={setSearch}
-            roleFilter={roleFilter}
-            onRoleFilterChange={setRoleFilter}
-            teamFilter={teamFilter}
-            onTeamFilterChange={setTeamFilter}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            teams={teams}
-          />
+          <Tabs defaultValue="lista" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="lista" className="flex items-center gap-2">
+                <Users className="h-4 w-4" /> Lista
+              </TabsTrigger>
+              {canManage && (
+                <TabsTrigger value="pendencias" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" /> Pendências
+                </TabsTrigger>
+              )}
+              {(isAdmin() || isDiretor()) && (
+                <TabsTrigger value="permissoes" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" /> Permissões
+                </TabsTrigger>
+              )}
+            </TabsList>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-16">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">Nenhum usuário encontrado</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredUsers.map((u) => (
-                <UserCard
-                  key={u.id}
-                  user={u}
-                  isCurrentUser={u.id === user?.id}
-                  canManage={canManage || (isGerente() && u.role === 'corretor')}
-                  isAdmin={isAdmin()}
-                  onEdit={(selectedUser) => { setEditUser(selectedUser); setEditOpen(true); }}
-                  onResetPassword={(selectedUser) => { setResetUser(selectedUser); setResetOpen(true); }}
-                  onToggleStatus={handleToggleStatus}
-                  onDelete={(selectedUser) => { setDeleteUser(selectedUser); setDeleteOpen(true); }}
-                  onTransferTeam={(selectedUser) => { setTransferUser(selectedUser); setTransferOpen(true); }}
-                />
-              ))}
-            </div>
-          )}
+            <TabsContent value="lista" className="space-y-4 mt-6">
+              <UserFilters
+                search={search}
+                onSearchChange={setSearch}
+                roleFilter={roleFilter}
+                onRoleFilterChange={setRoleFilter}
+                teamFilter={teamFilter}
+                onTeamFilterChange={setTeamFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                teams={teams}
+              />
+
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="text-center py-16">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">Nenhum usuário encontrado</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredUsers.map((u) => (
+                    <UserCard
+                      key={u.id}
+                      user={u}
+                      isCurrentUser={u.id === user?.id}
+                      canManage={canManage || (isGerente() && u.role === 'corretor')}
+                      isAdmin={isAdmin()}
+                      onEdit={(selectedUser) => { setEditUser(selectedUser); setEditOpen(true); }}
+                      onResetPassword={(selectedUser) => { setResetUser(selectedUser); setResetOpen(true); }}
+                      onToggleStatus={handleToggleStatus}
+                      onDelete={(selectedUser) => { setDeleteUser(selectedUser); setDeleteOpen(true); }}
+                      onTransferTeam={(selectedUser) => { setTransferUser(selectedUser); setTransferOpen(true); }}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {canManage && (
+              <TabsContent value="pendencias" className="mt-6">
+                <PendingApprovals onApprovalChange={() => fetchData(true)} />
+              </TabsContent>
+            )}
+
+            {(isAdmin() || isDiretor()) && (
+              <TabsContent value="permissoes" className="mt-6">
+                <RolePermissionsManager />
+              </TabsContent>
+            )}
+          </Tabs>
+
         </div>
       </div>
 
