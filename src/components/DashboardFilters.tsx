@@ -68,161 +68,102 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
                           filters.year !== 'all';
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Filter className="w-5 h-5" />
-          Filtros de Período
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className={hideTeamFilter 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-        }>
-          {/* Team Filter - Only show for directors */}
+    <Card className="mb-4">
+      <CardContent className="p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground pr-1">
+            <Filter className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Filtros</span>
+          </div>
+
           {!hideTeamFilter && (
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-sm font-medium">
-                <Users className="w-4 h-4" />
-                Equipe
-              </Label>
-              <Select 
-                value={filters.teamId} 
-                onValueChange={(value) => handleFilterChange('teamId', value)}
-                disabled={teamsLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas as equipes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as equipes</SelectItem>
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select
+              value={filters.teamId}
+              onValueChange={(value) => handleFilterChange('teamId', value)}
+              disabled={teamsLoading}
+            >
+              <SelectTrigger className="h-9 w-auto min-w-[140px] text-sm">
+                <Users className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                <SelectValue placeholder="Equipe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as equipes</SelectItem>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
 
-          {/* Broker Filter */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <User className="w-4 h-4" />
-              Corretor
-            </Label>
-            <Select 
-              value={filters.brokerId} 
-              onValueChange={(value) => handleFilterChange('brokerId', value)}
-              disabled={brokersLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os corretores" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os corretores</SelectItem>
-                {brokers.map((broker) => (
-                  <SelectItem key={broker.id} value={broker.id}>
-                    {broker.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select
+            value={filters.brokerId}
+            onValueChange={(value) => handleFilterChange('brokerId', value)}
+            disabled={brokersLoading}
+          >
+            <SelectTrigger className="h-9 w-auto min-w-[150px] text-sm">
+              <User className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Corretor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os corretores</SelectItem>
+              {brokers.map((broker) => (
+                <SelectItem key={broker.id} value={broker.id}>
+                  {broker.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          {/* Month Filter */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <Calendar className="w-4 h-4" />
-              Mês
-            </Label>
-            <Select 
-              value={filters.month} 
-              onValueChange={(value) => handleFilterChange('month', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os meses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os meses</SelectItem>
-                {months.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select
+            value={filters.month}
+            onValueChange={(value) => handleFilterChange('month', value)}
+          >
+            <SelectTrigger className="h-9 w-auto min-w-[120px] text-sm">
+              <Calendar className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Mês" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os meses</SelectItem>
+              {months.map((month) => (
+                <SelectItem key={month.value} value={month.value}>
+                  {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          {/* Year Filter */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-sm font-medium">
-              <Calendar className="w-4 h-4" />
-              Ano
-            </Label>
-            <Select 
-              value={filters.year} 
-              onValueChange={(value) => handleFilterChange('year', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Todos os anos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os anos</SelectItem>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select
+            value={filters.year}
+            onValueChange={(value) => handleFilterChange('year', value)}
+          >
+            <SelectTrigger className="h-9 w-auto min-w-[100px] text-sm">
+              <Calendar className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="Ano" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os anos</SelectItem>
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          {/* Clear Filters Button */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium opacity-0">Limpar</Label>
-            <Button 
-              variant="outline" 
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleClearFilters}
-              disabled={!hasActiveFilters}
-              className="w-full"
+              className="h-9 px-2 text-xs"
             >
-              <RotateCcw className="w-4 h-4 mr-2" />
+              <RotateCcw className="w-3.5 h-3.5 mr-1" />
               Limpar
             </Button>
-          </div>
+          )}
         </div>
-
-        {/* Active Filters Summary */}
-        {hasActiveFilters && (
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Filtros ativos:</span>
-              {!hideTeamFilter && filters.teamId !== 'all' && (
-                <span className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs">
-                  Equipe: {teams.find(t => t.id === filters.teamId)?.name}
-                </span>
-              )}
-              {filters.brokerId !== 'all' && (
-                <span className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs">
-                  Corretor: {brokers.find(b => b.id === filters.brokerId)?.name}
-                </span>
-              )}
-              {filters.month !== 'all' && (
-                <span className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs">
-                  Mês: {months.find(m => m.value === filters.month)?.label}
-                </span>
-              )}
-              {filters.year !== 'all' && (
-                <span className="bg-primary/10 text-primary px-2 py-1 rounded-md text-xs">
-                  Ano: {filters.year}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
