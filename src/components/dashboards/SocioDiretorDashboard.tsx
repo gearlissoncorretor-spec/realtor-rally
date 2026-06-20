@@ -71,7 +71,7 @@ const SocioDiretorDashboard = () => {
   // Filtered sales
   const filteredSales = useMemo(() => {
     return (sales || []).filter(sale => {
-      if (sale.status === 'distrato') return false;
+      if (sale.status === 'distrato' || sale.status === 'cancelada') return false;
       // Para o VGV de vendas principal, ignoramos captações
       if (sale.tipo === 'captacao' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
 
@@ -105,7 +105,7 @@ const SocioDiretorDashboard = () => {
     
     // VGV de Captação calculado separadamente
     const totalVGVCaptacao = (sales || []).filter(s => {
-      if (s.status === 'distrato') return false;
+      if (s.status === 'distrato' || s.status === 'cancelada') return false;
       
       // Vendas de lançamento NÃO entram como captação
       const isLancamento = s.sale_type === 'lancamento' || (s as any).estilo?.toLowerCase() === 'lancamento';
@@ -143,7 +143,7 @@ const SocioDiretorDashboard = () => {
     return (agencies || []).map(agency => {
       const agencySales = (sales || []).filter(s => 
         s.agency_id === agency.id && 
-        s.status !== 'distrato' &&
+        s.status !== 'distrato' && s.status !== 'cancelada' &&
         (!filters.year || filters.year === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)) &&
         (!filters.month || filters.month === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === Number(filters.month))
       );
@@ -173,7 +173,7 @@ const SocioDiretorDashboard = () => {
       const teamBrokers = brokers.filter(b => b.team_id === team.id);
       const teamSales = (sales || []).filter(s => 
         teamBrokers.some(b => b.id === s.broker_id) && 
-        s.status !== 'distrato' &&
+        s.status !== 'distrato' && s.status !== 'cancelada' &&
         (!filters.year || filters.year === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)) &&
         (!filters.month || filters.month === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === Number(filters.month))
       );
@@ -202,7 +202,7 @@ const SocioDiretorDashboard = () => {
     return (brokers || []).map(broker => {
       const brokerSales = (sales || []).filter(s => 
         s.broker_id === broker.id && 
-        s.status !== 'distrato' &&
+        s.status !== 'distrato' && s.status !== 'cancelada' &&
         (!filters.year || filters.year === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)) &&
         (!filters.month || filters.month === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === Number(filters.month))
       );
@@ -224,7 +224,7 @@ const SocioDiretorDashboard = () => {
   const chartData = useMemo(() => {
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const currentYearSales = (sales || []).filter(s => 
-      s.status !== 'distrato' && 
+      s.status !== 'distrato' && s.status !== 'cancelada' && 
       (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)
     );
 
