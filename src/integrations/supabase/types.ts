@@ -1163,6 +1163,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cost_centers: {
+        Row: {
+          active: boolean
+          agency_id: string | null
+          color: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          agency_id?: string | null
+          color?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          agency_id?: string | null
+          color?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       facebook_connections: {
         Row: {
           access_token: string
@@ -1353,48 +1392,69 @@ export type Database = {
       financial_records: {
         Row: {
           agency_id: string | null
+          attachments: Json
           category: string
           commission_id: string | null
           company_id: string
+          cost_center_id: string | null
           created_at: string
           description: string
           due_date: string
           id: string
           observations: string | null
+          paid_date: string | null
+          party_document: string | null
+          party_name: string | null
           payment_method: string | null
+          recurring: boolean
           status: string
+          type: string
           updated_at: string
           user_id: string
           value: number
         }
         Insert: {
           agency_id?: string | null
+          attachments?: Json
           category: string
           commission_id?: string | null
           company_id: string
+          cost_center_id?: string | null
           created_at?: string
           description: string
           due_date: string
           id?: string
           observations?: string | null
+          paid_date?: string | null
+          party_document?: string | null
+          party_name?: string | null
           payment_method?: string | null
+          recurring?: boolean
           status?: string
+          type?: string
           updated_at?: string
           user_id: string
           value: number
         }
         Update: {
           agency_id?: string | null
+          attachments?: Json
           category?: string
           commission_id?: string | null
           company_id?: string
+          cost_center_id?: string | null
           created_at?: string
           description?: string
           due_date?: string
           id?: string
           observations?: string | null
+          paid_date?: string | null
+          party_document?: string | null
+          party_name?: string | null
           payment_method?: string | null
+          recurring?: boolean
           status?: string
+          type?: string
           updated_at?: string
           user_id?: string
           value?: number
@@ -1405,6 +1465,13 @@ export type Database = {
             columns: ["commission_id"]
             isOneToOne: false
             referencedRelation: "commissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_records_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
             referencedColumns: ["id"]
           },
         ]
