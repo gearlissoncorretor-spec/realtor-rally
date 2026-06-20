@@ -6,67 +6,70 @@
 
 @layer base {
   :root {
-    /* Light Mode */
+    /* Light Mode — Modernist Precision */
+    /* Background #F8FAFC, Surface #FFFFFF, Text #111827, Muted #64748B, Border #E2E8F0, Primary #2563EB */
     --background: 210 40% 98%;
-    --foreground: 222 47% 8%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 8%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 8%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary - Slate Blue #3b82f6 */
-    --primary: 217 91% 60%;
+    /* Primary - #2563EB Blue Trust */
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
+    --primary-glow: 217 91% 60%;
 
     --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 8%;
+    --secondary-foreground: 222 47% 11%;
 
     --muted: 210 40% 96%;
-    --muted-foreground: 215 20% 38%;
+    --muted-foreground: 215 16% 47%; /* #64748B */
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 8%;
+    --accent: 214 32% 91%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84% 60%; /* #EF4444 */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;
+    --border: 214 32% 91%; /* #E2E8F0 */
     --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.75rem;
+    --radius: 1rem; /* 16px cards */
 
-    /* Success & Status */
-    --success: 142 71% 45%;
+    /* Success / Warning / Info */
+    --success: 142 71% 45%; /* #22C55E */
     --success-foreground: 210 40% 98%;
-    --warning: 38 92% 50%;
+    --warning: 38 92% 50%;  /* #F59E0B */
     --warning-foreground: 210 40% 98%;
-    --info: 199 89% 48%;
+    --info: 217 91% 60%;
     --info-foreground: 210 40% 98%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    /* Gradients (subtle) */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 60%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 48%));
+    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 60%));
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1);
-    --shadow-glow: 0 0 20px hsl(217 91% 60% / 0.3);
+    /* Shadows — soft, multi-layered premium */
+    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.04), 0 8px 30px rgba(15, 23, 42, 0.08);
+    --shadow-xl: 0 12px 40px rgba(15, 23, 42, 0.12);
+    --shadow-glow: 0 8px 24px rgba(37, 99, 235, 0.18);
 
-    /* Sidebar Light */
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 60%;
+    /* Sidebar — Dark #0F172A */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 215 20% 65%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 221 83% 53%;
   }
 
   .dark {
@@ -125,8 +128,13 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.01em;
   }
 
   /* Accessibility improvements */

@@ -85,12 +85,22 @@ export default {
         'sm': 'var(--shadow-sm)',
         'md': 'var(--shadow-md)',
         'lg': 'var(--shadow-lg)',
+        'xl': 'var(--shadow-xl)',
         'glow': 'var(--shadow-glow)',
+        'premium': '0 4px 20px rgba(0,0,0,0.04), 0 8px 30px rgba(15,23,42,0.08)',
+        'premium-hover': '0 8px 28px rgba(0,0,0,0.06), 0 16px 48px rgba(15,23,42,0.12)',
+      },
+      fontFamily: {
+        sans: ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Sora', 'Manrope', 'system-ui', 'sans-serif'],
+        heading: ['Sora', 'Manrope', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        lg: "12px",
-        md: "10px",
-        sm: "8px",
+        '2xl': '16px',
+        xl: '14px',
+        lg: '12px',
+        md: '10px',
+        sm: '8px',
       },
       keyframes: {
         "accordion-down": {

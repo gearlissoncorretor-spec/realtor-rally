@@ -16,7 +16,7 @@ const KPICard = ({ title, value, change, icon, trend = "neutral", className, var
   const getTrendColor = () => {
     switch (trend) {
       case "up":
-        return "text-emerald-500 dark:text-emerald-400";
+        return "text-emerald-600 dark:text-emerald-400";
       case "down":
         return "text-destructive";
       default:
@@ -27,46 +27,55 @@ const KPICard = ({ title, value, change, icon, trend = "neutral", className, var
   const getTrendBg = () => {
     switch (trend) {
       case "up":
-        return "bg-emerald-500/10";
+        return "bg-emerald-50 dark:bg-emerald-500/10";
       case "down":
-        return "bg-destructive/10";
+        return "bg-red-50 dark:bg-destructive/10";
       default:
         return "bg-muted/50";
     }
   };
 
+  const iconWrapBg =
+    trend === "up"
+      ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10"
+      : trend === "down"
+      ? "bg-red-50 text-red-600 dark:bg-destructive/10"
+      : "bg-primary/10 text-primary";
+
   if (variant === "hero") {
     return (
-      <Card className={cn(
-        "relative overflow-hidden p-6 bg-card border-primary/20 hover:border-primary/40 transition-all duration-500 group shadow-md hover:shadow-xl hover:-translate-y-1",
-        className
-      )}>
-        {/* Gradient accent with glow */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/70 to-info opacity-80" />
-        <div className="absolute top-0 left-0 right-0 h-4 bg-primary/5 blur-xl group-hover:bg-primary/10 transition-colors" />
-        
-        {/* Subtle animated background glow */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-        
+      <Card
+        className={cn(
+          "relative overflow-hidden p-6 group",
+          className
+        )}
+      >
         <div className="flex items-start justify-between gap-4 relative">
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2 opacity-80">
+            <p className="text-sm font-medium text-muted-foreground mb-3">
               {title}
             </p>
-            <p className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight truncate tabular-nums">
-              {value}
-            </p>
-            {change !== undefined && (
-              <div className={cn("inline-flex items-center gap-1.5 mt-4 px-2.5 py-1 rounded-full text-[13px] font-bold", getTrendBg(), getTrendColor())}>
-                {trend === "up" && <TrendingUp className="w-4 h-4" />}
-                {trend === "down" && <TrendingDown className="w-4 h-4" />}
-                <span>{change > 0 ? "+" : ""}{change}%</span>
-                <span className="text-[11px] font-normal text-muted-foreground/80 ml-1">vs anterior</span>
-              </div>
-            )}
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="font-display text-[34px] lg:text-[40px] font-bold text-foreground tracking-tight leading-none tabular-nums">
+                {value}
+              </span>
+              {change !== undefined && (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold",
+                    getTrendBg(),
+                    getTrendColor()
+                  )}
+                >
+                  {trend === "up" && <TrendingUp className="w-3 h-3" />}
+                  {trend === "down" && <TrendingDown className="w-3 h-3" />}
+                  <span>{change > 0 ? "+" : ""}{change}%</span>
+                </span>
+              )}
+            </div>
           </div>
-          <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-sm border border-primary/10">
-            {icon}
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", iconWrapBg)}>
+            <span className="[&_svg]:w-5 [&_svg]:h-5">{icon}</span>
           </div>
         </div>
       </Card>
@@ -74,32 +83,32 @@ const KPICard = ({ title, value, change, icon, trend = "neutral", className, var
   }
 
   return (
-    <Card className={cn(
-      "relative overflow-hidden p-5 bg-card border-border/50 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-500 group",
-      className
-    )}>
-      {/* Subtle top accent line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/60 via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-2">
-            {title}
-          </p>
-          <p className="text-2xl font-bold text-foreground tracking-tight truncate tabular-nums">
-            {value}
-          </p>
-          {change !== undefined && (
-            <div className={cn("inline-flex items-center gap-1 mt-3 px-2 py-0.5 rounded-full text-[11px] font-bold", getTrendBg(), getTrendColor())}>
-              {trend === "up" && <TrendingUp className="w-3 h-3" />}
-              {trend === "down" && <TrendingDown className="w-3 h-3" />}
-              <span>{change > 0 ? "+" : ""}{change}%</span>
-            </div>
-          )}
+    <Card className={cn("relative overflow-hidden p-5 group", className)}>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <p className="text-sm font-medium text-muted-foreground truncate">
+          {title}
+        </p>
+        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", iconWrapBg)}>
+          <span className="[&_svg]:w-4 [&_svg]:h-4">{icon}</span>
         </div>
-        <div className="w-12 h-12 bg-primary/[0.08] rounded-xl flex items-center justify-center shrink-0 group-hover:bg-primary/15 group-hover:scale-105 transition-all duration-300">
-          {icon}
-        </div>
+      </div>
+      <div className="flex items-baseline gap-2 flex-wrap">
+        <span className="font-display text-3xl font-bold text-foreground tracking-tight leading-none tabular-nums">
+          {value}
+        </span>
+        {change !== undefined && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold",
+              getTrendBg(),
+              getTrendColor()
+            )}
+          >
+            {trend === "up" && <TrendingUp className="w-3 h-3" />}
+            {trend === "down" && <TrendingDown className="w-3 h-3" />}
+            <span>{change > 0 ? "+" : ""}{change}%</span>
+          </span>
+        )}
       </div>
     </Card>
   );
