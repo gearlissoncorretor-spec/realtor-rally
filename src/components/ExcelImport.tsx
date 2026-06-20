@@ -89,10 +89,42 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
   const parseNumericValue = (value: any): number => {
     if (value === null || value === undefined || value === '') return 0;
     if (typeof value === 'number') return value;
-    
-    const cleaned = String(value).replace(/[^\d,.-]/g, '').replace(',', '.');
-    const parsed = parseFloat(cleaned);
+
+    // Brazilian format: "R$ 1.234.567,89" -> 1234567.89
+    let str = String(value).replace(/[^\d,.-]/g, '');
+    if (str.includes(',')) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    }
+    const parsed = parseFloat(str);
     return isNaN(parsed) ? 0 : parsed;
+  };
+
+  const VALID_ORIGEM = ['Marketplace','Tráfego Pago (Patrocinado)','Ação de Rua','Lista Imobiliária','Lista Pessoal','Anúncio Geral','Indicação','Outro'];
+  const mapOrigem = (value: any): string => {
+    if (!value) return 'Outro';
+    const v = String(value).trim();
+    const match = VALID_ORIGEM.find(o => o.toLowerCase() === v.toLowerCase());
+    if (match) return match;
+    const low = v.toLowerCase();
+    if (low.includes('market')) return 'Marketplace';
+    if (low.includes('tráfego') || low.includes('trafego') || low.includes('pago') || low.includes('ads')) return 'Tráfego Pago (Patrocinado)';
+    if (low.includes('rua')) return 'Ação de Rua';
+    if (low.includes('imobili')) return 'Lista Imobiliária';
+    if (low.includes('pessoal')) return 'Lista Pessoal';
+    if (low.includes('anúncio') || low.includes('anuncio')) return 'Anúncio Geral';
+    if (low.includes('indica')) return 'Indicação';
+    return 'Outro';
+  };
+
+  const formatOptionalDate = (dateValue: any): string | null => {
+    if (!dateValue) return null;
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) return dateValue;
+    if (typeof dateValue === 'number') {
+      const d = new Date((dateValue - 25569) * 86400 * 1000);
+      return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+    }
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
   };
 
   const mapPropertyType = (tipo: any): 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural' => {
@@ -159,7 +191,7 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
             const vgv = parseNumericValue(getVal(['VGV', 'vgv', 'VALOR', 'Valor', 'PREÇO', 'Preço']));
             const vgc = parseNumericValue(getVal(['VGC', 'vgc', 'COMISSÃO', 'Comissão', 'COMISSAO', 'Comissao']));
 
-            const saleData = {
+            const saleData: any = {
               tipo: 'venda',
               client_name: String(clientName),
               client_phone: null,
@@ -169,13 +201,13 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               property_value: vgv,
               vgv: vgv,
               vgc: vgc,
-              commission_value: vgc * 0.1,
+              commission_value: vgc > 0 ? vgc : null,
               broker_id: broker?.id || null,
               sale_date: formatDateToISO(getVal(['DATA COMPETÊNCIA', 'data_competencia', 'DATA COMPETENCIA', 'DATA', 'Data', 'DATA_COMPETENCIA'])),
-              contract_date: formatDateToISO(getVal(['DATA VENCIMENTO', 'data_vencimento', 'DATA VENCIMENTO', 'VENCIMENTO', 'Vencimento', 'DATA_VENCIMENTO'])),
+              contract_date: formatOptionalDate(getVal(['DATA VENCIMENTO', 'data_vencimento', 'VENCIMENTO', 'Vencimento', 'DATA_VENCIMENTO'])),
               status: mapStatus(getVal(['STATUS', 'status', 'SITUAÇÃO', 'Situacao'])),
-              notes: `GID: ${getVal(['GID', 'gid']) || ''} | Importado automaticamente`,
-              origem: String(getVal(['ORIGEM', 'origem', 'Origem', 'FONTE']) || 'Importado'),
+              notes: `GID: ${getVal(['GID', 'gid']) || ''} | Importado via planilha`,
+              origem: mapOrigem(getVal(['ORIGEM', 'origem', 'Origem', 'FONTE'])),
               estilo: String(getVal(['ESTILO', 'estilo', 'Estilo']) || ''),
               produto: produtoStr,
               vendedor: String(vendedorName),
@@ -184,7 +216,6 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               pagos: parseNumericValue(getVal(['PAGOS', 'pagos', 'Pagos'])),
               ano: Number(getVal(['ANO', 'ano', 'Ano']) || new Date().getFullYear()),
               mes: Number(getVal(['MÊS', 'MES', 'mes', 'Mês']) || new Date().getMonth() + 1),
-              latitude: String(getVal(['LATITUDE', 'latitude', 'Latitude']) || ''),
               sale_type: 'revenda' as const,
               visibilidade: 'venda'
             };
