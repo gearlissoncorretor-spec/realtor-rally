@@ -191,7 +191,7 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
             const vgv = parseNumericValue(getVal(['VGV', 'vgv', 'VALOR', 'Valor', 'PREÇO', 'Preço']));
             const vgc = parseNumericValue(getVal(['VGC', 'vgc', 'COMISSÃO', 'Comissão', 'COMISSAO', 'Comissao']));
 
-            const saleData = {
+            const saleData: any = {
               tipo: 'venda',
               client_name: String(clientName),
               client_phone: null,
@@ -201,13 +201,13 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               property_value: vgv,
               vgv: vgv,
               vgc: vgc,
-              commission_value: vgc * 0.1,
+              commission_value: vgc > 0 ? vgc : null,
               broker_id: broker?.id || null,
               sale_date: formatDateToISO(getVal(['DATA COMPETÊNCIA', 'data_competencia', 'DATA COMPETENCIA', 'DATA', 'Data', 'DATA_COMPETENCIA'])),
-              contract_date: formatDateToISO(getVal(['DATA VENCIMENTO', 'data_vencimento', 'DATA VENCIMENTO', 'VENCIMENTO', 'Vencimento', 'DATA_VENCIMENTO'])),
+              contract_date: formatOptionalDate(getVal(['DATA VENCIMENTO', 'data_vencimento', 'VENCIMENTO', 'Vencimento', 'DATA_VENCIMENTO'])),
               status: mapStatus(getVal(['STATUS', 'status', 'SITUAÇÃO', 'Situacao'])),
-              notes: `GID: ${getVal(['GID', 'gid']) || ''} | Importado automaticamente`,
-              origem: String(getVal(['ORIGEM', 'origem', 'Origem', 'FONTE']) || 'Importado'),
+              notes: `GID: ${getVal(['GID', 'gid']) || ''} | Importado via planilha`,
+              origem: mapOrigem(getVal(['ORIGEM', 'origem', 'Origem', 'FONTE'])),
               estilo: String(getVal(['ESTILO', 'estilo', 'Estilo']) || ''),
               produto: produtoStr,
               vendedor: String(vendedorName),
@@ -216,7 +216,6 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
               pagos: parseNumericValue(getVal(['PAGOS', 'pagos', 'Pagos'])),
               ano: Number(getVal(['ANO', 'ano', 'Ano']) || new Date().getFullYear()),
               mes: Number(getVal(['MÊS', 'MES', 'mes', 'Mês']) || new Date().getMonth() + 1),
-              latitude: String(getVal(['LATITUDE', 'latitude', 'Latitude']) || ''),
               sale_type: 'revenda' as const,
               visibilidade: 'venda'
             };
