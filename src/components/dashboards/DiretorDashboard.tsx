@@ -24,6 +24,7 @@ import { useTeams } from '@/hooks/useTeams';
 import { useNegotiations } from '@/hooks/useNegotiations';
 import { useFollowUps } from '@/hooks/useFollowUps';
 import {
+import { parseLocalDate } from '@/utils/dateParsing';
   PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
   LineChart, Line, AreaChart, Area
@@ -117,7 +118,7 @@ const DiretorDashboard = () => {
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
-      const d = new Date(rawDate);
+      const d = (parseLocalDate(rawDate) || new Date(NaN));
       if (isNaN(d.getTime())) return false;
 
       if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
@@ -144,7 +145,7 @@ const DiretorDashboard = () => {
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
-      const d = new Date(rawDate);
+      const d = (parseLocalDate(rawDate) || new Date(NaN));
       if (isNaN(d.getTime())) return false;
       return d.getFullYear() === prevYear && d.getMonth() + 1 === prevMonth;
     });
@@ -162,7 +163,7 @@ const DiretorDashboard = () => {
 
       const rawDate = s.sale_date || s.created_at;
       if (!rawDate) return false;
-      const d = new Date(rawDate);
+      const d = (parseLocalDate(rawDate) || new Date(NaN));
       if (isNaN(d.getTime())) return false;
       if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
       if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
@@ -227,12 +228,12 @@ const DiretorDashboard = () => {
 
     // Week-over-week conversion trend
     const thisWeekSales = filteredSales.filter(s => {
-      const d = new Date(s.sale_date || s.created_at || '');
+      const d = (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN));
       const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
       return d >= weekAgo;
     });
     const lastWeekSales = filteredSales.filter(s => {
-      const d = new Date(s.sale_date || s.created_at || '');
+      const d = (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN));
       const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
       const twoWeeksAgo = new Date(); twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
       return d >= twoWeeksAgo && d < weekAgo;
@@ -352,7 +353,7 @@ const DiretorDashboard = () => {
         if (sale.tipo === 'captacao' || sale.status === 'distrato' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
         const rawDate = sale.sale_date || sale.created_at;
         if (!rawDate) return false;
-        const d = new Date(rawDate);
+        const d = (parseLocalDate(rawDate) || new Date(NaN));
         return d.getFullYear() === year && d.getMonth() === i;
       });
       const vgv = monthSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);

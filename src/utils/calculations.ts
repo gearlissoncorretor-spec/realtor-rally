@@ -1,5 +1,6 @@
 import type { Broker, Sale } from '@/contexts/DataContext';
 import { startOfMonth, subMonths, endOfMonth } from 'date-fns';
+import { parseLocalDate } from '@/utils/dateParsing';
 
 export const calculateBrokerStats = (broker: Broker, sales: Sale[]) => {
   const brokerSales = sales.filter(sale => sale.broker_id === broker.id);
@@ -31,7 +32,7 @@ export const calculateMonthlyData = (sales: Sale[], monthsBack: number = 12) => 
   // Aggregate sales data (exclui distrato/cancelada)
   sales.forEach(sale => {
     if (sale.status === 'distrato' || sale.status === 'cancelada') return;
-    const saleDate = new Date(sale.sale_date || sale.created_at || '');
+    const saleDate = (parseLocalDate(sale.sale_date || sale.created_at) || new Date(NaN));
     const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
 
     if (monthlyData[monthKey]) {
@@ -63,7 +64,7 @@ export const calculateKPIs = (brokers: Broker[], sales: Sale[]) => {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   const thisMonthSales = activeSales.filter(sale => {
-    const saleDate = new Date(sale.sale_date || sale.created_at || '');
+    const saleDate = (parseLocalDate(sale.sale_date || sale.created_at) || new Date(NaN));
     return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
   });
 
@@ -111,7 +112,7 @@ export const calculateGrowth = (brokerId: string, sales: Sale[], monthsBack: num
   const previousEnd = endOfMonth(subMonths(now, monthsBack + 1));
 
   const currentSales = sales.filter(sale => {
-    const saleDate = new Date(sale.sale_date || sale.created_at || '');
+    const saleDate = (parseLocalDate(sale.sale_date || sale.created_at) || new Date(NaN));
     return sale.broker_id === brokerId && 
            saleDate >= currentStart && 
            saleDate <= currentEnd &&
@@ -119,7 +120,7 @@ export const calculateGrowth = (brokerId: string, sales: Sale[], monthsBack: num
   });
 
   const previousSales = sales.filter(sale => {
-    const saleDate = new Date(sale.sale_date || sale.created_at || '');
+    const saleDate = (parseLocalDate(sale.sale_date || sale.created_at) || new Date(NaN));
     return sale.broker_id === brokerId && 
            saleDate >= previousStart && 
            saleDate <= previousEnd &&
