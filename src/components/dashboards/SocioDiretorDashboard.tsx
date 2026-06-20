@@ -26,6 +26,7 @@ import {
   ResponsiveContainer, Tooltip, LineChart, Line, AreaChart, Area,
   Cell, PieChart as RechartsPie, Pie
 } from 'recharts';
+import { parseLocalDate } from '@/utils/dateParsing';
 
 interface FiltersState {
   agencyId: string;
@@ -76,8 +77,8 @@ const SocioDiretorDashboard = () => {
 
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
-      const d = new Date(rawDate);
-      if (isNaN(d.getTime())) return false;
+      const d = parseLocalDate(rawDate);
+      if (!d || isNaN(d.getTime())) return false;
 
       if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
       if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
@@ -112,8 +113,8 @@ const SocioDiretorDashboard = () => {
 
       const rawDate = s.sale_date || s.created_at;
       if (!rawDate) return false;
-      const d = new Date(rawDate);
-      if (isNaN(d.getTime())) return false;
+      const d = parseLocalDate(rawDate);
+      if (!d || isNaN(d.getTime())) return false;
       
       if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
       if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
