@@ -3,19 +3,15 @@ import { cn } from "@/lib/utils";
 
 interface AutoFitTextProps {
   children: React.ReactNode;
-  /** Tamanho máximo da fonte em px */
   max?: number;
-  /** Tamanho mínimo da fonte em px (não reduz abaixo disso) */
   min?: number;
   className?: string;
   style?: CSSProperties;
-  as?: keyof JSX.IntrinsicElements;
 }
 
 /**
  * Texto que reduz automaticamente o font-size para caber 100% no container,
- * sem nunca cortar (sem ellipsis, sem overflow). Recalcula em resize do pai
- * e quando o conteúdo muda.
+ * sem cortar (sem ellipsis, sem overflow). Recalcula em resize do pai.
  */
 const AutoFitText = ({
   children,
@@ -23,10 +19,9 @@ const AutoFitText = ({
   min = 16,
   className,
   style,
-  as: Tag = "span",
 }: AutoFitTextProps) => {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
   const [size, setSize] = useState(max);
 
   useLayoutEffect(() => {
@@ -40,7 +35,6 @@ const AutoFitText = ({
       let lo = min;
       let hi = max;
       let best = min;
-      // busca binária do maior tamanho que cabe
       for (let i = 0; i < 8; i++) {
         const mid = (lo + hi) / 2;
         node.style.fontSize = `${mid}px`;
@@ -63,13 +57,13 @@ const AutoFitText = ({
 
   return (
     <div ref={wrapRef} className="w-full min-w-0">
-      <Tag
-        ref={textRef as React.RefObject<HTMLElement>}
+      <span
+        ref={textRef}
         className={cn("inline-block whitespace-nowrap leading-none", className)}
         style={{ fontSize: `${size}px`, ...style }}
       >
         {children}
-      </Tag>
+      </span>
     </div>
   );
 };
