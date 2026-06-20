@@ -115,7 +115,7 @@ const DiretorDashboard = () => {
   const filteredSales = useMemo(() => {
     return (sales || []).filter(sale => {
       if (sale.tipo === 'captacao' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
-      if (sale.status === 'distrato') return false;
+      if (sale.status === 'distrato' || sale.status === 'cancelada') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
       const d = (parseLocalDate(rawDate) || new Date(NaN));
@@ -142,7 +142,7 @@ const DiretorDashboard = () => {
 
     return (sales || []).filter(sale => {
       if (sale.tipo === 'captacao' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
-      if (sale.status === 'distrato') return false;
+      if (sale.status === 'distrato' || sale.status === 'cancelada') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
       const d = (parseLocalDate(rawDate) || new Date(NaN));
@@ -155,7 +155,7 @@ const DiretorDashboard = () => {
   const metrics = useMemo(() => {
     const totalVGV = filteredSales.reduce((s, sale) => s + Number(sale.vgv || 0), 0);
     const totalVGVCaptacao = (sales || []).filter(s => {
-      if (s.status === 'distrato') return false;
+      if (s.status === 'distrato' || s.status === 'cancelada') return false;
       
       // Vendas de lançamento NÃO entram como captação
       const isLancamento = s.sale_type === 'lancamento' || (s as any).estilo?.toLowerCase() === 'lancamento';
@@ -350,7 +350,7 @@ const DiretorDashboard = () => {
 
     return monthNames.map((name, i) => {
       const monthSales = (sales || []).filter(sale => {
-        if (sale.tipo === 'captacao' || sale.status === 'distrato' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
+        if (sale.tipo === 'captacao' || sale.status === 'distrato' || sale.status === 'cancelada' || (sale.tipo === 'venda' && sale.parceria_tipo === 'Agência')) return false;
         const rawDate = sale.sale_date || sale.created_at;
         if (!rawDate) return false;
         const d = (parseLocalDate(rawDate) || new Date(NaN));

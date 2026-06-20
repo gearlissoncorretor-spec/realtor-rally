@@ -50,7 +50,7 @@ const CorretorDashboard = () => {
   const currentYear = new Date().getFullYear();
 
   const brokerSales = useMemo(() =>
-    (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato' && s.tipo === 'venda' && s.parceria_tipo !== 'Agência'), [sales, brokerId]);
+    (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato' && s.status !== 'cancelada' && s.tipo === 'venda' && s.parceria_tipo !== 'Agência'), [sales, brokerId]);
   const monthSales = useMemo(() =>
     brokerSales.filter(s => {
       const d = (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN));
@@ -89,7 +89,7 @@ const CorretorDashboard = () => {
     return (agencies || []).map(agency => {
       const agencySales = (sales || []).filter(s => 
         s.agency_id === agency.id && 
-        s.status !== 'distrato' &&
+        s.status !== 'distrato' && s.status !== 'cancelada' &&
         s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === currentYear &&
         (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === currentMonth
@@ -118,7 +118,7 @@ const CorretorDashboard = () => {
       const teamBrokers = (brokers || []).filter(b => b.team_id === team.id);
       const teamSales = (sales || []).filter(s => 
         teamBrokers.some(b => b.id === s.broker_id) && 
-        s.status !== 'distrato' &&
+        s.status !== 'distrato' && s.status !== 'cancelada' &&
         s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === currentYear &&
         (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === currentMonth
@@ -144,7 +144,7 @@ const CorretorDashboard = () => {
     return (brokers || []).map(broker => {
       const bSales = (sales || []).filter(s => 
         s.broker_id === broker.id && 
-        s.status !== 'distrato' &&
+        s.status !== 'distrato' && s.status !== 'cancelada' &&
         s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
         (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === currentYear &&
         (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === currentMonth

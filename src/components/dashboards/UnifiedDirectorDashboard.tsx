@@ -65,7 +65,7 @@ const UnifiedDirectorDashboard = () => {
   // Logic to filter data based on global filters
   const filteredSales = useMemo(() => {
     return (sales || []).filter(sale => {
-      if (sale.status === 'distrato') return false;
+      if (sale.status === 'distrato' || sale.status === 'cancelada') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
       const saleDate = (parseLocalDate(rawDate) || new Date(NaN));
