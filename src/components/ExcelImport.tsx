@@ -89,10 +89,42 @@ const ExcelImport = ({ onImportComplete }: ExcelImportProps) => {
   const parseNumericValue = (value: any): number => {
     if (value === null || value === undefined || value === '') return 0;
     if (typeof value === 'number') return value;
-    
-    const cleaned = String(value).replace(/[^\d,.-]/g, '').replace(',', '.');
-    const parsed = parseFloat(cleaned);
+
+    // Brazilian format: "R$ 1.234.567,89" -> 1234567.89
+    let str = String(value).replace(/[^\d,.-]/g, '');
+    if (str.includes(',')) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    }
+    const parsed = parseFloat(str);
     return isNaN(parsed) ? 0 : parsed;
+  };
+
+  const VALID_ORIGEM = ['Marketplace','Tráfego Pago (Patrocinado)','Ação de Rua','Lista Imobiliária','Lista Pessoal','Anúncio Geral','Indicação','Outro'];
+  const mapOrigem = (value: any): string => {
+    if (!value) return 'Outro';
+    const v = String(value).trim();
+    const match = VALID_ORIGEM.find(o => o.toLowerCase() === v.toLowerCase());
+    if (match) return match;
+    const low = v.toLowerCase();
+    if (low.includes('market')) return 'Marketplace';
+    if (low.includes('tráfego') || low.includes('trafego') || low.includes('pago') || low.includes('ads')) return 'Tráfego Pago (Patrocinado)';
+    if (low.includes('rua')) return 'Ação de Rua';
+    if (low.includes('imobili')) return 'Lista Imobiliária';
+    if (low.includes('pessoal')) return 'Lista Pessoal';
+    if (low.includes('anúncio') || low.includes('anuncio')) return 'Anúncio Geral';
+    if (low.includes('indica')) return 'Indicação';
+    return 'Outro';
+  };
+
+  const formatOptionalDate = (dateValue: any): string | null => {
+    if (!dateValue) return null;
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) return dateValue;
+    if (typeof dateValue === 'number') {
+      const d = new Date((dateValue - 25569) * 86400 * 1000);
+      return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+    }
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
   };
 
   const mapPropertyType = (tipo: any): 'apartamento' | 'casa' | 'terreno' | 'comercial' | 'rural' => {
