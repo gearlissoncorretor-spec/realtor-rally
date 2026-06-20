@@ -48,26 +48,29 @@ export const calculateMonthlyData = (sales: Sale[], monthsBack: number = 12) => 
 };
 
 export const calculateKPIs = (brokers: Broker[], sales: Sale[]) => {
-  const totalVGV = sales.reduce((sum, sale) => sum + sale.vgv, 0);
-  const totalVGC = sales.reduce((sum, sale) => sum + sale.vgc, 0);
-  const totalRevenue = sales.reduce((sum, sale) => sum + sale.property_value, 0);
-  const totalSales = sales.length;
+  // Regra do projeto: Distrato e Cancelada NÃO entram em métricas/VGV
+  const activeSales = sales.filter(s => s.status !== 'distrato' && s.status !== 'cancelada');
+
+  const totalVGV = activeSales.reduce((sum, sale) => sum + Number(sale.vgv || 0), 0);
+  const totalVGC = activeSales.reduce((sum, sale) => sum + Number(sale.vgc || 0), 0);
+  const totalRevenue = activeSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
+  const totalSales = activeSales.length;
   const activeBrokers = brokers.filter(b => b.status === 'ativo').length;
   const confirmedSales = sales.filter(s => s.status === 'confirmada').length;
-  
+
   // This month data
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  const thisMonthSales = sales.filter(sale => {
+  const thisMonthSales = activeSales.filter(sale => {
     const saleDate = new Date(sale.sale_date || sale.created_at || '');
     return saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear;
   });
-  
-  const thisMonthVGV = thisMonthSales.reduce((sum, sale) => sum + sale.vgv, 0);
-  const thisMonthVGC = thisMonthSales.reduce((sum, sale) => sum + sale.vgc, 0);
-  const thisMonthRevenue = thisMonthSales.reduce((sum, sale) => sum + sale.property_value, 0);
-  
-  const conversionRate = totalSales > 0 ? (confirmedSales / totalSales) * 100 : 0;
+
+  const thisMonthVGV = thisMonthSales.reduce((sum, sale) => sum + Number(sale.vgv || 0), 0);
+  const thisMonthVGC = thisMonthSales.reduce((sum, sale) => sum + Number(sale.vgc || 0), 0);
+  const thisMonthRevenue = thisMonthSales.reduce((sum, sale) => sum + Number(sale.property_value || 0), 0);
+
+  const conversionRate = sales.length > 0 ? (confirmedSales / sales.length) * 100 : 0;
   
   return {
     totalVGV,
