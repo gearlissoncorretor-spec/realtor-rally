@@ -218,7 +218,7 @@ const DiretorDashboard = () => {
 
     const closeTimes = filteredSales.filter(s => s.sale_date && s.created_at).map(s => {
       const created = new Date(s.created_at!);
-      const sold = new Date(s.sale_date!);
+      const sold = (parseLocalDate(s.sale_date) || new Date(NaN));
       return Math.max(0, Math.round((sold.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)));
     }).filter(d => d >= 0 && d < 365);
     const avgCloseTime = closeTimes.length > 0 ? Math.round(closeTimes.reduce((a, b) => a + b, 0) / closeTimes.length) : 0;
