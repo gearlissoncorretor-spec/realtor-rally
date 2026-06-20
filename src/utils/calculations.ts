@@ -28,16 +28,17 @@ export const calculateMonthlyData = (sales: Sale[], monthsBack: number = 12) => 
     monthlyData[monthKey] = { vgv: 0, vgc: 0, sales: 0, revenue: 0 };
   }
   
-  // Aggregate sales data
+  // Aggregate sales data (exclui distrato/cancelada)
   sales.forEach(sale => {
+    if (sale.status === 'distrato' || sale.status === 'cancelada') return;
     const saleDate = new Date(sale.sale_date || sale.created_at || '');
     const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
-    
+
     if (monthlyData[monthKey]) {
-      monthlyData[monthKey].vgv += sale.vgv;
-      monthlyData[monthKey].vgc += sale.vgc;
+      monthlyData[monthKey].vgv += Number(sale.vgv || 0);
+      monthlyData[monthKey].vgc += Number(sale.vgc || 0);
       monthlyData[monthKey].sales += 1;
-      monthlyData[monthKey].revenue += sale.property_value;
+      monthlyData[monthKey].revenue += Number(sale.property_value || 0);
     }
   });
   
