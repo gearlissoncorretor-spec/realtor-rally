@@ -26,7 +26,7 @@ interface SalesMetricsCardsProps {
 }
 
 export const SalesMetricsCards = ({ sales, previousPeriodSales = [] }: SalesMetricsCardsProps) => {
-  const activeSales = sales.filter(s => s.status !== 'distrato');
+  const activeSales = sales.filter(s => s.status !== 'distrato' && s.status !== 'cancelada');
   
   const totalVGV = activeSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
   const totalVGVCaptacao = activeSales.reduce((sum, s) => {
