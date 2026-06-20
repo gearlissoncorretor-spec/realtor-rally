@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, TrendingDown, TrendingUp, Lightbulb, Phone, UserX, CalendarClock } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { parseLocalDate } from '@/utils/dateParsing';
 
 interface Broker {
   id: string;
@@ -59,7 +60,7 @@ export const SalesInsightsAlerts = ({
         return;
       }
       const lastSale = brokerSales.reduce((latest, s) => {
-        const d = new Date(s.sale_date || s.created_at || 0);
+        const d = (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN));
         return d > latest ? d : latest;
       }, new Date(0));
       const daysSince = differenceInDays(now, lastSale);
@@ -94,11 +95,11 @@ export const SalesInsightsAlerts = ({
 
     // Sales trend (last 30d vs previous 30d)
     const last30 = sales.filter(s => {
-      const d = new Date(s.sale_date || s.created_at || 0);
+      const d = (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN));
       return differenceInDays(now, d) <= 30;
     }).length;
     const prev30 = sales.filter(s => {
-      const d = new Date(s.sale_date || s.created_at || 0);
+      const d = (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN));
       const diff = differenceInDays(now, d);
       return diff > 30 && diff <= 60;
     }).length;

@@ -38,6 +38,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SalesInsightsAlerts } from "@/components/dashboards/SalesInsightsAlerts";
+import { parseLocalDate } from '@/utils/dateParsing';
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
@@ -67,7 +68,7 @@ const UnifiedDirectorDashboard = () => {
       if (sale.status === 'distrato') return false;
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
-      const saleDate = new Date(rawDate);
+      const saleDate = (parseLocalDate(rawDate) || new Date(NaN));
       
       if (filters.year !== 0 && saleDate.getFullYear() !== filters.year) return false;
       if (filters.month !== 0 && saleDate.getMonth() + 1 !== filters.month) return false;
@@ -134,7 +135,7 @@ const UnifiedDirectorDashboard = () => {
 
     filteredSales.forEach(sale => {
       const rawDate = sale.sale_date || sale.created_at;
-      const saleDate = new Date(rawDate);
+      const saleDate = (parseLocalDate(rawDate) || new Date(NaN));
       const monthKey = months[saleDate.getMonth()];
       if (monthlyData[monthKey]) {
         monthlyData[monthKey].vgv += Number(sale.vgv || 0);

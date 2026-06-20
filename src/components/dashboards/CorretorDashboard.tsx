@@ -26,6 +26,7 @@ import {
   Trophy, Medal, Home, Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseLocalDate } from '@/utils/dateParsing';
 
 const CorretorDashboard = () => {
   const { profile, user } = useAuth();
@@ -52,7 +53,7 @@ const CorretorDashboard = () => {
     (sales || []).filter(s => s.broker_id === brokerId && s.status !== 'distrato' && s.tipo === 'venda' && s.parceria_tipo !== 'Agência'), [sales, brokerId]);
   const monthSales = useMemo(() =>
     brokerSales.filter(s => {
-      const d = new Date(s.sale_date || s.created_at || '');
+      const d = (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN));
       return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
     }), [brokerSales, currentMonth, currentYear]);
 
@@ -90,8 +91,8 @@ const CorretorDashboard = () => {
         s.agency_id === agency.id && 
         s.status !== 'distrato' &&
         s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
-        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
-        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+        (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === currentYear &&
+        (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === currentMonth
       );
       
       const vgv = agencySales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
@@ -119,8 +120,8 @@ const CorretorDashboard = () => {
         teamBrokers.some(b => b.id === s.broker_id) && 
         s.status !== 'distrato' &&
         s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
-        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
-        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+        (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === currentYear &&
+        (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === currentMonth
       );
       
       const vgv = teamSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
@@ -145,8 +146,8 @@ const CorretorDashboard = () => {
         s.broker_id === broker.id && 
         s.status !== 'distrato' &&
         s.tipo === 'venda' && s.parceria_tipo !== 'Agência' &&
-        new Date(s.sale_date || s.created_at || '').getFullYear() === currentYear &&
-        new Date(s.sale_date || s.created_at || '').getMonth() + 1 === currentMonth
+        (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === currentYear &&
+        (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === currentMonth
       );
       
       const vgv = bSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);

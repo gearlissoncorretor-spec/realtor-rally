@@ -26,6 +26,7 @@ import {
   ResponsiveContainer, Tooltip, LineChart, Line, AreaChart, Area,
   Cell, PieChart as RechartsPie, Pie
 } from 'recharts';
+import { parseLocalDate } from '@/utils/dateParsing';
 
 interface FiltersState {
   agencyId: string;
@@ -76,8 +77,8 @@ const SocioDiretorDashboard = () => {
 
       const rawDate = sale.sale_date || sale.created_at;
       if (!rawDate) return false;
-      const d = new Date(rawDate);
-      if (isNaN(d.getTime())) return false;
+      const d = parseLocalDate(rawDate);
+      if (!d || isNaN(d.getTime())) return false;
 
       if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
       if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
@@ -112,8 +113,8 @@ const SocioDiretorDashboard = () => {
 
       const rawDate = s.sale_date || s.created_at;
       if (!rawDate) return false;
-      const d = new Date(rawDate);
-      if (isNaN(d.getTime())) return false;
+      const d = parseLocalDate(rawDate);
+      if (!d || isNaN(d.getTime())) return false;
       
       if (filters.year !== 'all' && d.getFullYear() !== Number(filters.year)) return false;
       if (filters.month !== 'all' && d.getMonth() + 1 !== Number(filters.month)) return false;
@@ -143,8 +144,8 @@ const SocioDiretorDashboard = () => {
       const agencySales = (sales || []).filter(s => 
         s.agency_id === agency.id && 
         s.status !== 'distrato' &&
-        (!filters.year || filters.year === 'all' || new Date(s.sale_date || s.created_at || '').getFullYear() === Number(filters.year)) &&
-        (!filters.month || filters.month === 'all' || new Date(s.sale_date || s.created_at || '').getMonth() + 1 === Number(filters.month))
+        (!filters.year || filters.year === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)) &&
+        (!filters.month || filters.month === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === Number(filters.month))
       );
       
       const vgv = agencySales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
@@ -173,8 +174,8 @@ const SocioDiretorDashboard = () => {
       const teamSales = (sales || []).filter(s => 
         teamBrokers.some(b => b.id === s.broker_id) && 
         s.status !== 'distrato' &&
-        (!filters.year || filters.year === 'all' || new Date(s.sale_date || s.created_at || '').getFullYear() === Number(filters.year)) &&
-        (!filters.month || filters.month === 'all' || new Date(s.sale_date || s.created_at || '').getMonth() + 1 === Number(filters.month))
+        (!filters.year || filters.year === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)) &&
+        (!filters.month || filters.month === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === Number(filters.month))
       );
       
       const vgv = teamSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
@@ -202,8 +203,8 @@ const SocioDiretorDashboard = () => {
       const brokerSales = (sales || []).filter(s => 
         s.broker_id === broker.id && 
         s.status !== 'distrato' &&
-        (!filters.year || filters.year === 'all' || new Date(s.sale_date || s.created_at || '').getFullYear() === Number(filters.year)) &&
-        (!filters.month || filters.month === 'all' || new Date(s.sale_date || s.created_at || '').getMonth() + 1 === Number(filters.month))
+        (!filters.year || filters.year === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)) &&
+        (!filters.month || filters.month === 'all' || (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() + 1 === Number(filters.month))
       );
       
       const vgv = brokerSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
@@ -224,12 +225,12 @@ const SocioDiretorDashboard = () => {
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const currentYearSales = (sales || []).filter(s => 
       s.status !== 'distrato' && 
-      new Date(s.sale_date || s.created_at || '').getFullYear() === Number(filters.year)
+      (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getFullYear() === Number(filters.year)
     );
 
     return months.map((name, i) => {
       const monthSales = currentYearSales.filter(s => 
-        new Date(s.sale_date || s.created_at || '').getMonth() === i &&
+        (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getMonth() === i &&
         (filters.agencyId === 'all' || s.agency_id === filters.agencyId)
       );
       return {

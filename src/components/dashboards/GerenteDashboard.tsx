@@ -32,6 +32,7 @@ import {
   AlertTriangle, MessageCircle, Briefcase, Activity, Rocket, Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { parseLocalDate } from '@/utils/dateParsing';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -186,7 +187,7 @@ const GerenteDashboard = () => {
       const bNeg = activeNegotiations.filter(n => n.broker_id === broker.id);
       const bFollowUps = pendingFollowUps.filter(f => f.broker_id === broker.id);
       const lastSaleDate = allBrokerSales.length > 0
-        ? Math.max(...allBrokerSales.map(s => new Date(s.sale_date || s.created_at || '').getTime()))
+        ? Math.max(...allBrokerSales.map(s => (parseLocalDate(s.sale_date || s.created_at) || new Date(NaN)).getTime()))
         : null;
       const daysSinceLastSale = lastSaleDate
         ? Math.floor((Date.now() - lastSaleDate) / (1000 * 60 * 60 * 24))
