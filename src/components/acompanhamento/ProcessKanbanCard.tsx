@@ -47,7 +47,7 @@ const getUrgencyLevel = (days: number): "normal" | "warning" | "critical" => {
   return "normal";
 };
 
-const ProcessKanbanCard = ({ card, index }: ProcessKanbanCardProps) => {
+const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCardProps) => {
   const daysInStage = getDaysInStage(card.saleDate);
   const urgency = getUrgencyLevel(daysInStage);
 
