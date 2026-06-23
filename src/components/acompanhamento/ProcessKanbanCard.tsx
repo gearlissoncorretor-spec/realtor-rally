@@ -118,6 +118,41 @@ const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCa
                   <span>{daysInStage}d</span>
                 </div>
               </div>
+
+              {/* Stage selector — mobile-friendly alternative to drag */}
+              {stages && stages.length > 0 && onMoveStage && (
+                <div
+                  className="pt-2 border-t border-border/50"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <Select
+                    value={card.stageId}
+                    onValueChange={(value) => {
+                      if (value !== card.stageId) onMoveStage(card.id, value);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <MoveRight className="h-3 w-3 text-muted-foreground" />
+                        <SelectValue placeholder="Mover para..." />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((s) => (
+                        <SelectItem key={s.id} value={s.id} className="text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                            {s.title}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
