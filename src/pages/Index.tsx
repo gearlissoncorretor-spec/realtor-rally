@@ -16,6 +16,7 @@ import SocioDiretorDashboard from "@/components/dashboards/SocioDiretorDashboard
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
 const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"));
+const LeadOriginChart = React.lazy(() => import("@/components/LeadOriginChart"));
 
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -530,6 +531,19 @@ const DiretorDashboardPage = () => {
               height={300}
             />
           </LazyComponentLoader>
+
+          <LazyComponentLoader fallback={<ChartSkeleton height={300} />}>
+            <LeadOriginChart
+              sales={filteredSales}
+              title="Origem dos Clientes"
+              height={300}
+            />
+          </LazyComponentLoader>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 md:gap-6 mb-8">
+
+
           
           <div className="bg-card rounded-2xl p-6 border border-border/50">
             <div className="flex items-center gap-3 mb-6">
