@@ -167,6 +167,7 @@ const Financeiro = () => {
       due_date: new Date().toISOString().split('T')[0],
       status: "pendente", category: "Outros",
       payment_method: "", observations: "",
+      cost_center_id: null,
     });
   };
 
