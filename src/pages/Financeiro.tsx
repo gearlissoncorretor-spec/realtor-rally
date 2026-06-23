@@ -193,6 +193,7 @@ const Financeiro = () => {
       due_date: record.due_date, status: record.status,
       category: record.category, payment_method: record.payment_method || "",
       observations: record.observations || "",
+      cost_center_id: record.cost_center_id,
     });
     setShowCreateDialog(true);
   };
@@ -209,9 +210,14 @@ const Financeiro = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Gestão de fluxo de caixa e controle de comissões.</p>
           </div>
-          <Button onClick={() => { resetForm(); setEditingRecord(null); setShowCreateDialog(true); }} className="gap-2">
-            <Plus className="w-4 h-4" /> Nova Conta
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowCostCentersDialog(true)} className="gap-2">
+              <FolderTree className="w-4 h-4" /> Centros de Custo
+            </Button>
+            <Button onClick={() => { resetForm(); setEditingRecord(null); setShowCreateDialog(true); }} className="gap-2">
+              <Plus className="w-4 h-4" /> Nova Conta
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
