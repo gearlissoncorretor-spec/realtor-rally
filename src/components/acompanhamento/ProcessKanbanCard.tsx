@@ -1,8 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/utils/formatting";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle, MoveRight } from "lucide-react";
 import { Draggable } from "react-beautiful-dnd";
 
 interface ProcessCardData {
@@ -20,9 +21,17 @@ interface ProcessCardData {
   status?: string;
 }
 
+interface StageOption {
+  id: string;
+  title: string;
+  color: string;
+}
+
 interface ProcessKanbanCardProps {
   card: ProcessCardData;
   index: number;
+  stages?: StageOption[];
+  onMoveStage?: (cardId: string, stageId: string) => void;
 }
 
 const getDaysInStage = (saleDate: string) => {
@@ -38,7 +47,7 @@ const getUrgencyLevel = (days: number): "normal" | "warning" | "critical" => {
   return "normal";
 };
 
-const ProcessKanbanCard = ({ card, index }: ProcessKanbanCardProps) => {
+const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCardProps) => {
   const daysInStage = getDaysInStage(card.saleDate);
   const urgency = getUrgencyLevel(daysInStage);
 
@@ -109,6 +118,41 @@ const ProcessKanbanCard = ({ card, index }: ProcessKanbanCardProps) => {
                   <span>{daysInStage}d</span>
                 </div>
               </div>
+
+              {/* Stage selector — mobile-friendly alternative to drag */}
+              {stages && stages.length > 0 && onMoveStage && (
+                <div
+                  className="pt-2 border-t border-border/50"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <Select
+                    value={card.stageId}
+                    onValueChange={(value) => {
+                      if (value !== card.stageId) onMoveStage(card.id, value);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <MoveRight className="h-3 w-3 text-muted-foreground" />
+                        <SelectValue placeholder="Mover para..." />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((s) => (
+                        <SelectItem key={s.id} value={s.id} className="text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                            {s.title}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

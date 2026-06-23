@@ -308,7 +308,21 @@ const Acompanhamento = () => {
                           }`}
                         >
                           {stageCards.map((card, index) => (
-                            <ProcessKanbanCard key={card.id} card={card} index={index} />
+                            <ProcessKanbanCard
+                              key={card.id}
+                              card={card}
+                              index={index}
+                              stages={stages.map(s => ({ id: s.id, title: s.title, color: s.color }))}
+                              onMoveStage={async (cardId, stageId) => {
+                                try {
+                                  await updateSale(cardId, { process_stage_id: stageId });
+                                  await refreshSales();
+                                  toast({ title: "Etapa atualizada" });
+                                } catch {
+                                  toast({ title: "Erro", description: "Não foi possível mover", variant: "destructive" });
+                                }
+                              }}
+                            />
                           ))}
                           {provided.placeholder}
                           {stageCards.length === 0 && (
