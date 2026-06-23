@@ -1,8 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/utils/formatting";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle, MoveRight } from "lucide-react";
 import { Draggable } from "react-beautiful-dnd";
 
 interface ProcessCardData {
@@ -20,9 +21,17 @@ interface ProcessCardData {
   status?: string;
 }
 
+interface StageOption {
+  id: string;
+  title: string;
+  color: string;
+}
+
 interface ProcessKanbanCardProps {
   card: ProcessCardData;
   index: number;
+  stages?: StageOption[];
+  onMoveStage?: (cardId: string, stageId: string) => void;
 }
 
 const getDaysInStage = (saleDate: string) => {
