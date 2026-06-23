@@ -300,6 +300,16 @@ const Financeiro = () => {
                   {Object.keys(categoryConfig).map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                 </SelectContent>
               </Select>
+              <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Centro de Custo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos Centros</SelectItem>
+                  <SelectItem value="none">Sem centro</SelectItem>
+                  {costCenters.filter(c => c.active).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Card>
 
             <div className="space-y-4">
