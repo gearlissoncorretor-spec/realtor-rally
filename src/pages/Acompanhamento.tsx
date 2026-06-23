@@ -187,7 +187,7 @@ const Acompanhamento = () => {
         })),
         branding: settings,
         periodLabel,
-        authorName: profile?.name,
+        authorName: profile?.full_name,
       });
       doc.save(`status-vendas-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
       toast({ title: "PDF gerado", description: "Relatório de Status de Vendas exportado." });
