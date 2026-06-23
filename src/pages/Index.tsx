@@ -147,16 +147,19 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
     return "neutral";
   };
 
-  // Gerar dados de gráfico (últimos 12 meses)
+  // Gerar dados de gráfico (últimos 12 meses) — chave inclui ano para evitar colisão entre anos
   const chartData = useMemo(() => {
-    const monthlyData: Record<string, { vgv: number, vgc: number, sales: number }> = {};
+    const monthlyData: Record<string, { label: string; vgv: number; vgc: number; sales: number }> = {};
     const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
+    const orderedKeys: string[] = [];
+    const now = new Date();
     for (let i = 11; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthKey = months[date.getMonth()];
-      monthlyData[monthKey] = { vgv: 0, vgc: 0, sales: 0 };
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      const label = `${months[date.getMonth()]}/${String(date.getFullYear()).slice(-2)}`;
+      monthlyData[key] = { label, vgv: 0, vgc: 0, sales: 0 };
+      orderedKeys.push(key);
     }
 
     filteredSales.forEach(sale => {
@@ -164,19 +167,22 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
       const saleDate = new Date(rawDate);
       if (isNaN(saleDate.getTime())) return;
 
-      const monthKey = months[saleDate.getMonth()];
-      if (monthlyData[monthKey]) {
-        monthlyData[monthKey].vgv += Number(sale.vgv || 0);
-        monthlyData[monthKey].vgc += Number(sale.vgc || 0);
-        monthlyData[monthKey].sales += 1;
+      const key = `${saleDate.getFullYear()}-${String(saleDate.getMonth() + 1).padStart(2, "0")}`;
+      if (monthlyData[key]) {
+        monthlyData[key].vgv += Number(sale.vgv || 0);
+        monthlyData[key].vgc += Number(sale.vgc || 0);
+        monthlyData[key].sales += 1;
       }
     });
 
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month,
-      ...data
+    return orderedKeys.map(k => ({
+      month: monthlyData[k].label,
+      vgv: monthlyData[k].vgv,
+      vgc: monthlyData[k].vgc,
+      sales: monthlyData[k].sales,
     }));
   }, [filteredSales]);
+
 
   // Ranking de corretores
   const brokerRankings = useMemo(() => {

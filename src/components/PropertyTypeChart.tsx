@@ -8,28 +8,29 @@ interface PropertyTypeChartProps {
   height?: number;
 }
 
-const COLORS = [
-  'hsl(221, 83%, 53%)', // Apartamento - azul
-  'hsl(142, 71%, 45%)', // Casa - verde
-  'hsl(32, 95%, 44%)',  // Lote - laranja
-  'hsl(199, 89%, 48%)', // Outros - azul claro
-];
+const TYPE_META: Record<string, { label: string; color: string }> = {
+  apartamento: { label: 'Apartamento', color: 'hsl(221, 83%, 53%)' },
+  casa:        { label: 'Casa',        color: 'hsl(142, 71%, 45%)' },
+  lote:        { label: 'Lote',        color: 'hsl(32, 95%, 44%)'  },
+  terreno:     { label: 'Terreno',     color: 'hsl(45, 93%, 47%)'  },
+  comercial:   { label: 'Comercial',   color: 'hsl(280, 65%, 55%)' },
+  rural:       { label: 'Rural',       color: 'hsl(160, 60%, 40%)' },
+  outros:      { label: 'Outros',      color: 'hsl(199, 89%, 48%)' },
+};
 
 const PropertyTypeChart = ({ sales, title, height = 300 }: PropertyTypeChartProps) => {
-  // Agrupar vendas por tipo de propriedade
+  // Agrupar vendas por tipo de propriedade (cor fixa por tipo)
   const propertyTypeCounts = sales.reduce((acc, sale) => {
-    const type = sale.property_type || 'Outros';
+    const type = (sale.property_type || 'outros').toString().toLowerCase();
     acc[type] = (acc[type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const data = Object.entries(propertyTypeCounts).map(([type, count], index) => ({
-    name: type === 'apartamento' ? 'Apartamento' : 
-          type === 'casa' ? 'Casa' : 
-          type === 'lote' ? 'Lote' : 'Outros',
-    value: count,
-    color: COLORS[index % COLORS.length]
-  }));
+  const data = Object.entries(propertyTypeCounts).map(([type, count]) => {
+    const meta = TYPE_META[type] ?? { label: type.charAt(0).toUpperCase() + type.slice(1), color: 'hsl(215, 16%, 47%)' };
+    return { name: meta.label, value: count, color: meta.color };
+  });
+
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
