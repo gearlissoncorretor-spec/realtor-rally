@@ -75,13 +75,16 @@ const Financeiro = () => {
     return records.filter(r => {
       if (statusFilter !== 'all' && r.status !== statusFilter) return false;
       if (categoryFilter !== 'all' && r.category !== categoryFilter) return false;
+      if (costCenterFilter !== 'all') {
+        if (costCenterFilter === 'none' ? r.cost_center_id : r.cost_center_id !== costCenterFilter) return false;
+      }
       if (searchTerm.trim()) {
         const lower = searchTerm.toLowerCase();
         if (!r.description.toLowerCase().includes(lower)) return false;
       }
       return true;
     });
-  }, [records, statusFilter, categoryFilter, searchTerm]);
+  }, [records, statusFilter, categoryFilter, costCenterFilter, searchTerm]);
 
   const metrics = useMemo(() => {
     const now = new Date();
