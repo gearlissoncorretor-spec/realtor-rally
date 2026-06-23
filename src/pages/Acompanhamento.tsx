@@ -27,11 +27,14 @@ const Acompanhamento = () => {
   const { sales, loading: salesLoading, updateSale, refreshSales } = useSales();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { stages, loading: stagesLoading, createStage, updateStage, deleteStage } = useProcessStages();
+  const { settings } = useOrganizationSettings();
+  const { profile } = useAuth();
 
   const [editingStage, setEditingStage] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [newStageTitle, setNewStageTitle] = useState("");
   const [newStageColor, setNewStageColor] = useState("#3b82f6");
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [isAddingStage, setIsAddingStage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   // Period filter removed — pipeline shows all sales
