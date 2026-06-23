@@ -403,10 +403,27 @@ const Financeiro = () => {
                 </Select>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Centro de Custo</Label>
+              <Select
+                value={formData.cost_center_id ?? "none"}
+                onValueChange={(v) => setFormData({ ...formData, cost_center_id: v === "none" ? null : v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem centro</SelectItem>
+                  {costCenters.filter(c => c.active).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter><Button onClick={handleSave} disabled={saving}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CostCentersManager open={showCostCentersDialog} onOpenChange={setShowCostCentersDialog} />
     </div>
   );
 };
