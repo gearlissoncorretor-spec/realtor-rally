@@ -220,10 +220,15 @@ const Acompanhamento = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Status Vendas</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Acompanhe o progresso de cada venda no pipeline</p>
           </div>
-          <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
-            <DialogTrigger asChild>
-              <Button><Plus className="mr-2 h-4 w-4" />Nova Etapa</Button>
-            </DialogTrigger>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={handleExportPdf} disabled={exportingPdf || processCards.length === 0}>
+              <FileDown className="mr-2 h-4 w-4" />
+              {exportingPdf ? "Gerando..." : "Exportar PDF"}
+            </Button>
+            <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
+              <DialogTrigger asChild>
+                <Button><Plus className="mr-2 h-4 w-4" />Nova Etapa</Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Adicionar Nova Etapa</DialogTitle></DialogHeader>
               <div className="space-y-4">
