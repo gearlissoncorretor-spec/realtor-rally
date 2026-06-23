@@ -541,7 +541,8 @@ const DiretorDashboardPage = () => {
           </LazyComponentLoader>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-5 md:gap-6 mb-8">
+
 
           
           <div className="bg-card rounded-2xl p-6 border border-border/50">
