@@ -166,6 +166,39 @@ const Acompanhamento = () => {
     try { await deleteStage(stageId); } catch {}
   };
 
+  const handleExportPdf = async () => {
+    if (exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const periodLabel = `Pipeline em ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`;
+      const doc = await generateBrandedPipelineReport({
+        stages: stages.map(s => ({ id: s.id, title: s.title, color: s.color })),
+        cards: processCards.map(c => ({
+          clientName: c.clientName,
+          propertyType: c.propertyType,
+          propertyAddress: c.propertyAddress,
+          brokerName: c.brokerName,
+          value: c.value,
+          vgc: c.vgc,
+          tipo: c.tipo,
+          saleDate: c.saleDate,
+          stageId: c.stageId,
+          status: c.status,
+        })),
+        branding: settings,
+        periodLabel,
+        authorName: profile?.name,
+      });
+      doc.save(`status-vendas-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast({ title: "PDF gerado", description: "Relatório de Status de Vendas exportado." });
+    } catch (err) {
+      console.error("PDF export failed:", err);
+      toast({ title: "Erro", description: "Não foi possível gerar o PDF", variant: "destructive" });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   if (salesLoading || brokersLoading || stagesLoading) {
     return (
       <div className="min-h-screen bg-background">
