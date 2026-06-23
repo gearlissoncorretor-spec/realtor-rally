@@ -14,11 +14,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Wallet, Search, Filter, CheckCircle2, Clock, AlertTriangle,
   CreditCard, Calendar, Plus, Download, ChevronDown, ChevronUp, Trash2,
-  TrendingDown, TrendingUp, DollarSign, PieChart, LineChart
+  TrendingDown, TrendingUp, DollarSign, PieChart, LineChart, FolderTree
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useFinancialRecords, FinancialRecord, FinancialRecordInsert } from "@/hooks/useFinancialRecords";
 import { useCashFlow } from "@/hooks/useCashFlow";
+import { useCostCenters } from "@/hooks/useCostCenters";
+import { CostCentersManager } from "@/components/financeiro/CostCentersManager";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
 import { cn } from "@/lib/utils";
@@ -45,13 +47,16 @@ const categoryConfig: Record<string, { label: string; color: string }> = {
 const Financeiro = () => {
   const { records, loading, createRecord, updateRecord, deleteRecord } = useFinancialRecords();
   const { cashFlow } = useCashFlow();
+  const { costCenters } = useCostCenters();
   const { user, profile, isDiretor, isAdmin, isSocio } = useAuth();
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [costCenterFilter, setCostCenterFilter] = useState("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCostCentersDialog, setShowCostCentersDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinancialRecord | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -63,6 +68,7 @@ const Financeiro = () => {
     category: "Outros",
     payment_method: "",
     observations: "",
+    cost_center_id: null,
   });
 
   const filtered = useMemo(() => {
