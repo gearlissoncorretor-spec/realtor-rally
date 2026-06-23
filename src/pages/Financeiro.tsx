@@ -14,11 +14,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Wallet, Search, Filter, CheckCircle2, Clock, AlertTriangle,
   CreditCard, Calendar, Plus, Download, ChevronDown, ChevronUp, Trash2,
-  TrendingDown, TrendingUp, DollarSign, PieChart, LineChart
+  TrendingDown, TrendingUp, DollarSign, PieChart, LineChart, FolderTree
 } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { useFinancialRecords, FinancialRecord, FinancialRecordInsert } from "@/hooks/useFinancialRecords";
 import { useCashFlow } from "@/hooks/useCashFlow";
+import { useCostCenters } from "@/hooks/useCostCenters";
+import { CostCentersManager } from "@/components/financeiro/CostCentersManager";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
 import { cn } from "@/lib/utils";
@@ -45,13 +47,16 @@ const categoryConfig: Record<string, { label: string; color: string }> = {
 const Financeiro = () => {
   const { records, loading, createRecord, updateRecord, deleteRecord } = useFinancialRecords();
   const { cashFlow } = useCashFlow();
+  const { costCenters } = useCostCenters();
   const { user, profile, isDiretor, isAdmin, isSocio } = useAuth();
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [costCenterFilter, setCostCenterFilter] = useState("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCostCentersDialog, setShowCostCentersDialog] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinancialRecord | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -63,19 +68,23 @@ const Financeiro = () => {
     category: "Outros",
     payment_method: "",
     observations: "",
+    cost_center_id: null,
   });
 
   const filtered = useMemo(() => {
     return records.filter(r => {
       if (statusFilter !== 'all' && r.status !== statusFilter) return false;
       if (categoryFilter !== 'all' && r.category !== categoryFilter) return false;
+      if (costCenterFilter !== 'all') {
+        if (costCenterFilter === 'none' ? r.cost_center_id : r.cost_center_id !== costCenterFilter) return false;
+      }
       if (searchTerm.trim()) {
         const lower = searchTerm.toLowerCase();
         if (!r.description.toLowerCase().includes(lower)) return false;
       }
       return true;
     });
-  }, [records, statusFilter, categoryFilter, searchTerm]);
+  }, [records, statusFilter, categoryFilter, costCenterFilter, searchTerm]);
 
   const metrics = useMemo(() => {
     const now = new Date();
@@ -158,6 +167,7 @@ const Financeiro = () => {
       due_date: new Date().toISOString().split('T')[0],
       status: "pendente", category: "Outros",
       payment_method: "", observations: "",
+      cost_center_id: null,
     });
   };
 
@@ -183,6 +193,7 @@ const Financeiro = () => {
       due_date: record.due_date, status: record.status,
       category: record.category, payment_method: record.payment_method || "",
       observations: record.observations || "",
+      cost_center_id: record.cost_center_id,
     });
     setShowCreateDialog(true);
   };
@@ -199,9 +210,14 @@ const Financeiro = () => {
             </h1>
             <p className="text-muted-foreground mt-1">Gestão de fluxo de caixa e controle de comissões.</p>
           </div>
-          <Button onClick={() => { resetForm(); setEditingRecord(null); setShowCreateDialog(true); }} className="gap-2">
-            <Plus className="w-4 h-4" /> Nova Conta
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowCostCentersDialog(true)} className="gap-2">
+              <FolderTree className="w-4 h-4" /> Centros de Custo
+            </Button>
+            <Button onClick={() => { resetForm(); setEditingRecord(null); setShowCreateDialog(true); }} className="gap-2">
+              <Plus className="w-4 h-4" /> Nova Conta
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -284,19 +300,35 @@ const Financeiro = () => {
                   {Object.keys(categoryConfig).map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
                 </SelectContent>
               </Select>
+              <Select value={costCenterFilter} onValueChange={setCostCenterFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Centro de Custo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos Centros</SelectItem>
+                  <SelectItem value="none">Sem centro</SelectItem>
+                  {costCenters.filter(c => c.active).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Card>
 
             <div className="space-y-4">
               {loading ? <Skeleton className="h-40 w-full" /> : filtered.map(record => {
                 const config = statusConfig[record.status] || statusConfig.pendente;
                 const cat = categoryConfig[record.category] || categoryConfig.Outros;
+                const cc = record.cost_center_id ? costCenters.find(c => c.id === record.cost_center_id) : null;
                 return (
                   <Card key={record.id} className={cn("p-4 border-border/50 transition-all hover:shadow-md", record.status === 'atrasado' && "bg-destructive/5")}>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="outline" className={config.color}>{config.label}</Badge>
                           <Badge variant="outline" className={cat.color}>{cat.label}</Badge>
+                          {cc && (
+                            <Badge variant="outline" className="gap-1" style={{ borderColor: cc.color || undefined, color: cc.color || undefined }}>
+                              <FolderTree className="w-3 h-3" /> {cc.name}
+                            </Badge>
+                          )}
                         </div>
                         <h3 className="font-bold text-lg">{record.description}</h3>
                         <p className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3" /> Vencimento: {new Date(record.due_date).toLocaleDateString('pt-BR')}</p>
@@ -371,10 +403,27 @@ const Financeiro = () => {
                 </Select>
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Centro de Custo</Label>
+              <Select
+                value={formData.cost_center_id ?? "none"}
+                onValueChange={(v) => setFormData({ ...formData, cost_center_id: v === "none" ? null : v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem centro</SelectItem>
+                  {costCenters.filter(c => c.active).map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter><Button onClick={handleSave} disabled={saving}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CostCentersManager open={showCostCentersDialog} onOpenChange={setShowCostCentersDialog} />
     </div>
   );
 };

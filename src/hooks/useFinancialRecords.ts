@@ -17,6 +17,7 @@ export interface FinancialRecord {
   company_id: string;
   agency_id: string | null;
   commission_id: string | null;
+  cost_center_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +34,7 @@ export interface FinancialRecordInsert {
   company_id: string;
   agency_id?: string | null;
   commission_id?: string | null;
+  cost_center_id?: string | null;
 }
 
 export const useFinancialRecords = () => {
