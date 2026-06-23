@@ -10,36 +10,39 @@ interface TicketMedioChartProps {
 }
 
 const TicketMedioChart = ({ sales, title, height = 300 }: TicketMedioChartProps) => {
-  // Calcular ticket médio por mês dos últimos 12 meses
+  // Ticket médio dos últimos 12 meses — chave ano-mês para evitar colisão entre anos
   const generateTicketMedioData = () => {
-    const monthlyData: { [key: string]: { totalValue: number, count: number } } = {};
-    
-    // Inicializar últimos 12 meses
+    const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+    const monthlyData: Record<string, { label: string; totalValue: number; count: number }> = {};
+    const orderedKeys: string[] = [];
+
+    const now = new Date();
     for (let i = 11; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthKey = date.toLocaleDateString('pt-BR', { month: 'short' });
-      monthlyData[monthKey] = { totalValue: 0, count: 0 };
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      const label = `${months[date.getMonth()]}/${String(date.getFullYear()).slice(-2)}`;
+      monthlyData[key] = { label, totalValue: 0, count: 0 };
+      orderedKeys.push(key);
     }
-    
-    // Agregar dados de vendas
+
     sales.forEach(sale => {
       const saleDate = new Date(sale.sale_date || sale.created_at || '');
-      const monthKey = saleDate.toLocaleDateString('pt-BR', { month: 'short' });
-      
-      if (monthlyData[monthKey]) {
-        monthlyData[monthKey].totalValue += Number(sale.property_value);
-        monthlyData[monthKey].count += 1;
+      if (isNaN(saleDate.getTime())) return;
+      const key = `${saleDate.getFullYear()}-${String(saleDate.getMonth() + 1).padStart(2, "0")}`;
+      if (monthlyData[key]) {
+        monthlyData[key].totalValue += Number(sale.property_value || 0);
+        monthlyData[key].count += 1;
       }
     });
-    
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month,
-      ticketMedio: data.count > 0 ? data.totalValue / data.count : 0
+
+    return orderedKeys.map(k => ({
+      month: monthlyData[k].label,
+      ticketMedio: monthlyData[k].count > 0 ? monthlyData[k].totalValue / monthlyData[k].count : 0,
     }));
   };
 
   const data = generateTicketMedioData();
+
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
