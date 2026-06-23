@@ -5,13 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, X, Check, Search, BarChart3, DollarSign, Layers, TrendingUp } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Check, Search, BarChart3, DollarSign, Layers, TrendingUp, FileDown } from "lucide-react";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { useToast } from "@/hooks/use-toast";
 import { useSales } from "@/hooks/useSales";
 import { useBrokers } from "@/hooks/useBrokers";
 import { useProcessStages } from "@/hooks/useProcessStages";
+import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
+import { generateBrandedPipelineReport } from "@/utils/brandedPdf";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import KPICard from "@/components/KPICard";
 // PeriodFilter removed — pipeline shows all sales
 import AcompanhamentoSkeleton from "@/components/skeletons/AcompanhamentoSkeleton";
@@ -22,11 +27,14 @@ const Acompanhamento = () => {
   const { sales, loading: salesLoading, updateSale, refreshSales } = useSales();
   const { brokers, loading: brokersLoading } = useBrokers();
   const { stages, loading: stagesLoading, createStage, updateStage, deleteStage } = useProcessStages();
+  const { settings } = useOrganizationSettings();
+  const { profile } = useAuth();
 
   const [editingStage, setEditingStage] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [newStageTitle, setNewStageTitle] = useState("");
   const [newStageColor, setNewStageColor] = useState("#3b82f6");
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [isAddingStage, setIsAddingStage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   // Period filter removed — pipeline shows all sales
@@ -158,6 +166,39 @@ const Acompanhamento = () => {
     try { await deleteStage(stageId); } catch {}
   };
 
+  const handleExportPdf = async () => {
+    if (exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const periodLabel = `Pipeline em ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`;
+      const doc = await generateBrandedPipelineReport({
+        stages: stages.map(s => ({ id: s.id, title: s.title, color: s.color })),
+        cards: processCards.map(c => ({
+          clientName: c.clientName,
+          propertyType: c.propertyType,
+          propertyAddress: c.propertyAddress,
+          brokerName: c.brokerName,
+          value: c.value,
+          vgc: c.vgc,
+          tipo: c.tipo,
+          saleDate: c.saleDate,
+          stageId: c.stageId,
+          status: c.status,
+        })),
+        branding: settings,
+        periodLabel,
+        authorName: profile?.full_name,
+      });
+      doc.save(`status-vendas-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast({ title: "PDF gerado", description: "Relatório de Status de Vendas exportado." });
+    } catch (err) {
+      console.error("PDF export failed:", err);
+      toast({ title: "Erro", description: "Não foi possível gerar o PDF", variant: "destructive" });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   if (salesLoading || brokersLoading || stagesLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -179,10 +220,15 @@ const Acompanhamento = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Status Vendas</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Acompanhe o progresso de cada venda no pipeline</p>
           </div>
-          <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
-            <DialogTrigger asChild>
-              <Button><Plus className="mr-2 h-4 w-4" />Nova Etapa</Button>
-            </DialogTrigger>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={handleExportPdf} disabled={exportingPdf || processCards.length === 0}>
+              <FileDown className="mr-2 h-4 w-4" />
+              {exportingPdf ? "Gerando..." : "Exportar PDF"}
+            </Button>
+            <Dialog open={isAddingStage} onOpenChange={setIsAddingStage}>
+              <DialogTrigger asChild>
+                <Button><Plus className="mr-2 h-4 w-4" />Nova Etapa</Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Adicionar Nova Etapa</DialogTitle></DialogHeader>
               <div className="space-y-4">
@@ -210,7 +256,9 @@ const Acompanhamento = () => {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
+
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
