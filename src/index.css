@@ -6,9 +6,9 @@
 
 @layer base {
   :root {
-    /* Light Mode — Modernist Precision */
-    /* Background #F8FAFC, Surface #FFFFFF, Text #111827, Muted #64748B, Border #E2E8F0, Primary #2563EB */
-    --background: 210 40% 98%;
+    /* Light Mode — Modernist Precision (refined premium) */
+    /* Page #F5F7FB, Surface #FFFFFF, Text #111827, Muted #64748B, Border #EEF2F7, Primary #2563EB */
+    --background: 220 33% 97%; /* #F5F7FB */
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -22,10 +22,10 @@
     --primary-foreground: 210 40% 98%;
     --primary-glow: 217 91% 60%;
 
-    --secondary: 210 40% 96%;
+    --secondary: 220 33% 97%;
     --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 40% 96%;
+    --muted: 220 33% 97%;
     --muted-foreground: 215 16% 47%; /* #64748B */
 
     --accent: 214 32% 91%;
@@ -34,31 +34,31 @@
     --destructive: 0 84% 60%; /* #EF4444 */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%; /* #E2E8F0 */
-    --input: 214 32% 91%;
+    --border: 214 38% 95%; /* #EEF2F7 */
+    --input: 214 38% 95%;
     --ring: 221 83% 53%;
 
     --radius: 1rem; /* 16px cards */
 
     /* Success / Warning / Info */
-    --success: 142 71% 45%; /* #22C55E */
+    --success: 142 71% 45%;
     --success-foreground: 210 40% 98%;
-    --warning: 38 92% 50%;  /* #F59E0B */
+    --warning: 38 92% 50%;
     --warning-foreground: 210 40% 98%;
     --info: 217 91% 60%;
     --info-foreground: 210 40% 98%;
 
-    /* Gradients (subtle) */
+    /* Gradients (subtle, premium) */
     --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 60%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-card: linear-gradient(180deg, #FFFFFF 0%, #FAFBFD 100%);
     --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 60%));
 
-    /* Shadows — soft, multi-layered premium */
-    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.04), 0 8px 30px rgba(15, 23, 42, 0.08);
-    --shadow-xl: 0 12px 40px rgba(15, 23, 42, 0.12);
+    /* Shadows — single, defined, elegant */
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 20px rgba(15, 23, 42, 0.08);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.08);
     --shadow-glow: 0 8px 24px rgba(37, 99, 235, 0.18);
 
     /* Sidebar — Dark #0F172A */
@@ -261,7 +261,19 @@
     box-shadow: var(--shadow-glow);
   }
 
-  /* Glassmorphism Premium */
+  .shadow-elegant {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Premium glass top bar (Stripe / Linear / Raycast style) */
+  .glass-top {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  /* Glassmorphism Premium (dark surfaces) */
   .glass-card {
     background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(24px);
@@ -276,9 +288,17 @@
   }
 
   .premium-transition:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
   }
+
+  /* Stage column header tints */
+  .stage-tint-blue   { background-color: #EFF6FF; }
+  .stage-tint-violet { background-color: #F5F3FF; }
+  .stage-tint-amber  { background-color: #FFF7ED; }
+  .stage-tint-red    { background-color: #FEF2F2; }
+  .stage-tint-green  { background-color: #ECFDF5; }
+  .stage-tint-slate  { background-color: #F8FAFC; }
 
   /* Premium animations */
   @keyframes float-up {

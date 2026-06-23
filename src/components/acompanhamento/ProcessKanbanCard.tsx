@@ -58,6 +58,12 @@ const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCa
   const statusVariant = card.status === "confirmada" ? "default" :
     card.status === "cancelada" || card.status === "distrato" ? "destructive" : "secondary";
 
+  // Left accent: destructive (critical), amber (warning), primary otherwise
+  const accentColor =
+    urgency === "critical" ? "hsl(var(--destructive))" :
+    urgency === "warning" ? "hsl(38 92% 50%)" :
+    "hsl(var(--primary))";
+
   return (
     <Draggable draggableId={card.id} index={index}>
       {(provided, snapshot) => (
@@ -65,11 +71,15 @@ const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCa
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`cursor-move transition-all group ${
-            snapshot.isDragging ? "shadow-lg ring-2 ring-primary/30 rotate-1" : "hover:shadow-md"
-          } ${
-            urgency === "critical" ? "border-l-[3px] border-l-destructive" :
-            urgency === "warning" ? "border-l-[3px] border-l-amber-500" : ""
+          style={{
+            ...provided.draggableProps.style,
+            borderLeft: `4px solid ${accentColor}`,
+            background: "linear-gradient(180deg, #FFFFFF 0%, #FAFBFD 100%)",
+          }}
+          className={`cursor-move group border border-border shadow-elegant transition-all duration-200 ease-out ${
+            snapshot.isDragging
+              ? "ring-2 ring-primary/30 rotate-1 shadow-lg"
+              : "hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
           }`}
         >
           <CardContent className="p-3.5">
