@@ -650,3 +650,123 @@ export async function generateBrandedCommissionsReport(
 
   return doc;
 }
+
+// =====================================================================
+// 5. PIPELINE / STATUS DE VENDAS report
+// =====================================================================
+export interface PipelineStageLike {
+  id: string;
+  title: string;
+  color?: string;
+}
+
+export interface PipelineCardLike {
+  clientName: string;
+  propertyType?: string;
+  propertyAddress?: string;
+  brokerName: string;
+  value: number;
+  vgc?: number;
+  tipo?: string;
+  saleDate?: string;
+  stageId: string;
+  status?: string;
+}
+
+export interface BrandedPipelineReportOptions {
+  stages: PipelineStageLike[];
+  cards: PipelineCardLike[];
+  branding: OrganizationSettings | null;
+  periodLabel: string;
+  authorName?: string;
+}
+
+export async function generateBrandedPipelineReport(
+  opts: BrandedPipelineReportOptions,
+): Promise<jsPDF> {
+  const { stages, cards, branding, periodLabel, authorName } = opts;
+  const ctx = await initBrandingContext(branding, periodLabel);
+  const { doc, pageW, primary, secondary } = ctx;
+
+  const totalVGV = cards.reduce((s, c) => s + Number(c.value || 0), 0);
+  const totalVGC = cards.reduce((s, c) => s + Number(c.vgc || 0), 0);
+  const ticketMedio = cards.length > 0 ? totalVGV / cards.length : 0;
+
+  drawCover(ctx, 'Status de Vendas', [
+    { label: 'Total Pipeline', value: String(cards.length) },
+    { label: 'VGV Total', value: formatCurrency(totalVGV) },
+    { label: 'VGC Total', value: formatCurrency(totalVGC) },
+  ], authorName);
+
+  const { drawHeader, drawFooter } = makeHeaderFooter(ctx);
+
+  // Stage summary
+  doc.addPage();
+  drawHeader('Resumo por etapa do funil');
+
+  autoTable(doc, {
+    startY: 100,
+    head: [['Etapa', 'Vendas', 'VGV', 'VGC', '% Pipeline']],
+    body: stages.map((stage) => {
+      const stageCards = cards.filter((c) => c.stageId === stage.id);
+      const vgv = stageCards.reduce((s, c) => s + Number(c.value || 0), 0);
+      const vgc = stageCards.reduce((s, c) => s + Number(c.vgc || 0), 0);
+      const pct = totalVGV > 0 ? ((vgv / totalVGV) * 100).toFixed(1) + '%' : '0%';
+      return [stage.title, String(stageCards.length), formatCurrency(vgv), formatCurrency(vgc), pct];
+    }),
+    theme: 'striped',
+    headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+    styles: { font: 'helvetica', fontSize: 10, cellPadding: 6 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 30, right: 30 },
+  });
+
+  const finalY = (doc as any).lastAutoTable?.finalY || 200;
+  doc.setTextColor(secondary[0], secondary[1], secondary[2]);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text(`Ticket Médio: ${formatCurrency(ticketMedio)}`, 30, finalY + 25);
+  drawFooter();
+
+  // Detail per stage
+  stages.forEach((stage) => {
+    const stageCards = cards.filter((c) => c.stageId === stage.id);
+    if (stageCards.length === 0) return;
+
+    doc.addPage();
+    drawHeader(`Etapa: ${stage.title}`);
+
+    // colored stage strip
+    const stageColor = hexToRgb(stage.color || '#3b82f6');
+    doc.setFillColor(stageColor[0], stageColor[1], stageColor[2]);
+    doc.rect(0, 60, pageW, 4, 'F');
+
+    autoTable(doc, {
+      startY: 85,
+      head: [['Data', 'Cliente', 'Corretor', 'Imóvel', 'Tipo', 'VGV', 'Status']],
+      body: stageCards
+        .slice()
+        .sort((a, b) => (b.saleDate || '').localeCompare(a.saleDate || ''))
+        .map((c) => [
+          c.saleDate ? format(new Date(c.saleDate), 'dd/MM/yyyy', { locale: ptBR }) : '-',
+          c.clientName || '-',
+          c.brokerName || '-',
+          c.propertyAddress || c.propertyType || '-',
+          c.tipo || '-',
+          formatCurrency(Number(c.value || 0)),
+          c.status || '-',
+        ]),
+      theme: 'striped',
+      headStyles: { fillColor: primary, textColor: [255, 255, 255], fontStyle: 'bold' },
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 5 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { top: 85, bottom: 50, left: 30, right: 30 },
+      didDrawPage: () => {
+        if (doc.getCurrentPageInfo().pageNumber > 2) drawHeader(`Etapa: ${stage.title}`);
+        drawFooter();
+      },
+    });
+  });
+
+  return doc;
+}
