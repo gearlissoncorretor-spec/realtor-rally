@@ -316,13 +316,19 @@ const Financeiro = () => {
               {loading ? <Skeleton className="h-40 w-full" /> : filtered.map(record => {
                 const config = statusConfig[record.status] || statusConfig.pendente;
                 const cat = categoryConfig[record.category] || categoryConfig.Outros;
+                const cc = record.cost_center_id ? costCenters.find(c => c.id === record.cost_center_id) : null;
                 return (
                   <Card key={record.id} className={cn("p-4 border-border/50 transition-all hover:shadow-md", record.status === 'atrasado' && "bg-destructive/5")}>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="outline" className={config.color}>{config.label}</Badge>
                           <Badge variant="outline" className={cat.color}>{cat.label}</Badge>
+                          {cc && (
+                            <Badge variant="outline" className="gap-1" style={{ borderColor: cc.color || undefined, color: cc.color || undefined }}>
+                              <FolderTree className="w-3 h-3" /> {cc.name}
+                            </Badge>
+                          )}
                         </div>
                         <h3 className="font-bold text-lg">{record.description}</h3>
                         <p className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3" /> Vencimento: {new Date(record.due_date).toLocaleDateString('pt-BR')}</p>
