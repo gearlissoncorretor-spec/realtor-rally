@@ -13,7 +13,9 @@ interface DynamicChartProps {
   height?: number;
 }
 
-const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, height = 300 }: DynamicChartProps) => {
+const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, height }: DynamicChartProps) => {
+  const isMobile = useIsMobile();
+  const chartHeight = height ?? (isMobile ? 220 : 300);
   // Filter sales by selected broker
   const filteredSales = selectedBroker === 'all' 
     ? sales 
