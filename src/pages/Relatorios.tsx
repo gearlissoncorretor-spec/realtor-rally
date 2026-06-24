@@ -26,6 +26,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import PeriodFilter from "@/components/PeriodFilter";
 import { formatCurrency, parseDateSafe } from "@/utils/formatting";
+import { matchesPeriod, type DateRange } from "@/utils/periodFilter";
 import BrokerReportDialog from "@/components/reports/BrokerReportDialog";
 import { OriginAnalyticsDashboard } from "@/components/dashboards/OriginAnalyticsDashboard";
 import { 
