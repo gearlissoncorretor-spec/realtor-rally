@@ -137,7 +137,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
           {/* Dados da Negociação (readonly) */}
           <div className="bg-muted/50 p-4 rounded-lg space-y-2">
             <h4 className="font-medium text-sm text-muted-foreground">Dados da Negociação</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Cliente:</span>{' '}
                 <span className="font-medium">{negotiation.client_name}</span>
