@@ -313,7 +313,7 @@ const DiretorDashboardPage = () => {
     totalVGV,
     totalVGC,
     totalSales
-  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets);
+  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets, dateRange);
 
   // Per-team breakdown for directors
   const teamBreakdown = useMemo(() => {
