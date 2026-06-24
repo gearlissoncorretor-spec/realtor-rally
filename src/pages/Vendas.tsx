@@ -366,16 +366,59 @@ const Vendas = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                      <SelectTrigger className="w-[130px] h-9 text-xs bg-background/50 border-border/50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map(m => (
-                          <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-[160px] h-9 justify-between text-xs bg-background/50 border-border/50 font-normal">
+                          <span className="truncate">
+                            {selectedMonths.length === 0
+                              ? (selectedMonth > 0 ? months.find(m => m.value === selectedMonth)?.label : 'Todos os meses')
+                              : selectedMonths.length === 1
+                                ? months.find(m => m.value === selectedMonths[0])?.label
+                                : `${selectedMonths.length} meses`}
+                          </span>
+                          <ChevronDown className="h-3 w-3 opacity-50 shrink-0" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-2" align="start">
+                        <div className="flex items-center justify-between px-1 pb-2 mb-1 border-b">
+                          <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => { setSelectedMonths([]); setSelectedMonth(0); }}
+                          >
+                            Limpar
+                          </button>
+                          <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => setSelectedMonths(months.filter(m => m.value > 0).map(m => m.value))}
+                          >
+                            Todos
+                          </button>
+                        </div>
+                        <div className="max-h-[260px] overflow-auto space-y-1">
+                          {months.filter(m => m.value > 0).map(m => {
+                            const checked = selectedMonths.includes(m.value);
+                            return (
+                              <label key={m.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-xs">
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(c) => {
+                                    if (c) {
+                                      setSelectedMonths([...selectedMonths, m.value].sort((a, b) => a - b));
+                                      if (selectedMonth !== 0) setSelectedMonth(0);
+                                    } else {
+                                      setSelectedMonths(selectedMonths.filter(v => v !== m.value));
+                                    }
+                                  }}
+                                />
+                                <span>{m.label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[120px] h-9 text-xs bg-background/50 border-border/50">
                         <SelectValue />
