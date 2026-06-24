@@ -287,6 +287,7 @@ const DiretorDashboardPage = () => {
   const { isDiretor, isAdmin } = useAuth();
   const { teams } = useTeams();
   const { followUps } = useFollowUps();
+  const { negotiations } = useNegotiations();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
