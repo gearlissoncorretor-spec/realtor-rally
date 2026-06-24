@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";

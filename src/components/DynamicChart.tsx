@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import type { Sale, Broker } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
