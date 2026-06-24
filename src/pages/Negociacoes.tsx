@@ -134,7 +134,7 @@ const Negociacoes = () => {
           status: 'confirmada',
           sale_date: data.sale_date,
           contract_date: data.contract_date || null,
-          property_value: Number(selectedForSale.negotiated_value || 0),
+          property_value: Number(data.vgv || selectedForSale.negotiated_value || 0),
           vendedor: data.vendedor || null,
           vendedor_nome: data.vendedor || null,
           captador: data.sale_type === 'revenda' ? data.captador || null : null,
