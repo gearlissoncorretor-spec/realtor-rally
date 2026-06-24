@@ -45,6 +45,7 @@ const Ranking = () => {
   const { teams } = useTeams();
   const [selectedMonth, setSelectedMonth] = useState(0);
   const [selectedYear, setSelectedYear] = useState(0);
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [isTVMode, setIsTVMode] = useState(false);
   const [quickPeriod, setQuickPeriod] = useState('month');
   const [selectedTeam, setSelectedTeam] = useState('all');
