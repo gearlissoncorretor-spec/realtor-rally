@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
 
@@ -27,7 +28,9 @@ const ORIGIN_COLORS: Record<string, string> = {
 
 const FALLBACK = "hsl(215, 16%, 47%)";
 
-const LeadOriginChart = ({ sales, title = "Origem dos Clientes", height = 300 }: LeadOriginChartProps) => {
+const LeadOriginChart = ({ sales, title = "Origem dos Clientes", height }: LeadOriginChartProps) => {
+  const isMobile = useIsMobile();
+  const chartHeight = height ?? (isMobile ? 220 : 300);
   const counts = sales.reduce((acc, sale) => {
     const origem = (sale.origem && String(sale.origem).trim()) || "Outro";
     acc[origem] = (acc[origem] || 0) + 1;
@@ -68,7 +71,7 @@ const LeadOriginChart = ({ sales, title = "Origem dos Clientes", height = 300 }:
           Sem dados de origem no período
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={height}>
+        <ResponsiveContainer width="100%" height={chartHeight}>
           <PieChart>
             <Pie
               data={data}

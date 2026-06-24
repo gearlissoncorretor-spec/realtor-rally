@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { Sale } from "@/contexts/DataContext";
 import { formatCurrency } from "@/utils/formatting";
@@ -9,7 +10,9 @@ interface TicketMedioChartProps {
   height?: number;
 }
 
-const TicketMedioChart = ({ sales, title, height = 300 }: TicketMedioChartProps) => {
+const TicketMedioChart = ({ sales, title, height }: TicketMedioChartProps) => {
+  const isMobile = useIsMobile();
+  const chartHeight = height ?? (isMobile ? 220 : 300);
   // Ticket médio dos últimos 12 meses — chave ano-mês para evitar colisão entre anos
   const generateTicketMedioData = () => {
     const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
@@ -61,7 +64,7 @@ const TicketMedioChart = ({ sales, title, height = 300 }: TicketMedioChartProps)
   return (
     <Card className="p-6 bg-gradient-card border-border animate-fade-in">
       <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height={height}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis 

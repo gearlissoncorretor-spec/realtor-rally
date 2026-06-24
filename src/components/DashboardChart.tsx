@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   XAxis, 
   YAxis, 
@@ -30,12 +31,14 @@ interface DashboardChartProps {
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--info))'];
 
-const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps) => {
+const DashboardChart = ({ data, type, title, height }: DashboardChartProps) => {
+  const isMobile = useIsMobile();
+  const chartHeight = height ?? (isMobile ? 220 : 300);
   const renderChart = () => {
     switch (type) {
       case "line":
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorVgv" x1="0" y1="0" x2="0" y2="1">
@@ -99,7 +102,7 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
 
       case "bar":
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis 
@@ -143,7 +146,7 @@ const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps
         }));
 
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <PieChart>
               <Pie
                 data={pieData}
