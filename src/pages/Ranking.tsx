@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { RankingSkeleton } from "@/components/skeletons/RankingSkeleton";
 import PeriodFilter from "@/components/PeriodFilter";
+import { matchesPeriod, hasCustomRange, type DateRange } from "@/utils/periodFilter";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
