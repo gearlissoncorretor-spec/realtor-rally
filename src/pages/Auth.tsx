@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck, Zap, Trophy, Sparkles, LogIn, PhoneCall, Globe } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck, Zap, Trophy, Sparkles, LogIn, PhoneCall, Globe, UserPlus, CheckCircle2 } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
