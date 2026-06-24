@@ -345,6 +345,8 @@ const Relatorios = () => {
               selectedYear={selectedYear}
               onMonthChange={setSelectedMonth}
               onYearChange={setSelectedYear}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
             />
           </div>
         </div>
