@@ -34,21 +34,15 @@ import { Badge } from "@/components/ui/badge";
 /**
  * Hook para centralizar cálculos de métricas do dashboard
  */
-function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null, targets?: any[]) {
+function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null, targets?: any[], dateRange?: import('@/utils/periodFilter').DateRange) {
   // Filtro de vendas baseado no período - EXCLUI DISTRATOS dos cálculos
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
       // Excluir distratos dos cálculos do dashboard
       if (sale.status === 'distrato') return false;
-      
+
       const rawDate = sale.sale_date || sale.created_at;
-      if (!rawDate) return false;
-
-      const saleDate = new Date(rawDate);
-      if (isNaN(saleDate.getTime())) return false;
-
-      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
-      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
+      if (!matchesPeriod(rawDate, { selectedMonth, selectedYear, dateRange })) return false;
 
       // Filter by team if specified
       if (teamFilter && teamFilter !== 'all') {
@@ -58,7 +52,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
       return true;
     });
-  }, [sales, selectedMonth, selectedYear, teamFilter, brokers]);
+  }, [sales, selectedMonth, selectedYear, teamFilter, brokers, dateRange]);
 
   // Brokers filtered by team
   const filteredBrokers = useMemo(() => {
