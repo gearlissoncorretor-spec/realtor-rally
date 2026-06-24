@@ -12,12 +12,14 @@ import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [view, setView] = useState<"login" | "forgot">("login");
+  const [view, setView] = useState<"login" | "forgot" | "signup">("login");
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [signupSent, setSignupSent] = useState(false);
+  const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "" });
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
-  const { signIn, resetPassword, user, loading, profile } = useAuth();
+  const { signIn, signUp, resetPassword, user, loading, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
