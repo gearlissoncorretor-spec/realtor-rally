@@ -214,7 +214,7 @@ const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, h
       case 'property_types': {
         const COLORS_PIE = ['hsl(32, 95%, 44%)', 'hsl(142, 76%, 36%)', 'hsl(221, 83%, 53%)', 'hsl(262, 83%, 58%)', 'hsl(346, 87%, 43%)'];
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <PieChart>
               <Pie
                 data={data}
@@ -238,7 +238,7 @@ const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, h
       
       case 'monthly_performance':
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -253,7 +253,7 @@ const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, h
       
       case 'average_ticket':
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -276,7 +276,7 @@ const DynamicChart = ({ sales, brokers, selectedBroker, selectedMetric, title, h
       
       default:
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />

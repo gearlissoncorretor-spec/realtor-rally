@@ -19,7 +19,9 @@ const TYPE_META: Record<string, { label: string; color: string }> = {
   outros:      { label: 'Outros',      color: 'hsl(199, 89%, 48%)' },
 };
 
-const PropertyTypeChart = ({ sales, title, height = 300 }: PropertyTypeChartProps) => {
+const PropertyTypeChart = ({ sales, title, height }: PropertyTypeChartProps) => {
+  const isMobile = useIsMobile();
+  const chartHeight = height ?? (isMobile ? 220 : 300);
   // Agrupar vendas por tipo de propriedade (cor fixa por tipo)
   const propertyTypeCounts = sales.reduce((acc, sale) => {
     const type = (sale.property_type || 'outros').toString().toLowerCase();
@@ -51,7 +53,7 @@ const PropertyTypeChart = ({ sales, title, height = 300 }: PropertyTypeChartProp
   return (
     <Card className="p-6 bg-gradient-card border-border animate-fade-in">
       <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height={height}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <PieChart>
           <Pie
             data={data}
