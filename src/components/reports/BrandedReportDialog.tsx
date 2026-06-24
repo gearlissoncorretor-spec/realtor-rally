@@ -48,7 +48,7 @@ export const BrandedReportDialog = ({ sales, brokers, trigger }: BrandedReportDi
         return;
       }
 
-      const periodLabel = `${format(new Date(from), "dd 'de' MMM", { locale: ptBR })} a ${format(new Date(to), "dd 'de' MMM 'de' yyyy", { locale: ptBR })}`;
+      const periodLabel = `${format(new Date(startDate + 'T00:00:00'), "dd 'de' MMM", { locale: ptBR })} a ${format(new Date(endDate + 'T00:00:00'), "dd 'de' MMM 'de' yyyy", { locale: ptBR })}`;
 
       const doc = await generateBrandedSalesReport({
         sales: filtered,
@@ -58,7 +58,7 @@ export const BrandedReportDialog = ({ sales, brokers, trigger }: BrandedReportDi
         authorName: profile?.full_name,
       });
 
-      const fileName = `relatorio-vendas-${from}-a-${to}.pdf`;
+      const fileName = `relatorio-vendas-${startDate}-a-${endDate}.pdf`;
       doc.save(fileName);
 
       toast({
