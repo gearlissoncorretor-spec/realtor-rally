@@ -15,6 +15,7 @@ import SocioDiretorDashboard from "@/components/dashboards/SocioDiretorDashboard
 import LeadsAndTopBrokersPanel from "@/components/dashboards/LeadsAndTopBrokersPanel";
 import { useNegotiations } from "@/hooks/useNegotiations";
 
+import { matchesPeriod, type DateRange } from "@/utils/periodFilter";
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
 const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"));
@@ -34,21 +35,15 @@ import { Badge } from "@/components/ui/badge";
 /**
  * Hook para centralizar cálculos de métricas do dashboard
  */
-function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null, targets?: any[]) {
+function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number, selectedYear: number, teamFilter?: string | null, targets?: any[], dateRange?: import('@/utils/periodFilter').DateRange) {
   // Filtro de vendas baseado no período - EXCLUI DISTRATOS dos cálculos
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
       // Excluir distratos dos cálculos do dashboard
       if (sale.status === 'distrato') return false;
-      
+
       const rawDate = sale.sale_date || sale.created_at;
-      if (!rawDate) return false;
-
-      const saleDate = new Date(rawDate);
-      if (isNaN(saleDate.getTime())) return false;
-
-      if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
-      if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
+      if (!matchesPeriod(rawDate, { selectedMonth, selectedYear, dateRange })) return false;
 
       // Filter by team if specified
       if (teamFilter && teamFilter !== 'all') {
@@ -58,7 +53,7 @@ function useDashboardMetrics(sales: any[], brokers: any[], selectedMonth: number
 
       return true;
     });
-  }, [sales, selectedMonth, selectedYear, teamFilter, brokers]);
+  }, [sales, selectedMonth, selectedYear, teamFilter, brokers, dateRange]);
 
   // Brokers filtered by team
   const filteredBrokers = useMemo(() => {
@@ -290,6 +285,7 @@ const DiretorDashboardPage = () => {
   const { negotiations } = useNegotiations();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
   const [showNegotiationAlert, setShowNegotiationAlert] = useState(true);
 
@@ -317,7 +313,7 @@ const DiretorDashboardPage = () => {
     totalVGV,
     totalVGC,
     totalSales
-  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets);
+  } = useDashboardMetrics(sales, brokers, selectedMonth, selectedYear, isDirectorView ? selectedTeam : null, targets, dateRange);
 
   // Per-team breakdown for directors
   const teamBreakdown = useMemo(() => {
@@ -335,11 +331,7 @@ const DiretorDashboardPage = () => {
         const broker = brokers.find(b => b.id === sale.broker_id);
         if (!broker || broker.team_id !== team.id) return false;
         const rawDate = sale.sale_date || sale.created_at;
-        if (!rawDate) return false;
-        const saleDate = new Date(rawDate);
-        if (isNaN(saleDate.getTime())) return false;
-        if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
-        if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
+        if (!matchesPeriod(rawDate, { selectedMonth, selectedYear, dateRange })) return false;
         return true;
       });
 
@@ -351,7 +343,7 @@ const DiretorDashboardPage = () => {
         turnoverRate: turnover.toFixed(1),
       };
     }).filter(t => t.activeBrokers > 0 || t.totalSales > 0);
-  }, [isDirectorView, teams, brokers, sales, selectedMonth, selectedYear]);
+  }, [isDirectorView, teams, brokers, sales, selectedMonth, selectedYear, dateRange]);
 
   const isInitialLoading = (brokersLoading || salesLoading) && brokers.length === 0 && sales.length === 0;
   const hasError = brokersError || salesError;
@@ -449,6 +441,8 @@ const DiretorDashboardPage = () => {
               selectedYear={selectedYear}
               onMonthChange={setSelectedMonth}
               onYearChange={setSelectedYear}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
             />
           </div>
           {isDirectorView && teams.length > 0 && (

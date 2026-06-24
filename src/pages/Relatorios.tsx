@@ -26,6 +26,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import PeriodFilter from "@/components/PeriodFilter";
 import { formatCurrency, parseDateSafe } from "@/utils/formatting";
+import { matchesPeriod, type DateRange } from "@/utils/periodFilter";
 import BrokerReportDialog from "@/components/reports/BrokerReportDialog";
 import { OriginAnalyticsDashboard } from "@/components/dashboards/OriginAnalyticsDashboard";
 import { 
@@ -57,21 +58,16 @@ const Relatorios = () => {
   
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [activeTab, setActiveTab] = useState("pdf");
 
   const filteredSales = useMemo(() => {
     return sales.filter(sale => {
       if (!sale.sale_date) return false;
       if (sale.tipo === 'captacao') return false;
-      
-      const { month: saleMonth, year: saleYear } = parseDateSafe(sale.sale_date);
-      
-      const matchesMonth = selectedMonth === 0 || saleMonth === selectedMonth;
-      const matchesYear = selectedYear === 0 || saleYear === selectedYear;
-      
-      return matchesMonth && matchesYear;
+      return matchesPeriod(sale.sale_date, { selectedMonth, selectedYear, dateRange });
     });
-  }, [sales, selectedMonth, selectedYear]);
+  }, [sales, selectedMonth, selectedYear, dateRange]);
 
   // --- Revenue Forecasting Logic ---
   const forecastData = useMemo(() => {
@@ -349,6 +345,8 @@ const Relatorios = () => {
               selectedYear={selectedYear}
               onMonthChange={setSelectedMonth}
               onYearChange={setSelectedYear}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
             />
           </div>
         </div>
