@@ -12,6 +12,8 @@ import GerenteDashboard from "@/components/dashboards/GerenteDashboard";
 import CorretorDashboard from "@/components/dashboards/CorretorDashboard";
 import UnifiedDirectorDashboard from "@/components/dashboards/UnifiedDirectorDashboard";
 import SocioDiretorDashboard from "@/components/dashboards/SocioDiretorDashboard";
+import LeadsAndTopBrokersPanel from "@/components/dashboards/LeadsAndTopBrokersPanel";
+import { useNegotiations } from "@/hooks/useNegotiations";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
