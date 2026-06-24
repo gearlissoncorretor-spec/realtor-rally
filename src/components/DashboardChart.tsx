@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   XAxis, 
   YAxis, 
