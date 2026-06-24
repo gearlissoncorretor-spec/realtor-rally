@@ -142,7 +142,7 @@ const Vendas = () => {
   const pagination = usePagination(searchFilteredSales, { storageKey: 'vendas', defaultPageSize: 25 });
   
   // Reset page when filters change
-  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, statusFilter, searchTerm]);
+  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, selectedMonths, statusFilter, searchTerm]);
 
   const handleDelete = async (saleId: string) => {
     try {
