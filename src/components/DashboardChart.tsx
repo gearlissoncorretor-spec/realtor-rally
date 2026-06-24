@@ -31,7 +31,9 @@ interface DashboardChartProps {
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--info))'];
 
-const DashboardChart = ({ data, type, title, height = 300 }: DashboardChartProps) => {
+const DashboardChart = ({ data, type, title, height }: DashboardChartProps) => {
+  const isMobile = useIsMobile();
+  const chartHeight = height ?? (isMobile ? 220 : 300);
   const renderChart = () => {
     switch (type) {
       case "line":
