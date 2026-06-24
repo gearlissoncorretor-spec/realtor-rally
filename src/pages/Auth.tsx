@@ -83,6 +83,39 @@ const Auth = () => {
     }
   };
 
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signupForm.email.trim() || !signupForm.password || !signupForm.fullName.trim()) return;
+    if (signupForm.password.length < 6) {
+      toast({ title: "Senha muito curta", description: "Use ao menos 6 caracteres.", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
+      if (error) {
+        toast({ title: "Erro ao solicitar acesso", description: error.message || "Tente novamente.", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
+      // Notifica o admin (não bloqueia o fluxo se falhar)
+      try {
+        await supabase.functions.invoke("notify-signup", {
+          body: { fullName: signupForm.fullName, email: signupForm.email },
+        });
+      } catch (notifyErr) {
+        console.warn("notify-signup falhou", notifyErr);
+      }
+      // Garante que o usuário não fique logado antes da aprovação
+      await supabase.auth.signOut();
+      setSignupSent(true);
+    } catch {
+      toast({ title: "Erro", description: "Ocorreu um erro inesperado", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const orgName = settings?.organization_name || 'Gestão Master';
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const headingName = orgName.toUpperCase();
