@@ -159,11 +159,19 @@
     @apply ring-2 ring-ring ring-offset-2 ring-offset-background outline-none;
   }
 
-  /* Improved touch targets for mobile */
+  /* Improved touch targets for mobile (exclude small icon buttons inside chips/badges) */
   @media (max-width: 768px) {
-    button {
+    button:not([data-size="sm"]):not(.size-sm) {
       min-height: 44px;
-      min-width: 44px;
+    }
+
+    /* Smooth heading scale on mobile */
+    h1 { font-size: clamp(1.5rem, 5.5vw, 2.25rem); line-height: 1.15; }
+    h2 { font-size: clamp(1.25rem, 4.5vw, 1.875rem); line-height: 1.2; }
+
+    /* Prevent iOS zoom-on-focus for inputs */
+    input, select, textarea {
+      font-size: 16px;
     }
   }
 
