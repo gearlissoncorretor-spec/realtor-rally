@@ -112,11 +112,15 @@ const Vendas = () => {
       const saleMonth = parseInt(parts[1], 10);
       if (isNaN(saleYear)) return false;
       if (selectedYear > 0 && saleYear !== selectedYear) return false;
-      if (selectedMonth > 0 && saleMonth !== selectedMonth) return false;
+      if (selectedMonths.length > 0) {
+        if (!selectedMonths.includes(saleMonth)) return false;
+      } else if (selectedMonth > 0 && saleMonth !== selectedMonth) {
+        return false;
+      }
       if (statusFilter !== 'all' && sale.status !== statusFilter) return false;
       return true;
     });
-  }, [vendaSales, selectedYear, selectedMonth, statusFilter]);
+  }, [vendaSales, selectedYear, selectedMonth, selectedMonths, statusFilter]);
 
   const totalVGV = periodFilteredSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
   const totalVGC = periodFilteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
