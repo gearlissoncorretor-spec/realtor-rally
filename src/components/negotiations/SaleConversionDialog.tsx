@@ -108,6 +108,10 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
     e.preventDefault();
     if (!negotiation) return;
 
+    if (!formData.origem) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onConfirm(formData);
@@ -121,7 +125,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-green-600">
             <DollarSign className="h-5 w-5" />
@@ -133,7 +137,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
           {/* Dados da Negociação (readonly) */}
           <div className="bg-muted/50 p-4 rounded-lg space-y-2">
             <h4 className="font-medium text-sm text-muted-foreground">Dados da Negociação</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Cliente:</span>{' '}
                 <span className="font-medium">{negotiation.client_name}</span>
@@ -181,7 +185,8 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
           </div>
 
           {/* Campos obrigatórios */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
             <div className="space-y-2">
               <Label htmlFor="sale_date">Data da Venda *</Label>
               <Input
@@ -203,7 +208,8 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
             <div className="space-y-2">
               <Label htmlFor="vgv">VGV (Valor Geral de Vendas) *</Label>
               <CurrencyInput
@@ -223,7 +229,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
           </div>
 
           {/* Vendedor, Captador (condicional), Gerente */}
-          <div className={`grid gap-4 ${formData.sale_type === 'lancamento' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <div className={`grid gap-4 ${formData.sale_type === 'lancamento' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
             <div className="space-y-2">
               <Label htmlFor="vendedor">Vendedor</Label>
               <Select
@@ -304,7 +310,8 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
           </div>
 
           {/* Código e outros campos */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
             <div className="space-y-2">
               <Label htmlFor="latitude">Código (Opcional)</Label>
               <Input
@@ -317,7 +324,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
           </div>
 
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="estilo">Estilo</Label>
               <Input
@@ -349,7 +356,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
