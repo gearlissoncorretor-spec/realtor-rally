@@ -108,7 +108,28 @@ export const UserApprovalManager = () => {
       }
 
       setPendingUsers(prev => prev.filter(user => user.id !== userId));
-      
+
+      // Notifica o admin por e-mail quando aprovado
+      if (approved && userProfile) {
+        try {
+          const { data: authData } = await supabase.auth.getUser();
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "signup-approved-admin",
+              idempotencyKey: `signup-approved-${userId}`,
+              templateData: {
+                fullName: userProfile.full_name,
+                email: userProfile.email,
+                approvedBy: authData.user?.email ?? "Administrador",
+                approvedAt: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }),
+              },
+            },
+          });
+        } catch (notifyErr) {
+          console.warn("Falha ao notificar admin sobre aprovação", notifyErr);
+        }
+      }
+
       toast({
         title: approved ? "Usuário Aprovado" : "Usuário Rejeitado",
         description: `Usuário foi ${approved ? 'aprovado' : 'rejeitado'} com sucesso.`,

@@ -35,3 +35,5 @@ project_id = "kwsnnwiwflsvsqiuzfja"
     verify_jwt = false
   [functions.leads-webhook]
     verify_jwt = false
+  [functions.notify-signup]
+    verify_jwt = false

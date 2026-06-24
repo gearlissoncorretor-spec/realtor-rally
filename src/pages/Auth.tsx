@@ -5,19 +5,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck, Zap, Trophy, Sparkles, LogIn, PhoneCall, Globe } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, Mail, ShieldCheck, Zap, Trophy, Sparkles, LogIn, PhoneCall, Globe, UserPlus, CheckCircle2 } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [view, setView] = useState<"login" | "forgot">("login");
+  const [view, setView] = useState<"login" | "forgot" | "signup">("login");
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [signupSent, setSignupSent] = useState(false);
+  const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "" });
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
-  const { signIn, resetPassword, user, loading, profile } = useAuth();
+  const { signIn, signUp, resetPassword, user, loading, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { settings } = useOrganizationSettings();
@@ -80,6 +83,39 @@ const Auth = () => {
     }
   };
 
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signupForm.email.trim() || !signupForm.password || !signupForm.fullName.trim()) return;
+    if (signupForm.password.length < 6) {
+      toast({ title: "Senha muito curta", description: "Use ao menos 6 caracteres.", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
+      if (error) {
+        toast({ title: "Erro ao solicitar acesso", description: error.message || "Tente novamente.", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
+      // Notifica o admin (não bloqueia o fluxo se falhar)
+      try {
+        await supabase.functions.invoke("notify-signup", {
+          body: { fullName: signupForm.fullName, email: signupForm.email },
+        });
+      } catch (notifyErr) {
+        console.warn("notify-signup falhou", notifyErr);
+      }
+      // Garante que o usuário não fique logado antes da aprovação
+      await supabase.auth.signOut();
+      setSignupSent(true);
+    } catch {
+      toast({ title: "Erro", description: "Ocorreu um erro inesperado", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const orgName = settings?.organization_name || 'Gestão Master';
   const effectiveLogo = settings?.logo_icon_url || settings?.logo_url || null;
   const headingName = orgName.toUpperCase();
@@ -128,7 +164,59 @@ const Auth = () => {
 
         {/* Card */}
         <div className="auth-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl hover-lift">
-          {view === "forgot" ? (
+          {view === "signup" ? (
+            <div className="space-y-5">
+              <div className="flex items-center gap-2 mb-2">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+                  onClick={() => { setView("login"); setSignupSent(false); setSignupForm({ fullName: "", email: "", password: "" }); }}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h2 className="text-lg font-bold text-white">Solicitar acesso</h2>
+              </div>
+              {signupSent ? (
+                <div className="text-center space-y-4 py-4">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-500/20 mb-2">
+                    <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Cadastro enviado!</h3>
+                  <p className="text-white/60 text-sm leading-relaxed">
+                    Sua solicitação foi registrada e está <strong className="text-white/80">aguardando aprovação</strong> de um administrador.
+                    Você será avisado quando o acesso for liberado.
+                  </p>
+                  <Button variant="outline" className="mt-4 bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl"
+                    onClick={() => { setView("login"); setSignupSent(false); setSignupForm({ fullName: "", email: "", password: "" }); }}>
+                    Voltar ao login
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleSignup} className="space-y-5">
+                  <p className="text-white/60 text-sm">Preencha os dados abaixo. Seu acesso será liberado após aprovação do administrador.</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name" className="text-white/90 font-medium text-sm">Nome completo</Label>
+                    <Input id="signup-name" type="text" value={signupForm.fullName}
+                      onChange={(e) => setSignupForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      placeholder="Seu nome completo" required className="auth-input h-12" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email" className="text-white/90 font-medium text-sm">Email</Label>
+                    <Input id="signup-email" type="email" value={signupForm.email}
+                      onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="seu@email.com" required className="auth-input h-12" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password" className="text-white/90 font-medium text-sm">Senha</Label>
+                    <Input id="signup-password" type="password" value={signupForm.password}
+                      onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
+                      placeholder="Mínimo 6 caracteres" minLength={6} required className="auth-input h-12" />
+                  </div>
+                  <Button type="submit" className="auth-primary-button w-full h-12 gap-2" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
+                    {isSubmitting ? "Enviando..." : "Enviar solicitação"}
+                  </Button>
+                </form>
+              )}
+            </div>
+          ) : view === "forgot" ? (
             <div className="space-y-5">
               <div className="flex items-center gap-2 mb-2">
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
@@ -208,6 +296,13 @@ const Auth = () => {
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
                 {isSubmitting ? "Entrando..." : "Entrar"}
               </Button>
+              <div className="text-center text-sm text-white/60">
+                Ainda não tem conta?{" "}
+                <Button type="button" variant="link" className="text-blue-400 hover:text-blue-300 text-sm p-0 h-auto font-medium"
+                  onClick={() => setView("signup")}>
+                  Criar conta
+                </Button>
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-blue-300" /> Acesso seguro
