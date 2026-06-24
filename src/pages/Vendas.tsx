@@ -45,13 +45,15 @@ const Vendas = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { filters, setFilter, resetFilters, hasActiveFilters: hasPersistedFilters } = usePersistedFilters({
     key: 'vendas',
-    defaultValues: { year: currentYear, month: 0, status: 'all' as string },
+    defaultValues: { year: currentYear, month: 0, months: [] as number[], status: 'all' as string },
   });
   const selectedYear = filters.year;
   const selectedMonth = filters.month;
+  const selectedMonths: number[] = Array.isArray(filters.months) ? filters.months : [];
   const statusFilter = filters.status;
   const setSelectedYear = (v: number) => setFilter('year', v);
   const setSelectedMonth = (v: number) => setFilter('month', v);
+  const setSelectedMonths = (v: number[]) => setFilter('months', v);
   const setStatusFilter = (v: string) => setFilter('status', v);
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
