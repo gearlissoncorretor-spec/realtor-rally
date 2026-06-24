@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { generateBrandedSalesReport } from '@/utils/brandedPdf';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfYear } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Sale, Broker } from '@/contexts/DataContext';
 
@@ -24,15 +24,18 @@ export const BrandedReportDialog = ({ sales, brokers, trigger }: BrandedReportDi
   const { profile } = useAuth();
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [from, setFrom] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
-  const [to, setTo] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [from, setFrom] = useState(format(startOfYear(new Date()), 'yyyy-MM-dd'));
+  const [to, setTo] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const handleGenerate = async () => {
     setGenerating(true);
     try {
+      // Auto-corrige se o usuário inverter as datas
+      const [startDate, endDate] = from <= to ? [from, to] : [to, from];
       const filtered = sales.filter((s) => {
         if (!s.sale_date) return false;
-        return s.sale_date >= from && s.sale_date <= to;
+        const d = s.sale_date.substring(0, 10);
+        return d >= startDate && d <= endDate;
       });
 
       if (filtered.length === 0) {
