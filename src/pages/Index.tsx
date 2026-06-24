@@ -12,6 +12,8 @@ import GerenteDashboard from "@/components/dashboards/GerenteDashboard";
 import CorretorDashboard from "@/components/dashboards/CorretorDashboard";
 import UnifiedDirectorDashboard from "@/components/dashboards/UnifiedDirectorDashboard";
 import SocioDiretorDashboard from "@/components/dashboards/SocioDiretorDashboard";
+import LeadsAndTopBrokersPanel from "@/components/dashboards/LeadsAndTopBrokersPanel";
+import { useNegotiations } from "@/hooks/useNegotiations";
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
@@ -285,6 +287,7 @@ const DiretorDashboardPage = () => {
   const { isDiretor, isAdmin } = useAuth();
   const { teams } = useTeams();
   const { followUps } = useFollowUps();
+  const { negotiations } = useNegotiations();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
@@ -492,14 +495,11 @@ const DiretorDashboardPage = () => {
         {/* Charts and Ranking */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-8">
           <div className="lg:col-span-2 space-y-5 md:space-y-6">
-            <LazyComponentLoader fallback={<ChartSkeleton height={350} />}>
-              <DashboardChart
-                data={chartData}
-                type="line"
-                title="VGV & VGC Mensal"
-                height={350}
-              />
-            </LazyComponentLoader>
+            <LeadsAndTopBrokersPanel
+              negotiations={negotiations || []}
+              sales={filteredSales}
+              brokers={brokers}
+            />
             <LazyComponentLoader fallback={<ChartSkeleton height={250} />}>
               <TicketMedioChart
                 sales={filteredSales}
