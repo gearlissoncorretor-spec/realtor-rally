@@ -441,6 +441,8 @@ const DiretorDashboardPage = () => {
               selectedYear={selectedYear}
               onMonthChange={setSelectedMonth}
               onYearChange={setSelectedYear}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
             />
           </div>
           {isDirectorView && teams.length > 0 && (
