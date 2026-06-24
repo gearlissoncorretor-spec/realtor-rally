@@ -229,7 +229,7 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
           </div>
 
           {/* Vendedor, Captador (condicional), Gerente */}
-          <div className={`grid gap-4 ${formData.sale_type === 'lancamento' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <div className={`grid gap-4 ${formData.sale_type === 'lancamento' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
             <div className="space-y-2">
               <Label htmlFor="vendedor">Vendedor</Label>
               <Select
