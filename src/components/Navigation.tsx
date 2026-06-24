@@ -89,7 +89,7 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
       : defaultItems;
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-xl border-t border-border/40 z-40 flex items-center justify-around px-2 safe-area-bottom">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border/40 z-40 flex items-center justify-around px-2 pt-1 pb-[max(env(safe-area-inset-bottom),0.25rem)] min-h-16">
       {bottomItems.map(item => {
         const Icon = item.icon;
         const isActive = location.pathname === item.href;
