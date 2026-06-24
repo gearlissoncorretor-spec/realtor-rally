@@ -318,7 +318,7 @@ const Vendas = () => {
                 <span className="hidden sm:inline">Exportar</span>
               </Button>
 
-              <BrandedReportDialog sales={sales} brokers={brokers} />
+              <BrandedReportDialog sales={vendaSales} brokers={brokers} />
 
               <ExcelImport onImportComplete={() => refreshSales()} />
             </div>
