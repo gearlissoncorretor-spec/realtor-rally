@@ -15,6 +15,7 @@ import SocioDiretorDashboard from "@/components/dashboards/SocioDiretorDashboard
 import LeadsAndTopBrokersPanel from "@/components/dashboards/LeadsAndTopBrokersPanel";
 import { useNegotiations } from "@/hooks/useNegotiations";
 
+import { matchesPeriod, type DateRange } from "@/utils/periodFilter";
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
 const PropertyTypeChart = React.lazy(() => import("@/components/PropertyTypeChart"));
 const TicketMedioChart = React.lazy(() => import("@/components/TicketMedioChart"));
