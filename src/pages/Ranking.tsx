@@ -112,32 +112,38 @@ const Ranking = () => {
 
   const teamsForFilter = useMemo(() => teams.map(t => ({ id: t.id, name: t.name })), [teams]);
 
-  // Filter sales by quick period or month/year
+  // Filter sales by quick period, custom range, or month/year
   const filteredSales = useMemo(() => {
     const now = new Date();
+    const useCustom = hasCustomRange(dateRange);
     return sales.filter(sale => {
       const dateToUse = sale.sale_date || sale.created_at;
       if (!dateToUse) return false;
-      
+
       const { day, month: saleMonth, year: saleYear } = parseDateSafe(dateToUse);
       const saleDate = new Date(saleYear, saleMonth - 1, day);
-      
+
+      // Custom date range overrides everything when active
+      if (useCustom) {
+        return matchesPeriod(saleDate, { selectedMonth: 0, selectedYear: 0, dateRange });
+      }
+
       if (quickPeriod === 'today') return saleDate.toDateString() === now.toDateString();
       if (quickPeriod === 'week') { const weekAgo = new Date(now); weekAgo.setDate(weekAgo.getDate() - 7); return saleDate >= weekAgo; }
       if (quickPeriod === 'quarter') { const cq = Math.floor(now.getMonth() / 3); return saleYear === now.getFullYear() && Math.floor((saleMonth - 1) / 3) === cq; }
       if (quickPeriod === 'year') return saleYear === now.getFullYear();
       if (quickPeriod === 'all') return true;
-      
+
       const filterMonth = selectedMonth > 0 ? selectedMonth : now.getMonth() + 1;
       const filterYear = selectedYear > 0 ? selectedYear : now.getFullYear();
-      
+
       const matchesMonth = selectedMonth === 0 || saleMonth === filterMonth;
       const matchesYear = selectedYear === 0 || saleYear === filterYear;
-      
+
       return matchesMonth && matchesYear;
     });
 
-  }, [sales, selectedMonth, selectedYear, quickPeriod]);
+  }, [sales, selectedMonth, selectedYear, quickPeriod, dateRange]);
 
   // Previous period sales for comparison
   const previousPeriodSales = useMemo(() => {
