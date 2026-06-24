@@ -384,7 +384,7 @@ const Ranking = () => {
         <QuickPeriodButtons activePeriod={quickPeriod} onPeriodChange={handleQuickPeriod} />
 
         {quickPeriod === 'month' && (
-          <PeriodFilter selectedMonth={selectedMonth} selectedYear={selectedYear} onMonthChange={setSelectedMonth} onYearChange={setSelectedYear} />
+          <PeriodFilter selectedMonth={selectedMonth} selectedYear={selectedYear} onMonthChange={setSelectedMonth} onYearChange={setSelectedYear} dateRange={dateRange} onDateRangeChange={setDateRange} />
         )}
 
         {(isDiretor() || isAdmin()) && teamsForFilter.length > 0 && (
