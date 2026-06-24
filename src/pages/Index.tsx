@@ -331,11 +331,7 @@ const DiretorDashboardPage = () => {
         const broker = brokers.find(b => b.id === sale.broker_id);
         if (!broker || broker.team_id !== team.id) return false;
         const rawDate = sale.sale_date || sale.created_at;
-        if (!rawDate) return false;
-        const saleDate = new Date(rawDate);
-        if (isNaN(saleDate.getTime())) return false;
-        if (selectedYear > 0 && saleDate.getFullYear() !== selectedYear) return false;
-        if (selectedMonth > 0 && saleDate.getMonth() + 1 !== selectedMonth) return false;
+        if (!matchesPeriod(rawDate, { selectedMonth, selectedYear, dateRange })) return false;
         return true;
       });
 
@@ -347,7 +343,7 @@ const DiretorDashboardPage = () => {
         turnoverRate: turnover.toFixed(1),
       };
     }).filter(t => t.activeBrokers > 0 || t.totalSales > 0);
-  }, [isDirectorView, teams, brokers, sales, selectedMonth, selectedYear]);
+  }, [isDirectorView, teams, brokers, sales, selectedMonth, selectedYear, dateRange]);
 
   const isInitialLoading = (brokersLoading || salesLoading) && brokers.length === 0 && sales.length === 0;
   const hasError = brokersError || salesError;
