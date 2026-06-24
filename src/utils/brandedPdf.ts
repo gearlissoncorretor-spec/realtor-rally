@@ -269,7 +269,7 @@ export async function generateBrandedSalesReport(opts: BrandedSalesReportOptions
       .slice()
       .sort((a, b) => (b.sale_date || '').localeCompare(a.sale_date || ''))
       .map((s) => [
-        s.sale_date ? format(new Date(s.sale_date), 'dd/MM/yyyy', { locale: ptBR }) : '-',
+        s.sale_date ? format(new Date(s.sale_date.substring(0, 10) + 'T12:00:00'), 'dd/MM/yyyy', { locale: ptBR }) : '-',
         s.client_name || '-',
         brokers.find((b) => b.id === s.broker_id)?.name || '-',
         s.property_address || '-',
