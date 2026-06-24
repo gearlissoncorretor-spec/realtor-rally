@@ -300,40 +300,11 @@ const UnifiedDirectorDashboard = () => {
           </TabsList>
 
           <TabsContent value="geral" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2 p-6 border-border/50">
-                <CardHeader className="px-0 pt-0">
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" /> Comparativo VGV vs VGC
-                  </CardTitle>
-                </CardHeader>
-                <LazyComponentLoader fallback={<ChartSkeleton height={350} />}>
-                  <DashboardChart data={chartData} type="line" height={350} title="Evolução Mensal" />
-                </LazyComponentLoader>
-              </Card>
-
-              <div className="space-y-6">
-                <VGCPercentageCard sales={filteredSales} />
-                <Card className="p-6 border-border/50">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center py-2 border-b border-border/30">
-                      <span className="text-sm text-muted-foreground flex items-center gap-2"><UserCheck className="w-4 h-4" /> Taxa de Conversão</span>
-                      <span className="text-lg font-bold">
-                        {totalSales > 0 ? ((filteredSales.filter(s => s.status === 'confirmada').length / totalSales) * 100).toFixed(1) : 0}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border/30">
-                      <span className="text-sm text-muted-foreground flex items-center gap-2"><DollarSign className="w-4 h-4" /> Ticket Médio</span>
-                      <span className="text-lg font-bold">{formatCurrency(totalSales > 0 ? totalVGV / totalSales : 0)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-muted-foreground flex items-center gap-2"><ArrowUpRight className="w-4 h-4" /> Novos Leads</span>
-                      <span className="text-lg font-bold">{negotiations?.length || 0}</span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </div>
+            <LeadsAndTopBrokersPanel
+              negotiations={negotiations || []}
+              sales={filteredSales}
+              brokers={brokers}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <LazyComponentLoader fallback={<ChartSkeleton height={300} />}>
