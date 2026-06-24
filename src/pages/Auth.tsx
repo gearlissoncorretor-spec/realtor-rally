@@ -296,6 +296,13 @@ const Auth = () => {
                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogIn className="w-5 h-5" />}
                 {isSubmitting ? "Entrando..." : "Entrar"}
               </Button>
+              <div className="text-center text-sm text-white/60">
+                Ainda não tem conta?{" "}
+                <Button type="button" variant="link" className="text-blue-400 hover:text-blue-300 text-sm p-0 h-auto font-medium"
+                  onClick={() => setView("signup")}>
+                  Criar conta
+                </Button>
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-white/60">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-blue-300" /> Acesso seguro
