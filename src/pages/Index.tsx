@@ -285,6 +285,7 @@ const DiretorDashboardPage = () => {
   const { negotiations } = useNegotiations();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
   const [showNegotiationAlert, setShowNegotiationAlert] = useState(true);
 
