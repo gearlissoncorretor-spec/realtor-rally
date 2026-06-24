@@ -108,6 +108,10 @@ export function SaleConversionDialog({ open, onOpenChange, negotiation, onConfir
     e.preventDefault();
     if (!negotiation) return;
 
+    if (!formData.origem) {
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onConfirm(formData);
