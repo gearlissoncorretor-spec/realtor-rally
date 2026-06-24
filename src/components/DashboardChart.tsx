@@ -38,7 +38,7 @@ const DashboardChart = ({ data, type, title, height }: DashboardChartProps) => {
     switch (type) {
       case "line":
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorVgv" x1="0" y1="0" x2="0" y2="1">
@@ -102,7 +102,7 @@ const DashboardChart = ({ data, type, title, height }: DashboardChartProps) => {
 
       case "bar":
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
               <XAxis 
@@ -146,7 +146,7 @@ const DashboardChart = ({ data, type, title, height }: DashboardChartProps) => {
         }));
 
         return (
-          <ResponsiveContainer width="100%" height={height}>
+          <ResponsiveContainer width="100%" height={chartHeight}>
             <PieChart>
               <Pie
                 data={pieData}
