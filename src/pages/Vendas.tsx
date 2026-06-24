@@ -17,7 +17,9 @@ import { CaptacaoTab } from "@/components/sales/CaptacaoTab";
 import { SaleCelebration } from "@/components/SaleCelebration";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home, Download, DollarSign, TrendingUp, Target } from "lucide-react";
+import { Plus, Search, Calendar, FileSpreadsheet, Filter, BarChart3, Home, Download, DollarSign, TrendingUp, Target, ChevronDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useMemo, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { usePersistedFilters } from "@/hooks/usePersistedFilters";
@@ -45,13 +47,15 @@ const Vendas = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { filters, setFilter, resetFilters, hasActiveFilters: hasPersistedFilters } = usePersistedFilters({
     key: 'vendas',
-    defaultValues: { year: currentYear, month: 0, status: 'all' as string },
+    defaultValues: { year: currentYear, month: 0, months: [] as number[], status: 'all' as string },
   });
   const selectedYear = filters.year;
   const selectedMonth = filters.month;
+  const selectedMonths: number[] = Array.isArray(filters.months) ? filters.months : [];
   const statusFilter = filters.status;
   const setSelectedYear = (v: number) => setFilter('year', v);
   const setSelectedMonth = (v: number) => setFilter('month', v);
+  const setSelectedMonths = (v: number[]) => setFilter('months', v);
   const setStatusFilter = (v: string) => setFilter('status', v);
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -110,11 +114,15 @@ const Vendas = () => {
       const saleMonth = parseInt(parts[1], 10);
       if (isNaN(saleYear)) return false;
       if (selectedYear > 0 && saleYear !== selectedYear) return false;
-      if (selectedMonth > 0 && saleMonth !== selectedMonth) return false;
+      if (selectedMonths.length > 0) {
+        if (!selectedMonths.includes(saleMonth)) return false;
+      } else if (selectedMonth > 0 && saleMonth !== selectedMonth) {
+        return false;
+      }
       if (statusFilter !== 'all' && sale.status !== statusFilter) return false;
       return true;
     });
-  }, [vendaSales, selectedYear, selectedMonth, statusFilter]);
+  }, [vendaSales, selectedYear, selectedMonth, selectedMonths, statusFilter]);
 
   const totalVGV = periodFilteredSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
   const totalVGC = periodFilteredSales.reduce((sum, s) => sum + Number(s.vgc || 0), 0);
@@ -134,7 +142,7 @@ const Vendas = () => {
   const pagination = usePagination(searchFilteredSales, { storageKey: 'vendas', defaultPageSize: 25 });
   
   // Reset page when filters change
-  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, statusFilter, searchTerm]);
+  useEffect(() => { pagination.resetPage(); }, [selectedYear, selectedMonth, selectedMonths, statusFilter, searchTerm]);
 
   const handleDelete = async (saleId: string) => {
     try {
@@ -358,16 +366,59 @@ const Vendas = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                      <SelectTrigger className="w-[130px] h-9 text-xs bg-background/50 border-border/50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map(m => (
-                          <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-[160px] h-9 justify-between text-xs bg-background/50 border-border/50 font-normal">
+                          <span className="truncate">
+                            {selectedMonths.length === 0
+                              ? (selectedMonth > 0 ? months.find(m => m.value === selectedMonth)?.label : 'Todos os meses')
+                              : selectedMonths.length === 1
+                                ? months.find(m => m.value === selectedMonths[0])?.label
+                                : `${selectedMonths.length} meses`}
+                          </span>
+                          <ChevronDown className="h-3 w-3 opacity-50 shrink-0" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-2" align="start">
+                        <div className="flex items-center justify-between px-1 pb-2 mb-1 border-b">
+                          <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => { setSelectedMonths([]); setSelectedMonth(0); }}
+                          >
+                            Limpar
+                          </button>
+                          <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => setSelectedMonths(months.filter(m => m.value > 0).map(m => m.value))}
+                          >
+                            Todos
+                          </button>
+                        </div>
+                        <div className="max-h-[260px] overflow-auto space-y-1">
+                          {months.filter(m => m.value > 0).map(m => {
+                            const checked = selectedMonths.includes(m.value);
+                            return (
+                              <label key={m.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer text-xs">
+                                <Checkbox
+                                  checked={checked}
+                                  onCheckedChange={(c) => {
+                                    if (c) {
+                                      setSelectedMonths([...selectedMonths, m.value].sort((a, b) => a - b));
+                                      if (selectedMonth !== 0) setSelectedMonth(0);
+                                    } else {
+                                      setSelectedMonths(selectedMonths.filter(v => v !== m.value));
+                                    }
+                                  }}
+                                />
+                                <span>{m.label}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[120px] h-9 text-xs bg-background/50 border-border/50">
                         <SelectValue />
