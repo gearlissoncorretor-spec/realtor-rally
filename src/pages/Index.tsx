@@ -495,14 +495,11 @@ const DiretorDashboardPage = () => {
         {/* Charts and Ranking */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-8">
           <div className="lg:col-span-2 space-y-5 md:space-y-6">
-            <LazyComponentLoader fallback={<ChartSkeleton height={350} />}>
-              <DashboardChart
-                data={chartData}
-                type="line"
-                title="VGV & VGC Mensal"
-                height={350}
-              />
-            </LazyComponentLoader>
+            <LeadsAndTopBrokersPanel
+              negotiations={negotiations || []}
+              sales={filteredSales}
+              brokers={brokers}
+            />
             <LazyComponentLoader fallback={<ChartSkeleton height={250} />}>
               <TicketMedioChart
                 sales={filteredSales}
