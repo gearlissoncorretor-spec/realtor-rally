@@ -38,6 +38,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SalesInsightsAlerts } from "@/components/dashboards/SalesInsightsAlerts";
+import LeadsAndTopBrokersPanel from "@/components/dashboards/LeadsAndTopBrokersPanel";
 import { parseLocalDate } from '@/utils/dateParsing';
 
 const DashboardChart = React.lazy(() => import("@/components/DashboardChart"));
