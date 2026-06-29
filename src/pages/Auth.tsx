@@ -17,6 +17,8 @@ const Auth = () => {
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
+  const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
+  const [sendingReset, setSendingReset] = useState(false);
   const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "" });
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
@@ -91,10 +93,23 @@ const Auth = () => {
       return;
     }
     setIsSubmitting(true);
+    setDuplicateEmail(null);
     try {
       const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
       if (error) {
-        toast({ title: "Erro ao solicitar acesso", description: error.message || "Tente novamente.", variant: "destructive" });
+        const msg = (error.message || "").toLowerCase();
+        const isDuplicate =
+          msg.includes("already registered") ||
+          msg.includes("already been registered") ||
+          msg.includes("user already") ||
+          msg.includes("duplicate") ||
+          msg.includes("já cadastrado") ||
+          msg.includes("ja cadastrado");
+        if (isDuplicate) {
+          setDuplicateEmail(signupForm.email);
+        } else {
+          toast({ title: "Erro ao solicitar acesso", description: error.message || "Tente novamente.", variant: "destructive" });
+        }
         setIsSubmitting(false);
         return;
       }
@@ -113,6 +128,24 @@ const Auth = () => {
       toast({ title: "Erro", description: "Ocorreu um erro inesperado", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSendResetForDuplicate = async () => {
+    if (!duplicateEmail) return;
+    setSendingReset(true);
+    try {
+      const { error } = await resetPassword(duplicateEmail);
+      if (error) {
+        toast({ title: "Erro", description: error.message || "Não foi possível enviar o e-mail.", variant: "destructive" });
+      } else {
+        toast({ title: "E-mail enviado!", description: `Link de redefinição enviado para ${duplicateEmail}.` });
+        setDuplicateEmail(null);
+        setView("login");
+        setSignupForm({ fullName: "", email: "", password: "" });
+      }
+    } finally {
+      setSendingReset(false);
     }
   };
 
@@ -191,6 +224,25 @@ const Auth = () => {
               ) : (
                 <form onSubmit={handleSignup} className="space-y-5">
                   <p className="text-white/60 text-sm">Preencha os dados abaixo. Seu acesso será liberado após aprovação do administrador.</p>
+                  {duplicateEmail && (
+                    <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-4 space-y-3">
+                      <p className="text-amber-200 text-sm">
+                        Já existe uma conta com o e-mail <strong>{duplicateEmail}</strong>. Se for você, podemos enviar um link para redefinir a senha.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button type="button" size="sm" className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold"
+                          onClick={handleSendResetForDuplicate} disabled={sendingReset}>
+                          {sendingReset ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Mail className="w-4 h-4 mr-2" />}
+                          Enviar redefinição de senha
+                        </Button>
+                        <Button type="button" size="sm" variant="outline"
+                          className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+                          onClick={() => setDuplicateEmail(null)}>
+                          Usar outro e-mail
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="signup-name" className="text-white/90 font-medium text-sm">Nome completo</Label>
                     <Input id="signup-name" type="text" value={signupForm.fullName}
@@ -200,7 +252,7 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label htmlFor="signup-email" className="text-white/90 font-medium text-sm">Email</Label>
                     <Input id="signup-email" type="email" value={signupForm.email}
-                      onChange={(e) => setSignupForm(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) => { setSignupForm(prev => ({ ...prev, email: e.target.value })); setDuplicateEmail(null); }}
                       placeholder="seu@email.com" required className="auth-input h-12" />
                   </div>
                   <div className="space-y-2">
@@ -209,7 +261,7 @@ const Auth = () => {
                       onChange={(e) => setSignupForm(prev => ({ ...prev, password: e.target.value }))}
                       placeholder="Mínimo 6 caracteres" minLength={6} required className="auth-input h-12" />
                   </div>
-                  <Button type="submit" className="auth-primary-button w-full h-12 gap-2" disabled={isSubmitting}>
+                  <Button type="submit" className="auth-primary-button w-full h-12 gap-2" disabled={isSubmitting || !!duplicateEmail}>
                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserPlus className="w-5 h-5" />}
                     {isSubmitting ? "Enviando..." : "Enviar solicitação"}
                   </Button>

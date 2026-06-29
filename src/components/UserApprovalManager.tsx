@@ -19,12 +19,12 @@ interface PendingUser {
 }
 
 export const UserApprovalManager = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDiretor } = useAuth();
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAdmin()) {
+    if (isAdmin() || isDiretor()) {
       fetchPendingUsers();
     }
   }, []);
@@ -148,7 +148,7 @@ export const UserApprovalManager = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  if (!isAdmin()) {
+  if (!isAdmin() && !isDiretor()) {
     return null;
   }
 
