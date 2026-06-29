@@ -9,7 +9,7 @@ import { PendingApprovals } from './user-management/PendingApprovals';
 import { PasswordManager } from './user-management/PasswordManager';
 
 export const UserManagementHub = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDiretor } = useAuth();
   const [activeTab, setActiveTab] = useState("users");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -17,7 +17,7 @@ export const UserManagementHub = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  if (!isAdmin()) {
+  if (!isAdmin() && !isDiretor()) {
     return null;
   }
 
