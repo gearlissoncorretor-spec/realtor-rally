@@ -173,6 +173,30 @@
     input, select, textarea {
       font-size: 16px;
     }
+
+    /* Tabs: allow horizontal scroll instead of cramming triggers */
+    [role="tablist"] {
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    [role="tablist"]::-webkit-scrollbar { display: none; }
+
+    /* Native tables become horizontally scrollable on mobile */
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
+    }
+    table thead, table tbody, table tr {
+      display: table;
+      width: 100%;
+      table-layout: auto;
+    }
   }
 
   /* High contrast mode support */
