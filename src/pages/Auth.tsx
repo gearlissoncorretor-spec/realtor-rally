@@ -17,6 +17,8 @@ const Auth = () => {
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   const [signupSent, setSignupSent] = useState(false);
+  const [duplicateEmail, setDuplicateEmail] = useState<string | null>(null);
+  const [sendingReset, setSendingReset] = useState(false);
   const [signupForm, setSignupForm] = useState({ fullName: "", email: "", password: "" });
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
