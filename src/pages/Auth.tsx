@@ -93,10 +93,23 @@ const Auth = () => {
       return;
     }
     setIsSubmitting(true);
+    setDuplicateEmail(null);
     try {
       const { error } = await signUp(signupForm.email, signupForm.password, signupForm.fullName);
       if (error) {
-        toast({ title: "Erro ao solicitar acesso", description: error.message || "Tente novamente.", variant: "destructive" });
+        const msg = (error.message || "").toLowerCase();
+        const isDuplicate =
+          msg.includes("already registered") ||
+          msg.includes("already been registered") ||
+          msg.includes("user already") ||
+          msg.includes("duplicate") ||
+          msg.includes("já cadastrado") ||
+          msg.includes("ja cadastrado");
+        if (isDuplicate) {
+          setDuplicateEmail(signupForm.email);
+        } else {
+          toast({ title: "Erro ao solicitar acesso", description: error.message || "Tente novamente.", variant: "destructive" });
+        }
         setIsSubmitting(false);
         return;
       }
@@ -115,6 +128,24 @@ const Auth = () => {
       toast({ title: "Erro", description: "Ocorreu um erro inesperado", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSendResetForDuplicate = async () => {
+    if (!duplicateEmail) return;
+    setSendingReset(true);
+    try {
+      const { error } = await resetPassword(duplicateEmail);
+      if (error) {
+        toast({ title: "Erro", description: error.message || "Não foi possível enviar o e-mail.", variant: "destructive" });
+      } else {
+        toast({ title: "E-mail enviado!", description: `Link de redefinição enviado para ${duplicateEmail}.` });
+        setDuplicateEmail(null);
+        setView("login");
+        setSignupForm({ fullName: "", email: "", password: "" });
+      }
+    } finally {
+      setSendingReset(false);
     }
   };
 
