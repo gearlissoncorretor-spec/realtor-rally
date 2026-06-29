@@ -316,18 +316,18 @@ const GestaoUsuarios = () => {
           </div>
 
           <Tabs defaultValue="lista" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="lista" className="flex items-center gap-2">
-                <Users className="h-4 w-4" /> Lista
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="lista" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-2">
+                <Users className="h-4 w-4 shrink-0" /> <span className="truncate">Lista</span>
               </TabsTrigger>
               {canManage && (
-                <TabsTrigger value="pendencias" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" /> Pendências
+                <TabsTrigger value="pendencias" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-2">
+                  <Clock className="h-4 w-4 shrink-0" /> <span className="truncate">Pendências</span>
                 </TabsTrigger>
               )}
               {(isAdmin() || isDiretor()) && (
-                <TabsTrigger value="permissoes" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" /> Permissões
+                <TabsTrigger value="permissoes" className="flex items-center gap-1.5 text-xs sm:text-sm px-2 py-2">
+                  <Shield className="h-4 w-4 shrink-0" /> <span className="truncate">Permissões</span>
                 </TabsTrigger>
               )}
             </TabsList>
