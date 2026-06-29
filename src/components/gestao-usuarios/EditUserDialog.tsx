@@ -55,22 +55,45 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
     
     setLoading(true);
     try {
-      const emailChanged = form.email.trim().toLowerCase() !== user.email.trim().toLowerCase();
+      const newEmail = form.email.trim().toLowerCase();
+      const oldEmail = (user.email || '').trim().toLowerCase();
+      const emailChanged = newEmail !== oldEmail;
 
-      // If email changed, update via edge function (syncs auth + profiles + brokers)
+      // Validate email format up front
+      if (emailChanged && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+        throw new Error('Formato de email inválido.');
+      }
+
+      // If email changed, update via edge function (syncs auth.users + profiles + brokers)
       if (emailChanged) {
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token;
         if (!accessToken) throw new Error('Sessão expirada. Faça login novamente.');
 
-        const { error: emailError } = await supabase.functions.invoke('update-user-email', {
-          body: { userId: user.id, newEmail: form.email.trim() },
+        const { data: emailResp, error: emailError } = await supabase.functions.invoke('update-user-email', {
+          body: { userId: user.id, newEmail },
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        if (emailError) throw emailError;
+
+        if (emailError) {
+          // Try to extract the real error body from the edge function response
+          let msg = emailError.message || 'Falha ao atualizar email de login.';
+          try {
+            const ctx: any = (emailError as any).context;
+            if (ctx && typeof ctx.json === 'function') {
+              const body = await ctx.json();
+              if (body?.error) msg = body.error;
+            }
+          } catch { /* ignore parse errors */ }
+          throw new Error(msg);
+        }
+
+        if (emailResp && (emailResp as any).error) {
+          throw new Error((emailResp as any).error);
+        }
       }
 
-      // Update profile (excluding email, handled above)
+      // Update profile fields (email already synced by the edge function)
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -79,11 +102,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChang
           phone: form.phone || null,
           birth_date: form.birth_date || null,
           team_id: form.team_id || null,
-          ...(emailChanged ? { email: form.email.trim() } : {}),
         })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
+
 
       // Sync changes to linked broker record
       const { data: linkedBroker, error: linkedBrokerError } = await supabase
