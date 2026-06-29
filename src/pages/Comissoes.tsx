@@ -573,7 +573,7 @@ const Comissoes = () => {
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           {[
             { icon: DollarSign, label: "Total Geral", value: formatCurrency(totalCommission), color: "text-primary", bg: "bg-primary/10" },
             { icon: Clock, label: "A Receber", value: formatCurrency(totalPending), color: "text-warning", bg: "bg-warning/10" },
