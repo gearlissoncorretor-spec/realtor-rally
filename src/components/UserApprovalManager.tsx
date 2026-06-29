@@ -148,7 +148,7 @@ export const UserApprovalManager = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  if (!isAdmin()) {
+  if (!isAdmin() && !isDiretor()) {
     return null;
   }
 
