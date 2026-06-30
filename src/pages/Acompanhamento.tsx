@@ -86,11 +86,16 @@ const Acompanhamento = () => {
 
   const getCardsForStage = (stageId: string) => processCards.filter(c => c.stageId === stageId);
 
-  // KPI calculations
-  const totalVGV = processCards.reduce((sum, c) => sum + c.value, 0);
-  const totalVGC = processCards.reduce((sum, c) => sum + (c.vgc || 0), 0);
+  // KPI calculations — exclui distrato/cancelada e considera apenas vendas (não captação) para o VGV
+  const activeCards = processCards.filter(c => c.status !== "distrato" && c.status !== "cancelada");
+  const salesCards = activeCards.filter(c => c.tipo !== "captacao");
+  const totalVGV = salesCards.reduce((sum, s) => {
+    const sale = sales.find(x => x.id === s.id);
+    return sum + Number(sale?.vgv || s.value || 0);
+  }, 0);
+  const totalVGC = activeCards.reduce((sum, c) => sum + (c.vgc || 0), 0);
   const totalCards = processCards.length;
-  const avgTicket = totalCards > 0 ? totalVGV / totalCards : 0;
+  const avgTicket = salesCards.length > 0 ? totalVGV / salesCards.length : 0;
   const confirmedCount = processCards.filter(c => c.status === "confirmada").length;
 
   // Scroll sync
