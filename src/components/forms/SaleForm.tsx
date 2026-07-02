@@ -250,15 +250,12 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
       const vgcValue = (data.vgc && data.vgc > 0) ? data.vgc : data.property_value;
-      
-      // Regra de VGV: Captação não conta no VGV de vendas. 
-      // Vendas com parceria de agência (onde somos apenas captadores) também não contam.
+
       const isOnlyCaptacao = data.tipo === 'captacao' || (data.tipo === 'venda' && data.parceria_tipo === 'Agência');
       const vgvValue = isOnlyCaptacao ? 0 : data.property_value;
-      
-      // Comissão agora é calculada tanto para venda quanto para captação, se houver VGC
+
       const commission_value = (vgcValue * Number(commissionRate)) / 100;
-      
+
       await onSubmit({
         ...data,
         vgv: vgvValue,
@@ -266,14 +263,24 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         commission_value,
         client_email: data.client_email || null,
       });
-      
+
+      toast({
+        title: data.tipo === 'captacao' ? 'Captação salva' : 'Venda salva',
+        description: 'Registro concluído com sucesso.',
+      });
+
       if (!sale) {
-        // Only reset form for new sales, not edits
         form.reset();
       }
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting sale form:', error);
+      toast({
+        title: 'Erro ao salvar',
+        description: error?.message || error?.details || error?.hint || 'Verifique os campos e tente novamente.',
+        variant: 'destructive',
+      });
+      // NÃO fecha o dialog — mantém os dados para o usuário corrigir
     }
   };
 
