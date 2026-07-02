@@ -450,10 +450,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('[createSale] error:', error);
       toast({
         title: "Erro ao criar registro",
-        description: "Não foi possível salvar o registro.",
+        description: error?.message || error?.details || error?.hint || "Não foi possível salvar o registro.",
         variant: "destructive",
       });
     },
