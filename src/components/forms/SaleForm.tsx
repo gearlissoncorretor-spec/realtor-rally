@@ -290,6 +290,9 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 
       const commission_value = (vgcValue * Number(commissionRate)) / 100;
 
+      // Deriva ano/mês diretamente da data da venda para garantir consistência
+      const [saleYear, saleMonth] = data.sale_date.split('-').map(Number);
+
       await onSubmit({
         ...data,
         origem: normalizedOrigem,
@@ -297,6 +300,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         vgc: vgcValue,
         commission_value,
         client_email: data.client_email || null,
+        ano: saleYear || data.ano,
+        mes: saleMonth || data.mes,
       });
 
       toast.success(
