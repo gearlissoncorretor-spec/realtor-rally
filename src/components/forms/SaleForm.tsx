@@ -14,6 +14,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sale, useData } from '@/contexts/DataContext';
 import { toast } from 'sonner';
 
+// Valores permitidos pelo CHECK constraint da coluna sales.origem no banco
+const ORIGEM_OPTIONS = [
+  'Marketplace', 'Tráfego Pago (Patrocinado)', 'Ação de Rua',
+  'Lista Imobiliária', 'Lista Pessoal', 'Anúncio Geral',
+  'Indicação', 'Outro',
+] as const;
+
 const saleSchema = z.object({
   tipo: z.enum(['venda', 'captacao']),
   visibilidade: z.enum(['auto', 'venda', 'captacao', 'ambos']).default('auto'),
@@ -274,6 +281,7 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 
       await onSubmit({
         ...data,
+        origem: normalizedOrigem,
         vgv: vgvValue,
         vgc: vgcValue,
         commission_value,
@@ -615,13 +623,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 control={form.control}
                 name="origem"
                 render={({ field }) => {
-                  const origemOptions = [
-                    'Marketplace', 'Tráfego Pago (Patrocinado)', 'Ação de Rua',
-                    'Lista Imobiliária', 'Lista Pessoal', 'Anúncio Geral',
-                    'Indicação', 'Outro'
-                  ];
                   const [showOrigemDropdown, setShowOrigemDropdown] = useState(false);
-                  const filteredOptions = origemOptions.filter(opt =>
+                  const filteredOptions = ORIGEM_OPTIONS.filter(opt =>
                     opt.toLowerCase().includes((field.value || '').toLowerCase())
                   );
                   return (
