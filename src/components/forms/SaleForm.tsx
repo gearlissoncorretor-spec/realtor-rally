@@ -601,9 +601,9 @@ export const SaleForm: React.FC<SaleFormProps> = ({
                 name="origem"
                 render={({ field }) => {
                   const origemOptions = [
-                    'Indicação', 'Site', 'Redes Sociais', 'Plantão', 'Portal Imobiliário',
-                    'WhatsApp', 'Telefone', 'Stand de Vendas', 'Evento', 'Parceiro',
-                    'Google Ads', 'Facebook Ads', 'Instagram', 'Placa', 'Outros'
+                    'Marketplace', 'Tráfego Pago (Patrocinado)', 'Ação de Rua',
+                    'Lista Imobiliária', 'Lista Pessoal', 'Anúncio Geral',
+                    'Indicação', 'Outro'
                   ];
                   const [showOrigemDropdown, setShowOrigemDropdown] = useState(false);
                   const filteredOptions = origemOptions.filter(opt =>
