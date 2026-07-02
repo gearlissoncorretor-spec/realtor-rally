@@ -99,13 +99,15 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         .from('user_roles')
         .select('user_id, role')
         .in('user_id', profileIds)
-        .eq('role', 'gerente');
-      const gerenteIds = new Set((rolesData || []).map(r => r.user_id));
-      setManagers((profilesData || []).filter(p => gerenteIds.has(p.id)).map(p => ({
-        id: p.id,
-        full_name: p.full_name,
-        team_id: p.team_id,
-      })));
+        .in('role', ['gerente', 'diretor', 'socio', 'admin']);
+      const managerIds = new Set((rolesData || []).map(r => r.user_id));
+      setManagers((profilesData || [])
+        .filter(p => managerIds.has(p.id) && p.full_name)
+        .map(p => ({
+          id: p.id,
+          full_name: p.full_name,
+          team_id: p.team_id,
+        })));
     };
     if (isOpen) fetchManagers();
   }, [isOpen]);
