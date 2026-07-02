@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sale, useData } from '@/contexts/DataContext';
+import { toast } from 'sonner';
 
 const saleSchema = z.object({
   tipo: z.enum(['venda', 'captacao']),
