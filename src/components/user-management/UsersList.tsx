@@ -18,7 +18,8 @@ import {
   TrendingUp, 
   ChevronDown,
   ChevronUp,
-  Loader2
+  Loader2,
+  KeyRound
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -148,6 +149,34 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
+  };
+
+  const handleResetPassword = async (user: User) => {
+    const pwd = window.prompt(
+      `Definir nova senha temporária para ${user.full_name}?\n\nO usuário será obrigado a alterá-la no próximo login. Mínimo 8 caracteres.`,
+      ''
+    );
+    if (!pwd) return;
+    if (pwd.length < 8) {
+      toast({ title: 'Senha muito curta', description: 'Use ao menos 8 caracteres.', variant: 'destructive' });
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('update-user-password', {
+        body: { userId: user.id, password: pwd },
+      });
+      if (error) throw error;
+      toast({
+        title: 'Senha atualizada',
+        description: `Nova senha definida para ${data?.email ?? user.email}. Compartilhe com o usuário; ele precisará trocá-la no próximo login.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Erro ao redefinir senha',
+        description: err?.message ?? 'Falha desconhecida',
+        variant: 'destructive',
+      });
+    }
   };
 
   const updateUser = async (updatedUser: User) => {
@@ -381,17 +410,30 @@ export const UsersList = ({ refreshTrigger }: UsersListProps) => {
                           </div>
                         </div>
                         
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditUser(user);
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Editar
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResetPassword(user);
+                            }}
+                          >
+                            <KeyRound className="h-4 w-4 mr-1" />
+                            Nova senha
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditUser(user);
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Editar
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
