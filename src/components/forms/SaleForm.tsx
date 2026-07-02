@@ -159,6 +159,17 @@ export const SaleForm: React.FC<SaleFormProps> = ({
   const watchSaleType = form.watch('sale_type');
   const watchTipo = form.watch('tipo');
   const watchBrokerId = form.watch('broker_id');
+  const watchSaleDate = form.watch('sale_date');
+
+  // Ano e Mês sempre derivados da Data da Venda (fonte única de verdade)
+  useEffect(() => {
+    if (!watchSaleDate) return;
+    const [y, m] = watchSaleDate.split('-').map(Number);
+    if (y && m) {
+      form.setValue('ano', y);
+      form.setValue('mes', m);
+    }
+  }, [watchSaleDate, form]);
 
   // Auto-fill gerente when broker is selected
   useEffect(() => {
