@@ -276,10 +276,8 @@ export const SaleForm: React.FC<SaleFormProps> = ({
       onClose();
     } catch (error: any) {
       console.error('Error submitting sale form:', error);
-      toast({
-        title: 'Erro ao salvar',
+      toast.error('Erro ao salvar', {
         description: error?.message || error?.details || error?.hint || 'Verifique os campos e tente novamente.',
-        variant: 'destructive',
       });
       // NÃO fecha o dialog — mantém os dados para o usuário corrigir
     }
