@@ -32,6 +32,7 @@ const saleSchema = z.object({
   sale_type: z.enum(['lancamento', 'revenda']),
   sale_date: z.string().min(1, 'Data da venda é obrigatória'),
   origem: z.string().min(1, 'Origem é obrigatória'),
+  // valores permitidos pelo CHECK constraint do banco (validados no submit)
   estilo: z.string().optional(),
   produto: z.string().optional(),
   captador: z.string().optional().default(''),
@@ -248,6 +249,20 @@ export const SaleForm: React.FC<SaleFormProps> = ({
 
   const handleSubmit = async (data: SaleFormData) => {
     try {
+      // Normaliza a origem: aceita variações de maiúsculas/minúsculas, mas exige valor válido
+      const normalizedOrigem = ORIGEM_OPTIONS.find(
+        (opt) => opt.toLowerCase() === (data.origem || '').trim().toLowerCase()
+      );
+      if (!normalizedOrigem) {
+        form.setError('origem', {
+          message: 'Selecione uma origem válida da lista.',
+        });
+        toast.error('Origem inválida', {
+          description: 'Escolha uma das opções sugeridas no campo Origem.',
+        });
+        return;
+      }
+
       const selectedBroker = brokers.find(b => b.id === data.broker_id);
       const commissionRate = selectedBroker?.commission_rate || 5;
       const vgcValue = (data.vgc && data.vgc > 0) ? data.vgc : data.property_value;
