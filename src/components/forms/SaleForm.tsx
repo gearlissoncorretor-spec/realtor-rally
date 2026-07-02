@@ -265,10 +265,10 @@ export const SaleForm: React.FC<SaleFormProps> = ({
         client_email: data.client_email || null,
       });
 
-      toast({
-        title: data.tipo === 'captacao' ? 'Captação salva' : 'Venda salva',
-        description: 'Registro concluído com sucesso.',
-      });
+      toast.success(
+        data.tipo === 'captacao' ? 'Captação salva' : 'Venda salva',
+        { description: 'Registro concluído com sucesso.' }
+      );
 
       if (!sale) {
         form.reset();
