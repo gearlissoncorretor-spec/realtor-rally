@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
+import { EmptyState } from '@/components/EmptyState';
 import { useBrokers } from '@/hooks/useBrokers';
 import { useBrokerNotes } from '@/hooks/useBrokerNotes';
 import { Card, CardContent } from '@/components/ui/card';
@@ -183,13 +184,11 @@ export default function X1() {
                 ))}
               </div>
             ) : (
-              <Card>
-                <CardContent className="py-16 text-center text-muted-foreground">
-                  <User className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p className="font-medium">Nenhum corretor encontrado</p>
-                  {search && <p className="text-sm mt-1">Tente buscar com outro termo</p>}
-                </CardContent>
-              </Card>
+              <EmptyState
+                variant={search ? 'search' : 'brokers'}
+                title="Nenhum corretor encontrado"
+                description={search ? 'Tente buscar com outro termo.' : 'Cadastre corretores para usar o X1.'}
+              />
             )}
           </>
         )}
