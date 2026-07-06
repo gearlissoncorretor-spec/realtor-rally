@@ -8,5 +8,6 @@ import "@fontsource/manrope/500.css";
 import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
 import "./index.css";
+import "./i18n";
 
 createRoot(document.getElementById("root")!).render(<App />);
