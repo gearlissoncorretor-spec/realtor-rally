@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import { ModuleTour } from "@/components/ModuleTour";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { RankingSkeleton } from "@/components/skeletons/RankingSkeleton";
@@ -318,6 +319,14 @@ const Ranking = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <ConfettiCanvas active={showConfetti} />
+      <ModuleTour
+        moduleKey="ranking"
+        steps={[
+          { title: "Ranking por VGV", description: "A ordem é por VGV do período. Empates são desempatados pelo número de vendas." },
+          { title: "Modo TV", description: "Clique no ícone de TV para exibir em telão da sala — ideal para motivar a equipe." },
+          { title: "Filtros de equipe", description: "Filtre por equipe ou período específico para ver o desempenho segmentado." },
+        ]}
+      />
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-24 lg:pb-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
