@@ -2747,6 +2747,33 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          created_at: string
+          id: string
+          identifier: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          created_at?: string
+          id?: string
+          identifier: string
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          created_at?: string
+          id?: string
+          identifier?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           can_create: boolean
@@ -3458,6 +3485,15 @@ export type Database = {
       }
       check_is_event_shared_with_user: {
         Args: { _event_id: string; _user_id: string }
+        Returns: boolean
+      }
+      check_rate_limit: {
+        Args: {
+          _bucket: string
+          _identifier: string
+          _max_requests: number
+          _window_minutes: number
+        }
         Returns: boolean
       }
       convert_negotiation_to_sale: {

@@ -66,6 +66,24 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Rate limit: 60 requests per 10 minutes per IP
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      req.headers.get('cf-connecting-ip') ||
+      'unknown';
+    const { data: allowed } = await supabase.rpc('check_rate_limit', {
+      _bucket: 'leads-webhook',
+      _identifier: ip,
+      _max_requests: 60,
+      _window_minutes: 10,
+    });
+    if (allowed === false) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { ...headers, 'Content-Type': 'application/json', 'Retry-After': '600' },
+      });
+    }
+
     const insert = {
       company_id: payload.company_id ?? null,
       agency_id: payload.agency_id ?? null,

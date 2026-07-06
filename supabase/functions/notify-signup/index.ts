@@ -24,6 +24,33 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
+    // Rate limit: 5 signups per hour per IP
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      req.headers.get('cf-connecting-ip') ||
+      'unknown'
+    const rlRes = await fetch(`${supabaseUrl}/rest/v1/rpc/check_rate_limit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${serviceKey}`,
+        apikey: serviceKey,
+      },
+      body: JSON.stringify({
+        _bucket: 'notify-signup',
+        _identifier: ip,
+        _max_requests: 5,
+        _window_minutes: 60,
+      }),
+    })
+    const allowed = await rlRes.json().catch(() => true)
+    if (allowed === false) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '3600' },
+      })
+    }
+
     const res = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
       method: 'POST',
       headers: {
