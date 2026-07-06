@@ -17,15 +17,15 @@ interface Props {
   brokers: Broker[];
 }
 
-// Normalize origens to canonical buckets
+// Normaliza origens (vendas + negociações) para buckets canônicos
 const normalizeOrigem = (raw?: string | null): string => {
   const s = (raw || "").toLowerCase().trim();
   if (!s) return "Outros";
-  if (s.includes("meta") || s.includes("facebook") || s.includes("fb ads")) return "Meta Ads";
+  if (s.includes("meta") || s.includes("facebook") || s.includes("fb ads") || s.includes("tráfego") || s.includes("trafego") || s.includes("patrocin")) return "Meta Ads";
   if (s.includes("insta")) return "Instagram";
   if (s.includes("indica")) return "Indicação";
   if (s.includes("google")) return "Google";
-  if (s.includes("site") || s.includes("web")) return "Site";
+  if (s.includes("site") || s.includes("web") || s.includes("marketplace") || s.includes("portal")) return "Site";
   return "Outros";
 };
 
@@ -41,30 +41,40 @@ const ORIGIN_META: Record<string, { color: string; bar: string }> = {
 const ORDER = ["Meta Ads", "Instagram", "Indicação", "Google", "Site", "Outros"];
 
 const LeadsAndTopBrokersPanel = ({ negotiations, sales, brokers }: Props) => {
-  const { rows, totalLeads, bestChannel, conversionRate } = useMemo(() => {
+  const { rows, totalSales, totalVgv, bestChannel, ticketMedio } = useMemo(() => {
+    // Fonte principal: VENDAS confirmadas (de onde vieram os clientes que compraram)
+    const confirmedSales = sales.filter((s) => s.status === "confirmada");
+
     const counts: Record<string, number> = Object.fromEntries(ORDER.map((k) => [k, 0]));
-    negotiations.forEach((n) => {
-      const key = normalizeOrigem(n.origem);
+    const vgvByOrigin: Record<string, number> = Object.fromEntries(ORDER.map((k) => [k, 0]));
+
+    confirmedSales.forEach((s) => {
+      const key = normalizeOrigem(s.origem);
       counts[key] = (counts[key] || 0) + 1;
+      vgvByOrigin[key] = (vgvByOrigin[key] || 0) + Number(s.vgv || 0);
     });
-    const totalLeads = negotiations.length;
+
+    const totalSales = confirmedSales.length;
+    const totalVgv = confirmedSales.reduce((sum, s) => sum + Number(s.vgv || 0), 0);
     const max = Math.max(1, ...Object.values(counts));
     const rows = ORDER.map((name) => ({
       name,
       count: counts[name] || 0,
-      pct: totalLeads > 0 ? ((counts[name] || 0) / totalLeads) * 100 : 0,
+      vgv: vgvByOrigin[name] || 0,
+      pct: totalSales > 0 ? ((counts[name] || 0) / totalSales) * 100 : 0,
       width: ((counts[name] || 0) / max) * 100,
     }));
-    const best = [...rows].sort((a, b) => b.count - a.count)[0];
-    const confirmed = sales.filter((s) => s.status === "confirmada").length;
-    const conv = totalLeads > 0 ? (confirmed / totalLeads) * 100 : 0;
+    const best = [...rows].sort((a, b) => b.vgv - a.vgv)[0];
+    const ticket = totalSales > 0 ? totalVgv / totalSales : 0;
+
     return {
       rows,
-      totalLeads,
+      totalSales,
+      totalVgv,
       bestChannel: best && best.count > 0 ? best.name : "—",
-      conversionRate: conv,
+      ticketMedio: ticket,
     };
-  }, [negotiations, sales]);
+  }, [sales]);
 
   const topBrokers = useMemo(() => {
     const confirmed = sales.filter((s) => s.status === "confirmada");
@@ -99,13 +109,13 @@ const LeadsAndTopBrokersPanel = ({ negotiations, sales, brokers }: Props) => {
       <Card className="lg:col-span-3 border-border/50 shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-base font-bold flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-primary" /> Origem dos Leads
+            <Megaphone className="w-5 h-5 text-primary" /> Origem dos Clientes (Vendas)
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          {totalLeads === 0 ? (
+          {totalSales === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              Sem leads no período selecionado
+              Sem vendas confirmadas no período selecionado
             </div>
           ) : (
             <div className="space-y-3">
@@ -119,9 +129,12 @@ const LeadsAndTopBrokersPanel = ({ negotiations, sales, brokers }: Props) => {
                   >
                     <div className="flex items-center justify-between text-sm">
                       <span className={cn("font-semibold", meta.color)}>{r.name}</span>
-                      <span className="text-muted-foreground tabular-nums">
-                        <span className="font-bold text-foreground">{r.count}</span>{" "}
+                      <span className="text-muted-foreground tabular-nums flex items-center gap-2">
+                        <span className="font-bold text-foreground">{r.count}</span>
                         <span className="text-xs">({r.pct.toFixed(1)}%)</span>
+                        <span className="text-xs text-muted-foreground/70" title={formatCurrency(r.vgv)}>
+                          · {formatCurrencyCompact(r.vgv)}
+                        </span>
                       </span>
                     </div>
                     <div className="h-2.5 bg-muted/50 rounded-full overflow-hidden">
@@ -136,28 +149,30 @@ const LeadsAndTopBrokersPanel = ({ negotiations, sales, brokers }: Props) => {
             </div>
           )}
 
-          {/* KPIs */}
+          {/* KPIs baseados em vendas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-border/50">
             <KpiTile
               icon={<Users className="w-4 h-4" />}
-              label="Total de Leads"
-              value={String(totalLeads)}
+              label="Total de Vendas"
+              value={String(totalSales)}
             />
             <KpiTile
               icon={<Target className="w-4 h-4" />}
-              label="CPL Médio"
-              value="—"
-              hint="Configure custos"
+              label="VGV Total"
+              value={formatCurrencyCompact(totalVgv)}
+              hint={totalVgv > 0 ? formatCurrency(totalVgv) : undefined}
             />
             <KpiTile
               icon={<Trophy className="w-4 h-4" />}
               label="Melhor Canal"
               value={bestChannel}
+              hint="por VGV"
             />
             <KpiTile
               icon={<TrendingUp className="w-4 h-4" />}
-              label="Conversão"
-              value={`${conversionRate.toFixed(1)}%`}
+              label="Ticket Médio"
+              value={formatCurrencyCompact(ticketMedio)}
+              hint={ticketMedio > 0 ? formatCurrency(ticketMedio) : undefined}
             />
           </div>
         </CardContent>
