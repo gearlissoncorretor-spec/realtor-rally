@@ -12,7 +12,7 @@ import {
 import {
   LayoutGrid, Trophy, Home, Settings, TrendingUp, Users, Target,
   Columns3, Building2, ClipboardList, Handshake, DollarSign,
-  PieChart, CalendarDays, Download
+  PieChart, CalendarDays, Download, HelpCircle
 } from "lucide-react";
 
 interface CommandPaletteProps {
@@ -41,6 +41,7 @@ const screens = [
   { label: "Gestão de Usuários", href: "/gestao-usuarios", icon: Users, group: "Gestão" },
   { label: "Configurações", href: "/configuracoes", icon: Settings, group: "Sistema" },
   { label: "Instalar App", href: "/instalar", icon: Download, group: "Sistema" },
+  { label: "Central de Ajuda", href: "/ajuda", icon: HelpCircle, group: "Sistema" },
 ];
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
