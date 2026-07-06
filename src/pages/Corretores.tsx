@@ -1,5 +1,6 @@
 // Corretores - Lista de corretores com abas Ativos/Inativos
 import Navigation from "@/components/Navigation";
+import { EmptyState } from "@/components/EmptyState";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -843,12 +844,13 @@ const Corretores = () => {
         {isLoading && <CorretoresSkeleton />}
         
         {!isLoading && brokers.length === 0 && (
-          <Card className="p-12 text-center border-dashed border-2 border-border/50">
-            <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum corretor cadastrado</h3>
-            <p className="text-sm text-muted-foreground mb-4">Comece adicionando o primeiro corretor da sua equipe.</p>
-            <Button onClick={handleNewBroker}><Plus className="w-4 h-4 mr-2" /> Adicionar Corretor</Button>
-          </Card>
+          <EmptyState
+            variant="brokers"
+            title="Nenhum corretor cadastrado"
+            description="Comece adicionando o primeiro corretor da sua equipe."
+            actionLabel="Adicionar Corretor"
+            onAction={handleNewBroker}
+          />
         )}
       </div>
 

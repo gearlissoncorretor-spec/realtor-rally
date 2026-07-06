@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Navigation from '@/components/Navigation';
+import { EmptyState } from '@/components/EmptyState';
 import { Pause, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -457,21 +458,13 @@ const Metas = () => {
                         </CardHeader>
                         <CardContent className="p-0">
                           {filteredGoals.length === 0 ? (
-                            <div className="text-center py-16 px-4">
-                              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center mx-auto mb-4 border border-border/50">
-                                <Target className="w-10 h-10 text-muted-foreground/30" />
-                              </div>
-                              <p className="text-muted-foreground font-medium text-lg">Nenhuma meta neste período</p>
-                              <p className="text-sm text-muted-foreground/70 mt-1.5 max-w-xs mx-auto">
-                                Crie uma meta para começar a acompanhar o desempenho de {broker.name.split(' ')[0]}
-                              </p>
-                              {canManageGoals && (
-                                <Button onClick={() => setCreateDialogOpen(true)} variant="outline" size="sm" className="mt-5">
-                                  <Plus className="w-4 h-4 mr-1.5" />
-                                  Criar meta
-                                </Button>
-                              )}
-                            </div>
+                            <EmptyState
+                              variant="goals"
+                              title="Nenhuma meta neste período"
+                              description={`Crie uma meta para começar a acompanhar o desempenho de ${broker.name.split(' ')[0]}.`}
+                              actionLabel={canManageGoals ? 'Criar meta' : undefined}
+                              onAction={canManageGoals ? () => setCreateDialogOpen(true) : undefined}
+                            />
                           ) : (
                             <>
                               {/* Motivational Banner per Goal */}

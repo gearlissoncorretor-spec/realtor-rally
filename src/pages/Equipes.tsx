@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import { EmptyState } from "@/components/EmptyState";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EquipesSkeleton } from "@/components/skeletons/EquipesSkeleton";
 import { Button } from "@/components/ui/button";
@@ -240,19 +241,13 @@ const Equipes = () => {
             <p className="text-muted-foreground">Carregando equipes...</p>
           </div>
         ) : teams.length === 0 ? (
-          <Card className="p-6">
-            <div className="text-center">
-              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Nenhuma equipe encontrada</h3>
-              <p className="text-muted-foreground mb-4">
-                Crie sua primeira equipe para começar a organizar seus corretores.
-              </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Primeira Equipe
-              </Button>
-            </div>
-          </Card>
+          <EmptyState
+            variant="brokers"
+            title="Nenhuma equipe encontrada"
+            description="Crie sua primeira equipe para começar a organizar seus corretores."
+            actionLabel="Criar Primeira Equipe"
+            onAction={() => setIsCreateDialogOpen(true)}
+          />
         ) : (
           <div className="grid gap-6">
             {teams.map((team, index) => {
