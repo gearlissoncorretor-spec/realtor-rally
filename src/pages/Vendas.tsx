@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import { ModuleTour } from "@/components/ModuleTour";
 import { formatCurrency } from "@/utils/formatting";
 import { SaleForm } from "@/components/forms/SaleForm";
 import SaleDetailsDialog from "@/components/SaleDetailsDialog";
@@ -171,6 +172,15 @@ const Vendas = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
+      <ModuleTour
+        moduleKey="vendas"
+        steps={[
+          { title: "Registre novas vendas", description: "Use o botão 'Nova Venda' para cadastrar. Vendas de 'Lançamento' não entram na captação." },
+          { title: "Filtros rápidos", description: "Combine período, corretor e status para analisar. Vendas 'Distrato' e 'Cancelada' são excluídas dos KPIs." },
+          { title: "Exportar relatório", description: "Gere um PDF com a marca da sua empresa em 'Exportar' — pronto para enviar ao cliente." },
+        ]}
+      />
+      
       
       <div className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-20 lg:pb-6 min-h-screen">
         <div className="max-w-[1400px] mx-auto space-y-6">
