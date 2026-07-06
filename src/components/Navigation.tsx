@@ -338,6 +338,7 @@ const Navigation = () => {
               <UserAvatar name={profile?.full_name} avatarUrl={profile?.avatar_url} size="sm" />
             </button>
           </UserProfileDialog>
+          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </div>
@@ -375,7 +376,8 @@ const Navigation = () => {
               <AuthButton />
               <div className="flex items-center gap-1">
                 <NotificationBell />
-                <ThemeToggle />
+                <LanguageSwitcher />
+          <ThemeToggle />
               </div>
             </div>
             {user && (
@@ -421,7 +423,8 @@ const Navigation = () => {
                 {renderUserProfile()}
                 <div className="flex items-center justify-between px-2">
                   <AuthButton />
-                  <ThemeToggle />
+                  <LanguageSwitcher />
+          <ThemeToggle />
                 </div>
                 {user && (
                   <div className="flex items-center gap-1">
