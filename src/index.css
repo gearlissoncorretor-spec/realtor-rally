@@ -92,7 +92,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 14%;
-    --muted-foreground: 215 25% 70%;
+    --muted-foreground: 215 25% 78%; /* bumped from 70% for WCAG AA contrast */
 
     --accent: 215 28% 18%;
     --accent-foreground: 210 40% 98%;
@@ -101,8 +101,8 @@
     --destructive-foreground: 210 40% 98%;
 
     /* Border - subtle but visible */
-    --border: 215 25% 22%;
-    --input: 215 25% 22%;
+    --border: 215 25% 26%; /* bumped from 22% for better card separation in dark */
+    --input: 215 25% 26%;
     --ring: 217 91% 60%;
 
     /* Sidebar Deep Tech */
