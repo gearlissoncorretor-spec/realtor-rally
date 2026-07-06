@@ -37,3 +37,5 @@ project_id = "kwsnnwiwflsvsqiuzfja"
     verify_jwt = false
   [functions.notify-signup]
     verify_jwt = false
+  [functions.weekly-report]
+    verify_jwt = false
