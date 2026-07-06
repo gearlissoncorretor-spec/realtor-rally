@@ -34,6 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { roleHasScreenAccess } from "@/lib/roleScreens";
 import { usePendingUsersCount } from "@/hooks/useRolePermissions";
