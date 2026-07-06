@@ -118,8 +118,3 @@ export function ModuleTour({ moduleKey, steps, delay = 1200 }: ModuleTourProps) 
     </AnimatePresence>
   );
 }
-
-/** Helper to reset a module tour (e.g. from a "Ver tour novamente" button) */
-export function resetModuleTour(moduleKey: string, userId: string) {
-  localStorage.removeItem(`${STORAGE_PREFIX}_${moduleKey}_${userId}`);
-}
