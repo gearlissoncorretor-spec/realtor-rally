@@ -199,26 +199,26 @@ const CorretorDashboard = () => {
             </div>
 
             {/* Quick Summary Bar */}
-            <div className="flex items-center gap-4 sm:gap-8 bg-card/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-border/50 shadow-sm animate-fade-in self-start md:self-center">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 sm:gap-8 bg-card/60 backdrop-blur-md px-3 sm:px-5 py-3 rounded-2xl border border-border/50 shadow-sm animate-fade-in w-full md:w-auto self-start md:self-center">
+              <div className="flex flex-col min-w-0">
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <DollarSign className="w-3 h-3" /> VGV
                 </span>
-                <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(monthVGV)}</span>
+                <span className="text-xs sm:text-sm font-bold text-primary tabular-nums truncate">{formatCurrency(monthVGV)}</span>
               </div>
-              <div className="w-px h-8 bg-border/30" />
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <div className="hidden sm:block w-px h-8 bg-border/30" />
+              <div className="flex flex-col min-w-0 border-l sm:border-l-0 border-border/30 pl-2 sm:pl-0">
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" /> VGC
                 </span>
-                <span className="text-sm font-bold text-success tabular-nums">{formatCurrency(monthVGC)}</span>
+                <span className="text-xs sm:text-sm font-bold text-success tabular-nums truncate">{formatCurrency(monthVGC)}</span>
               </div>
-              <div className="w-px h-8 bg-border/30" />
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+              <div className="hidden sm:block w-px h-8 bg-border/30" />
+              <div className="flex flex-col min-w-0 border-l sm:border-l-0 border-border/30 pl-2 sm:pl-0">
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <Target className="w-3 h-3" /> Vendas
                 </span>
-                <span className="text-sm font-bold text-warning tabular-nums">{monthSales.length}</span>
+                <span className="text-xs sm:text-sm font-bold text-warning tabular-nums">{monthSales.length}</span>
               </div>
             </div>
           </div>
