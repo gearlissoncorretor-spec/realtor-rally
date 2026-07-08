@@ -374,21 +374,26 @@ async function sendDailyBriefing(supabase: any) {
 
   let sent = 0
   for (const uid of userIds) {
-    const [{ data: tasks }, { data: events }, { data: brokerRow }] = await Promise.all([
-      supabase.from('broker_tasks').select('id').eq('assigned_to', uid).eq('due_date', today).neq('status', 'concluida'),
+    const { data: brokerRow } = await supabase.from('brokers').select('id').eq('user_id', uid).maybeSingle()
+    const brokerId = brokerRow?.id as string | undefined
+
+    const [{ data: tasks }, { data: events }] = await Promise.all([
+      brokerId
+        ? supabase.from('broker_tasks').select('id').eq('broker_id', brokerId).eq('due_date', today).is('completed_at', null)
+        : Promise.resolve({ data: [] as any[] }),
       supabase.from('calendar_events').select('id').eq('user_id', uid).gte('start_time', startISO).lte('start_time', endISO),
-      supabase.from('brokers').select('id').eq('user_id', uid).maybeSingle(),
     ])
 
     let followupsCount = 0
-    if (brokerRow?.id) {
+    if (brokerId) {
       const { count } = await supabase
         .from('follow_ups')
         .select('id', { count: 'exact', head: true })
-        .eq('broker_id', brokerRow.id)
+        .eq('broker_id', brokerId)
         .lte('next_contact_date', today)
       followupsCount = count || 0
     }
+
 
     const t = tasks?.length || 0
     const e = events?.length || 0
