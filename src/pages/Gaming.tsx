@@ -77,6 +77,34 @@ const Gaming = () => {
   useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Gaming Canedo"); }, [settings]);
   const screenName = (settings as any)?.gaming_name || "Gaming Canedo";
 
+  // Filtro de período (padrão: mês atual)
+  const now = new Date();
+  const [month, setMonth] = useState<string>(String(now.getMonth() + 1));
+  const [year, setYear] = useState<string>(String(now.getFullYear()));
+
+  const inPeriod = (dateStr?: string | null) => {
+    if (month === "all") return true;
+    if (!dateStr) return false;
+    const d = parseLocalDate(dateStr);
+    if (!d) return false;
+    return d.getMonth() + 1 === Number(month) && d.getFullYear() === Number(year);
+  };
+
+  const years = useMemo(() => {
+    const set = new Set<number>();
+    set.add(now.getFullYear());
+    sales.forEach((s: any) => { const d = parseLocalDate(s.sale_date); if (d) set.add(d.getFullYear()); });
+    return Array.from(set).sort((a, b) => b - a);
+  }, [sales]);
+
+  const months = [
+    { v: "all", l: "Todos" },
+    { v: "1", l: "Janeiro" }, { v: "2", l: "Fevereiro" }, { v: "3", l: "Março" },
+    { v: "4", l: "Abril" }, { v: "5", l: "Maio" }, { v: "6", l: "Junho" },
+    { v: "7", l: "Julho" }, { v: "8", l: "Agosto" }, { v: "9", l: "Setembro" },
+    { v: "10", l: "Outubro" }, { v: "11", l: "Novembro" }, { v: "12", l: "Dezembro" },
+  ];
+
   const stats: Stats[] = useMemo(() => {
     return brokers
       .filter((b: any) => String(b.status || "").toLowerCase() !== "inativo")
