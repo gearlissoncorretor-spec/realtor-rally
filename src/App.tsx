@@ -20,6 +20,8 @@ import InstallPrompt from "@/components/InstallPrompt";
 import { GlobalStickyNotes } from "@/components/sticky-notes/GlobalStickyNotes";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { DynamicThemeProvider } from "@/components/DynamicThemeProvider";
+import { QuickLeadFab } from "@/components/QuickLeadFab";
+
 import "./App.css";
 
 // Lazy-loaded pages
@@ -129,8 +131,10 @@ const AuthenticatedLayout = () => {
       <DynamicThemeProvider />
       <GlobalStickyNotes />
       <OnboardingTour />
+      <QuickLeadFab />
       <Outlet />
     </DataProvider>
+
   );
 };
 
