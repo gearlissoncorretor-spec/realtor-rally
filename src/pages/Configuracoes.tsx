@@ -36,6 +36,7 @@ import TeamLogoSettings from "@/components/TeamLogoSettings";
 import SlackSettings from "@/components/SlackSettings";
 // RolePermissionsManager moved to /gestao-usuarios
 import AgencyManager from "@/components/AgencyManager";
+import { UpdateSystemButton, AppVersionBadge } from "@/components/UpdateNotifier";
 
 const Configuracoes = () => {
   const { toast } = useToast();
@@ -88,6 +89,10 @@ const Configuracoes = () => {
             <p className="text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '0.1s' }}>
               Personalize o sistema conforme suas necessidades
             </p>
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <UpdateSystemButton />
+              <AppVersionBadge />
+            </div>
           </div>
 
           <div className="space-y-3">
