@@ -13,10 +13,12 @@ import { useNegotiations } from "@/hooks/useNegotiations";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
-import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal } from "lucide-react";
+import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal, Volume2, VolumeX, Crown, Zap } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
+import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
+import ParticleEffect from "@/components/ranking/ParticleEffect";
 
 // ============ Regras de pontuação ============
 const POINTS = {
@@ -76,6 +78,23 @@ const Gaming = () => {
   const [nameDraft, setNameDraft] = useState("");
   useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Gaming Canedo"); }, [settings]);
   const screenName = (settings as any)?.gaming_name || "Gaming Canedo";
+
+  // Sons + confetti
+  const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
+  const [confetti, setConfetti] = useState(false);
+  const triggerCelebration = () => {
+    setConfetti(true);
+    playCelebration();
+    setTimeout(() => setConfetti(false), 3500);
+  };
+  useEffect(() => {
+    if (soundEnabled) {
+      playVictory();
+      setConfetti(true);
+      setTimeout(() => setConfetti(false), 3500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundEnabled]);
 
   // Filtro de período (padrão: mês atual)
   const now = new Date();
@@ -182,55 +201,135 @@ const Gaming = () => {
     setEditing(false);
   };
 
+  const podium = enriched.slice(0, 3);
+  const podiumOrder = [podium[1], podium[0], podium[2]].filter(Boolean);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_hsl(240_60%_15%)_0%,_hsl(240_50%_8%)_50%,_hsl(240_60%_4%)_100%)]">
+      {/* Arena background */}
+      <div className="pointer-events-none absolute inset-0 opacity-60">
+        <ParticleEffect />
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(250,204,21,0.12),transparent_60%)]" />
+      <ConfettiCanvas active={confetti} />
+
       <Navigation />
-      <main className="lg:ml-72 pt-16 pb-24 lg:pb-8 px-3 sm:px-6 lg:px-8">
+      <main className="relative lg:ml-72 pt-16 pb-24 lg:pb-8 px-3 sm:px-6 lg:px-8 text-slate-100">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-primary/60 grid place-items-center shadow-lg shadow-primary/30">
-                <Trophy className="w-6 h-6 text-primary-foreground" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 grid place-items-center shadow-[0_0_30px_rgba(250,204,21,0.5)] animate-pulse">
+                <Trophy className="w-6 h-6 text-black" />
               </div>
               {editing ? (
                 <div className="flex items-center gap-2">
-                  <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="h-9 w-56" autoFocus />
+                  <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="h-9 w-56 bg-white/10 border-white/20 text-white" autoFocus />
                   <Button size="icon" variant="ghost" onClick={saveName}><Check className="w-4 h-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => setEditing(false)}><X className="w-4 h-4" /></Button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{screenName}</h1>
+                  <h1 className="text-2xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-300 via-amber-200 to-orange-300 bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(250,204,21,0.35)] uppercase">
+                    {screenName}
+                  </h1>
                   {canEdit && (
-                    <Button size="icon" variant="ghost" onClick={() => setEditing(true)} title="Editar nome">
-                      <Pencil className="w-4 h-4 text-muted-foreground" />
+                    <Button size="icon" variant="ghost" onClick={() => setEditing(true)} title="Editar nome" className="text-slate-300 hover:text-white">
+                      <Pencil className="w-4 h-4" />
                     </Button>
                   )}
                 </div>
               )}
             </div>
-            <Badge variant="outline" className="gap-1.5 py-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              Jornada do Corretor Campeão
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="gap-1.5 py-1.5 border-yellow-400/40 bg-yellow-400/10 text-yellow-200">
+                <Sparkles className="w-3.5 h-3.5" />
+                Arena dos Campeões
+              </Badge>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={cn(
+                  "gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/10",
+                  soundEnabled && "border-yellow-400/50 bg-yellow-400/10 text-yellow-200"
+                )}
+                title={soundEnabled ? "Desativar som" : "Ativar som"}
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                {soundEnabled ? "Som ON" : "Som OFF"}
+              </Button>
+              <Button
+                size="sm"
+                onClick={triggerCelebration}
+                className="gap-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:opacity-90 font-bold shadow-lg shadow-orange-500/30"
+              >
+                <Zap className="w-4 h-4" />
+                Comemorar
+              </Button>
+            </div>
           </div>
 
           {/* Filtro de período */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Select value={month} onValueChange={setMonth}>
-              <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="Mês" /></SelectTrigger>
+            <Select value={month} onValueChange={(v) => { setMonth(v); playReveal(); }}>
+              <SelectTrigger className="w-[150px] h-9 bg-white/5 border-white/20 text-white"><SelectValue placeholder="Mês" /></SelectTrigger>
               <SelectContent>
                 {months.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={year} onValueChange={setYear} disabled={month === "all"}>
-              <SelectTrigger className="w-[110px] h-9"><SelectValue placeholder="Ano" /></SelectTrigger>
+              <SelectTrigger className="w-[110px] h-9 bg-white/5 border-white/20 text-white"><SelectValue placeholder="Ano" /></SelectTrigger>
               <SelectContent>
                 {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Pódio dos Campeões */}
+          {podium.length > 0 && (
+            <Card className="relative overflow-hidden border-yellow-400/20 bg-gradient-to-b from-slate-900/80 to-slate-950/80 backdrop-blur">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,rgba(250,204,21,0.15),transparent_60%)] pointer-events-none" />
+              <CardHeader className="pb-2 relative">
+                <CardTitle className="flex items-center gap-2 text-yellow-200">
+                  <Crown className="w-5 h-5 text-yellow-400" />
+                  Pódio dos Campeões
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative">
+                <div className="flex items-end justify-center gap-3 sm:gap-6 pt-8 pb-4">
+                  {podiumOrder.map((s) => {
+                    const pos = enriched.indexOf(s) + 1;
+                    const heights = { 1: "h-40", 2: "h-28", 3: "h-20" } as const;
+                    const colors = {
+                      1: "from-yellow-400 to-amber-600 shadow-[0_0_40px_rgba(250,204,21,0.6)]",
+                      2: "from-slate-300 to-slate-500 shadow-[0_0_25px_rgba(203,213,225,0.4)]",
+                      3: "from-amber-600 to-amber-800 shadow-[0_0_20px_rgba(217,119,6,0.4)]",
+                    } as const;
+                    return (
+                      <div key={s.brokerId} className="flex flex-col items-center gap-2 flex-1 max-w-[140px]">
+                        {pos === 1 && <Crown className="w-8 h-8 text-yellow-400 animate-bounce drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" />}
+                        <Avatar className={cn("shrink-0 ring-4", pos === 1 ? "h-20 w-20 ring-yellow-400/60" : "h-14 w-14 ring-white/30")}>
+                          <AvatarImage src={s.avatar || undefined} />
+                          <AvatarFallback className="bg-slate-800 text-white">{s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-xs sm:text-sm font-bold text-center text-white line-clamp-1">{s.name}</p>
+                        <p className="text-[10px] text-yellow-200/80">{s.points.toLocaleString("pt-BR")} pts</p>
+                        <div className={cn(
+                          "w-full rounded-t-xl bg-gradient-to-t grid place-items-center font-black text-2xl sm:text-4xl text-black border-t-2 border-white/20",
+                          heights[pos as 1 | 2 | 3],
+                          colors[pos as 1 | 2 | 3]
+                        )}>
+                          {pos}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
 
 
           {/* Ranking Geral / IPM */}
@@ -284,7 +383,7 @@ const Gaming = () => {
           </Card>
 
           {/* Rankings por categoria */}
-          <Tabs defaultValue="cacadores">
+          <Tabs defaultValue="cacadores" onValueChange={() => playReveal()}>
             <TabsList className="w-full overflow-x-auto flex justify-start no-scrollbar">
               <TabsTrigger value="cacadores" className="gap-1.5"><Flame className="w-4 h-4" />Caçador de Leads</TabsTrigger>
               <TabsTrigger value="atendimento" className="gap-1.5"><Phone className="w-4 h-4" />Atendimento</TabsTrigger>
