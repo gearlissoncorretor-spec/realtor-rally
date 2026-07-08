@@ -148,10 +148,8 @@ const Gaming = () => {
 
   const saveName = async () => {
     const v = nameDraft.trim() || "Gaming Canedo";
-    try {
-      await updateMutation.mutateAsync({ gaming_name: v } as any);
-      setEditing(false);
-    } catch { /* toast do hook */ }
+    updateSettings({ gaming_name: v } as any);
+    setEditing(false);
   };
 
   return (
