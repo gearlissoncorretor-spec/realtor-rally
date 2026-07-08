@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,9 @@ const Negociacoes = () => {
   const [selectedForNotes, setSelectedForNotes] = useState<Negotiation | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
+  const isMobile = useIsMobile();
+  useEffect(() => { if (isMobile) setViewMode('kanban'); }, [isMobile]);
+
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
@@ -260,11 +264,11 @@ const Negociacoes = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Negociações</h1>
               <p className="text-muted-foreground mt-1">Pipeline de vendas e acompanhamento de negociações</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto flex-wrap">
               <Button variant="outline" size="icon" onClick={() => setExportDialogOpen(true)} title="Exportar Negociações"><Download className="w-4 h-4" /></Button>
               <BrandedNegotiationsReportDialog negotiations={negotiations} lostNegotiations={lostNegotiations} brokers={brokers} />
               <Button variant="outline" size="icon" onClick={() => setStatusManagerOpen(true)} title="Gerenciar Status"><Settings className="w-4 h-4" /></Button>
-              <Button className="gap-2" onClick={() => { setEditingNegotiation(null); setIsFormOpen(true); }}><Plus className="w-4 h-4" />Nova Negociação</Button>
+              <Button className="gap-2 flex-1 sm:flex-none" onClick={() => { setEditingNegotiation(null); setIsFormOpen(true); }}><Plus className="w-4 h-4" /><span className="sm:inline">Nova</span><span className="hidden sm:inline"> Negociação</span></Button>
             </div>
           </div>
 
