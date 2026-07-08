@@ -59,6 +59,7 @@ const Financeiro = lazy(() => import("@/pages/Financeiro"));
 const Unsubscribe = lazy(() => import("@/pages/Unsubscribe"));
 const Leads = lazy(() => import("@/pages/Leads"));
 const Ajuda = lazy(() => import("@/pages/Ajuda"));
+const Gaming = lazy(() => import("@/pages/Gaming"));
 
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
