@@ -435,7 +435,7 @@ const CorretorDashboard = () => {
           </div>
 
           {/* ========== 5. RANKINGS ========== */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Unidades Ranking */}
             <Card className="shadow-sm border-border/60 bg-card/50">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
