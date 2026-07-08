@@ -243,6 +243,7 @@ const Leads = () => {
 
         {/* My Integrations */}
         <MyIntegrations />
+        </div>
       </main>
 
       <DistributeLeadDialog
