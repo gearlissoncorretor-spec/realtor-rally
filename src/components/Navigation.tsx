@@ -73,7 +73,7 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const corretorItems = [
     { href: "/", label: "Painel", icon: LayoutGrid },
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
-    { href: "/agenda", label: "Agenda", icon: CalendarDays },
+    { href: "/gaming", label: "Gaming", icon: Sparkles },
     { href: "/follow-up", label: "Clientes", icon: Users },
   ];
 
