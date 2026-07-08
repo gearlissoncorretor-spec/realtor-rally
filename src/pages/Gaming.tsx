@@ -65,7 +65,7 @@ const Gaming = () => {
   const { brokers, sales } = useData();
   const { leads } = useLeads();
   const { negotiations } = useNegotiations();
-  const { settings, updateMutation } = useOrganizationSettings();
+  const { settings, updateSettings, isUpdating } = useOrganizationSettings();
   const { getUserRole } = useAuth();
   const role = getUserRole?.() ?? "";
   const canEdit = ["diretor", "socio", "admin", "super_admin"].includes(role);
