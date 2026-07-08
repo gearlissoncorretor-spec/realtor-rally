@@ -90,6 +90,64 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: true, sent })
     }
 
+    if (action === 'broadcast') {
+      const cronSecret = req.headers.get('x-cron-secret')
+      const expected = Deno.env.get('CRON_SECRET')
+      if (!expected || cronSecret !== expected) return errorResponse('Unauthorized', 401)
+
+      const payload = await req.json() as {
+        user_ids: string[]
+        title: string
+        body?: string
+        url?: string
+        tag?: string
+        type?: string
+        severity?: 'info' | 'warning' | 'error' | 'success'
+        metadata?: Record<string, unknown>
+        company_id?: string | null
+        skip_inapp?: boolean
+      }
+
+      const ids = Array.from(new Set((payload.user_ids || []).filter(Boolean)))
+      if (!ids.length || !payload.title) return jsonResponse({ sent: 0, inserted: 0 })
+
+      let inserted = 0
+      if (!payload.skip_inapp) {
+        const rows = ids.map((uid) => ({
+          user_id: uid,
+          type: payload.type || 'system',
+          title: payload.title,
+          body: payload.body ?? null,
+          link_to: payload.url ?? null,
+          severity: payload.severity || 'info',
+          metadata: payload.metadata || {},
+          company_id: payload.company_id ?? null,
+        }))
+        const { error, count } = await supabase.from('notifications').insert(rows, { count: 'exact' })
+        if (!error) inserted = count || rows.length
+        else console.error('notifications insert failed', error)
+      }
+
+      let sent = 0
+      for (const uid of ids) {
+        sent += await sendPushToUser(supabase, uid, {
+          title: payload.title,
+          body: payload.body || '',
+          tag: payload.tag || payload.type || 'axis',
+          url: payload.url || '/',
+        })
+      }
+      return jsonResponse({ sent, inserted })
+    }
+
+    if (action === 'daily-briefing') {
+      const cronSecret = req.headers.get('x-cron-secret')
+      const expected = Deno.env.get('CRON_SECRET')
+      if (!expected || cronSecret !== expected) return errorResponse('Unauthorized', 401)
+      const results = await sendDailyBriefing(supabase)
+      return jsonResponse(results)
+    }
+
     return errorResponse('Unknown action', 400)
   } catch (error) {
     console.error('Push notification error:', error)
@@ -304,4 +362,62 @@ function groupByBrokerUserId(items: any[]): Map<string, any[]> {
     map.get(userId)!.push(item)
   }
   return map
+}
+
+async function sendDailyBriefing(supabase: any) {
+  const today = new Date().toISOString().split('T')[0]
+  const startISO = `${today}T00:00:00Z`
+  const endISO = `${today}T23:59:59Z`
+
+  const { data: subs } = await supabase.from('push_subscriptions').select('user_id')
+  const userIds = [...new Set((subs || []).map((s: any) => s.user_id))] as string[]
+
+  let sent = 0
+  for (const uid of userIds) {
+    const { data: brokerRow } = await supabase.from('brokers').select('id').eq('user_id', uid).maybeSingle()
+    const brokerId = brokerRow?.id as string | undefined
+
+    const [{ data: tasks }, { data: events }] = await Promise.all([
+      brokerId
+        ? supabase.from('broker_tasks').select('id').eq('broker_id', brokerId).eq('due_date', today).is('completed_at', null)
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from('calendar_events').select('id').eq('user_id', uid).gte('start_time', startISO).lte('start_time', endISO),
+    ])
+
+    let followupsCount = 0
+    if (brokerId) {
+      const { count } = await supabase
+        .from('follow_ups')
+        .select('id', { count: 'exact', head: true })
+        .eq('broker_id', brokerId)
+        .lte('next_contact_date', today)
+      followupsCount = count || 0
+    }
+
+
+    const t = tasks?.length || 0
+    const e = events?.length || 0
+    if (t + e + followupsCount === 0) continue
+
+    const parts: string[] = []
+    if (t) parts.push(`${t} tarefa${t > 1 ? 's' : ''}`)
+    if (e) parts.push(`${e} compromisso${e > 1 ? 's' : ''}`)
+    if (followupsCount) parts.push(`${followupsCount} follow-up${followupsCount > 1 ? 's' : ''}`)
+
+    await supabase.from('notifications').insert({
+      user_id: uid,
+      type: 'daily_briefing',
+      title: '☀️ Bom dia! Sua agenda de hoje',
+      body: parts.join(' • '),
+      link_to: '/agenda',
+      severity: 'info',
+    })
+    sent += await sendPushToUser(supabase, uid, {
+      title: '☀️ Bom dia! Sua agenda de hoje',
+      body: parts.join(' • '),
+      tag: `briefing-${today}`,
+      url: '/agenda',
+    })
+  }
+  return { sent, users: userIds.length }
 }

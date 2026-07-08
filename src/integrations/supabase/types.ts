@@ -3597,6 +3597,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_broadcast: {
+        Args: {
+          _body: string
+          _company_id?: string
+          _metadata?: Json
+          _severity?: string
+          _title: string
+          _type: string
+          _url: string
+          _user_ids: string[]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
