@@ -383,7 +383,7 @@ const Gaming = () => {
           </Card>
 
           {/* Rankings por categoria */}
-          <Tabs defaultValue="cacadores">
+          <Tabs defaultValue="cacadores" onValueChange={() => playReveal()}>
             <TabsList className="w-full overflow-x-auto flex justify-start no-scrollbar">
               <TabsTrigger value="cacadores" className="gap-1.5"><Flame className="w-4 h-4" />Caçador de Leads</TabsTrigger>
               <TabsTrigger value="atendimento" className="gap-1.5"><Phone className="w-4 h-4" />Atendimento</TabsTrigger>
