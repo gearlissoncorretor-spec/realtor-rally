@@ -66,6 +66,7 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/comissoes': 'comissoes',
   '/financeiro': 'financeiro',
   '/edital': 'edital',
+  '/gaming': 'gaming',
 };
 
 /** Check if a role has access to a given screen */
