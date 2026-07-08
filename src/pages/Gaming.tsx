@@ -216,6 +216,23 @@ const Gaming = () => {
             </Badge>
           </div>
 
+          {/* Filtro de período */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Select value={month} onValueChange={setMonth}>
+              <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectContent>
+                {months.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={year} onValueChange={setYear} disabled={month === "all"}>
+              <SelectTrigger className="w-[110px] h-9"><SelectValue placeholder="Ano" /></SelectTrigger>
+              <SelectContent>
+                {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+
           {/* Ranking Geral / IPM */}
           <Card className="overflow-hidden">
             <CardHeader className="pb-3">
