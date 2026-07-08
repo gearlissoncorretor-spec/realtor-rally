@@ -80,7 +80,7 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const defaultItems = [
     { href: "/", label: "Home", icon: LayoutGrid },
     { href: "/vendas", label: "Vendas", icon: ShoppingBag },
-    { href: "/negociacoes", label: "Negociações", icon: Handshake },
+    { href: "/gaming", label: "Gaming", icon: Sparkles },
     { href: "/ranking", label: "Ranking", icon: Trophy },
   ];
 
