@@ -13,10 +13,12 @@ import { useNegotiations } from "@/hooks/useNegotiations";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
-import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal } from "lucide-react";
+import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal, Volume2, VolumeX, Crown, Zap } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
+import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
+import ParticleEffect from "@/components/ranking/ParticleEffect";
 
 // ============ Regras de pontuação ============
 const POINTS = {
