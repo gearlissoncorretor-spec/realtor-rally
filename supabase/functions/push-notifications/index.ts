@@ -363,3 +363,56 @@ function groupByBrokerUserId(items: any[]): Map<string, any[]> {
   }
   return map
 }
+
+async function sendDailyBriefing(supabase: any) {
+  const today = new Date().toISOString().split('T')[0]
+  const startISO = `${today}T00:00:00Z`
+  const endISO = `${today}T23:59:59Z`
+
+  const { data: subs } = await supabase.from('push_subscriptions').select('user_id')
+  const userIds = [...new Set((subs || []).map((s: any) => s.user_id))] as string[]
+
+  let sent = 0
+  for (const uid of userIds) {
+    const [{ data: tasks }, { data: events }, { data: brokerRow }] = await Promise.all([
+      supabase.from('broker_tasks').select('id').eq('assigned_to', uid).eq('due_date', today).neq('status', 'concluida'),
+      supabase.from('calendar_events').select('id').eq('user_id', uid).gte('start_time', startISO).lte('start_time', endISO),
+      supabase.from('brokers').select('id').eq('user_id', uid).maybeSingle(),
+    ])
+
+    let followupsCount = 0
+    if (brokerRow?.id) {
+      const { count } = await supabase
+        .from('follow_ups')
+        .select('id', { count: 'exact', head: true })
+        .eq('broker_id', brokerRow.id)
+        .lte('next_contact_date', today)
+      followupsCount = count || 0
+    }
+
+    const t = tasks?.length || 0
+    const e = events?.length || 0
+    if (t + e + followupsCount === 0) continue
+
+    const parts: string[] = []
+    if (t) parts.push(`${t} tarefa${t > 1 ? 's' : ''}`)
+    if (e) parts.push(`${e} compromisso${e > 1 ? 's' : ''}`)
+    if (followupsCount) parts.push(`${followupsCount} follow-up${followupsCount > 1 ? 's' : ''}`)
+
+    await supabase.from('notifications').insert({
+      user_id: uid,
+      type: 'daily_briefing',
+      title: '☀️ Bom dia! Sua agenda de hoje',
+      body: parts.join(' • '),
+      link_to: '/agenda',
+      severity: 'info',
+    })
+    sent += await sendPushToUser(supabase, uid, {
+      title: '☀️ Bom dia! Sua agenda de hoje',
+      body: parts.join(' • '),
+      tag: `briefing-${today}`,
+      url: '/agenda',
+    })
+  }
+  return { sent, users: userIds.length }
+}
