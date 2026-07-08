@@ -79,6 +79,23 @@ const Gaming = () => {
   useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Gaming Canedo"); }, [settings]);
   const screenName = (settings as any)?.gaming_name || "Gaming Canedo";
 
+  // Sons + confetti
+  const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
+  const [confetti, setConfetti] = useState(false);
+  const triggerCelebration = () => {
+    setConfetti(true);
+    playCelebration();
+    setTimeout(() => setConfetti(false), 3500);
+  };
+  useEffect(() => {
+    if (soundEnabled) {
+      playVictory();
+      setConfetti(true);
+      setTimeout(() => setConfetti(false), 3500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundEnabled]);
+
   // Filtro de período (padrão: mês atual)
   const now = new Date();
   const [month, setMonth] = useState<string>(String(now.getMonth() + 1));
