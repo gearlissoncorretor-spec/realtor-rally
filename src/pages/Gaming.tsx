@@ -148,7 +148,7 @@ const Gaming = () => {
           ipm: 0, // preenchido abaixo
         };
       });
-  }, [brokers, leads, negotiations, sales]);
+  }, [brokers, leads, negotiations, sales, month, year]);
 
   // Normaliza IPM
   const enriched = useMemo(() => {
