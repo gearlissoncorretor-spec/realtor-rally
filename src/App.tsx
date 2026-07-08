@@ -129,8 +129,10 @@ const AuthenticatedLayout = () => {
       <DynamicThemeProvider />
       <GlobalStickyNotes />
       <OnboardingTour />
+      <QuickLeadFab />
       <Outlet />
     </DataProvider>
+
   );
 };
 
