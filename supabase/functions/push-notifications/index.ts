@@ -90,6 +90,64 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: true, sent })
     }
 
+    if (action === 'broadcast') {
+      const cronSecret = req.headers.get('x-cron-secret')
+      const expected = Deno.env.get('CRON_SECRET')
+      if (!expected || cronSecret !== expected) return errorResponse('Unauthorized', 401)
+
+      const payload = await req.json() as {
+        user_ids: string[]
+        title: string
+        body?: string
+        url?: string
+        tag?: string
+        type?: string
+        severity?: 'info' | 'warning' | 'error' | 'success'
+        metadata?: Record<string, unknown>
+        company_id?: string | null
+        skip_inapp?: boolean
+      }
+
+      const ids = Array.from(new Set((payload.user_ids || []).filter(Boolean)))
+      if (!ids.length || !payload.title) return jsonResponse({ sent: 0, inserted: 0 })
+
+      let inserted = 0
+      if (!payload.skip_inapp) {
+        const rows = ids.map((uid) => ({
+          user_id: uid,
+          type: payload.type || 'system',
+          title: payload.title,
+          body: payload.body ?? null,
+          link_to: payload.url ?? null,
+          severity: payload.severity || 'info',
+          metadata: payload.metadata || {},
+          company_id: payload.company_id ?? null,
+        }))
+        const { error, count } = await supabase.from('notifications').insert(rows, { count: 'exact' })
+        if (!error) inserted = count || rows.length
+        else console.error('notifications insert failed', error)
+      }
+
+      let sent = 0
+      for (const uid of ids) {
+        sent += await sendPushToUser(supabase, uid, {
+          title: payload.title,
+          body: payload.body || '',
+          tag: payload.tag || payload.type || 'axis',
+          url: payload.url || '/',
+        })
+      }
+      return jsonResponse({ sent, inserted })
+    }
+
+    if (action === 'daily-briefing') {
+      const cronSecret = req.headers.get('x-cron-secret')
+      const expected = Deno.env.get('CRON_SECRET')
+      if (!expected || cronSecret !== expected) return errorResponse('Unauthorized', 401)
+      const results = await sendDailyBriefing(supabase)
+      return jsonResponse(results)
+    }
+
     return errorResponse('Unknown action', 400)
   } catch (error) {
     console.error('Push notification error:', error)
