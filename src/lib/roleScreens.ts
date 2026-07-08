@@ -10,7 +10,7 @@
 const CORRETOR_SCREENS = [
   'dashboard', 'vendas', 'negociacoes', 'follow-up', 'leads', 'metas',
   'atividades', 'rotina', 'comissoes', 'financeiro', 'configuracoes',
-  'agenda', 'instalar', 'edital',
+  'agenda', 'instalar', 'edital', 'gaming',
 ];
 
 // Gerente: tudo do corretor + visão de equipe (sem gestão de usuários nem relatórios estratégicos)
@@ -66,6 +66,7 @@ export const PATH_TO_SCREEN: Record<string, string> = {
   '/comissoes': 'comissoes',
   '/financeiro': 'financeiro',
   '/edital': 'edital',
+  '/gaming': 'gaming',
 };
 
 /** Check if a role has access to a given screen */

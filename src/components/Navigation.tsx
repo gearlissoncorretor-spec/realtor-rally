@@ -29,7 +29,8 @@ import {
   UsersRound,
   FileText,
   Inbox,
-  ListChecks
+  ListChecks,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -138,6 +139,7 @@ const Navigation = () => {
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
     { href: "/central-gestor", label: "Central do Gestor", icon: TrendingUp, screen: "central-gestor" },
     { href: "/ranking", label: "Ranking", icon: Trophy, screen: "ranking" },
+    { href: "/gaming", label: (settings as any)?.gaming_name || "Gaming Canedo", icon: Sparkles, screen: "gaming" },
     { href: "/vendas", label: "Vendas", icon: ShoppingBag, screen: "vendas" },
     { href: "/negociacoes", label: "Negociações", icon: Handshake, screen: "negociacoes" },
     { href: "/follow-up", label: "Clientes", icon: Users, screen: "follow-up" },

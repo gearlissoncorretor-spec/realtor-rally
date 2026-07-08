@@ -1,0 +1,1 @@
+ALTER TABLE public.organization_settings ADD COLUMN IF NOT EXISTS gaming_name TEXT NOT NULL DEFAULT 'Gaming Canedo';
