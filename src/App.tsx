@@ -14,6 +14,7 @@ import { RefreshCw } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { AppUpdateManager } from "@/components/AppUpdateManager";
+import { UpdateNotifier } from "@/components/UpdateNotifier";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 import { OfflineProvider } from "@/components/OfflineIndicator";
 import InstallPrompt from "@/components/InstallPrompt";
@@ -216,6 +217,7 @@ const App = () => (
           <AgencyProvider>
             <Toaster />
           <AppUpdateManager />
+          <UpdateNotifier />
           <InstallPrompt />
           <AppShell />
           </AgencyProvider>
