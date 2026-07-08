@@ -73,7 +73,7 @@ const MobileBottomNav = ({ onMenuClick }: { onMenuClick: () => void }) => {
     { href: "/", label: "Painel", icon: LayoutGrid },
     { href: "/negociacoes", label: "Negociações", icon: Handshake },
     { href: "/agenda", label: "Agenda", icon: CalendarDays },
-    { href: "/follow-up", label: "Follow-up / Clientes", icon: Users },
+    { href: "/follow-up", label: "Clientes", icon: Users },
   ];
 
   const defaultItems = [
@@ -140,7 +140,7 @@ const Navigation = () => {
     { href: "/ranking", label: "Ranking", icon: Trophy, screen: "ranking" },
     { href: "/vendas", label: "Vendas", icon: ShoppingBag, screen: "vendas" },
     { href: "/negociacoes", label: "Negociações", icon: Handshake, screen: "negociacoes" },
-    { href: "/follow-up", label: "Follow-up / Clientes", icon: Users, screen: "follow-up" },
+    { href: "/follow-up", label: "Clientes", icon: Users, screen: "follow-up" },
     { href: "/leads", label: "Leads", icon: Inbox, screen: "leads" },
     { href: "/metas", label: "Metas", icon: Target, screen: "metas" },
     { href: "/meta-gestao", label: "Meta Gestão", icon: PieChart, screen: "meta-gestao" },
