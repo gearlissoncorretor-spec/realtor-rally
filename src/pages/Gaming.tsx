@@ -77,7 +77,7 @@ const Gaming = () => {
 
   const stats: Stats[] = useMemo(() => {
     return brokers
-      .filter((b: any) => b.status !== "Inativo")
+      .filter((b: any) => String(b.status || "").toLowerCase() !== "inativo")
       .map((b: any) => {
         const brokerLeads = leads.filter((l: any) => l.user_id === b.user_id || l.created_by === b.user_id);
         const brokerNegs = negotiations.filter((n: any) => n.broker_id === b.id);
