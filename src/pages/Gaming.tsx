@@ -109,9 +109,9 @@ const Gaming = () => {
     return brokers
       .filter((b: any) => String(b.status || "").toLowerCase() !== "inativo")
       .map((b: any) => {
-        const brokerLeads = leads.filter((l: any) => l.user_id === b.user_id || l.created_by === b.user_id);
-        const brokerNegs = negotiations.filter((n: any) => n.broker_id === b.id);
-        const brokerSales = sales.filter((s: any) => s.broker_id === b.id && !["distrato", "cancelada"].includes(String(s.status || "").toLowerCase()));
+        const brokerLeads = leads.filter((l: any) => (l.user_id === b.user_id || l.created_by === b.user_id) && inPeriod(l.created_at));
+        const brokerNegs = negotiations.filter((n: any) => n.broker_id === b.id && inPeriod(n.created_at));
+        const brokerSales = sales.filter((s: any) => s.broker_id === b.id && !["distrato", "cancelada"].includes(String(s.status || "").toLowerCase()) && inPeriod(s.sale_date));
 
         const nLeads = brokerLeads.length;
         const nAtendimento = brokerLeads.filter((l: any) => ["atendimento", "convertido"].includes(String(l.status))).length;
