@@ -65,6 +65,9 @@ const Negociacoes = () => {
   const [selectedForNotes, setSelectedForNotes] = useState<Negotiation | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
+  const isMobile = useIsMobile();
+  useEffect(() => { if (isMobile) setViewMode('kanban'); }, [isMobile]);
+
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
 
