@@ -14,6 +14,8 @@ import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
 import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
 
 // ============ Regras de pontuação ============
@@ -75,13 +77,41 @@ const Gaming = () => {
   useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Gaming Canedo"); }, [settings]);
   const screenName = (settings as any)?.gaming_name || "Gaming Canedo";
 
+  // Filtro de período (padrão: mês atual)
+  const now = new Date();
+  const [month, setMonth] = useState<string>(String(now.getMonth() + 1));
+  const [year, setYear] = useState<string>(String(now.getFullYear()));
+
+  const inPeriod = (dateStr?: string | null) => {
+    if (month === "all") return true;
+    if (!dateStr) return false;
+    const d = parseLocalDate(dateStr);
+    if (!d) return false;
+    return d.getMonth() + 1 === Number(month) && d.getFullYear() === Number(year);
+  };
+
+  const years = useMemo(() => {
+    const set = new Set<number>();
+    set.add(now.getFullYear());
+    sales.forEach((s: any) => { const d = parseLocalDate(s.sale_date); if (d) set.add(d.getFullYear()); });
+    return Array.from(set).sort((a, b) => b - a);
+  }, [sales]);
+
+  const months = [
+    { v: "all", l: "Todos" },
+    { v: "1", l: "Janeiro" }, { v: "2", l: "Fevereiro" }, { v: "3", l: "Março" },
+    { v: "4", l: "Abril" }, { v: "5", l: "Maio" }, { v: "6", l: "Junho" },
+    { v: "7", l: "Julho" }, { v: "8", l: "Agosto" }, { v: "9", l: "Setembro" },
+    { v: "10", l: "Outubro" }, { v: "11", l: "Novembro" }, { v: "12", l: "Dezembro" },
+  ];
+
   const stats: Stats[] = useMemo(() => {
     return brokers
       .filter((b: any) => String(b.status || "").toLowerCase() !== "inativo")
       .map((b: any) => {
-        const brokerLeads = leads.filter((l: any) => l.user_id === b.user_id || l.created_by === b.user_id);
-        const brokerNegs = negotiations.filter((n: any) => n.broker_id === b.id);
-        const brokerSales = sales.filter((s: any) => s.broker_id === b.id && !["distrato", "cancelada"].includes(String(s.status || "").toLowerCase()));
+        const brokerLeads = leads.filter((l: any) => (l.user_id === b.user_id || l.created_by === b.user_id) && inPeriod(l.created_at));
+        const brokerNegs = negotiations.filter((n: any) => n.broker_id === b.id && inPeriod(n.created_at));
+        const brokerSales = sales.filter((s: any) => s.broker_id === b.id && !["distrato", "cancelada"].includes(String(s.status || "").toLowerCase()) && inPeriod(s.sale_date));
 
         const nLeads = brokerLeads.length;
         const nAtendimento = brokerLeads.filter((l: any) => ["atendimento", "convertido"].includes(String(l.status))).length;
@@ -118,7 +148,7 @@ const Gaming = () => {
           ipm: 0, // preenchido abaixo
         };
       });
-  }, [brokers, leads, negotiations, sales]);
+  }, [brokers, leads, negotiations, sales, month, year]);
 
   // Normaliza IPM
   const enriched = useMemo(() => {
@@ -185,6 +215,23 @@ const Gaming = () => {
               Jornada do Corretor Campeão
             </Badge>
           </div>
+
+          {/* Filtro de período */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Select value={month} onValueChange={setMonth}>
+              <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="Mês" /></SelectTrigger>
+              <SelectContent>
+                {months.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={year} onValueChange={setYear} disabled={month === "all"}>
+              <SelectTrigger className="w-[110px] h-9"><SelectValue placeholder="Ano" /></SelectTrigger>
+              <SelectContent>
+                {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
 
           {/* Ranking Geral / IPM */}
           <Card className="overflow-hidden">
