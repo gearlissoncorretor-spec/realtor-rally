@@ -14,6 +14,8 @@ import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
 import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
 
 // ============ Regras de pontuação ============
