@@ -96,9 +96,13 @@ export const QuickLeadFab = () => {
         type="button"
         aria-label="Cadastro rápido de cliente"
         onClick={() => setOpen(true)}
-        className="lg:hidden fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform"
+        className="fixed right-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:right-6 lg:bottom-6 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 flex items-center justify-center active:scale-95 transition-all group"
+        title="Cadastro rápido de cliente"
       >
         <Plus className="h-6 w-6" />
+        <span className="hidden lg:group-hover:inline-flex absolute right-full mr-3 whitespace-nowrap bg-card text-foreground text-sm font-medium px-3 py-1.5 rounded-md shadow-md border border-border/40">
+          Cadastro rápido
+        </span>
       </button>
 
       <Dialog
