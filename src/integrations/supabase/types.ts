@@ -2502,6 +2502,7 @@ export type Database = {
           company_id: string | null
           created_at: string | null
           created_by: string | null
+          gaming_name: string
           id: string
           logo_icon_url: string | null
           logo_url: string | null
@@ -2517,6 +2518,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          gaming_name?: string
           id?: string
           logo_icon_url?: string | null
           logo_url?: string | null
@@ -2532,6 +2534,7 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           created_by?: string | null
+          gaming_name?: string
           id?: string
           logo_icon_url?: string | null
           logo_url?: string | null
