@@ -63,17 +63,18 @@ const Leads = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
+      <main className="lg:ml-72 pt-16 lg:pt-0 p-4 lg:p-6 pb-24 lg:pb-6">
+        <div className="max-w-7xl mx-auto space-y-4 lg:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
-            <p className="text-muted-foreground text-sm mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Leads</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm mt-1">
               Gestão centralizada de leads — pronto para integrações com Meta Ads e site próprio.
             </p>
           </div>
           {!isBroker && (
-            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <Button onClick={() => setCreateOpen(true)} className="gap-2 w-full sm:w-auto">
               <Plus className="w-4 h-4" />
               Novo Lead
             </Button>
@@ -242,6 +243,7 @@ const Leads = () => {
 
         {/* My Integrations */}
         <MyIntegrations />
+        </div>
       </main>
 
       <DistributeLeadDialog
