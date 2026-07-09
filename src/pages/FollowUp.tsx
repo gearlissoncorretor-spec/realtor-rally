@@ -957,7 +957,7 @@ const FollowUpPage = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {sortedFollowUps.map((followUp) => {
+                        {sortedFollowUps.map((followUp, idx) => {
                           const dateStatus = getDateStatus(followUp.next_contact_date);
                           const statusConfig = getStatusByValue(followUp.status);
                           const daysLabel = getDaysLabel(followUp.next_contact_date);
@@ -965,11 +965,14 @@ const FollowUpPage = () => {
                             <TableRow
                               key={followUp.id}
                               className={cn(
-                                "hover:bg-muted/30 transition-colors",
+                                "transition-colors",
+                                idx % 2 === 1 && "bg-sky-50/60 dark:bg-sky-950/20",
+                                "hover:bg-muted/40",
                                 dateStatus === 'overdue' && 'bg-destructive/5 hover:bg-destructive/10',
                                 dateStatus === 'today' && 'bg-yellow-500/5 hover:bg-yellow-500/10'
                               )}
                             >
+
                               <TableCell className="font-medium">{followUp.client_name}</TableCell>
                               <TableCell>
                                 {followUp.client_phone ? (
