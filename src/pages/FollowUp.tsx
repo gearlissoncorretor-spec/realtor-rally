@@ -188,19 +188,15 @@ const FollowUpPage = () => {
     });
   }, [followUps, searchTerm, filterStatus, filterBroker, filterOrigin]);
 
-  // Sort by urgency (overdue first, then today, then by date)
+  // Sort: newest created first (recém-cadastrados no topo)
   const sortedFollowUps = useMemo(() => {
     return [...filteredFollowUps].sort((a, b) => {
-      const aDate = a.next_contact_date ? parseISO(a.next_contact_date) : null;
-      const bDate = b.next_contact_date ? parseISO(b.next_contact_date) : null;
-      
-      if (!aDate && !bDate) return 0;
-      if (!aDate) return 1;
-      if (!bDate) return -1;
-      
-      return aDate.getTime() - bDate.getTime();
+      const aC = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bC = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bC - aC;
     });
   }, [filteredFollowUps]);
+
 
   // Converted count (would need historical data)
   const convertedCount = 0; // This would come from a separate query
