@@ -188,19 +188,15 @@ const FollowUpPage = () => {
     });
   }, [followUps, searchTerm, filterStatus, filterBroker, filterOrigin]);
 
-  // Sort by urgency (overdue first, then today, then by date)
+  // Sort: newest created first (recém-cadastrados no topo)
   const sortedFollowUps = useMemo(() => {
     return [...filteredFollowUps].sort((a, b) => {
-      const aDate = a.next_contact_date ? parseISO(a.next_contact_date) : null;
-      const bDate = b.next_contact_date ? parseISO(b.next_contact_date) : null;
-      
-      if (!aDate && !bDate) return 0;
-      if (!aDate) return 1;
-      if (!bDate) return -1;
-      
-      return aDate.getTime() - bDate.getTime();
+      const aC = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bC = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bC - aC;
     });
   }, [filteredFollowUps]);
+
 
   // Converted count (would need historical data)
   const convertedCount = 0; // This would come from a separate query
@@ -961,7 +957,7 @@ const FollowUpPage = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {sortedFollowUps.map((followUp) => {
+                        {sortedFollowUps.map((followUp, idx) => {
                           const dateStatus = getDateStatus(followUp.next_contact_date);
                           const statusConfig = getStatusByValue(followUp.status);
                           const daysLabel = getDaysLabel(followUp.next_contact_date);
@@ -969,11 +965,14 @@ const FollowUpPage = () => {
                             <TableRow
                               key={followUp.id}
                               className={cn(
-                                "hover:bg-muted/30 transition-colors",
+                                "transition-colors",
+                                idx % 2 === 1 && "bg-sky-50/60 dark:bg-sky-950/20",
+                                "hover:bg-muted/40",
                                 dateStatus === 'overdue' && 'bg-destructive/5 hover:bg-destructive/10',
                                 dateStatus === 'today' && 'bg-yellow-500/5 hover:bg-yellow-500/10'
                               )}
                             >
+
                               <TableCell className="font-medium">{followUp.client_name}</TableCell>
                               <TableCell>
                                 {followUp.client_phone ? (
