@@ -70,9 +70,11 @@ const Gaming = () => {
   const { leads } = useLeads();
   const { negotiations } = useNegotiations();
   const { settings, updateSettings, isUpdating } = useOrganizationSettings();
-  const { getUserRole } = useAuth();
+  const { getUserRole, profile } = useAuth();
   const role = getUserRole?.() ?? "";
   const canEdit = ["diretor", "socio", "admin", "super_admin"].includes(role);
+  const myAgencyId = (profile as any)?.agency_id ?? null;
+  const restrictToAgency = role === "gerente" || role === "corretor";
 
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
@@ -127,6 +129,7 @@ const Gaming = () => {
   const stats: Stats[] = useMemo(() => {
     return brokers
       .filter((b: any) => String(b.status || "").toLowerCase() !== "inativo")
+      .filter((b: any) => !restrictToAgency || !myAgencyId || b.agency_id === myAgencyId)
       .map((b: any) => {
         const brokerLeads = leads.filter((l: any) => (l.user_id === b.user_id || l.created_by === b.user_id) && inPeriod(l.created_at));
         const brokerNegs = negotiations.filter((n: any) => n.broker_id === b.id && inPeriod(n.created_at));
@@ -149,7 +152,6 @@ const Gaming = () => {
           nVendas * POINTS.venda +
           nCapt * POINTS.captacao;
 
-        // Índice de Performance Master (0-100)
         return {
           brokerId: b.id,
           userId: b.user_id,
@@ -164,10 +166,12 @@ const Gaming = () => {
           vgv,
           conversao,
           points,
-          ipm: 0, // preenchido abaixo
+          ipm: 0,
         };
-      });
-  }, [brokers, leads, negotiations, sales, month, year]);
+      })
+      // Só mostra corretores com atividade real no período selecionado
+      .filter((s) => (s.leads + s.negociacoes + s.vendas + s.captacoes) > 0);
+  }, [brokers, leads, negotiations, sales, month, year, restrictToAgency, myAgencyId]);
 
   // Normaliza IPM
   const enriched = useMemo(() => {
@@ -188,11 +192,11 @@ const Gaming = () => {
   }, [stats]);
 
   const categories = useMemo(() => ({
-    cacadores: [...enriched].sort((a, b) => b.leads - a.leads).slice(0, 5),
-    atendimento: [...enriched].sort((a, b) => b.atendimentos - a.atendimentos).slice(0, 5),
-    negociacao: [...enriched].sort((a, b) => b.negociacoes - a.negociacoes).slice(0, 5),
-    fechador: [...enriched].sort((a, b) => b.vgv - a.vgv).slice(0, 5),
-    conversao: [...enriched].filter(s => s.leads >= 3).sort((a, b) => b.conversao - a.conversao).slice(0, 5),
+    cacadores: [...enriched].filter(s => s.leads > 0).sort((a, b) => b.leads - a.leads).slice(0, 5),
+    atendimento: [...enriched].filter(s => s.atendimentos > 0).sort((a, b) => b.atendimentos - a.atendimentos).slice(0, 5),
+    negociacao: [...enriched].filter(s => s.negociacoes > 0).sort((a, b) => b.negociacoes - a.negociacoes).slice(0, 5),
+    fechador: [...enriched].filter(s => s.vgv > 0).sort((a, b) => b.vgv - a.vgv).slice(0, 5),
+    conversao: [...enriched].filter(s => s.leads >= 3 && s.vendas > 0).sort((a, b) => b.conversao - a.conversao).slice(0, 5),
   }), [enriched]);
 
   const saveName = async () => {
