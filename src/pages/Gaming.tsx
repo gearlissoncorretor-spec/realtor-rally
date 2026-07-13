@@ -128,7 +128,10 @@ const Gaming = () => {
 
   const stats: Stats[] = useMemo(() => {
     return brokers
-      .filter((b: any) => String(b.status || "").toLowerCase() !== "inativo")
+      .filter((b: any) => {
+        const s = String(b.status || "").toLowerCase().trim();
+        return s === "ativo" || s === "active" || s === "";
+      })
       .filter((b: any) => !restrictToAgency || !myAgencyId || b.agency_id === myAgencyId)
       .map((b: any) => {
         const brokerLeads = leads.filter((l: any) => (l.user_id === b.user_id || l.created_by === b.user_id) && inPeriod(l.created_at));
