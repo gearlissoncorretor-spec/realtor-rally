@@ -18,7 +18,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
 import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
-import ParticleEffect from "@/components/ranking/ParticleEffect";
+
+// ============ My Broker Brand ============
+// #0241f1 electric blue · #021944 deep navy · #e6e7fb ice lavender
+const MB = {
+  blue: "#0241f1",
+  navy: "#021944",
+  ice: "#e6e7fb",
+};
 
 // ============ Regras de pontuação ============
 const POINTS = {
@@ -34,12 +41,12 @@ const POINTS = {
 };
 
 const LEVELS = [
-  { name: "Iniciante", min: 0, max: 500, color: "text-slate-400", glow: "from-slate-500/20" },
-  { name: "Corretor Bronze", min: 501, max: 1500, color: "text-amber-600", glow: "from-amber-600/20" },
-  { name: "Corretor Prata", min: 1501, max: 3000, color: "text-slate-300", glow: "from-slate-300/20" },
-  { name: "Corretor Ouro", min: 3001, max: 6000, color: "text-yellow-400", glow: "from-yellow-500/20" },
-  { name: "Corretor Diamante", min: 6001, max: 10000, color: "text-cyan-300", glow: "from-cyan-400/20" },
-  { name: "Lenda Master", min: 10001, max: Infinity, color: "text-fuchsia-400", glow: "from-fuchsia-500/20" },
+  { name: "Iniciante", min: 0, max: 500 },
+  { name: "Bronze", min: 501, max: 1500 },
+  { name: "Prata", min: 1501, max: 3000 },
+  { name: "Ouro", min: 3001, max: 6000 },
+  { name: "Diamante", min: 6001, max: 10000 },
+  { name: "Lenda Master", min: 10001, max: Infinity },
 ];
 
 const getLevel = (pts: number) => LEVELS.find(l => pts >= l.min && pts <= l.max) ?? LEVELS[0];
@@ -60,28 +67,28 @@ interface Stats {
   vendas: number;
   captacoes: number;
   vgv: number;
-  conversao: number; // % lead -> venda
+  conversao: number;
   points: number;
-  ipm: number; // 0-100
+  ipm: number;
 }
 
 const Gaming = () => {
   const { brokers, sales } = useData();
   const { leads } = useLeads();
   const { negotiations } = useNegotiations();
-  const { settings, updateSettings, isUpdating } = useOrganizationSettings();
+  const { settings, updateSettings, getEffectiveLogo } = useOrganizationSettings();
   const { getUserRole, profile } = useAuth();
   const role = getUserRole?.() ?? "";
   const canEdit = ["diretor", "socio", "admin", "super_admin"].includes(role);
   const myAgencyId = (profile as any)?.agency_id ?? null;
   const restrictToAgency = role === "gerente" || role === "corretor";
+  const logo = getEffectiveLogo();
 
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Gaming Canedo"); }, [settings]);
-  const screenName = (settings as any)?.gaming_name || "Gaming Canedo";
+  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Arena My Broker"); }, [settings]);
+  const screenName = (settings as any)?.gaming_name || "Arena My Broker";
 
-  // Sons + confetti
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
   const [confetti, setConfetti] = useState(false);
   const triggerCelebration = () => {
@@ -98,7 +105,6 @@ const Gaming = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundEnabled]);
 
-  // Filtro de período (padrão: mês atual)
   const now = new Date();
   const [month, setMonth] = useState<string>(String(now.getMonth() + 1));
   const [year, setYear] = useState<string>(String(now.getFullYear()));
@@ -172,11 +178,9 @@ const Gaming = () => {
           ipm: 0,
         };
       })
-      // Só mostra corretores com atividade real no período selecionado
       .filter((s) => (s.leads + s.negociacoes + s.vendas + s.captacoes) > 0);
   }, [brokers, leads, negotiations, sales, month, year, restrictToAgency, myAgencyId]);
 
-  // Normaliza IPM
   const enriched = useMemo(() => {
     const max = {
       leads: Math.max(1, ...stats.map(s => s.leads)),
@@ -202,8 +206,15 @@ const Gaming = () => {
     conversao: [...enriched].filter(s => s.leads >= 3 && s.vendas > 0).sort((a, b) => b.conversao - a.conversao).slice(0, 5),
   }), [enriched]);
 
+  const totals = useMemo(() => ({
+    vgv: enriched.reduce((a, s) => a + s.vgv, 0),
+    vendas: enriched.reduce((a, s) => a + s.vendas, 0),
+    leads: enriched.reduce((a, s) => a + s.leads, 0),
+    negociacoes: enriched.reduce((a, s) => a + s.negociacoes, 0),
+  }), [enriched]);
+
   const saveName = async () => {
-    const v = nameDraft.trim() || "Gaming Canedo";
+    const v = nameDraft.trim() || "Arena My Broker";
     updateSettings({ gaming_name: v } as any);
     setEditing(false);
   };
@@ -212,253 +223,452 @@ const Gaming = () => {
   const podiumOrder = [podium[1], podium[0], podium[2]].filter(Boolean);
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_hsl(240_60%_15%)_0%,_hsl(240_50%_8%)_50%,_hsl(240_60%_4%)_100%)]">
-      {/* Arena background */}
-      <div className="pointer-events-none absolute inset-0 opacity-60">
-        <ParticleEffect />
+    <div
+      className="min-h-screen relative overflow-hidden"
+      style={{
+        background: `
+          radial-gradient(ellipse 80% 60% at 50% -10%, ${MB.blue}44 0%, transparent 60%),
+          radial-gradient(ellipse 60% 50% at 100% 100%, ${MB.blue}22 0%, transparent 70%),
+          linear-gradient(180deg, ${MB.navy} 0%, #010d24 60%, #000516 100%)
+        `,
+      }}
+    >
+      {/* Stadium light rays */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[140%] h-[500px] opacity-40 blur-3xl"
+          style={{ background: `conic-gradient(from 220deg at 50% 0%, transparent 0deg, ${MB.blue}66 45deg, transparent 90deg, ${MB.ice}22 180deg, transparent 270deg, ${MB.blue}55 315deg, transparent 360deg)` }}
+        />
+        {/* Grid floor */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-[60vh] opacity-[0.08]"
+          style={{
+            backgroundImage: `linear-gradient(${MB.ice} 1px, transparent 1px), linear-gradient(90deg, ${MB.ice} 1px, transparent 1px)`,
+            backgroundSize: "60px 60px",
+            transform: "perspective(600px) rotateX(65deg)",
+            transformOrigin: "bottom",
+            maskImage: "linear-gradient(to top, black, transparent)",
+          }}
+        />
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(250,204,21,0.12),transparent_60%)]" />
+
       <ConfettiCanvas active={confetti} />
 
       <Navigation />
-      <main className="relative lg:ml-72 pt-16 pb-24 lg:pb-8 px-3 sm:px-6 lg:px-8 text-slate-100">
+      <main className="relative lg:ml-72 pt-16 pb-24 lg:pb-8 px-3 sm:px-6 lg:px-8" style={{ color: MB.ice }}>
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 grid place-items-center shadow-[0_0_30px_rgba(250,204,21,0.5)] animate-pulse">
-                <Trophy className="w-6 h-6 text-black" />
-              </div>
-              {editing ? (
-                <div className="flex items-center gap-2">
-                  <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="h-9 w-56 bg-white/10 border-white/20 text-white" autoFocus />
-                  <Button size="icon" variant="ghost" onClick={saveName}><Check className="w-4 h-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => setEditing(false)}><X className="w-4 h-4" /></Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-yellow-300 via-amber-200 to-orange-300 bg-clip-text text-transparent drop-shadow-[0_2px_20px_rgba(250,204,21,0.35)] uppercase">
-                    {screenName}
-                  </h1>
-                  {canEdit && (
-                    <Button size="icon" variant="ghost" onClick={() => setEditing(true)} title="Editar nome" className="text-slate-300 hover:text-white">
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="gap-1.5 py-1.5 border-yellow-400/40 bg-yellow-400/10 text-yellow-200">
-                <Sparkles className="w-3.5 h-3.5" />
-                Arena dos Campeões
-              </Badge>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className={cn(
-                  "gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/10",
-                  soundEnabled && "border-yellow-400/50 bg-yellow-400/10 text-yellow-200"
+          {/* ============ HERO / BROADCAST HEADER ============ */}
+          <div
+            className="relative overflow-hidden rounded-3xl border p-5 sm:p-8"
+            style={{
+              borderColor: `${MB.blue}55`,
+              background: `linear-gradient(135deg, ${MB.navy}ee 0%, #041a4d 50%, ${MB.navy}ee 100%)`,
+              boxShadow: `0 0 60px ${MB.blue}33, inset 0 1px 0 ${MB.ice}22`,
+            }}
+          >
+            {/* Animated shine */}
+            <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: `radial-gradient(circle at 20% 0%, ${MB.blue}88, transparent 50%)` }} />
+            <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: MB.blue }} />
+
+            <div className="relative flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-4">
+                {logo ? (
+                  <div className="w-16 h-16 rounded-2xl grid place-items-center bg-white/95 shadow-xl shrink-0 p-2">
+                    <img src={logo} alt="Logo" className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div
+                    className="w-16 h-16 rounded-2xl grid place-items-center shrink-0"
+                    style={{ background: `linear-gradient(135deg, ${MB.blue}, #4d7bff)`, boxShadow: `0 0 30px ${MB.blue}88` }}
+                  >
+                    <Trophy className="w-8 h-8 text-white" />
+                  </div>
                 )}
-                title={soundEnabled ? "Desativar som" : "Ativar som"}
-              >
-                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                {soundEnabled ? "Som ON" : "Som OFF"}
-              </Button>
-              <Button
-                size="sm"
-                onClick={triggerCelebration}
-                className="gap-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-black hover:opacity-90 font-bold shadow-lg shadow-orange-500/30"
-              >
-                <Zap className="w-4 h-4" />
-                Comemorar
-              </Button>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                      style={{ background: `${MB.blue}22`, color: MB.ice, border: `1px solid ${MB.blue}66` }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" /> AO VIVO
+                    </span>
+                    <span className="text-[10px] uppercase tracking-widest opacity-60">Season {now.getFullYear()}</span>
+                  </div>
+                  {editing ? (
+                    <div className="flex items-center gap-2">
+                      <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="h-10 w-64 bg-white/10 border-white/30 text-white text-xl font-black" autoFocus />
+                      <Button size="icon" variant="ghost" onClick={saveName} className="text-white hover:bg-white/10"><Check className="w-5 h-5" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => setEditing(false)} className="text-white hover:bg-white/10"><X className="w-5 h-5" /></Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1
+                        className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight uppercase leading-none"
+                        style={{
+                          background: `linear-gradient(180deg, ${MB.ice} 0%, #ffffff 40%, ${MB.blue} 100%)`,
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          textShadow: `0 0 40px ${MB.blue}55`,
+                          fontFamily: "'Sora', system-ui, sans-serif",
+                        }}
+                      >
+                        {screenName}
+                      </h1>
+                      {canEdit && (
+                        <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="text-white/70 hover:text-white hover:bg-white/10">
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-sm mt-1 opacity-70 tracking-wide">O tablado dos campeões · disputa em tempo real</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSoundEnabled(!soundEnabled)}
+                  className="gap-1.5 border-white/20 bg-white/5 text-white hover:bg-white/15 backdrop-blur"
+                >
+                  {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  {soundEnabled ? "Som ON" : "Som OFF"}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={triggerCelebration}
+                  className="gap-1.5 font-bold text-white border-0"
+                  style={{ background: `linear-gradient(135deg, ${MB.blue}, #4d7bff)`, boxShadow: `0 8px 24px ${MB.blue}66` }}
+                >
+                  <Zap className="w-4 h-4" />
+                  Comemorar
+                </Button>
+              </div>
+            </div>
+
+            {/* Scoreboard strip */}
+            <div className="relative mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: "VGV Total", value: formatCurrency(totals.vgv), icon: DollarSign },
+                { label: "Vendas", value: totals.vendas, icon: Trophy },
+                { label: "Leads", value: totals.leads, icon: Flame },
+                { label: "Negociações", value: totals.negociacoes, icon: Handshake },
+              ].map((k) => (
+                <div
+                  key={k.label}
+                  className="rounded-xl p-3 border backdrop-blur-sm"
+                  style={{ borderColor: `${MB.blue}44`, background: `${MB.navy}88` }}
+                >
+                  <div className="flex items-center gap-2 opacity-70 text-[11px] uppercase tracking-wider">
+                    <k.icon className="w-3.5 h-3.5" />
+                    {k.label}
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black tabular-nums mt-1" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                    {k.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Period filters */}
+            <div className="relative flex items-center gap-2 flex-wrap mt-5">
+              <Select value={month} onValueChange={(v) => { setMonth(v); playReveal(); }}>
+                <SelectTrigger className="w-[150px] h-9 border-white/20 text-white" style={{ background: `${MB.navy}bb` }}><SelectValue placeholder="Mês" /></SelectTrigger>
+                <SelectContent>
+                  {months.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={year} onValueChange={setYear} disabled={month === "all"}>
+                <SelectTrigger className="w-[110px] h-9 border-white/20 text-white" style={{ background: `${MB.navy}bb` }}><SelectValue placeholder="Ano" /></SelectTrigger>
+                <SelectContent>
+                  {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Filtro de período */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Select value={month} onValueChange={(v) => { setMonth(v); playReveal(); }}>
-              <SelectTrigger className="w-[150px] h-9 bg-white/5 border-white/20 text-white"><SelectValue placeholder="Mês" /></SelectTrigger>
-              <SelectContent>
-                {months.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={year} onValueChange={setYear} disabled={month === "all"}>
-              <SelectTrigger className="w-[110px] h-9 bg-white/5 border-white/20 text-white"><SelectValue placeholder="Ano" /></SelectTrigger>
-              <SelectContent>
-                {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Pódio dos Campeões */}
+          {/* ============ PÓDIO ============ */}
           {podium.length > 0 && (
-            <Card className="relative overflow-hidden border-yellow-400/20 bg-gradient-to-b from-slate-900/80 to-slate-950/80 backdrop-blur">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,rgba(250,204,21,0.15),transparent_60%)] pointer-events-none" />
-              <CardHeader className="pb-2 relative">
-                <CardTitle className="flex items-center gap-2 text-yellow-200">
-                  <Crown className="w-5 h-5 text-yellow-400" />
+            <div
+              className="relative overflow-hidden rounded-3xl border p-6 sm:p-10"
+              style={{
+                borderColor: `${MB.blue}44`,
+                background: `linear-gradient(180deg, #04122e 0%, ${MB.navy} 100%)`,
+                boxShadow: `inset 0 0 80px ${MB.blue}22`,
+              }}
+            >
+              {/* Spotlight */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
+                style={{ background: `radial-gradient(ellipse at top, ${MB.ice}22, transparent 60%)` }} />
+
+              <div className="relative flex items-center justify-center gap-2 mb-8">
+                <Crown className="w-6 h-6" style={{ color: MB.ice }} />
+                <h2 className="text-xl sm:text-2xl font-black uppercase tracking-[0.2em]" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
                   Pódio dos Campeões
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative">
-                <div className="flex items-end justify-center gap-3 sm:gap-6 pt-8 pb-4">
-                  {podiumOrder.map((s) => {
-                    const pos = enriched.indexOf(s) + 1;
-                    const heights = { 1: "h-40", 2: "h-28", 3: "h-20" } as const;
-                    const colors = {
-                      1: "from-yellow-400 to-amber-600 shadow-[0_0_40px_rgba(250,204,21,0.6)]",
-                      2: "from-slate-300 to-slate-500 shadow-[0_0_25px_rgba(203,213,225,0.4)]",
-                      3: "from-amber-600 to-amber-800 shadow-[0_0_20px_rgba(217,119,6,0.4)]",
-                    } as const;
-                    return (
-                      <div key={s.brokerId} className="flex flex-col items-center gap-2 flex-1 max-w-[140px]">
-                        {pos === 1 && <Crown className="w-8 h-8 text-yellow-400 animate-bounce drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" />}
-                        <Avatar className={cn("shrink-0 ring-4", pos === 1 ? "h-20 w-20 ring-yellow-400/60" : "h-14 w-14 ring-white/30")}>
+                </h2>
+                <Crown className="w-6 h-6" style={{ color: MB.ice }} />
+              </div>
+
+              <div className="relative flex items-end justify-center gap-4 sm:gap-8">
+                {podiumOrder.map((s) => {
+                  const pos = enriched.indexOf(s) + 1;
+                  const heights = { 1: "h-52 sm:h-64", 2: "h-36 sm:h-44", 3: "h-28 sm:h-32" } as const;
+                  const gradients = {
+                    1: `linear-gradient(180deg, ${MB.blue} 0%, #4d7bff 50%, ${MB.blue} 100%)`,
+                    2: `linear-gradient(180deg, ${MB.ice} 0%, #b8bce6 50%, #8990c4 100%)`,
+                    3: `linear-gradient(180deg, #1c3a8a 0%, #0f2760 100%)`,
+                  } as const;
+                  const glows = {
+                    1: `0 0 80px ${MB.blue}, 0 0 30px ${MB.ice}66`,
+                    2: `0 0 40px ${MB.ice}88`,
+                    3: `0 0 30px ${MB.blue}55`,
+                  } as const;
+                  return (
+                    <div key={s.brokerId} className="flex flex-col items-center gap-3 flex-1 max-w-[180px]">
+                      {pos === 1 && (
+                        <Crown className="w-10 h-10 animate-bounce" style={{ color: MB.ice, filter: `drop-shadow(0 0 12px ${MB.blue})` }} />
+                      )}
+                      <div className="relative">
+                        <Avatar className={cn("shrink-0 ring-4", pos === 1 ? "h-24 w-24 sm:h-28 sm:w-28" : "h-16 w-16 sm:h-20 sm:w-20")}
+                          style={{
+                            boxShadow: glows[pos as 1 | 2 | 3],
+                            ...(pos === 1 ? { border: `3px solid ${MB.ice}` } : {}),
+                          } as any}
+                        >
                           <AvatarImage src={s.avatar || undefined} />
-                          <AvatarFallback className="bg-slate-800 text-white">{s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}</AvatarFallback>
+                          <AvatarFallback className="text-white font-black" style={{ background: MB.blue }}>
+                            {s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}
+                          </AvatarFallback>
                         </Avatar>
-                        <p className="text-xs sm:text-sm font-bold text-center text-white line-clamp-1">{s.name}</p>
-                        <p className="text-[10px] text-yellow-200/80">{s.points.toLocaleString("pt-BR")} pts</p>
-                        <div className={cn(
-                          "w-full rounded-t-xl bg-gradient-to-t grid place-items-center font-black text-2xl sm:text-4xl text-black border-t-2 border-white/20",
-                          heights[pos as 1 | 2 | 3],
-                          colors[pos as 1 | 2 | 3]
-                        )}>
-                          {pos}
-                        </div>
+                        {pos === 1 && <Sparkles className="absolute -top-2 -right-2 w-6 h-6 animate-pulse" style={{ color: MB.ice }} />}
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      <p className={cn("font-black text-center line-clamp-1 uppercase tracking-wide", pos === 1 ? "text-base sm:text-lg" : "text-xs sm:text-sm")}
+                        style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                        {s.name}
+                      </p>
+                      <div className="px-3 py-1 rounded-full text-xs font-bold tabular-nums"
+                        style={{ background: `${MB.blue}33`, color: MB.ice, border: `1px solid ${MB.blue}66` }}>
+                        {s.points.toLocaleString("pt-BR")} pts
+                      </div>
+                      <div
+                        className={cn(
+                          "w-full rounded-t-2xl grid place-items-center font-black text-3xl sm:text-5xl border-t-2",
+                          heights[pos as 1 | 2 | 3],
+                        )}
+                        style={{
+                          background: gradients[pos as 1 | 2 | 3],
+                          color: pos === 2 ? MB.navy : "#fff",
+                          borderTopColor: MB.ice,
+                          boxShadow: glows[pos as 1 | 2 | 3],
+                          textShadow: pos !== 2 ? `0 2px 20px ${MB.navy}` : "none",
+                          fontFamily: "'Sora', system-ui",
+                        }}
+                      >
+                        {pos}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
-
-
-          {/* Ranking Geral / IPM */}
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <Medal className="w-5 h-5 text-primary" />
-                Índice de Performance Master (IPM)
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">20% cadastros · 20% atendimentos · 20% negociações · 40% vendas</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          {/* ============ IPM RANKING ============ */}
+          <div
+            className="rounded-3xl border overflow-hidden"
+            style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
+          >
+            <div className="p-5 border-b flex items-center justify-between flex-wrap gap-2" style={{ borderColor: `${MB.blue}22` }}>
+              <div>
+                <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                  <Medal className="w-5 h-5" style={{ color: MB.blue }} />
+                  Índice de Performance Master
+                </h3>
+                <p className="text-[11px] opacity-60 mt-0.5">20% cadastros · 20% atendimentos · 20% negociações · 40% vendas</p>
+              </div>
+              <Badge className="border-0 font-bold" style={{ background: MB.blue, color: "#fff" }}>IPM · Top 10</Badge>
+            </div>
+            <div className="p-4 space-y-2">
               {enriched.slice(0, 10).map((s, i) => {
                 const level = getLevel(s.points);
                 const next = getNextLevel(s.points);
                 const progress = next ? Math.min(100, ((s.points - level.min) / (next.min - level.min)) * 100) : 100;
+                const isTop = i < 3;
                 return (
-                  <div key={s.brokerId} className={cn(
-                    "rounded-xl border p-3 flex items-center gap-3 bg-gradient-to-r",
-                    i === 0 ? "from-yellow-500/10 border-yellow-500/30" : i === 1 ? "from-slate-400/10 border-slate-400/30" : i === 2 ? "from-amber-600/10 border-amber-600/30" : "from-transparent border-border/60"
-                  )}>
-                    <div className={cn("w-9 h-9 grid place-items-center rounded-full font-bold text-sm shrink-0",
-                      i === 0 ? "bg-yellow-500 text-black" : i === 1 ? "bg-slate-300 text-black" : i === 2 ? "bg-amber-600 text-white" : "bg-muted text-foreground")}>
+                  <div
+                    key={s.brokerId}
+                    className="rounded-xl border p-3 flex items-center gap-3 transition-all hover:translate-x-1"
+                    style={{
+                      borderColor: isTop ? `${MB.blue}66` : `${MB.blue}22`,
+                      background: isTop
+                        ? `linear-gradient(90deg, ${MB.blue}22 0%, transparent 100%)`
+                        : `${MB.navy}88`,
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 grid place-items-center rounded-xl font-black text-base shrink-0"
+                      style={{
+                        background: isTop ? `linear-gradient(135deg, ${MB.blue}, #4d7bff)` : `${MB.navy}`,
+                        color: MB.ice,
+                        border: `1px solid ${MB.blue}66`,
+                        boxShadow: isTop ? `0 0 20px ${MB.blue}66` : "none",
+                        fontFamily: "'Sora', system-ui",
+                      }}
+                    >
                       {i + 1}
                     </div>
-                    <Avatar className="h-10 w-10 shrink-0">
+                    <Avatar className="h-11 w-11 shrink-0 ring-2" style={{ boxShadow: `0 0 0 2px ${MB.blue}44` } as any}>
                       <AvatarImage src={s.avatar || undefined} />
-                      <AvatarFallback>{s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}</AvatarFallback>
+                      <AvatarFallback className="text-white text-xs" style={{ background: MB.blue }}>
+                        {s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-sm truncate">{s.name}</p>
-                        <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", level.color)}>{level.name}</Badge>
+                        <p className="font-bold text-sm truncate" style={{ color: MB.ice }}>{s.name}</p>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
+                          style={{ background: `${MB.blue}33`, color: MB.ice, border: `1px solid ${MB.blue}66` }}>
+                          {level.name}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress value={progress} className="h-1.5 flex-1" />
-                        <span className="text-[10px] text-muted-foreground shrink-0">{s.points.toLocaleString("pt-BR")} pts</span>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: `${MB.blue}22` }}>
+                          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${MB.blue}, ${MB.ice})` }} />
+                        </div>
+                        <span className="text-[10px] opacity-70 shrink-0 tabular-nums">{s.points.toLocaleString("pt-BR")} pts</span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-lg font-black tabular-nums">{s.ipm.toFixed(1)}</p>
-                      <p className="text-[10px] text-muted-foreground">IPM</p>
+                      <p className="text-2xl font-black tabular-nums" style={{ color: MB.ice, fontFamily: "'Sora', system-ui", textShadow: `0 0 20px ${MB.blue}` }}>
+                        {s.ipm.toFixed(1)}
+                      </p>
+                      <p className="text-[9px] uppercase tracking-widest opacity-60">IPM</p>
                     </div>
                   </div>
                 );
               })}
               {enriched.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">Sem dados suficientes ainda. Comece cadastrando leads e negociações.</p>
+                <p className="text-sm text-center py-10 opacity-60">Sem dados suficientes ainda. Comece cadastrando leads e negociações.</p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Rankings por categoria */}
+          {/* ============ CATEGORIAS ============ */}
           <Tabs defaultValue="cacadores" onValueChange={() => playReveal()}>
-            <TabsList className="w-full overflow-x-auto flex justify-start no-scrollbar">
-              <TabsTrigger value="cacadores" className="gap-1.5"><Flame className="w-4 h-4" />Caçador de Leads</TabsTrigger>
-              <TabsTrigger value="atendimento" className="gap-1.5"><Phone className="w-4 h-4" />Atendimento</TabsTrigger>
-              <TabsTrigger value="negociacao" className="gap-1.5"><Handshake className="w-4 h-4" />Negociação</TabsTrigger>
-              <TabsTrigger value="fechador" className="gap-1.5"><DollarSign className="w-4 h-4" />Fechador do Mês</TabsTrigger>
-              <TabsTrigger value="conversao" className="gap-1.5"><TrendingUp className="w-4 h-4" />Conversão</TabsTrigger>
+            <TabsList
+              className="w-full overflow-x-auto flex justify-start no-scrollbar h-auto p-1 rounded-2xl border"
+              style={{ background: `${MB.navy}cc`, borderColor: `${MB.blue}33` }}
+            >
+              {[
+                { v: "cacadores", i: Flame, l: "Caçador" },
+                { v: "atendimento", i: Phone, l: "Atendimento" },
+                { v: "negociacao", i: Handshake, l: "Negociação" },
+                { v: "fechador", i: DollarSign, l: "Fechador" },
+                { v: "conversao", i: TrendingUp, l: "Conversão" },
+              ].map(t => (
+                <TabsTrigger
+                  key={t.v}
+                  value={t.v}
+                  className="gap-1.5 rounded-xl data-[state=active]:text-white text-white/60 data-[state=active]:shadow-lg font-semibold uppercase text-xs tracking-wider"
+                  style={{
+                    // active bg via inline style through class-hover is tricky — apply hover via className
+                  }}
+                >
+                  <t.i className="w-4 h-4" />{t.l}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <CategoryList value="cacadores" data={categories.cacadores} metric={s => `${s.leads} leads`} icon={<Flame className="w-4 h-4 text-orange-400" />} title="🔥 Caçador de Leads" />
-            <CategoryList value="atendimento" data={categories.atendimento} metric={s => `${s.atendimentos} atendimentos`} icon={<Phone className="w-4 h-4 text-blue-400" />} title="📞 Mestre do Atendimento" />
-            <CategoryList value="negociacao" data={categories.negociacao} metric={s => `${s.negociacoes} negociações`} icon={<Handshake className="w-4 h-4 text-emerald-400" />} title="🤝 Rei da Negociação" />
-            <CategoryList value="fechador" data={categories.fechador} metric={s => formatCurrency(s.vgv)} icon={<DollarSign className="w-4 h-4 text-yellow-400" />} title="💰 Fechador do Mês" />
-            <CategoryList value="conversao" data={categories.conversao} metric={s => `${s.conversao.toFixed(1)}%`} icon={<TrendingUp className="w-4 h-4 text-fuchsia-400" />} title="🚀 Melhor Conversão (Lead → Venda)" />
+            <CategoryList value="cacadores" data={categories.cacadores} metric={s => `${s.leads} leads`} icon={<Flame className="w-4 h-4" style={{ color: MB.blue }} />} title="Caçador de Leads" />
+            <CategoryList value="atendimento" data={categories.atendimento} metric={s => `${s.atendimentos} atendimentos`} icon={<Phone className="w-4 h-4" style={{ color: MB.blue }} />} title="Mestre do Atendimento" />
+            <CategoryList value="negociacao" data={categories.negociacao} metric={s => `${s.negociacoes} negociações`} icon={<Handshake className="w-4 h-4" style={{ color: MB.blue }} />} title="Rei da Negociação" />
+            <CategoryList value="fechador" data={categories.fechador} metric={s => formatCurrency(s.vgv)} icon={<DollarSign className="w-4 h-4" style={{ color: MB.blue }} />} title="Fechador do Mês" />
+            <CategoryList value="conversao" data={categories.conversao} metric={s => `${s.conversao.toFixed(1)}%`} icon={<TrendingUp className="w-4 h-4" style={{ color: MB.blue }} />} title="Melhor Conversão (Lead → Venda)" />
           </Tabs>
 
-          {/* Missões Semanais */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5 text-primary" />Missões da Semana</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-3">
+          {/* ============ MISSÕES ============ */}
+          <div
+            className="rounded-3xl border p-5"
+            style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
+          >
+            <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+              <Target className="w-5 h-5" style={{ color: MB.blue }} />
+              Missões da Semana
+            </h3>
+            <div className="grid gap-3 sm:grid-cols-3">
               {[
                 { name: "Prospectador", desc: "Cadastre 10 novos clientes", reward: 100, current: enriched[0]?.leads ?? 0, goal: 10 },
                 { name: "Negociador", desc: "Transforme 5 atendimentos em negociação", reward: 200, current: enriched[0]?.negociacoes ?? 0, goal: 5 },
                 { name: "Vendedor", desc: "Feche 1 venda", reward: 500, current: enriched[0]?.vendas ?? 0, goal: 1 },
               ].map(m => {
                 const pct = Math.min(100, (m.current / m.goal) * 100);
+                const done = pct >= 100;
                 return (
-                  <div key={m.name} className="rounded-xl border border-border/60 bg-card/50 p-3 space-y-2">
+                  <div
+                    key={m.name}
+                    className="rounded-2xl border p-4 space-y-2 relative overflow-hidden"
+                    style={{
+                      borderColor: done ? MB.blue : `${MB.blue}33`,
+                      background: done ? `linear-gradient(135deg, ${MB.blue}33, ${MB.navy})` : `${MB.navy}88`,
+                      boxShadow: done ? `0 0 30px ${MB.blue}66` : "none",
+                    }}
+                  >
                     <div className="flex items-center justify-between">
-                      <p className="font-semibold text-sm">Missão {m.name}</p>
-                      <Badge variant="outline" className="text-[10px]">+{m.reward} pts</Badge>
+                      <p className="font-black text-sm uppercase tracking-wider" style={{ color: MB.ice }}>Missão {m.name}</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: MB.blue, color: "#fff" }}>+{m.reward} pts</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{m.desc}</p>
-                    <Progress value={pct} className="h-1.5" />
-                    <p className="text-[10px] text-muted-foreground text-right">{m.current}/{m.goal}</p>
+                    <p className="text-xs opacity-70">{m.desc}</p>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: `${MB.blue}22` }}>
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${MB.blue}, ${MB.ice})` }} />
+                    </div>
+                    <p className="text-[10px] opacity-70 text-right tabular-nums">{m.current}/{m.goal}</p>
                   </div>
                 );
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Tabela de pontos */}
-          <Card>
-            <CardHeader className="pb-3"><CardTitle>Como ganhar pontos</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {[
-                  ["Novo cliente cadastrado", POINTS.lead],
-                  ["Cliente atendido", POINTS.atendimento],
-                  ["Cliente em follow-up", POINTS.followup],
-                  ["Virou negociação", POINTS.negociacao],
-                  ["Visita realizada", POINTS.visita],
-                  ["Proposta enviada", POINTS.proposta],
-                  ["Venda fechada", POINTS.venda],
-                  ["Captação de imóvel", POINTS.captacao],
-                  ["Meta mensal atingida", POINTS.metaMensal],
-                ].map(([label, pts]) => (
-                  <div key={label as string} className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 bg-card/40">
-                    <span className="text-sm">{label}</span>
-                    <Badge variant="secondary">+{pts} pts</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* ============ REGRAS DE PONTOS ============ */}
+          <div
+            className="rounded-3xl border p-5"
+            style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
+          >
+            <h3 className="text-lg font-black uppercase tracking-wider mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+              Como ganhar pontos
+            </h3>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {[
+                ["Novo cliente cadastrado", POINTS.lead],
+                ["Cliente atendido", POINTS.atendimento],
+                ["Cliente em follow-up", POINTS.followup],
+                ["Virou negociação", POINTS.negociacao],
+                ["Visita realizada", POINTS.visita],
+                ["Proposta enviada", POINTS.proposta],
+                ["Venda fechada", POINTS.venda],
+                ["Captação de imóvel", POINTS.captacao],
+                ["Meta mensal atingida", POINTS.metaMensal],
+              ].map(([label, pts]) => (
+                <div
+                  key={label as string}
+                  className="flex items-center justify-between rounded-xl px-3 py-2.5 border"
+                  style={{ borderColor: `${MB.blue}22`, background: `${MB.navy}88` }}
+                >
+                  <span className="text-sm" style={{ color: MB.ice }}>{label}</span>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full tabular-nums" style={{ background: `${MB.blue}33`, color: MB.ice, border: `1px solid ${MB.blue}66` }}>
+                    +{pts} pts
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
+
+      {/* Active tab styling for tabs (since we use inline style, add via style tag) */}
+      <style>{`
+        [data-state="active"].gaming-tab { background: ${MB.blue} !important; color: #fff !important; }
+      `}</style>
     </div>
   );
 };
@@ -471,30 +681,53 @@ const CategoryList = ({ value, data, metric, icon, title }: {
   title: string;
 }) => (
   <TabsContent value={value}>
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">{icon}{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {data.map((s, i) => (
-          <div key={s.brokerId} className="flex items-center gap-3 rounded-lg border border-border/60 p-2.5">
-            <div className={cn("w-7 h-7 grid place-items-center rounded-full text-xs font-bold shrink-0",
-              i === 0 ? "bg-yellow-500 text-black" : i === 1 ? "bg-slate-300 text-black" : i === 2 ? "bg-amber-600 text-white" : "bg-muted")}>
-              {i + 1}
+    <div
+      className="rounded-3xl border p-5"
+      style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
+    >
+      <h3 className="text-base font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+        {icon}{title}
+      </h3>
+      <div className="space-y-2">
+        {data.map((s, i) => {
+          const isTop = i < 3;
+          return (
+            <div
+              key={s.brokerId}
+              className="flex items-center gap-3 rounded-xl p-3 border transition-all hover:translate-x-1"
+              style={{
+                borderColor: isTop ? `${MB.blue}55` : `${MB.blue}22`,
+                background: isTop ? `linear-gradient(90deg, ${MB.blue}22, transparent)` : `${MB.navy}88`,
+              }}
+            >
+              <div
+                className="w-8 h-8 grid place-items-center rounded-lg text-sm font-black shrink-0"
+                style={{
+                  background: isTop ? `linear-gradient(135deg, ${MB.blue}, #4d7bff)` : MB.navy,
+                  color: MB.ice,
+                  border: `1px solid ${MB.blue}66`,
+                  boxShadow: isTop ? `0 0 12px ${MB.blue}66` : "none",
+                  fontFamily: "'Sora', system-ui",
+                }}
+              >
+                {i + 1}
+              </div>
+              <Avatar className="h-9 w-9 shrink-0">
+                <AvatarImage src={s.avatar || undefined} />
+                <AvatarFallback className="text-white text-xs" style={{ background: MB.blue }}>
+                  {s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}
+                </AvatarFallback>
+              </Avatar>
+              <p className="text-sm font-semibold truncate flex-1" style={{ color: MB.ice }}>{s.name}</p>
+              <span className="text-sm font-black tabular-nums" style={{ color: MB.ice }}>{metric(s)}</span>
             </div>
-            <Avatar className="h-8 w-8 shrink-0">
-              <AvatarImage src={s.avatar || undefined} />
-              <AvatarFallback>{s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}</AvatarFallback>
-            </Avatar>
-            <p className="text-sm font-medium truncate flex-1">{s.name}</p>
-            <span className="text-sm font-bold tabular-nums">{metric(s)}</span>
-          </div>
-        ))}
+          );
+        })}
         {data.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-6">Sem dados no período.</p>
+          <p className="text-sm text-center py-8 opacity-60">Sem dados no período.</p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   </TabsContent>
 );
 
