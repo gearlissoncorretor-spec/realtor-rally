@@ -19,13 +19,17 @@ import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
 import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
 
-// ============ My Broker Brand ============
-// #0241f1 electric blue · #021944 deep navy · #e6e7fb ice lavender
+// ============ Arena Palette ============
+// Dourado premium sobre grafite. Tokens antigos mantidos por compatibilidade:
+// MB.blue = dourado (accent principal) · MB.navy = grafite escuro · MB.ice = creme
 const MB = {
-  blue: "#0241f1",
-  navy: "#021944",
-  ice: "#e6e7fb",
+  blue: "#d4af37", // dourado
+  navy: "#141418", // grafite quase-preto
+  ice: "#f5efe0",  // creme/champagne
 };
+const GOLD_GLOW = "#f5d76e"; // dourado claro para gradientes
+const GRAPHITE_2 = "#1f1f24"; // grafite secundário
+
 
 // ============ Regras de pontuação ============
 const POINTS = {
