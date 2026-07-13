@@ -4,10 +4,33 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, Flame, Share2, Image } from 'lucide-react';
+import { Trophy, Target, Flame, Share2, Image, Sparkles, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
 import { generateGoalCard, generateRankingCard, generateSaleCard } from './whatsapp-cards/canvasCardGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
+import { toast } from 'sonner';
+
+// Shared: call the edge function with brand references and download the resulting image.
+async function generatePremiumCard(payload: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke('generate-whatsapp-card', { body: payload });
+  if (error) throw new Error(error.message || 'Falha ao gerar card com IA');
+  const url = (data as { imageUrl?: string; error?: string })?.imageUrl;
+  const errMsg = (data as { error?: string })?.error;
+  if (errMsg) throw new Error(errMsg);
+  if (!url) throw new Error('Nenhuma imagem retornada');
+  // Trigger download
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `card-${payload.cardType || 'venda'}-${Date.now()}.png`;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  return url;
+}
 
 const MOTIVATIONAL_PHRASES = [
   "Cada dia é uma nova chance de superar seus limites!",
