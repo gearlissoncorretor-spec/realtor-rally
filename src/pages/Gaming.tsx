@@ -106,8 +106,25 @@ const Gaming = () => {
   }, [soundEnabled]);
 
   const now = new Date();
-  const [month, setMonth] = useState<string>(String(now.getMonth() + 1));
-  const [year, setYear] = useState<string>(String(now.getFullYear()));
+  // Se o mês atual ainda não tem vendas, abre no mês anterior (campeões do mês passado)
+  const hasSalesThisMonth = useMemo(
+    () => sales.some((s: any) => {
+      const d = parseLocalDate(s.sale_date);
+      return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }),
+    [sales]
+  );
+  const defaultDate = hasSalesThisMonth ? now : new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const [month, setMonth] = useState<string>(String(defaultDate.getMonth() + 1));
+  const [year, setYear] = useState<string>(String(defaultDate.getFullYear()));
+  const [autoDefaulted, setAutoDefaulted] = useState(false);
+  useEffect(() => {
+    if (!autoDefaulted && sales.length > 0) {
+      setMonth(String(defaultDate.getMonth() + 1));
+      setYear(String(defaultDate.getFullYear()));
+      setAutoDefaulted(true);
+    }
+  }, [sales, hasSalesThisMonth]);
 
   const inPeriod = (dateStr?: string | null) => {
     if (month === "all") return true;
