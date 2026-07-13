@@ -99,10 +99,36 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
         </div>
         <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
         <p className="text-xs text-primary font-medium">💪 {phrase}</p>
-        <Button size="sm" className="w-full gap-2" onClick={handleGenerate}>
-          <Image className="h-4 w-4" />
-          Gerar Card
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" className="gap-2" onClick={handleGenerate}>
+            <Image className="h-4 w-4" />
+            Grátis
+          </Button>
+          <Button
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-[#002880] to-[#0038b0] text-white hover:opacity-90"
+            disabled={aiLoading}
+            onClick={async () => {
+              setAiLoading(true);
+              try {
+                await generatePremiumCard({
+                  cardType: 'goal',
+                  brokerName: brokerName || 'Corretor',
+                  goalTitle, currentValue, targetValue,
+                  motivationalPhrase: phrase,
+                  logoUrl: settings?.logo_url || null,
+                  brokerPhotoUrl: brokerAvatarUrl || null,
+                });
+                toast.success('Card premium gerado!');
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : 'Falha ao gerar');
+              } finally { setAiLoading(false); }
+            }}
+          >
+            {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Premium IA
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
