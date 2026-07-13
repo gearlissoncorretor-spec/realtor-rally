@@ -61,8 +61,10 @@ interface GoalReminderProps {
 }
 
 export const GoalReminderCard: React.FC<GoalReminderProps> = ({
-  goalTitle, targetValue, currentValue, targetType, endDate, brokerName,
+  goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerAvatarUrl,
 }) => {
+  const { settings } = useOrganizationSettings();
+  const [aiLoading, setAiLoading] = useState(false);
   const progress = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const isCurrency = ['revenue', 'vgv', 'vgc', 'commission'].includes(targetType);
   const fmt = (v: number) => isCurrency ? formatCurrency(v) : v.toLocaleString('pt-BR');
