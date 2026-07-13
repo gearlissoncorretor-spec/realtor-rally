@@ -4,10 +4,33 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Trophy, Target, Flame, Share2, Image } from 'lucide-react';
+import { Trophy, Target, Flame, Share2, Image, Sparkles, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatting';
 import { cn } from '@/lib/utils';
 import { generateGoalCard, generateRankingCard, generateSaleCard } from './whatsapp-cards/canvasCardGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
+import { toast } from 'sonner';
+
+// Shared: call the edge function with brand references and download the resulting image.
+async function generatePremiumCard(payload: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke('generate-whatsapp-card', { body: payload });
+  if (error) throw new Error(error.message || 'Falha ao gerar card com IA');
+  const url = (data as { imageUrl?: string; error?: string })?.imageUrl;
+  const errMsg = (data as { error?: string })?.error;
+  if (errMsg) throw new Error(errMsg);
+  if (!url) throw new Error('Nenhuma imagem retornada');
+  // Trigger download
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `card-${payload.cardType || 'venda'}-${Date.now()}.png`;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  return url;
+}
 
 const MOTIVATIONAL_PHRASES = [
   "Cada dia é uma nova chance de superar seus limites!",
@@ -38,8 +61,10 @@ interface GoalReminderProps {
 }
 
 export const GoalReminderCard: React.FC<GoalReminderProps> = ({
-  goalTitle, targetValue, currentValue, targetType, endDate, brokerName,
+  goalTitle, targetValue, currentValue, targetType, endDate, brokerName, brokerAvatarUrl,
 }) => {
+  const { settings } = useOrganizationSettings();
+  const [aiLoading, setAiLoading] = useState(false);
   const progress = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const isCurrency = ['revenue', 'vgv', 'vgc', 'commission'].includes(targetType);
   const fmt = (v: number) => isCurrency ? formatCurrency(v) : v.toLocaleString('pt-BR');
@@ -74,10 +99,36 @@ export const GoalReminderCard: React.FC<GoalReminderProps> = ({
         </div>
         <p className="text-xs text-muted-foreground italic">📅 Prazo: {new Date(endDate).toLocaleDateString('pt-BR')}</p>
         <p className="text-xs text-primary font-medium">💪 {phrase}</p>
-        <Button size="sm" className="w-full gap-2" onClick={handleGenerate}>
-          <Image className="h-4 w-4" />
-          Gerar Card
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" className="gap-2" onClick={handleGenerate}>
+            <Image className="h-4 w-4" />
+            Grátis
+          </Button>
+          <Button
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-[#002880] to-[#0038b0] text-white hover:opacity-90"
+            disabled={aiLoading}
+            onClick={async () => {
+              setAiLoading(true);
+              try {
+                await generatePremiumCard({
+                  cardType: 'goal',
+                  brokerName: brokerName || 'Corretor',
+                  goalTitle, currentValue, targetValue,
+                  motivationalPhrase: phrase,
+                  logoUrl: settings?.logo_url || null,
+                  brokerPhotoUrl: brokerAvatarUrl || null,
+                });
+                toast.success('Card premium gerado!');
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : 'Falha ao gerar');
+              } finally { setAiLoading(false); }
+            }}
+          >
+            {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Premium IA
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -95,19 +146,15 @@ interface RankingShareProps {
 }
 
 export const RankingShareCard: React.FC<RankingShareProps> = ({
-  brokerName, position, totalSales, vgv,
+  brokerName, position, totalSales, vgv, brokerAvatarUrl,
 }) => {
+  const { settings } = useOrganizationSettings();
+  const [aiLoading, setAiLoading] = useState(false);
   const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : `#${position}`;
   const phrase = getRandomPhrase();
 
   const handleGenerate = () => {
-    generateRankingCard({
-      brokerName,
-      position,
-      totalSales,
-      vgv,
-      motivationalPhrase: phrase,
-    });
+    generateRankingCard({ brokerName, position, totalSales, vgv, motivationalPhrase: phrase });
   };
 
   return (
@@ -126,10 +173,35 @@ export const RankingShareCard: React.FC<RankingShareProps> = ({
           </div>
         </div>
         <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">💪 {phrase}</p>
-        <Button size="sm" className="w-full gap-2" onClick={handleGenerate}>
-          <Image className="h-4 w-4" />
-          Gerar Card
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" className="gap-2" onClick={handleGenerate}>
+            <Image className="h-4 w-4" />
+            Grátis
+          </Button>
+          <Button
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-[#002880] to-[#0038b0] text-white hover:opacity-90"
+            disabled={aiLoading}
+            onClick={async () => {
+              setAiLoading(true);
+              try {
+                await generatePremiumCard({
+                  cardType: 'ranking',
+                  brokerName, position, totalSales, vgv,
+                  motivationalPhrase: phrase,
+                  logoUrl: settings?.logo_url || null,
+                  brokerPhotoUrl: brokerAvatarUrl || null,
+                });
+                toast.success('Card premium gerado!');
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : 'Falha ao gerar');
+              } finally { setAiLoading(false); }
+            }}
+          >
+            {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Premium IA
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -147,18 +219,14 @@ interface SaleCelebrationProps {
 }
 
 export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
-  brokerName, clientName, propertyValue, propertyType,
+  brokerName, clientName, propertyValue, propertyType, brokerAvatarUrl,
 }) => {
+  const { settings } = useOrganizationSettings();
+  const [aiLoading, setAiLoading] = useState(false);
   const phrase = getRandomPhrase();
 
   const handleGenerate = () => {
-    generateSaleCard({
-      brokerName,
-      clientName,
-      propertyValue,
-      propertyType,
-      motivationalPhrase: phrase,
-    });
+    generateSaleCard({ brokerName, clientName, propertyValue, propertyType, motivationalPhrase: phrase });
   };
 
   return (
@@ -176,10 +244,35 @@ export const SaleCelebrationCard: React.FC<SaleCelebrationProps> = ({
           <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(propertyValue)}</p>
         </div>
         <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">💪 {phrase}</p>
-        <Button size="sm" className="w-full gap-2" onClick={handleGenerate}>
-          <Image className="h-4 w-4" />
-          Gerar Card
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" className="gap-2" onClick={handleGenerate}>
+            <Image className="h-4 w-4" />
+            Grátis
+          </Button>
+          <Button
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-[#002880] to-[#0038b0] text-white hover:opacity-90"
+            disabled={aiLoading}
+            onClick={async () => {
+              setAiLoading(true);
+              try {
+                await generatePremiumCard({
+                  cardType: 'sale',
+                  brokerName, clientName, propertyValue, propertyType,
+                  motivationalPhrase: phrase,
+                  logoUrl: settings?.logo_url || null,
+                  brokerPhotoUrl: brokerAvatarUrl || null,
+                });
+                toast.success('Card premium gerado!');
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : 'Falha ao gerar');
+              } finally { setAiLoading(false); }
+            }}
+          >
+            {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            Premium IA
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
