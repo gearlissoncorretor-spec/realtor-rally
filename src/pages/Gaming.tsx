@@ -129,6 +129,7 @@ const Gaming = () => {
   const stats: Stats[] = useMemo(() => {
     return brokers
       .filter((b: any) => String(b.status || "").toLowerCase() !== "inativo")
+      .filter((b: any) => !restrictToAgency || !myAgencyId || b.agency_id === myAgencyId)
       .map((b: any) => {
         const brokerLeads = leads.filter((l: any) => (l.user_id === b.user_id || l.created_by === b.user_id) && inPeriod(l.created_at));
         const brokerNegs = negotiations.filter((n: any) => n.broker_id === b.id && inPeriod(n.created_at));
@@ -151,7 +152,6 @@ const Gaming = () => {
           nVendas * POINTS.venda +
           nCapt * POINTS.captacao;
 
-        // Índice de Performance Master (0-100)
         return {
           brokerId: b.id,
           userId: b.user_id,
@@ -166,10 +166,12 @@ const Gaming = () => {
           vgv,
           conversao,
           points,
-          ipm: 0, // preenchido abaixo
+          ipm: 0,
         };
-      });
-  }, [brokers, leads, negotiations, sales, month, year]);
+      })
+      // Só mostra corretores com atividade real no período selecionado
+      .filter((s) => (s.leads + s.negociacoes + s.vendas + s.captacoes) > 0);
+  }, [brokers, leads, negotiations, sales, month, year, restrictToAgency, myAgencyId]);
 
   // Normaliza IPM
   const enriched = useMemo(() => {
