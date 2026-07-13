@@ -192,11 +192,11 @@ const Gaming = () => {
   }, [stats]);
 
   const categories = useMemo(() => ({
-    cacadores: [...enriched].sort((a, b) => b.leads - a.leads).slice(0, 5),
-    atendimento: [...enriched].sort((a, b) => b.atendimentos - a.atendimentos).slice(0, 5),
-    negociacao: [...enriched].sort((a, b) => b.negociacoes - a.negociacoes).slice(0, 5),
-    fechador: [...enriched].sort((a, b) => b.vgv - a.vgv).slice(0, 5),
-    conversao: [...enriched].filter(s => s.leads >= 3).sort((a, b) => b.conversao - a.conversao).slice(0, 5),
+    cacadores: [...enriched].filter(s => s.leads > 0).sort((a, b) => b.leads - a.leads).slice(0, 5),
+    atendimento: [...enriched].filter(s => s.atendimentos > 0).sort((a, b) => b.atendimentos - a.atendimentos).slice(0, 5),
+    negociacao: [...enriched].filter(s => s.negociacoes > 0).sort((a, b) => b.negociacoes - a.negociacoes).slice(0, 5),
+    fechador: [...enriched].filter(s => s.vgv > 0).sort((a, b) => b.vgv - a.vgv).slice(0, 5),
+    conversao: [...enriched].filter(s => s.leads >= 3 && s.vendas > 0).sort((a, b) => b.conversao - a.conversao).slice(0, 5),
   }), [enriched]);
 
   const saveName = async () => {
