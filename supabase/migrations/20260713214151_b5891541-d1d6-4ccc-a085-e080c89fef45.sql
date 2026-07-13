@@ -1,0 +1,1 @@
+UPDATE public.brokers SET status='inativo', updated_at=now() WHERE id IN ('339f4950-83f8-44ab-a2d4-5d014fcf2491','83a2a9b2-1f0a-44f1-a890-97dbebd590fa');
