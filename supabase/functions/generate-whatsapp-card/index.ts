@@ -7,6 +7,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Brand palette (My Broker style)
+const BRAND = {
+  blueDeep: "#002880",
+  gold: "#fece02",
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -20,141 +26,157 @@ serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const {
-      cardType = "goal", // "goal" | "ranking" | "sale"
+      cardType = "sale", // "goal" | "ranking" | "sale"
       brokerName,
       goalTitle,
       currentValue,
       targetValue,
       motivationalPhrase,
-      // ranking fields
       position,
       totalSales,
       vgv,
-      // sale fields
       clientName,
       propertyValue,
       propertyType,
+      logoUrl,          // organization logo (referência)
+      brokerPhotoUrl,   // foto do corretor (referência)
     } = await req.json();
 
     const fmtBRL = (v: number) =>
       v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 });
 
+    // ─── Build prompt ──────────────────────────────────────────────
     let prompt = "";
 
-    if (cardType === "goal") {
+    const brandBlock = `
+Brand palette (STRICT — use these exact colors):
+- Deep royal blue background: ${BRAND.blueDeep}
+- Gold accents / script highlight: ${BRAND.gold}
+- Secondary: pure white (#FFFFFF)
+
+Overall style: premium real estate marketing card, 1:1 square (1024x1024).
+Background: deep royal blue (${BRAND.blueDeep}) gradient with subtle diagonal gold light rays and elegant thin gold geometric line accents on the sides.
+Bottom edge: two flowing gold wave lines (thin + thick).
+Composition: LEFT side = big typography stacked; RIGHT side = person portrait cut out cleanly. No overlap between text and face.
+Typography: elegant gold script font for the highlighted word + bold clean uppercase sans-serif in white for the rest.
+Logo: place provided logo image at the TOP-LEFT corner, small, clean, do NOT redraw or invent a logo. If a reference image labeled LOGO is provided, integrate it as-is.
+Person: use the provided reference photo as the broker portrait on the right. Keep face clean and realistic. If no photo reference, show a professional silhouette of a real estate broker.
+NO fake text, NO watermarks, NO placeholder brand names other than what's in the logo image.
+`;
+
+    if (cardType === "sale") {
+      prompt = `Create a premium celebratory real estate sales card.
+
+${brandBlock}
+
+Text to render in the image (Portuguese, EXACT copy, keep hierarchy):
+
+Top-left: (integrate the logo image reference here)
+
+Main title stack (left side, huge):
+- "Parabéns" — gold elegant SCRIPT font, large, with subtle sparkles/stars around it
+- "PELA" — white bold uppercase, medium size
+- "VENDA" — white bold uppercase, MASSIVE (biggest element)
+
+Below the title, a thin horizontal gold divider with a diamond in the middle.
+
+CTA pill button (gold outline, dark blue fill, gold text):
+"→  VAMOS PARA A PRÓXIMA?"
+
+Small caption above CTA (white, subtle):
+"${brokerName || "Corretor"} • Cliente: ${clientName || "-"}${propertyValue ? " • " + fmtBRL(propertyValue) : ""}"
+
+Bottom row: three gold outlined diamond icons with labels underneath in white uppercase letter-spacing:
+"FOCO"     "DISCIPLINA"     "RESULTADO"
+
+Rules:
+- Follow the reference image style (My Broker celebratory sale card): royal blue + gold, portrait right, typography left
+- Sharp, crisp text — no misspellings, no gibberish
+- Do NOT add any other text, tagline, or watermark
+- Do NOT crop or clip the typography — keep safe margins`;
+    } else if (cardType === "goal") {
       const percentage = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
       const remaining = Math.max(targetValue - currentValue, 0);
 
-      prompt = `Create a modern, impactful and motivational image for a real estate broker.
+      prompt = `Create a premium motivational goal card for a real estate broker.
 
-Style: technological, clean, premium, with dark blue and black colors (high-performance CRM / SaaS style).
-Format: square (1:1), ideal for sending on WhatsApp.
-Background: dark blue gradient with subtle lighting and subtle growth elements (ascending graphs, buildings, digital lines).
+${brandBlock}
 
-Visual elements:
-- progress bar or circle highlighting ${percentage.toFixed(0)}%
-- minimalist and professional design
+Text to render (Portuguese, EXACT copy):
 
-Text in the image (ALL IN PORTUGUESE):
+Top-left: (integrate the logo image reference here)
 
-${brokerName || "Corretor"},
+Main title stack (left, huge):
+- "Faltam" — gold script font, large
+- "APENAS" — white uppercase bold
+- "${fmtBRL(remaining)}" — MASSIVE white
+- Small line: "para bater a meta"
 
-Falta apenas ${fmtBRL(remaining)}
-para bater a meta:
+Goal name (gold, medium):
+"${goalTitle || ""}"
 
-${goalTitle}
+Progress: elegant thin gold circular ring showing ${percentage.toFixed(0)}% with the number in white in the center.
 
-Progresso:
-${fmtBRL(currentValue)} / ${fmtBRL(targetValue)}
-(${percentage.toFixed(0)}%)
+Small caption:
+"${brokerName || "Corretor"} • ${fmtBRL(currentValue)} / ${fmtBRL(targetValue)}"
 
-Frase motivacional (destaque):
-"${motivationalPhrase}"
+Bottom three diamond icons: "FOCO"  "DISCIPLINA"  "RESULTADO"
 
-Rodapé: Gestão Master
+Motivational phrase in white italic small text at bottom above the diamonds:
+"${motivationalPhrase || ""}"
 
-Rules:
-- visually highlight the remaining value
-- highlight the percentage
-- strong and modern typography
-- clear visual hierarchy
-- do not clutter the image`;
-
+Rules: same brand rules as sale card. No fake text.`;
     } else if (cardType === "ranking") {
-      const medal = position === 1 ? "🥇 1º Lugar" : position === 2 ? "🥈 2º Lugar" : position === 3 ? "🥉 3º Lugar" : `#${position}`;
+      const medalWord = position === 1 ? "CAMPEÃO" : position === 2 ? "VICE" : position === 3 ? "TOP 3" : `TOP ${position}`;
+      prompt = `Create a premium ranking podium card for a real estate broker.
 
-      prompt = `Create a modern, impactful and celebratory image for a real estate broker ranking.
+${brandBlock}
 
-Style: technological, premium, with dark blue, gold and black colors (high-performance SaaS style).
-Format: square (1:1), ideal for sending on WhatsApp.
-Background: dark blue/black gradient with gold accents, subtle trophy/crown elements.
+Text to render (Portuguese, EXACT copy):
 
-Visual elements:
-- trophy or medal icon
-- position highlight: ${medal}
-- minimalist and professional design
+Top-left: (integrate the logo image reference here)
 
-Text in the image (ALL IN PORTUGUESE):
+Main title stack (left, huge):
+- "RANKING" — gold script font
+- "${medalWord}" — MASSIVE white bold uppercase
+- Small: "#${position || 1} lugar"
 
-🏆 RANKING SEMANAL
+Broker: "${brokerName}" — white bold, large.
 
-${medal}
-${brokerName}
+Stats block (gold outlined pill):
+"${totalSales || 0} vendas  •  ${fmtBRL(vgv || 0)}"
 
-${totalSales} vendas
-VGV: ${fmtBRL(vgv || 0)}
+Motivational phrase in italic white:
+"${motivationalPhrase || ""}"
 
-"${motivationalPhrase}"
+Bottom three diamond icons: "FOCO"  "DISCIPLINA"  "RESULTADO"
 
-Rodapé: Gestão Master
+Right side: broker portrait from the provided reference photo.
 
-Rules:
-- highlight the position and broker name prominently
-- gold/amber accents for winners
-- strong and modern typography
-- clear visual hierarchy`;
-
-    } else if (cardType === "sale") {
-      prompt = `Create a modern, celebratory image for a real estate sale achievement.
-
-Style: technological, premium, with dark blue, emerald green and black colors (high-performance SaaS style).
-Format: square (1:1), ideal for sending on WhatsApp.
-Background: dark gradient with emerald/green accents, subtle celebration elements (confetti, sparkles).
-
-Visual elements:
-- celebration icons
-- property value prominently displayed
-- minimalist and professional design
-
-Text in the image (ALL IN PORTUGUESE):
-
-🎉 VENDA FECHADA!
-
-Corretor: ${brokerName}
-Cliente: ${clientName}
-${propertyType ? `Tipo: ${propertyType}` : ""}
-Valor: ${fmtBRL(propertyValue || 0)}
-
-"${motivationalPhrase}"
-
-Rodapé: Gestão Master
-
-Rules:
-- highlight the sale value prominently
-- emerald/green celebratory accents
-- strong and modern typography
-- clear visual hierarchy`;
+Rules: same brand rules. No fake text.`;
     }
 
-    console.log(`Generating WhatsApp card image (type: ${cardType})...`);
+    // ─── Build multimodal message content ──────────────────────────
+    const content: Array<Record<string, unknown>> = [{ type: "text", text: prompt }];
+
+    if (logoUrl) {
+      content.push({ type: "text", text: "LOGO reference (integrate at top-left, keep colors and shape exactly as-is):" });
+      content.push({ type: "image_url", image_url: { url: logoUrl } });
+    }
+    if (brokerPhotoUrl) {
+      content.push({ type: "text", text: "BROKER PORTRAIT reference (use as the person on the right side):" });
+      content.push({ type: "image_url", image_url: { url: brokerPhotoUrl } });
+    }
+
+    console.log(`Generating WhatsApp card image (type: ${cardType}, model: gemini-3-pro-image, refs: logo=${!!logoUrl} photo=${!!brokerPhotoUrl})`);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 55000); // 55s timeout
+    const timeout = setTimeout(() => controller.abort(), 90000); // 90s — Pro is slower
 
     let response: Response;
     try {
       response = await fetch(
-        "https://ai.gateway.lovable.dev/v1/chat/completions",
+        "https://ai.gateway.lovable.dev/v1/images/generations",
         {
           method: "POST",
           headers: {
@@ -162,8 +184,8 @@ Rules:
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
-            messages: [{ role: "user", content: prompt }],
+            model: "google/gemini-3-pro-image",
+            messages: [{ role: "user", content }],
             modalities: ["image", "text"],
           }),
           signal: controller.signal,
@@ -185,7 +207,7 @@ Rules:
 
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Tente novamente em alguns segundos." }),
+          JSON.stringify({ error: "Rate limit atingido. Tente novamente em alguns segundos." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -197,15 +219,16 @@ Rules:
       }
 
       return new Response(
-        JSON.stringify({ error: "Falha ao gerar imagem" }),
+        JSON.stringify({ error: "Falha ao gerar imagem", details: errorText.slice(0, 300) }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const data = await response.json();
-    const base64Url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    // /v1/images/generations returns { data: [{ b64_json }] }
+    const b64 = data?.data?.[0]?.b64_json;
 
-    if (!base64Url) {
+    if (!b64) {
       console.error("No image in response:", JSON.stringify(data).slice(0, 500));
       return new Response(
         JSON.stringify({ error: "Nenhuma imagem gerada" }),
@@ -213,27 +236,21 @@ Rules:
       );
     }
 
-    // Upload to Supabase storage for a public URL
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Extract base64 data
-    const base64Data = base64Url.replace(/^data:image\/\w+;base64,/, "");
-    const imageBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
-
-    const fileName = `whatsapp-cards/${cardType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const imageBytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const fileName = `whatsapp-cards/${cardType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("media")
       .upload(fileName, imageBytes, {
-        contentType: "image/jpeg",
+        contentType: "image/png",
         upsert: false,
       });
 
     if (uploadError) {
       console.error("Storage upload error:", uploadError);
-      // Fallback: return base64
       return new Response(
-        JSON.stringify({ imageUrl: base64Url }),
+        JSON.stringify({ imageUrl: `data:image/png;base64,${b64}` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
