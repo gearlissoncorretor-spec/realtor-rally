@@ -70,9 +70,11 @@ const Gaming = () => {
   const { leads } = useLeads();
   const { negotiations } = useNegotiations();
   const { settings, updateSettings, isUpdating } = useOrganizationSettings();
-  const { getUserRole } = useAuth();
+  const { getUserRole, profile } = useAuth();
   const role = getUserRole?.() ?? "";
   const canEdit = ["diretor", "socio", "admin", "super_admin"].includes(role);
+  const myAgencyId = (profile as any)?.agency_id ?? null;
+  const restrictToAgency = role === "gerente" || role === "corretor";
 
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
