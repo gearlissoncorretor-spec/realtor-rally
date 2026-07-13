@@ -250,7 +250,7 @@ const Gaming = () => {
         background: `
           radial-gradient(ellipse 80% 60% at 50% -10%, ${MB.blue}44 0%, transparent 60%),
           radial-gradient(ellipse 60% 50% at 100% 100%, ${MB.blue}22 0%, transparent 70%),
-          linear-gradient(180deg, ${MB.navy} 0%, #010d24 60%, #000516 100%)
+          linear-gradient(180deg, ${MB.navy} 0%, #0d0d10 60%, #050507 100%)
         `,
       }}
     >
@@ -283,7 +283,7 @@ const Gaming = () => {
             className="relative overflow-hidden rounded-3xl border p-5 sm:p-8"
             style={{
               borderColor: `${MB.blue}55`,
-              background: `linear-gradient(135deg, ${MB.navy}ee 0%, #041a4d 50%, ${MB.navy}ee 100%)`,
+              background: `linear-gradient(135deg, ${MB.navy}ee 0%, #1f1f24 50%, ${MB.navy}ee 100%)`,
               boxShadow: `0 0 60px ${MB.blue}33, inset 0 1px 0 ${MB.ice}22`,
             }}
           >
@@ -300,7 +300,7 @@ const Gaming = () => {
                 ) : (
                   <div
                     className="w-16 h-16 rounded-2xl grid place-items-center shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${MB.blue}, #4d7bff)`, boxShadow: `0 0 30px ${MB.blue}88` }}
+                    style={{ background: `linear-gradient(135deg, ${MB.blue}, #f5d76e)`, boxShadow: `0 0 30px ${MB.blue}88` }}
                   >
                     <Trophy className="w-8 h-8 text-white" />
                   </div>
@@ -360,7 +360,7 @@ const Gaming = () => {
                   size="sm"
                   onClick={triggerCelebration}
                   className="gap-1.5 font-bold text-white border-0"
-                  style={{ background: `linear-gradient(135deg, ${MB.blue}, #4d7bff)`, boxShadow: `0 8px 24px ${MB.blue}66` }}
+                  style={{ background: `linear-gradient(135deg, ${MB.blue}, #f5d76e)`, boxShadow: `0 8px 24px ${MB.blue}66` }}
                 >
                   <Zap className="w-4 h-4" />
                   Comemorar
@@ -415,7 +415,7 @@ const Gaming = () => {
               className="relative overflow-hidden rounded-3xl border p-6 sm:p-10"
               style={{
                 borderColor: `${MB.blue}44`,
-                background: `linear-gradient(180deg, #04122e 0%, ${MB.navy} 100%)`,
+                background: `linear-gradient(180deg, #1a1a1f 0%, ${MB.navy} 100%)`,
                 boxShadow: `inset 0 0 80px ${MB.blue}22`,
               }}
             >
@@ -436,8 +436,8 @@ const Gaming = () => {
                   const pos = enriched.indexOf(s) + 1;
                   const heights = { 1: "h-52 sm:h-64", 2: "h-36 sm:h-44", 3: "h-28 sm:h-32" } as const;
                   const gradients = {
-                    1: `linear-gradient(180deg, ${MB.blue} 0%, #4d7bff 50%, ${MB.blue} 100%)`,
-                    2: `linear-gradient(180deg, ${MB.ice} 0%, #b8bce6 50%, #8990c4 100%)`,
+                    1: `linear-gradient(180deg, ${MB.blue} 0%, #f5d76e 50%, ${MB.blue} 100%)`,
+                    2: `linear-gradient(180deg, ${MB.ice} 0%, #e8d38a 50%, #a8873a 100%)`,
                     3: `linear-gradient(180deg, #1c3a8a 0%, #0f2760 100%)`,
                   } as const;
                   const glows = {
@@ -530,7 +530,7 @@ const Gaming = () => {
                     <div
                       className="w-10 h-10 grid place-items-center rounded-xl font-black text-base shrink-0"
                       style={{
-                        background: isTop ? `linear-gradient(135deg, ${MB.blue}, #4d7bff)` : `${MB.navy}`,
+                        background: isTop ? `linear-gradient(135deg, ${MB.blue}, #f5d76e)` : `${MB.navy}`,
                         color: MB.ice,
                         border: `1px solid ${MB.blue}66`,
                         boxShadow: isTop ? `0 0 20px ${MB.blue}66` : "none",
@@ -724,7 +724,7 @@ const CategoryList = ({ value, data, metric, icon, title }: {
               <div
                 className="w-8 h-8 grid place-items-center rounded-lg text-sm font-black shrink-0"
                 style={{
-                  background: isTop ? `linear-gradient(135deg, ${MB.blue}, #4d7bff)` : MB.navy,
+                  background: isTop ? `linear-gradient(135deg, ${MB.blue}, #f5d76e)` : MB.navy,
                   color: MB.ice,
                   border: `1px solid ${MB.blue}66`,
                   boxShadow: isTop ? `0 0 12px ${MB.blue}66` : "none",
