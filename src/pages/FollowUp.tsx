@@ -805,11 +805,14 @@ const FollowUpPage = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os corretores</SelectItem>
-                      {brokers.map((broker) => (
-                        <SelectItem key={broker.id} value={broker.id}>
-                          {broker.name}
-                        </SelectItem>
-                      ))}
+                      {[...brokers]
+                        .filter((b) => (b as any).status !== 'inativo')
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((broker) => (
+                          <SelectItem key={broker.id} value={broker.id}>
+                            {broker.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 )}
