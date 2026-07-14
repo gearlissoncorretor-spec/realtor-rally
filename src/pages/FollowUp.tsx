@@ -84,7 +84,9 @@ import {
   BellOff,
   Download,
   FileDown,
-  TrendingUp
+  TrendingUp,
+  User,
+  MoreVertical
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 
@@ -847,135 +849,137 @@ const FollowUpPage = () => {
                             !dateStatus && 'border-l-border'
                           )}
                         >
-                          <CardContent className="p-4 space-y-3">
+                          <CardContent className="p-4 space-y-2.5">
+                            {/* Linha 1: Nome + Status */}
                             <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="font-semibold text-foreground truncate">{followUp.client_name}</p>
-                                {followUp.client_phone && (
-                                  <a
-                                    href={formatWhatsAppLink(followUp.client_phone)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-xs text-green-600"
-                                  >
-                                    <MessageCircle className="w-3 h-3" />
-                                    {followUp.client_phone}
-                                  </a>
-                                  )}
-                                  <p className="text-[10px] text-muted-foreground mt-1 uppercase">Origem: {followUp.origem}</p>
-                                </div>
-                              <div className="flex flex-col items-end gap-1">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <button className="focus:outline-none hover:opacity-80 transition-opacity">
-                                      <FollowUpStatusBadge
-                                        status={followUp.status}
-                                        label={statusConfig?.label}
-                                        color={statusConfig?.color}
-                                        icon={statusConfig?.icon}
-                                      />
-                                    </button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-56">
-                                    {statuses.map((s) => (
-                                      <DropdownMenuItem 
-                                        key={s.value} 
-                                        onClick={() => handleStatusChange(followUp.id, s.value)}
-                                        className={cn(followUp.status === s.value && "bg-accent font-medium")}
-                                      >
-                                        <span className="mr-2">{s.icon}</span> {s.label}
-                                      </DropdownMenuItem>
-                                    ))}
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => setStatusManagerOpen(true)}>
-                                      <Plus className="w-4 h-4 mr-2" /> Cadastrar Novo Status
+                              <p className="font-semibold text-foreground truncate flex-1 text-base leading-tight">
+                                {followUp.client_name}
+                              </p>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="focus:outline-none hover:opacity-80 shrink-0">
+                                    <FollowUpStatusBadge
+                                      status={followUp.status}
+                                      label={statusConfig?.label}
+                                      color={statusConfig?.color}
+                                      icon={statusConfig?.icon}
+                                    />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                  {statuses.map((s) => (
+                                    <DropdownMenuItem
+                                      key={s.value}
+                                      onClick={() => handleStatusChange(followUp.id, s.value)}
+                                      className={cn(followUp.status === s.value && "bg-accent font-medium")}
+                                    >
+                                      <span className="mr-2">{s.icon}</span> {s.label}
                                     </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                                {daysLabel && (
-                                  <span className={cn(
-                                    "text-[10px] font-medium px-1.5 py-0.5 rounded-full",
-                                    dateStatus === 'overdue' && 'bg-destructive/10 text-destructive',
-                                    dateStatus === 'today' && 'bg-yellow-500/10 text-yellow-600',
-                                    dateStatus === 'future' && 'bg-muted text-muted-foreground'
-                                  )}>
-                                    {daysLabel}
-                                  </span>
-                                )}
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-6 w-6"
-                                  onClick={() => handleToggleReminder(followUp)}
-                                >
-                                  {followUp.reminder_enabled ? (
-                                    <Bell className="w-3 h-3 text-primary" />
-                                  ) : (
-                                    <BellOff className="w-3 h-3 text-muted-foreground/40" />
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div>
-                                <p className="text-xs text-muted-foreground">Imóvel</p>
-                                <p className="truncate">{followUp.property_interest || 'Não definido'}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">VGV</p>
-                                <p className="font-semibold">{formatCurrency(followUp.estimated_vgv)}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Responsável</p>
-                                <p className="truncate">{getBrokerName(followUp.broker_id)}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Próximo Contato</p>
-                                {followUp.next_contact_date ? (
-                                  <span className={cn(
-                                    "flex items-center gap-1 text-sm",
-                                    dateStatus === 'overdue' && 'text-destructive font-medium',
-                                    dateStatus === 'today' && 'text-yellow-600 font-medium'
-                                  )}>
-                                    {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3 animate-pulse" />}
-                                    {dateStatus === 'today' && <Clock className="w-3 h-3 animate-pulse" />}
-                                    {format(parseISO(followUp.next_contact_date), "dd/MM/yy", { locale: ptBR })}
-                                  </span>
-                                ) : <span className="text-muted-foreground">-</span>}
-                              </div>
+                                  ))}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => setStatusManagerOpen(true)}>
+                                    <Plus className="w-4 h-4 mr-2" /> Cadastrar Novo Status
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
 
-                            {/* Expandable contact history */}
-                            <button
-                              onClick={() => setExpandedId(isExpanded ? null : followUp.id)}
-                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
-                            >
-                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                              Histórico de contatos
-                            </button>
+                            {/* Linha 2: VGV em destaque + Origem */}
+                            <div className="flex items-baseline justify-between gap-2">
+                              <p className="text-lg font-bold text-foreground tabular-nums">
+                                {formatCurrency(followUp.estimated_vgv)}
+                              </p>
+                              {followUp.origem && (
+                                <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                                  {followUp.origem}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Linha 3: Metadata — corretor · próximo contato · imóvel */}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center gap-1 truncate max-w-[45%]">
+                                <User className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{getBrokerName(followUp.broker_id)}</span>
+                              </span>
+                              {followUp.next_contact_date && (
+                                <span className={cn(
+                                  "inline-flex items-center gap-1 font-medium",
+                                  dateStatus === 'overdue' && 'text-destructive',
+                                  dateStatus === 'today' && 'text-yellow-600',
+                                  dateStatus === 'future' && 'text-muted-foreground'
+                                )}>
+                                  {dateStatus === 'overdue' && <AlertTriangle className="w-3 h-3 animate-pulse" />}
+                                  {dateStatus === 'today' && <Clock className="w-3 h-3 animate-pulse" />}
+                                  {dateStatus === 'future' && <Clock className="w-3 h-3" />}
+                                  {daysLabel || format(parseISO(followUp.next_contact_date), "dd/MM", { locale: ptBR })}
+                                </span>
+                              )}
+                              {followUp.property_interest && (
+                                <span className="truncate max-w-full opacity-80">· {followUp.property_interest}</span>
+                              )}
+                            </div>
+
+                            {/* Ações rápidas sempre visíveis */}
+                            <div className="flex items-center gap-1.5 pt-2 border-t border-border/40">
+                              {followUp.client_phone && (
+                                <a
+                                  href={formatWhatsAppLink(followUp.client_phone)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center h-9 w-9 rounded-md bg-green-500/10 text-green-600 hover:bg-green-500/20 transition"
+                                  title="WhatsApp"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                </a>
+                              )}
+                              <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} className="h-9 w-9 p-0" title="Registrar contato">
+                                <Phone className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} className="h-9 w-9 p-0" title="Notas">
+                                <StickyNote className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleToggleReminder(followUp)}
+                                className="h-9 w-9 p-0"
+                                title="Lembrete"
+                              >
+                                {followUp.reminder_enabled
+                                  ? <Bell className="w-4 h-4 text-primary" />
+                                  : <BellOff className="w-4 h-4 text-muted-foreground/50" />}
+                              </Button>
+                              <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="flex-1 h-9 gap-1 ml-auto">
+                                <Handshake className="w-4 h-4" /> Negociar
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleEdit(followUp)}>
+                                    <Edit className="w-4 h-4 mr-2" /> Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setExpandedId(isExpanded ? null : followUp.id)}>
+                                    {isExpanded ? <ChevronUp className="w-4 h-4 mr-2" /> : <ChevronDown className="w-4 h-4 mr-2" />}
+                                    Histórico
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => setDeleteId(followUp.id)} className="text-destructive">
+                                    <Trash2 className="w-4 h-4 mr-2" /> Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+
                             {isExpanded && (
                               <div className="pl-2 border-l-2 border-border/50">
                                 <FollowUpContactHistory followUpId={followUp.id} />
                               </div>
                             )}
-
-                            <div className="flex items-center gap-2 pt-1 border-t border-border/30">
-                              <Button variant="default" size="sm" onClick={() => handleOpenConversion(followUp)} className="flex-1 h-9 gap-1">
-                                <Handshake className="w-4 h-4" /> Negociação
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleOpenNotes(followUp)} className="h-9" title="Notas">
-                                <StickyNote className="w-4 h-4" />
-                              </Button>
-                              <Button variant="outline" size="sm" onClick={() => handleOpenContact(followUp)} className="h-9">
-                                <Phone className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleEdit(followUp)} className="h-9">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => setDeleteId(followUp.id)} className="text-destructive h-9">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
                           </CardContent>
                         </Card>
                       );
