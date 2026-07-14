@@ -979,8 +979,8 @@ const FollowUpPage = () => {
                     })}
                   </div>
                   {/* Desktop Table View */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <Table>
+                  <DoubleScroll className="hidden md:block">
+                    <Table className="text-xs">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Cliente</TableHead>
