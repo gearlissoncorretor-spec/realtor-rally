@@ -1,4 +1,43 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+
+/** Wrapper com barra de rolagem horizontal também no topo, sincronizada com a debaixo. */
+const DoubleScroll: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const topRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const bottom = bottomRef.current;
+    if (!bottom) return;
+    const update = () => setWidth(bottom.scrollWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(bottom);
+    return () => ro.disconnect();
+  }, [children]);
+
+  const syncing = useRef(false);
+  const onScroll = (from: "top" | "bottom") => () => {
+    if (syncing.current) return;
+    const a = from === "top" ? topRef.current : bottomRef.current;
+    const b = from === "top" ? bottomRef.current : topRef.current;
+    if (!a || !b) return;
+    syncing.current = true;
+    b.scrollLeft = a.scrollLeft;
+    requestAnimationFrame(() => (syncing.current = false));
+  };
+
+  return (
+    <div className={className}>
+      <div ref={topRef} onScroll={onScroll("top")} className="overflow-x-auto overflow-y-hidden">
+        <div style={{ width, height: 1 }} />
+      </div>
+      <div ref={bottomRef} onScroll={onScroll("bottom")} className="overflow-x-auto">
+        {children}
+      </div>
+    </div>
+  );
+};
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
