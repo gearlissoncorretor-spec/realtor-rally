@@ -1118,7 +1118,7 @@ const FollowUpPage = () => {
                         })}
                       </TableBody>
                     </Table>
-                  </div>
+                  </DoubleScroll>
                 </>
               )}
             </CardContent>
