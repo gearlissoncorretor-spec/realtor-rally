@@ -84,7 +84,9 @@ import {
   BellOff,
   Download,
   FileDown,
-  TrendingUp
+  TrendingUp,
+  User,
+  MoreVertical
 } from "lucide-react";
 import { useFollowUps, CreateFollowUpInput, FollowUp as FollowUpType } from "@/hooks/useFollowUps";
 
