@@ -438,14 +438,14 @@ const Gaming = () => {
                   const pos = enriched.indexOf(s) + 1;
                   const heights = { 1: "h-52 sm:h-64", 2: "h-36 sm:h-44", 3: "h-28 sm:h-32" } as const;
                   const gradients = {
-                    1: `linear-gradient(180deg, ${MB.blue} 0%, ${BLUE_GLOW} 50%, ${MB.blue} 100%)`,
-                    2: `linear-gradient(180deg, ${MB.ice} 0%, #e8d38a 50%, #a8873a 100%)`,
-                    3: `linear-gradient(180deg, #1c3a8a 0%, #0f2760 100%)`,
+                    1: `linear-gradient(180deg, ${GOLD} 0%, #FFB84A 55%, #B8860B 100%)`,
+                    2: `linear-gradient(180deg, #FFFFFF 0%, ${SILVER} 55%, #8892A6 100%)`,
+                    3: `linear-gradient(180deg, #F5B278 0%, ${BRONZE} 55%, #7A4A1F 100%)`,
                   } as const;
                   const glows = {
-                    1: `0 0 80px ${MB.blue}, 0 0 30px ${MB.ice}66`,
-                    2: `0 0 40px ${MB.ice}88`,
-                    3: `0 0 30px ${MB.blue}55`,
+                    1: `0 0 80px ${GOLD}aa, 0 0 30px #ffffff66`,
+                    2: `0 0 50px ${SILVER}88`,
+                    3: `0 0 40px ${BRONZE}88`,
                   } as const;
                   return (
                     <div key={s.brokerId} className="flex flex-col items-center gap-3 flex-1 max-w-[180px]">
