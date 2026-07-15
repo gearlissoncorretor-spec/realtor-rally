@@ -22,6 +22,13 @@ import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEf
 import { CountUp } from "@/components/gaming/CountUp";
 
 const SERIF = "'Playfair Display', Georgia, serif";
+const DISPLAY = "'Chakra Petch', 'Rajdhani', 'Sora', system-ui, sans-serif";
+
+// Angular esports clip (top-left + bottom-right notch, Valorant style)
+const ANGULAR_CLIP = "polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px)";
+const ANGULAR_CLIP_SM = "polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)";
+const ESPORTS_RED = "#FF4655"; // Valorant signature red accent
+
 
 
 // ============ Modern Arena Palette — inspired by Valorant / Riot / Fortnite lobbies ============
@@ -290,15 +297,27 @@ const Gaming = () => {
         <div className="max-w-7xl mx-auto space-y-6">
           {/* ============ HERO / BROADCAST HEADER ============ */}
           <div
-            className="relative overflow-hidden rounded-3xl border p-5 sm:p-8"
+            className="relative overflow-hidden border p-5 sm:p-8"
             style={{
+              clipPath: ANGULAR_CLIP,
               borderColor: `${MB.blue}55`,
-              background: `linear-gradient(135deg, ${MB.navy}ee 0%, #1f1f24 50%, ${MB.navy}ee 100%)`,
+              background: `linear-gradient(135deg, ${MB.navy}ee 0%, #1f2350 50%, ${MB.navy}ee 100%)`,
               boxShadow: `0 0 60px ${MB.blue}33, inset 0 1px 0 ${MB.ice}22`,
             }}
           >
+            {/* Red esports accent stripe */}
+            <div className="absolute top-0 left-0 h-1 w-40" style={{ background: ESPORTS_RED, boxShadow: `0 0 20px ${ESPORTS_RED}` }} />
+            <div className="absolute bottom-0 right-0 h-1 w-40" style={{ background: ESPORTS_RED, boxShadow: `0 0 20px ${ESPORTS_RED}` }} />
+            {/* Diagonal scan lines */}
+            <div
+              className="absolute inset-0 opacity-[0.06] pointer-events-none"
+              style={{ backgroundImage: `repeating-linear-gradient(135deg, ${MB.ice} 0 1px, transparent 1px 8px)` }}
+            />
             {/* Animated shine */}
             <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: `radial-gradient(circle at 20% 0%, ${MB.blue}88, transparent 50%)` }} />
+            <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: MB.blue }} />
+
+
             <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: MB.blue }} />
 
             <div className="relative flex items-start justify-between gap-4 flex-wrap">
@@ -340,7 +359,7 @@ const Gaming = () => {
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                           textShadow: `0 0 40px ${MB.blue}55`,
-                          fontFamily: "'Sora', system-ui, sans-serif",
+                          fontFamily: DISPLAY,
                         }}
                       >
                         {screenName}
@@ -395,7 +414,7 @@ const Gaming = () => {
                     <k.icon className="w-3.5 h-3.5" />
                     {k.label}
                   </div>
-                  <div className="text-xl sm:text-2xl font-black tabular-nums mt-1" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                  <div className="text-xl sm:text-2xl font-black tabular-nums mt-1" style={{ color: MB.ice, fontFamily: DISPLAY }}>
                     {k.value}
                   </div>
                 </div>
@@ -419,16 +438,23 @@ const Gaming = () => {
             </div>
           </div>
 
+          {/* ============ DENSE ARENA GRID: Podium + Ranking side-by-side ============ */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* ============ PÓDIO ============ */}
           {podium.length > 0 && (
             <div
-              className="relative overflow-hidden rounded-3xl border p-6 sm:p-12"
+              className="relative overflow-hidden border p-6 sm:p-8 lg:col-span-3"
               style={{
+                clipPath: ANGULAR_CLIP,
                 borderColor: `${MB.blue}44`,
-                background: `radial-gradient(ellipse at 50% 0%, ${GRAPHITE_2} 0%, ${MB.navy} 55%, #010b26 100%)`,
+                background: `radial-gradient(ellipse at 50% 0%, ${GRAPHITE_2} 0%, ${MB.navy} 55%, #1a1e48 100%)`,
                 boxShadow: `inset 0 0 120px ${MB.blue}22`,
               }}
             >
+              {/* Red accent notches */}
+              <div className="absolute top-0 left-0 h-1 w-24" style={{ background: ESPORTS_RED, boxShadow: `0 0 12px ${ESPORTS_RED}` }} />
+              <div className="absolute bottom-0 right-0 h-1 w-24" style={{ background: ESPORTS_RED, boxShadow: `0 0 12px ${ESPORTS_RED}` }} />
+
               {/* Spotlight */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] pointer-events-none"
                 style={{ background: `radial-gradient(ellipse at top, ${MB.ice}25, transparent 65%)` }} />
@@ -443,7 +469,7 @@ const Gaming = () => {
               <div className="relative flex items-center justify-center gap-3 mb-10">
                 <Crown className="w-6 h-6" style={{ color: GOLD, filter: `drop-shadow(0 0 8px ${GOLD})` }} />
                 <h2 className="text-2xl sm:text-4xl uppercase tracking-[0.18em]"
-                  style={{ color: MB.ice, fontFamily: SERIF, fontWeight: 900, letterSpacing: "0.15em" }}>
+                  style={{ color: MB.ice, fontFamily: DISPLAY, fontWeight: 900, letterSpacing: "0.15em" }}>
                   Pódio dos Campeões
                 </h2>
                 <Crown className="w-6 h-6" style={{ color: GOLD, filter: `drop-shadow(0 0 8px ${GOLD})` }} />
@@ -504,7 +530,7 @@ const Gaming = () => {
                         {pos === 1 && <Sparkles className="absolute -top-2 -right-2 w-7 h-7 animate-pulse" style={{ color: GOLD }} />}
                       </div>
                       <p className={cn("text-center line-clamp-1", pos === 1 ? "text-lg sm:text-2xl" : "text-sm sm:text-base")}
-                        style={{ color: MB.ice, fontFamily: SERIF, fontWeight: pos === 1 ? 900 : 700, letterSpacing: "0.02em" }}>
+                        style={{ color: MB.ice, fontFamily: DISPLAY, fontWeight: pos === 1 ? 900 : 700, letterSpacing: "0.02em" }}>
                         {s.name}
                       </p>
                       <div className="px-3 py-1 rounded-full text-xs font-bold"
@@ -522,7 +548,7 @@ const Gaming = () => {
                           borderTopColor: MB.ice,
                           boxShadow: glows[pos as 1 | 2 | 3],
                           textShadow: pos !== 2 ? `0 2px 20px ${MB.navy}` : "none",
-                          fontFamily: SERIF,
+                          fontFamily: DISPLAY,
                           fontWeight: 900,
                           fontSize: pos === 1 ? "5rem" : pos === 2 ? "3.5rem" : "2.75rem",
                           lineHeight: 1,
@@ -543,12 +569,14 @@ const Gaming = () => {
 
           {/* ============ IPM RANKING ============ */}
           <div
-            className="rounded-3xl border overflow-hidden"
-            style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
+            className="border overflow-hidden lg:col-span-2 relative"
+            style={{ clipPath: ANGULAR_CLIP, borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
           >
+            <div className="absolute top-0 right-0 h-1 w-20" style={{ background: ESPORTS_RED, boxShadow: `0 0 12px ${ESPORTS_RED}` }} />
             <div className="p-5 border-b flex items-center justify-between flex-wrap gap-2" style={{ borderColor: `${MB.blue}22` }}>
+
               <div>
-                <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2" style={{ color: MB.ice, fontFamily: DISPLAY }}>
                   <Medal className="w-5 h-5" style={{ color: MB.blue }} />
                   Índice de Performance Master
                 </h3>
@@ -586,7 +614,7 @@ const Gaming = () => {
                         color: MB.ice,
                         border: `1px solid ${MB.blue}66`,
                         boxShadow: isTop ? `0 0 20px ${MB.blue}66` : "none",
-                        fontFamily: SERIF,
+                        fontFamily: DISPLAY,
                         fontWeight: 900,
                       }}
                     >
@@ -600,7 +628,7 @@ const Gaming = () => {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-bold text-sm truncate" style={{ color: MB.ice, fontFamily: SERIF, letterSpacing: "0.01em" }}>{s.name}</p>
+                        <p className="font-bold text-sm truncate" style={{ color: MB.ice, fontFamily: DISPLAY, letterSpacing: "0.01em" }}>{s.name}</p>
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
                           style={{ background: `${MB.blue}33`, color: MB.ice, border: `1px solid ${MB.blue}66` }}>
                           {level.name}
@@ -622,7 +650,7 @@ const Gaming = () => {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-2xl" style={{ color: MB.ice, fontFamily: SERIF, fontWeight: 900, textShadow: `0 0 20px ${MB.blue}`, fontVariantNumeric: "tabular-nums" }}>
+                      <p className="text-2xl" style={{ color: MB.ice, fontFamily: DISPLAY, fontWeight: 900, textShadow: `0 0 20px ${MB.blue}`, fontVariantNumeric: "tabular-nums" }}>
                         <CountUp value={s.ipm} format={(n) => (Math.round(s.ipm * 10) / 10).toFixed(1)} />
                       </p>
                       <p className="text-[9px] uppercase tracking-widest opacity-60">IPM</p>
@@ -638,6 +666,10 @@ const Gaming = () => {
 
             </div>
           </div>
+          </div>
+          {/* ============ END DENSE ARENA GRID ============ */}
+
+
 
           {/* ============ CATEGORIAS ============ */}
           <Tabs defaultValue="cacadores" onValueChange={() => playReveal()}>
@@ -677,7 +709,7 @@ const Gaming = () => {
             className="rounded-3xl border p-5"
             style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
           >
-            <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+            <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: DISPLAY }}>
               <Target className="w-5 h-5" style={{ color: MB.blue }} />
               Missões da Semana
             </h3>
@@ -719,7 +751,7 @@ const Gaming = () => {
             className="rounded-3xl border p-5"
             style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
           >
-            <h3 className="text-lg font-black uppercase tracking-wider mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+            <h3 className="text-lg font-black uppercase tracking-wider mb-4" style={{ color: MB.ice, fontFamily: DISPLAY }}>
               Como ganhar pontos
             </h3>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -770,7 +802,7 @@ const CategoryList = ({ value, data, metric, icon, title }: {
       className="rounded-3xl border p-5"
       style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
     >
-      <h3 className="text-base font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+      <h3 className="text-base font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: DISPLAY }}>
         {icon}{title}
       </h3>
       <div className="space-y-2">
@@ -792,7 +824,7 @@ const CategoryList = ({ value, data, metric, icon, title }: {
                   color: MB.ice,
                   border: `1px solid ${MB.blue}66`,
                   boxShadow: isTop ? `0 0 12px ${MB.blue}66` : "none",
-                  fontFamily: "'Sora', system-ui",
+                  fontFamily: DISPLAY,
                 }}
               >
                 {i + 1}
