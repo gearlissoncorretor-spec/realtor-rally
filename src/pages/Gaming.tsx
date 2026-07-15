@@ -625,12 +625,14 @@ const Gaming = () => {
                       <p className="text-[9px] uppercase tracking-widest opacity-60">IPM</p>
 
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
+              </AnimatePresence>
               {enriched.length === 0 && (
                 <p className="text-sm text-center py-10 opacity-60">Sem dados suficientes ainda. Comece cadastrando leads e negociações.</p>
               )}
+
             </div>
           </div>
 
