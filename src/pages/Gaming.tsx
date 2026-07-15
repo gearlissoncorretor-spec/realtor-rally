@@ -554,15 +554,21 @@ const Gaming = () => {
               <Badge className="border-0 font-bold" style={{ background: MB.blue, color: "#fff" }}>IPM · Top 10</Badge>
             </div>
             <div className="p-4 space-y-2">
+              <AnimatePresence initial={false}>
               {enriched.slice(0, 10).map((s, i) => {
                 const level = getLevel(s.points);
                 const next = getNextLevel(s.points);
                 const progress = next ? Math.min(100, ((s.points - level.min) / (next.min - level.min)) * 100) : 100;
                 const isTop = i < 3;
                 return (
-                  <div
+                  <motion.div
                     key={s.brokerId}
-                    className="rounded-xl border p-3 flex items-center gap-3 transition-all hover:translate-x-1"
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 30 }}
+                    className="rounded-xl border p-3 flex items-center gap-3 hover:translate-x-1 transition-transform"
                     style={{
                       borderColor: isTop ? `${MB.blue}66` : `${MB.blue}22`,
                       background: isTop
@@ -571,13 +577,14 @@ const Gaming = () => {
                     }}
                   >
                     <div
-                      className="w-10 h-10 grid place-items-center rounded-xl font-black text-base shrink-0"
+                      className="w-10 h-10 grid place-items-center rounded-xl text-base shrink-0"
                       style={{
                         background: isTop ? `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})` : `${MB.navy}`,
                         color: MB.ice,
                         border: `1px solid ${MB.blue}66`,
                         boxShadow: isTop ? `0 0 20px ${MB.blue}66` : "none",
-                        fontFamily: "'Sora', system-ui",
+                        fontFamily: SERIF,
+                        fontWeight: 900,
                       }}
                     >
                       {i + 1}
@@ -590,7 +597,7 @@ const Gaming = () => {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-bold text-sm truncate" style={{ color: MB.ice }}>{s.name}</p>
+                        <p className="font-bold text-sm truncate" style={{ color: MB.ice, fontFamily: SERIF, letterSpacing: "0.01em" }}>{s.name}</p>
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
                           style={{ background: `${MB.blue}33`, color: MB.ice, border: `1px solid ${MB.blue}66` }}>
                           {level.name}
@@ -598,16 +605,25 @@ const Gaming = () => {
                       </div>
                       <div className="flex items-center gap-2 mt-1.5">
                         <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: `${MB.blue}22` }}>
-                          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${MB.blue}, ${MB.ice})` }} />
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: `linear-gradient(90deg, ${MB.blue}, ${isTop ? GOLD : MB.ice})` }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${progress}%` }}
+                            transition={{ duration: 0.9, ease: "easeOut" }}
+                          />
                         </div>
-                        <span className="text-[10px] opacity-70 shrink-0 tabular-nums">{s.points.toLocaleString("pt-BR")} pts</span>
+                        <span className="text-[10px] opacity-70 shrink-0" style={{ fontVariantNumeric: "tabular-nums" }}>
+                          <CountUp value={s.points} /> pts
+                        </span>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-2xl font-black tabular-nums" style={{ color: MB.ice, fontFamily: "'Sora', system-ui", textShadow: `0 0 20px ${MB.blue}` }}>
-                        {s.ipm.toFixed(1)}
+                      <p className="text-2xl" style={{ color: MB.ice, fontFamily: SERIF, fontWeight: 900, textShadow: `0 0 20px ${MB.blue}`, fontVariantNumeric: "tabular-nums" }}>
+                        <CountUp value={s.ipm} format={(n) => (Math.round(s.ipm * 10) / 10).toFixed(1)} />
                       </p>
                       <p className="text-[9px] uppercase tracking-widest opacity-60">IPM</p>
+
                     </div>
                   </div>
                 );
