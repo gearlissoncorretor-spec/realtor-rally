@@ -359,7 +359,7 @@ const Gaming = () => {
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
                           textShadow: `0 0 40px ${MB.blue}55`,
-                          fontFamily: "'Sora', system-ui, sans-serif",
+                          fontFamily: DISPLAY,
                         }}
                       >
                         {screenName}
@@ -414,7 +414,7 @@ const Gaming = () => {
                     <k.icon className="w-3.5 h-3.5" />
                     {k.label}
                   </div>
-                  <div className="text-xl sm:text-2xl font-black tabular-nums mt-1" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                  <div className="text-xl sm:text-2xl font-black tabular-nums mt-1" style={{ color: MB.ice, fontFamily: DISPLAY }}>
                     {k.value}
                   </div>
                 </div>
@@ -567,7 +567,7 @@ const Gaming = () => {
           >
             <div className="p-5 border-b flex items-center justify-between flex-wrap gap-2" style={{ borderColor: `${MB.blue}22` }}>
               <div>
-                <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2" style={{ color: MB.ice, fontFamily: DISPLAY }}>
                   <Medal className="w-5 h-5" style={{ color: MB.blue }} />
                   Índice de Performance Master
                 </h3>
@@ -696,7 +696,7 @@ const Gaming = () => {
             className="rounded-3xl border p-5"
             style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
           >
-            <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+            <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: DISPLAY }}>
               <Target className="w-5 h-5" style={{ color: MB.blue }} />
               Missões da Semana
             </h3>
@@ -738,7 +738,7 @@ const Gaming = () => {
             className="rounded-3xl border p-5"
             style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
           >
-            <h3 className="text-lg font-black uppercase tracking-wider mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+            <h3 className="text-lg font-black uppercase tracking-wider mb-4" style={{ color: MB.ice, fontFamily: DISPLAY }}>
               Como ganhar pontos
             </h3>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -789,7 +789,7 @@ const CategoryList = ({ value, data, metric, icon, title }: {
       className="rounded-3xl border p-5"
       style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
     >
-      <h3 className="text-base font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+      <h3 className="text-base font-black uppercase tracking-wider flex items-center gap-2 mb-4" style={{ color: MB.ice, fontFamily: DISPLAY }}>
         {icon}{title}
       </h3>
       <div className="space-y-2">
@@ -811,7 +811,7 @@ const CategoryList = ({ value, data, metric, icon, title }: {
                   color: MB.ice,
                   border: `1px solid ${MB.blue}66`,
                   boxShadow: isTop ? `0 0 12px ${MB.blue}66` : "none",
-                  fontFamily: "'Sora', system-ui",
+                  fontFamily: DISPLAY,
                 }}
               >
                 {i + 1}
