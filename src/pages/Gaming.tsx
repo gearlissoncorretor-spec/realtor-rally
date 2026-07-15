@@ -469,7 +469,7 @@ const Gaming = () => {
               <div className="relative flex items-center justify-center gap-3 mb-10">
                 <Crown className="w-6 h-6" style={{ color: GOLD, filter: `drop-shadow(0 0 8px ${GOLD})` }} />
                 <h2 className="text-2xl sm:text-4xl uppercase tracking-[0.18em]"
-                  style={{ color: MB.ice, fontFamily: SERIF, fontWeight: 900, letterSpacing: "0.15em" }}>
+                  style={{ color: MB.ice, fontFamily: DISPLAY, fontWeight: 900, letterSpacing: "0.15em" }}>
                   Pódio dos Campeões
                 </h2>
                 <Crown className="w-6 h-6" style={{ color: GOLD, filter: `drop-shadow(0 0 8px ${GOLD})` }} />
@@ -530,7 +530,7 @@ const Gaming = () => {
                         {pos === 1 && <Sparkles className="absolute -top-2 -right-2 w-7 h-7 animate-pulse" style={{ color: GOLD }} />}
                       </div>
                       <p className={cn("text-center line-clamp-1", pos === 1 ? "text-lg sm:text-2xl" : "text-sm sm:text-base")}
-                        style={{ color: MB.ice, fontFamily: SERIF, fontWeight: pos === 1 ? 900 : 700, letterSpacing: "0.02em" }}>
+                        style={{ color: MB.ice, fontFamily: DISPLAY, fontWeight: pos === 1 ? 900 : 700, letterSpacing: "0.02em" }}>
                         {s.name}
                       </p>
                       <div className="px-3 py-1 rounded-full text-xs font-bold"
@@ -548,7 +548,7 @@ const Gaming = () => {
                           borderTopColor: MB.ice,
                           boxShadow: glows[pos as 1 | 2 | 3],
                           textShadow: pos !== 2 ? `0 2px 20px ${MB.navy}` : "none",
-                          fontFamily: SERIF,
+                          fontFamily: DISPLAY,
                           fontWeight: 900,
                           fontSize: pos === 1 ? "5rem" : pos === 2 ? "3.5rem" : "2.75rem",
                           lineHeight: 1,
@@ -614,7 +614,7 @@ const Gaming = () => {
                         color: MB.ice,
                         border: `1px solid ${MB.blue}66`,
                         boxShadow: isTop ? `0 0 20px ${MB.blue}66` : "none",
-                        fontFamily: SERIF,
+                        fontFamily: DISPLAY,
                         fontWeight: 900,
                       }}
                     >
@@ -628,7 +628,7 @@ const Gaming = () => {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-bold text-sm truncate" style={{ color: MB.ice, fontFamily: SERIF, letterSpacing: "0.01em" }}>{s.name}</p>
+                        <p className="font-bold text-sm truncate" style={{ color: MB.ice, fontFamily: DISPLAY, letterSpacing: "0.01em" }}>{s.name}</p>
                         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider"
                           style={{ background: `${MB.blue}33`, color: MB.ice, border: `1px solid ${MB.blue}66` }}>
                           {level.name}
@@ -650,7 +650,7 @@ const Gaming = () => {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-2xl" style={{ color: MB.ice, fontFamily: SERIF, fontWeight: 900, textShadow: `0 0 20px ${MB.blue}`, fontVariantNumeric: "tabular-nums" }}>
+                      <p className="text-2xl" style={{ color: MB.ice, fontFamily: DISPLAY, fontWeight: 900, textShadow: `0 0 20px ${MB.blue}`, fontVariantNumeric: "tabular-nums" }}>
                         <CountUp value={s.ipm} format={(n) => (Math.round(s.ipm * 10) / 10).toFixed(1)} />
                       </p>
                       <p className="text-[9px] uppercase tracking-widest opacity-60">IPM</p>
