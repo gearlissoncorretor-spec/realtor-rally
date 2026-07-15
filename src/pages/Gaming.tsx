@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
 import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
+import { CountUp } from "@/components/gaming/CountUp";
+
+const SERIF = "'Playfair Display', Georgia, serif";
+
 
 // ============ My Broker Arena Palette ============
 // #0241F1 azul principal · #021944 azul escuro · #E6E7FB branco azulado
