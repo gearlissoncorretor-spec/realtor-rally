@@ -19,16 +19,18 @@ import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
 import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
 
-// ============ Arena Palette ============
-// Dourado premium sobre grafite. Tokens antigos mantidos por compatibilidade:
-// MB.blue = dourado (accent principal) · MB.navy = grafite escuro · MB.ice = creme
+// ============ My Broker Arena Palette ============
+// #0241F1 azul principal · #021944 azul escuro · #E6E7FB branco azulado
 const MB = {
-  blue: "#d4af37", // dourado
-  navy: "#141418", // grafite quase-preto
-  ice: "#f5efe0",  // creme/champagne
+  blue: "#0241F1",
+  navy: "#021944",
+  ice: "#E6E7FB",
 };
-const GOLD_GLOW = "#f5d76e"; // dourado claro para gradientes
-const GRAPHITE_2 = "#1f1f24"; // grafite secundário
+const BLUE_GLOW = "#3b6bff";
+const GRAPHITE_2 = "#01235c";
+const GOLD = "#FFD54A";
+const SILVER = "#D8DEE9";
+const BRONZE = "#CD7F32";
 
 
 // ============ Regras de pontuação ============
@@ -90,8 +92,8 @@ const Gaming = () => {
 
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Arena My Broker"); }, [settings]);
-  const screenName = (settings as any)?.gaming_name || "Arena My Broker";
+  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Liga dos Campeões My Broker"); }, [settings]);
+  const screenName = (settings as any)?.gaming_name || "Liga dos Campeões My Broker";
 
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
   const [confetti, setConfetti] = useState(false);
@@ -235,7 +237,7 @@ const Gaming = () => {
   }), [enriched]);
 
   const saveName = async () => {
-    const v = nameDraft.trim() || "Arena My Broker";
+    const v = nameDraft.trim() || "Liga dos Campeões My Broker";
     updateSettings({ gaming_name: v } as any);
     setEditing(false);
   };
@@ -300,7 +302,7 @@ const Gaming = () => {
                 ) : (
                   <div
                     className="w-16 h-16 rounded-2xl grid place-items-center shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${MB.blue}, #f5d76e)`, boxShadow: `0 0 30px ${MB.blue}88` }}
+                    style={{ background: `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})`, boxShadow: `0 0 30px ${MB.blue}88` }}
                   >
                     <Trophy className="w-8 h-8 text-white" />
                   </div>
@@ -342,7 +344,7 @@ const Gaming = () => {
                       )}
                     </div>
                   )}
-                  <p className="text-sm mt-1 opacity-70 tracking-wide">O tablado dos campeões · disputa em tempo real</p>
+                  <p className="text-sm mt-1 opacity-70 tracking-wide">Os melhores corretores disputam o topo em tempo real</p>
                 </div>
               </div>
 
@@ -360,7 +362,7 @@ const Gaming = () => {
                   size="sm"
                   onClick={triggerCelebration}
                   className="gap-1.5 font-bold text-white border-0"
-                  style={{ background: `linear-gradient(135deg, ${MB.blue}, #f5d76e)`, boxShadow: `0 8px 24px ${MB.blue}66` }}
+                  style={{ background: `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})`, boxShadow: `0 8px 24px ${MB.blue}66` }}
                 >
                   <Zap className="w-4 h-4" />
                   Comemorar
@@ -436,14 +438,14 @@ const Gaming = () => {
                   const pos = enriched.indexOf(s) + 1;
                   const heights = { 1: "h-52 sm:h-64", 2: "h-36 sm:h-44", 3: "h-28 sm:h-32" } as const;
                   const gradients = {
-                    1: `linear-gradient(180deg, ${MB.blue} 0%, #f5d76e 50%, ${MB.blue} 100%)`,
-                    2: `linear-gradient(180deg, ${MB.ice} 0%, #e8d38a 50%, #a8873a 100%)`,
-                    3: `linear-gradient(180deg, #1c3a8a 0%, #0f2760 100%)`,
+                    1: `linear-gradient(180deg, ${GOLD} 0%, #FFB84A 55%, #B8860B 100%)`,
+                    2: `linear-gradient(180deg, #FFFFFF 0%, ${SILVER} 55%, #8892A6 100%)`,
+                    3: `linear-gradient(180deg, #F5B278 0%, ${BRONZE} 55%, #7A4A1F 100%)`,
                   } as const;
                   const glows = {
-                    1: `0 0 80px ${MB.blue}, 0 0 30px ${MB.ice}66`,
-                    2: `0 0 40px ${MB.ice}88`,
-                    3: `0 0 30px ${MB.blue}55`,
+                    1: `0 0 80px ${GOLD}aa, 0 0 30px #ffffff66`,
+                    2: `0 0 50px ${SILVER}88`,
+                    3: `0 0 40px ${BRONZE}88`,
                   } as const;
                   return (
                     <div key={s.brokerId} className="flex flex-col items-center gap-3 flex-1 max-w-[180px]">
@@ -479,7 +481,7 @@ const Gaming = () => {
                         )}
                         style={{
                           background: gradients[pos as 1 | 2 | 3],
-                          color: pos === 2 ? MB.navy : "#fff",
+                          color: pos === 1 ? "#3b1f00" : pos === 2 ? MB.navy : "#fff",
                           borderTopColor: MB.ice,
                           boxShadow: glows[pos as 1 | 2 | 3],
                           textShadow: pos !== 2 ? `0 2px 20px ${MB.navy}` : "none",
@@ -530,7 +532,7 @@ const Gaming = () => {
                     <div
                       className="w-10 h-10 grid place-items-center rounded-xl font-black text-base shrink-0"
                       style={{
-                        background: isTop ? `linear-gradient(135deg, ${MB.blue}, #f5d76e)` : `${MB.navy}`,
+                        background: isTop ? `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})` : `${MB.navy}`,
                         color: MB.ice,
                         border: `1px solid ${MB.blue}66`,
                         boxShadow: isTop ? `0 0 20px ${MB.blue}66` : "none",
@@ -724,7 +726,7 @@ const CategoryList = ({ value, data, metric, icon, title }: {
               <div
                 className="w-8 h-8 grid place-items-center rounded-lg text-sm font-black shrink-0"
                 style={{
-                  background: isTop ? `linear-gradient(135deg, ${MB.blue}, #f5d76e)` : MB.navy,
+                  background: isTop ? `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})` : MB.navy,
                   color: MB.ice,
                   border: `1px solid ${MB.blue}66`,
                   boxShadow: isTop ? `0 0 12px ${MB.blue}66` : "none",
