@@ -569,10 +569,12 @@ const Gaming = () => {
 
           {/* ============ IPM RANKING ============ */}
           <div
-            className="rounded-3xl border overflow-hidden"
-            style={{ borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
+            className="border overflow-hidden lg:col-span-2 relative"
+            style={{ clipPath: ANGULAR_CLIP, borderColor: `${MB.blue}33`, background: `${MB.navy}cc`, backdropFilter: "blur(8px)" }}
           >
+            <div className="absolute top-0 right-0 h-1 w-20" style={{ background: ESPORTS_RED, boxShadow: `0 0 12px ${ESPORTS_RED}` }} />
             <div className="p-5 border-b flex items-center justify-between flex-wrap gap-2" style={{ borderColor: `${MB.blue}22` }}>
+
               <div>
                 <h3 className="text-lg font-black uppercase tracking-wider flex items-center gap-2" style={{ color: MB.ice, fontFamily: DISPLAY }}>
                   <Medal className="w-5 h-5" style={{ color: MB.blue }} />
