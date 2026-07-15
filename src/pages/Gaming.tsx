@@ -481,7 +481,7 @@ const Gaming = () => {
                         )}
                         style={{
                           background: gradients[pos as 1 | 2 | 3],
-                          color: pos === 2 ? MB.navy : "#fff",
+                          color: pos === 1 ? "#3b1f00" : pos === 2 ? MB.navy : "#fff",
                           borderTopColor: MB.ice,
                           boxShadow: glows[pos as 1 | 2 | 3],
                           textShadow: pos !== 2 ? `0 2px 20px ${MB.navy}` : "none",
