@@ -666,6 +666,10 @@ const Gaming = () => {
 
             </div>
           </div>
+          </div>
+          {/* ============ END DENSE ARENA GRID ============ */}
+
+
 
           {/* ============ CATEGORIAS ============ */}
           <Tabs defaultValue="cacadores" onValueChange={() => playReveal()}>
