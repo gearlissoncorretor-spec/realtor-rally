@@ -297,15 +297,27 @@ const Gaming = () => {
         <div className="max-w-7xl mx-auto space-y-6">
           {/* ============ HERO / BROADCAST HEADER ============ */}
           <div
-            className="relative overflow-hidden rounded-3xl border p-5 sm:p-8"
+            className="relative overflow-hidden border p-5 sm:p-8"
             style={{
+              clipPath: ANGULAR_CLIP,
               borderColor: `${MB.blue}55`,
-              background: `linear-gradient(135deg, ${MB.navy}ee 0%, #1f1f24 50%, ${MB.navy}ee 100%)`,
+              background: `linear-gradient(135deg, ${MB.navy}ee 0%, #1f2350 50%, ${MB.navy}ee 100%)`,
               boxShadow: `0 0 60px ${MB.blue}33, inset 0 1px 0 ${MB.ice}22`,
             }}
           >
+            {/* Red esports accent stripe */}
+            <div className="absolute top-0 left-0 h-1 w-40" style={{ background: ESPORTS_RED, boxShadow: `0 0 20px ${ESPORTS_RED}` }} />
+            <div className="absolute bottom-0 right-0 h-1 w-40" style={{ background: ESPORTS_RED, boxShadow: `0 0 20px ${ESPORTS_RED}` }} />
+            {/* Diagonal scan lines */}
+            <div
+              className="absolute inset-0 opacity-[0.06] pointer-events-none"
+              style={{ backgroundImage: `repeating-linear-gradient(135deg, ${MB.ice} 0 1px, transparent 1px 8px)` }}
+            />
             {/* Animated shine */}
             <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ background: `radial-gradient(circle at 20% 0%, ${MB.blue}88, transparent 50%)` }} />
+            <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: MB.blue }} />
+
+
             <div className="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl opacity-40" style={{ background: MB.blue }} />
 
             <div className="relative flex items-start justify-between gap-4 flex-wrap">
