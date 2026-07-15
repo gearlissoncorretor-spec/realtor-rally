@@ -438,16 +438,23 @@ const Gaming = () => {
             </div>
           </div>
 
+          {/* ============ DENSE ARENA GRID: Podium + Ranking side-by-side ============ */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* ============ PÓDIO ============ */}
           {podium.length > 0 && (
             <div
-              className="relative overflow-hidden rounded-3xl border p-6 sm:p-12"
+              className="relative overflow-hidden border p-6 sm:p-8 lg:col-span-3"
               style={{
+                clipPath: ANGULAR_CLIP,
                 borderColor: `${MB.blue}44`,
-                background: `radial-gradient(ellipse at 50% 0%, ${GRAPHITE_2} 0%, ${MB.navy} 55%, #010b26 100%)`,
+                background: `radial-gradient(ellipse at 50% 0%, ${GRAPHITE_2} 0%, ${MB.navy} 55%, #1a1e48 100%)`,
                 boxShadow: `inset 0 0 120px ${MB.blue}22`,
               }}
             >
+              {/* Red accent notches */}
+              <div className="absolute top-0 left-0 h-1 w-24" style={{ background: ESPORTS_RED, boxShadow: `0 0 12px ${ESPORTS_RED}` }} />
+              <div className="absolute bottom-0 right-0 h-1 w-24" style={{ background: ESPORTS_RED, boxShadow: `0 0 12px ${ESPORTS_RED}` }} />
+
               {/* Spotlight */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] pointer-events-none"
                 style={{ background: `radial-gradient(ellipse at top, ${MB.ice}25, transparent 65%)` }} />
