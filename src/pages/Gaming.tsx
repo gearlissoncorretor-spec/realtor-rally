@@ -22,6 +22,13 @@ import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEf
 import { CountUp } from "@/components/gaming/CountUp";
 
 const SERIF = "'Playfair Display', Georgia, serif";
+const DISPLAY = "'Chakra Petch', 'Rajdhani', 'Sora', system-ui, sans-serif";
+
+// Angular esports clip (top-left + bottom-right notch, Valorant style)
+const ANGULAR_CLIP = "polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px)";
+const ANGULAR_CLIP_SM = "polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)";
+const ESPORTS_RED = "#FF4655"; // Valorant signature red accent
+
 
 
 // ============ Modern Arena Palette — inspired by Valorant / Riot / Fortnite lobbies ============
