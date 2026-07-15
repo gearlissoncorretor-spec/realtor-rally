@@ -419,49 +419,78 @@ const Gaming = () => {
           {/* ============ PÓDIO ============ */}
           {podium.length > 0 && (
             <div
-              className="relative overflow-hidden rounded-3xl border p-6 sm:p-10"
+              className="relative overflow-hidden rounded-3xl border p-6 sm:p-12"
               style={{
                 borderColor: `${MB.blue}44`,
-                background: `linear-gradient(180deg, #1a1a1f 0%, ${MB.navy} 100%)`,
-                boxShadow: `inset 0 0 80px ${MB.blue}22`,
+                background: `radial-gradient(ellipse at 50% 0%, ${GRAPHITE_2} 0%, ${MB.navy} 55%, #010b26 100%)`,
+                boxShadow: `inset 0 0 120px ${MB.blue}22`,
               }}
             >
               {/* Spotlight */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
-                style={{ background: `radial-gradient(ellipse at top, ${MB.ice}22, transparent 60%)` }} />
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] pointer-events-none"
+                style={{ background: `radial-gradient(ellipse at top, ${MB.ice}25, transparent 65%)` }} />
+              {/* Champion halo */}
+              <motion.div
+                className="absolute left-1/2 -translate-x-1/2 top-16 w-[340px] h-[340px] rounded-full pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${GOLD}33 0%, transparent 65%)` }}
+                animate={{ opacity: [0.4, 0.9, 0.4], scale: [0.95, 1.05, 0.95] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+              />
 
-              <div className="relative flex items-center justify-center gap-2 mb-8">
-                <Crown className="w-6 h-6" style={{ color: MB.ice }} />
-                <h2 className="text-xl sm:text-2xl font-black uppercase tracking-[0.2em]" style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+              <div className="relative flex items-center justify-center gap-3 mb-10">
+                <Crown className="w-6 h-6" style={{ color: GOLD, filter: `drop-shadow(0 0 8px ${GOLD})` }} />
+                <h2 className="text-2xl sm:text-4xl uppercase tracking-[0.18em]"
+                  style={{ color: MB.ice, fontFamily: SERIF, fontWeight: 900, letterSpacing: "0.15em" }}>
                   Pódio dos Campeões
                 </h2>
-                <Crown className="w-6 h-6" style={{ color: MB.ice }} />
+                <Crown className="w-6 h-6" style={{ color: GOLD, filter: `drop-shadow(0 0 8px ${GOLD})` }} />
               </div>
 
-              <div className="relative flex items-end justify-center gap-4 sm:gap-8">
-                {podiumOrder.map((s) => {
+              <div className="relative flex items-end justify-center gap-4 sm:gap-10">
+                {podiumOrder.map((s, idx) => {
                   const pos = enriched.indexOf(s) + 1;
-                  const heights = { 1: "h-52 sm:h-64", 2: "h-36 sm:h-44", 3: "h-28 sm:h-32" } as const;
+                  const heights = { 1: "h-60 sm:h-72", 2: "h-40 sm:h-48", 3: "h-28 sm:h-36" } as const;
                   const gradients = {
-                    1: `linear-gradient(180deg, ${GOLD} 0%, #FFB84A 55%, #B8860B 100%)`,
-                    2: `linear-gradient(180deg, #FFFFFF 0%, ${SILVER} 55%, #8892A6 100%)`,
-                    3: `linear-gradient(180deg, #F5B278 0%, ${BRONZE} 55%, #7A4A1F 100%)`,
+                    1: `linear-gradient(180deg, ${GOLD} 0%, #FFB84A 55%, #8a5a00 100%)`,
+                    2: `linear-gradient(180deg, #FFFFFF 0%, ${SILVER} 55%, #6d7484 100%)`,
+                    3: `linear-gradient(180deg, #F5B278 0%, ${BRONZE} 55%, #5a3717 100%)`,
                   } as const;
                   const glows = {
-                    1: `0 0 80px ${GOLD}aa, 0 0 30px #ffffff66`,
-                    2: `0 0 50px ${SILVER}88`,
-                    3: `0 0 40px ${BRONZE}88`,
+                    1: `0 0 100px ${GOLD}aa, 0 0 40px #ffffff77`,
+                    2: `0 0 60px ${SILVER}99`,
+                    3: `0 0 50px ${BRONZE}99`,
                   } as const;
+                  const accent = pos === 1 ? GOLD : pos === 2 ? SILVER : BRONZE;
                   return (
-                    <div key={s.brokerId} className="flex flex-col items-center gap-3 flex-1 max-w-[180px]">
+                    <motion.div
+                      key={s.brokerId}
+                      layout
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.15, type: "spring", stiffness: 90 }}
+                      className="flex flex-col items-center gap-3 flex-1 max-w-[200px]"
+                    >
                       {pos === 1 && (
-                        <Crown className="w-10 h-10 animate-bounce" style={{ color: MB.ice, filter: `drop-shadow(0 0 12px ${MB.blue})` }} />
+                        <motion.div
+                          animate={{ y: [0, -6, 0], rotate: [-3, 3, -3] }}
+                          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                          <Crown className="w-12 h-12" style={{ color: GOLD, filter: `drop-shadow(0 0 14px ${GOLD})` }} />
+                        </motion.div>
                       )}
                       <div className="relative">
-                        <Avatar className={cn("shrink-0 ring-4", pos === 1 ? "h-24 w-24 sm:h-28 sm:w-28" : "h-16 w-16 sm:h-20 sm:w-20")}
+                        {pos === 1 && (
+                          <motion.div
+                            className="absolute inset-0 rounded-full"
+                            style={{ boxShadow: `0 0 60px 10px ${GOLD}88` }}
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          />
+                        )}
+                        <Avatar className={cn("shrink-0 ring-4 relative", pos === 1 ? "h-28 w-28 sm:h-32 sm:w-32" : "h-16 w-16 sm:h-20 sm:w-20")}
                           style={{
                             boxShadow: glows[pos as 1 | 2 | 3],
-                            ...(pos === 1 ? { border: `3px solid ${MB.ice}` } : {}),
+                            border: `3px solid ${accent}`,
                           } as any}
                         >
                           <AvatarImage src={s.avatar || undefined} />
@@ -469,19 +498,19 @@ const Gaming = () => {
                             {s.name.split(" ").slice(0, 2).map(n => n[0]).join("")}
                           </AvatarFallback>
                         </Avatar>
-                        {pos === 1 && <Sparkles className="absolute -top-2 -right-2 w-6 h-6 animate-pulse" style={{ color: MB.ice }} />}
+                        {pos === 1 && <Sparkles className="absolute -top-2 -right-2 w-7 h-7 animate-pulse" style={{ color: GOLD }} />}
                       </div>
-                      <p className={cn("font-black text-center line-clamp-1 uppercase tracking-wide", pos === 1 ? "text-base sm:text-lg" : "text-xs sm:text-sm")}
-                        style={{ color: MB.ice, fontFamily: "'Sora', system-ui" }}>
+                      <p className={cn("text-center line-clamp-1", pos === 1 ? "text-lg sm:text-2xl" : "text-sm sm:text-base")}
+                        style={{ color: MB.ice, fontFamily: SERIF, fontWeight: pos === 1 ? 900 : 700, letterSpacing: "0.02em" }}>
                         {s.name}
                       </p>
-                      <div className="px-3 py-1 rounded-full text-xs font-bold tabular-nums"
-                        style={{ background: `${MB.blue}33`, color: MB.ice, border: `1px solid ${MB.blue}66` }}>
-                        {s.points.toLocaleString("pt-BR")} pts
+                      <div className="px-3 py-1 rounded-full text-xs font-bold"
+                        style={{ background: `${accent}22`, color: MB.ice, border: `1px solid ${accent}88`, fontVariantNumeric: "tabular-nums" }}>
+                        <CountUp value={s.points} /> pts
                       </div>
                       <div
                         className={cn(
-                          "w-full rounded-t-2xl grid place-items-center font-black text-3xl sm:text-5xl border-t-2",
+                          "w-full rounded-t-2xl grid place-items-center border-t-2 relative overflow-hidden",
                           heights[pos as 1 | 2 | 3],
                         )}
                         style={{
@@ -490,17 +519,24 @@ const Gaming = () => {
                           borderTopColor: MB.ice,
                           boxShadow: glows[pos as 1 | 2 | 3],
                           textShadow: pos !== 2 ? `0 2px 20px ${MB.navy}` : "none",
-                          fontFamily: "'Sora', system-ui",
+                          fontFamily: SERIF,
+                          fontWeight: 900,
+                          fontSize: pos === 1 ? "5rem" : pos === 2 ? "3.5rem" : "2.75rem",
+                          lineHeight: 1,
                         }}
                       >
+                        {/* Reflection strip */}
+                        <div className="absolute inset-x-0 top-0 h-1/3 pointer-events-none"
+                          style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.35), transparent)" }} />
                         {pos}
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
             </div>
           )}
+
 
           {/* ============ IPM RANKING ============ */}
           <div
