@@ -256,10 +256,12 @@ const Gaming = () => {
       className="min-h-screen relative overflow-hidden"
       style={{
         background: `
-          radial-gradient(ellipse 80% 60% at 50% -10%, ${MB.blue}44 0%, transparent 60%),
-          radial-gradient(ellipse 60% 50% at 100% 100%, ${MB.blue}22 0%, transparent 70%),
-          linear-gradient(180deg, ${MB.navy} 0%, #0d0d10 60%, #050507 100%)
+          radial-gradient(ellipse 90% 60% at 50% -10%, #7CA9FF55 0%, transparent 60%),
+          radial-gradient(ellipse 60% 50% at 100% 100%, #A78BFA44 0%, transparent 70%),
+          radial-gradient(ellipse 50% 40% at 0% 50%, #22D3EE33 0%, transparent 70%),
+          linear-gradient(180deg, #3B3F7A 0%, #2B2F5C 45%, #1B1F44 100%)
         `,
+
       }}
     >
       {/* Stadium light rays */}
