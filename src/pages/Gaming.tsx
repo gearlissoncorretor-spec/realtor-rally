@@ -92,8 +92,8 @@ const Gaming = () => {
 
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Arena My Broker"); }, [settings]);
-  const screenName = (settings as any)?.gaming_name || "Arena My Broker";
+  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Liga dos Campeões My Broker"); }, [settings]);
+  const screenName = (settings as any)?.gaming_name || "Liga dos Campeões My Broker";
 
   const { playVictory, playReveal, playCelebration, soundEnabled, setSoundEnabled } = useRankingSounds();
   const [confetti, setConfetti] = useState(false);
@@ -237,7 +237,7 @@ const Gaming = () => {
   }), [enriched]);
 
   const saveName = async () => {
-    const v = nameDraft.trim() || "Arena My Broker";
+    const v = nameDraft.trim() || "Liga dos Campeões My Broker";
     updateSettings({ gaming_name: v } as any);
     setEditing(false);
   };
@@ -302,7 +302,7 @@ const Gaming = () => {
                 ) : (
                   <div
                     className="w-16 h-16 rounded-2xl grid place-items-center shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${MB.blue}, #f5d76e)`, boxShadow: `0 0 30px ${MB.blue}88` }}
+                    style={{ background: `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})`, boxShadow: `0 0 30px ${MB.blue}88` }}
                   >
                     <Trophy className="w-8 h-8 text-white" />
                   </div>
@@ -344,7 +344,7 @@ const Gaming = () => {
                       )}
                     </div>
                   )}
-                  <p className="text-sm mt-1 opacity-70 tracking-wide">O tablado dos campeões · disputa em tempo real</p>
+                  <p className="text-sm mt-1 opacity-70 tracking-wide">Os melhores corretores disputam o topo em tempo real</p>
                 </div>
               </div>
 
@@ -362,7 +362,7 @@ const Gaming = () => {
                   size="sm"
                   onClick={triggerCelebration}
                   className="gap-1.5 font-bold text-white border-0"
-                  style={{ background: `linear-gradient(135deg, ${MB.blue}, #f5d76e)`, boxShadow: `0 8px 24px ${MB.blue}66` }}
+                  style={{ background: `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})`, boxShadow: `0 8px 24px ${MB.blue}66` }}
                 >
                   <Zap className="w-4 h-4" />
                   Comemorar
@@ -438,7 +438,7 @@ const Gaming = () => {
                   const pos = enriched.indexOf(s) + 1;
                   const heights = { 1: "h-52 sm:h-64", 2: "h-36 sm:h-44", 3: "h-28 sm:h-32" } as const;
                   const gradients = {
-                    1: `linear-gradient(180deg, ${MB.blue} 0%, #f5d76e 50%, ${MB.blue} 100%)`,
+                    1: `linear-gradient(180deg, ${MB.blue} 0%, ${BLUE_GLOW} 50%, ${MB.blue} 100%)`,
                     2: `linear-gradient(180deg, ${MB.ice} 0%, #e8d38a 50%, #a8873a 100%)`,
                     3: `linear-gradient(180deg, #1c3a8a 0%, #0f2760 100%)`,
                   } as const;
@@ -532,7 +532,7 @@ const Gaming = () => {
                     <div
                       className="w-10 h-10 grid place-items-center rounded-xl font-black text-base shrink-0"
                       style={{
-                        background: isTop ? `linear-gradient(135deg, ${MB.blue}, #f5d76e)` : `${MB.navy}`,
+                        background: isTop ? `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})` : `${MB.navy}`,
                         color: MB.ice,
                         border: `1px solid ${MB.blue}66`,
                         boxShadow: isTop ? `0 0 20px ${MB.blue}66` : "none",
@@ -726,7 +726,7 @@ const CategoryList = ({ value, data, metric, icon, title }: {
               <div
                 className="w-8 h-8 grid place-items-center rounded-lg text-sm font-black shrink-0"
                 style={{
-                  background: isTop ? `linear-gradient(135deg, ${MB.blue}, #f5d76e)` : MB.navy,
+                  background: isTop ? `linear-gradient(135deg, ${MB.blue}, ${BLUE_GLOW})` : MB.navy,
                   color: MB.ice,
                   border: `1px solid ${MB.blue}66`,
                   boxShadow: isTop ? `0 0 12px ${MB.blue}66` : "none",
