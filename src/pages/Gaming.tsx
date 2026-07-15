@@ -24,15 +24,16 @@ import { CountUp } from "@/components/gaming/CountUp";
 const SERIF = "'Playfair Display', Georgia, serif";
 
 
-// ============ My Broker Arena Palette ============
-// #0241F1 azul principal · #021944 azul escuro · #E6E7FB branco azulado
+// ============ Modern Arena Palette — inspired by Valorant / Riot / Fortnite lobbies ============
+// Softer indigo-violet base with electric cyan/blue accents.
 const MB = {
-  blue: "#0241F1",
-  navy: "#021944",
-  ice: "#E6E7FB",
+  blue: "#5B8DEF",   // electric soft blue (accent)
+  navy: "#2B2F5C",   // lighter indigo-violet surface (was #021944)
+  ice: "#EEF2FF",    // near-white with cool tint
 };
-const BLUE_GLOW = "#3b6bff";
-const GRAPHITE_2 = "#01235c";
+const BLUE_GLOW = "#7CA9FF";
+const GRAPHITE_2 = "#3B3F7A";
+
 const GOLD = "#FFD54A";
 const SILVER = "#D8DEE9";
 const BRONZE = "#CD7F32";
@@ -255,10 +256,12 @@ const Gaming = () => {
       className="min-h-screen relative overflow-hidden"
       style={{
         background: `
-          radial-gradient(ellipse 80% 60% at 50% -10%, ${MB.blue}44 0%, transparent 60%),
-          radial-gradient(ellipse 60% 50% at 100% 100%, ${MB.blue}22 0%, transparent 70%),
-          linear-gradient(180deg, ${MB.navy} 0%, #0d0d10 60%, #050507 100%)
+          radial-gradient(ellipse 90% 60% at 50% -10%, #7CA9FF55 0%, transparent 60%),
+          radial-gradient(ellipse 60% 50% at 100% 100%, #A78BFA44 0%, transparent 70%),
+          radial-gradient(ellipse 50% 40% at 0% 50%, #22D3EE33 0%, transparent 70%),
+          linear-gradient(180deg, #3B3F7A 0%, #2B2F5C 45%, #1B1F44 100%)
         `,
+
       }}
     >
       {/* Stadium light rays */}
