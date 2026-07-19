@@ -198,7 +198,7 @@ const BrandingSettings = () => {
   return (
     <div className="space-y-2 animate-fade-in">
       <Tabs defaultValue="identity" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
+        <TabsList className="grid w-full grid-cols-4 mb-4">
           <TabsTrigger value="identity" className="text-xs gap-1.5">
             <Building2 className="w-3.5 h-3.5" />
             Identidade
@@ -207,9 +207,13 @@ const BrandingSettings = () => {
             <Palette className="w-3.5 h-3.5" />
             Aparência
           </TabsTrigger>
+          <TabsTrigger value="gaming" className="text-xs gap-1.5">
+            <Trophy className="w-3.5 h-3.5" />
+            Gaming
+          </TabsTrigger>
           <TabsTrigger value="sound" className="text-xs gap-1.5">
             <Music className="w-3.5 h-3.5" />
-            Som do Ranking
+            Som
           </TabsTrigger>
         </TabsList>
 
