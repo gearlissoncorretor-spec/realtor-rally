@@ -361,7 +361,7 @@ const Gaming = () => {
                   { l: "Leads", v: totals.leads, i: Flame, color: "text-orange-500" },
                   { l: "Negociações", v: totals.negociacoes, i: Handshake, color: "text-primary" },
                 ].map((k) => (
-                  <div key={k.l} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 hover:bg-muted/50 transition-colors group">
+                  <div key={k.l} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 hover:bg-muted/50 transition-colors group shadow-sm hover:shadow-md">
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 flex items-center gap-1.5">
                       <k.i className={cn("w-3 h-3", k.color)} /> {k.l}
                     </p>
