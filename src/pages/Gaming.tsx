@@ -256,8 +256,8 @@ const Gaming = () => {
 
   return (
     <div className={cn(
-      "min-h-screen relative overflow-hidden bg-[#F0F4FF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700",
-      tvMode && "fixed inset-0 z-[100] bg-[#F0F4FF] dark:bg-[#0A0D1E] lg:ml-0"
+      "min-h-screen relative overflow-hidden bg-[#F8FAFF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700 shadow-inner",
+      tvMode && "fixed inset-0 z-[100] bg-[#F8FAFF] dark:bg-[#0A0D1E] lg:ml-0"
     )}>
       {/* Dynamic Arena Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -340,8 +340,14 @@ const Gaming = () => {
                       </Select>
                    </div>
                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => window.open(window.location.origin + window.location.pathname + '?tv=true', '_blank')} className={cn(tvMode && "bg-primary text-white border-primary")}>
-                        {tvMode ? <Maximize2 className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => window.open(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'tv=true', '_blank')} 
+                        className={cn("font-bold uppercase tracking-widest text-[10px] transition-all hover:shadow-md", tvMode && "bg-primary text-white border-primary")}
+                      >
+                        {tvMode ? <Maximize2 className="w-4 h-4 mr-2" /> : <Monitor className="w-4 h-4 mr-2" />}
+                        Modo TV
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setSoundEnabled(!soundEnabled)}>
                         {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
