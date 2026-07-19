@@ -64,7 +64,7 @@ const LeadOriginChart = ({ sales, title = "Origem dos Clientes", height }: LeadO
   };
 
   return (
-    <Card className="p-6 bg-gradient-card border-border animate-fade-in">
+    <Card className="p-6 bg-gradient-card border-border animate-fade-in text-xs">
       <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
       {data.length === 0 ? (
         <div className="flex items-center justify-center text-sm text-muted-foreground" style={{ height }}>
