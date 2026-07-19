@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { 
   Palette, Image, Building2, Upload, Trash2, Link as LinkIcon, 
-  LayoutDashboard, TrendingUp, Handshake, Eye, Music, Play, Pause, Volume2, Loader2
+  LayoutDashboard, TrendingUp, Handshake, Eye, Music, Play, Pause, Volume2, Loader2,
+  Trophy, Target, Award
 } from 'lucide-react';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { useToast } from '@/hooks/use-toast';
