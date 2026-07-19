@@ -378,36 +378,46 @@ const Gaming = () => {
 
                <div className="relative flex items-end justify-center gap-3 sm:gap-8 h-[400px]">
                  {podiumOrder.map((s) => {
-                   const pos = enriched.indexOf(s) + 1;
-                   const isFirst = pos === 1;
-                   const accent = isFirst ? GOLD : pos === 2 ? SILVER : BRONZE;
-                   return (
-                     <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 max-w-[180px]">
-                        <div className="relative mb-6">
-                          <AnimatePresence>
-                            {isFirst && (
-                              <motion.div className="absolute inset-0 -m-4 rounded-full bg-amber-400/20 blur-2xl" animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 3, repeat: Infinity }} />
-                            )}
-                          </AnimatePresence>
-                          <Avatar className={cn("ring-offset-background transition-all", isFirst ? "h-24 w-24 sm:h-32 sm:w-32 ring-4 ring-amber-400 shadow-2xl" : "h-16 w-16 sm:h-20 sm:w-20 ring-2 ring-muted shadow-lg")}>
-                            <AvatarImage src={s.avatar || undefined} />
-                            <AvatarFallback className="font-black text-xl">{s.name.slice(0,2)}</AvatarFallback>
-                          </Avatar>
-                          {isFirst && <div className="absolute -top-6 left-1/2 -translate-x-1/2"><Crown className="w-10 h-10 text-amber-400 animate-bounce" /></div>}
-                        </div>
-                        
-                        <div className="text-center mb-4">
-                          <p className={cn("font-black uppercase leading-tight line-clamp-1 mb-1", isFirst ? "text-lg sm:text-xl" : "text-sm")} style={{ fontFamily: DISPLAY }}>{s.name}</p>
-                          <Badge variant="secondary" className="font-black tabular-nums">{s.points} PTS</Badge>
-                        </div>
+                    const pos = enriched.indexOf(s) + 1;
+                    const isFirst = pos === 1;
+                    const isSecond = pos === 2;
+                    const isThird = pos === 3;
+                    
+                    const pedestalColors = isFirst 
+                      ? "from-amber-400 via-yellow-500 to-amber-600 border-amber-300 shadow-[0_0_30px_rgba(251,191,36,0.3)]" 
+                      : isSecond 
+                        ? "from-slate-300 via-slate-400 to-slate-500 border-slate-200 shadow-[0_0_20px_rgba(148,163,184,0.2)]" 
+                        : "from-amber-700 via-amber-800 to-amber-900 border-amber-600 shadow-[0_0_20px_rgba(180,83,9,0.2)]";
 
-                        <div className={cn("w-full rounded-t-3xl border-x border-t relative group overflow-hidden transition-all", isFirst ? "h-56 bg-gradient-to-b from-amber-400/20 to-transparent border-amber-400/40" : pos === 2 ? "h-40 bg-gradient-to-b from-slate-400/10 to-transparent border-slate-400/20" : "h-28 bg-gradient-to-b from-amber-700/10 to-transparent border-amber-700/20")}>
-                           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-5xl sm:text-7xl font-black opacity-40 italic" style={{ fontFamily: DISPLAY }}>{pos}</div>
-                        </div>
-                     </motion.div>
-                   );
-                 })}
+                    return (
+                      <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 max-w-[200px]">
+                         <div className="relative mb-8">
+                           <AnimatePresence>
+                             {isFirst && (
+                               <motion.div className="absolute inset-0 -m-6 rounded-full bg-amber-400/30 blur-3xl" animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 4, repeat: Infinity }} />
+                             )}
+                           </AnimatePresence>
+                           <Avatar className={cn("ring-offset-background transition-all duration-500", isFirst ? "h-28 w-28 sm:h-36 sm:w-36 ring-8 ring-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.5)] scale-110" : isSecond ? "h-20 w-20 sm:h-24 sm:w-24 ring-4 ring-slate-400 shadow-xl" : "h-18 w-18 sm:h-22 sm:w-22 ring-4 ring-amber-800 shadow-lg")}>
+                             <AvatarImage src={s.avatar || undefined} className="object-cover" />
+                             <AvatarFallback className="font-black text-2xl bg-muted">{s.name.slice(0,2)}</AvatarFallback>
+                           </Avatar>
+                           {isFirst && <div className="absolute -top-10 left-1/2 -translate-x-1/2 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"><Crown className="w-12 h-12 text-amber-400 animate-bounce" /></div>}
+                         </div>
+                         
+                         <div className="text-center mb-6 z-10">
+                           <p className={cn("font-black uppercase leading-tight line-clamp-1 mb-1 tracking-tight text-foreground", isFirst ? "text-xl sm:text-2xl" : "text-sm sm:text-base")} style={{ fontFamily: DISPLAY }}>{s.name}</p>
+                           <Badge variant={isFirst ? "default" : "secondary"} className={cn("font-black tabular-nums px-3 py-1", isFirst && "bg-amber-500 hover:bg-amber-600 text-black")}>{s.points.toLocaleString()} PTS</Badge>
+                         </div>
+
+                         <div className={cn("w-full rounded-t-[2.5rem] border-x border-t relative group overflow-hidden transition-all duration-700 bg-gradient-to-b", pedestalColors, isFirst ? "h-64" : isSecond ? "h-44" : "h-32")}>
+                            <div className="absolute inset-0 bg-white/10 opacity-20 animate-pulse" />
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]" />
+                            <div className="absolute top-6 left-1/2 -translate-x-1/2 text-6xl sm:text-8xl font-black text-white/20 italic tracking-tighter drop-shadow-lg" style={{ fontFamily: DISPLAY }}>{pos}</div>
+                            {isFirst && <div className="absolute bottom-0 left-0 w-full h-1 bg-white/30" />}
+                         </div>
+                      </motion.div>
+                    );
+                  })}
                </div>
             </div>
 
