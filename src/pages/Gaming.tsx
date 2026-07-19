@@ -279,10 +279,10 @@ const Gaming = () => {
       {!tvMode && <Navigation />}
 
       <main className={cn(
-        "relative pt-16 pb-24 px-4 sm:px-6 lg:px-8 transition-all duration-500",
-        !tvMode && "lg:ml-72"
+        "relative pb-24 px-4 sm:px-6 lg:px-8 transition-all duration-500",
+        !tvMode ? "lg:ml-72 pt-16" : "pt-6"
       )}>
-        <div className={cn("max-w-7xl mx-auto space-y-6", tvMode && "max-w-none")}>
+        <div className={cn("max-w-7xl mx-auto space-y-8", tvMode && "max-w-none px-4 sm:px-10")}>
           
           {tvMode && (
             <Button 
