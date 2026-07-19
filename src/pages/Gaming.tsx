@@ -88,7 +88,15 @@ const Gaming = () => {
   const [editing, setEditing] = useState(false);
   const [tvMode, setTvMode] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "LIGA DOS CAMPEÕES"); }, [settings]);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tv') === 'true') {
+      setTvMode(true);
+    }
+    setNameDraft((settings as any)?.gaming_name || "LIGA DOS CAMPEÕES");
+  }, [settings]);
+
   const screenName = (settings as any)?.gaming_name || "LIGA DOS CAMPEÕES";
 
   const { playReveal, soundEnabled, setSoundEnabled } = useRankingSounds();
