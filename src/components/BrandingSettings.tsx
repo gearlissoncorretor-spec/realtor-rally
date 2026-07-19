@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { 
   Palette, Image, Building2, Upload, Trash2, Link as LinkIcon, 
   LayoutDashboard, TrendingUp, Handshake, Eye, Music, Play, Pause, Volume2, Loader2
