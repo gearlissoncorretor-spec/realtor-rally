@@ -404,7 +404,7 @@ const Gaming = () => {
                         : "from-amber-700 via-amber-800 to-amber-900 border-amber-600 shadow-[0_0_20px_rgba(180,83,9,0.2)]";
 
                     return (
-                      <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 max-w-[200px]">
+                      <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 min-w-[120px] max-w-[200px] relative z-20">
                          <div className="relative mb-8">
                            <AnimatePresence>
                              {isFirst && (
@@ -423,7 +423,7 @@ const Gaming = () => {
                            <Badge variant={isFirst ? "default" : "secondary"} className={cn("font-black tabular-nums px-3 py-1", isFirst && "bg-amber-500 hover:bg-amber-600 text-black")}>{s.points.toLocaleString()} PTS</Badge>
                          </div>
 
-                         <div className={cn("w-full rounded-t-[2.5rem] border-x border-t relative group overflow-hidden transition-all duration-700 bg-gradient-to-b", pedestalColors, isFirst ? "h-64" : isSecond ? "h-44" : "h-32")}>
+                         <div className={cn("w-full rounded-t-[2.5rem] border-x border-t relative group overflow-hidden transition-all duration-700 bg-gradient-to-b z-10", pedestalColors, isFirst ? "h-64" : isSecond ? "h-44" : "h-32")}>
                             <div className="absolute inset-0 bg-white/10 opacity-20 animate-pulse" />
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]" />
                             <div className="absolute top-6 left-1/2 -translate-x-1/2 text-6xl sm:text-8xl font-black text-white/20 italic tracking-tighter drop-shadow-lg" style={{ fontFamily: DISPLAY }}>{pos}</div>
@@ -452,7 +452,7 @@ const Gaming = () => {
                       <motion.div key={s.brokerId} layout className="group flex items-center gap-3 p-3 rounded-2xl border bg-muted/20 hover:bg-primary/5 hover:border-primary/20 transition-all cursor-default">
                         <div className={cn("w-10 h-10 rounded-xl grid place-items-center font-black italic", isTop ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-muted text-muted-foreground")} style={{ fontFamily: DISPLAY }}>{i + 1}</div>
                         <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                          <AvatarImage src={s.avatar || undefined} />
+                          <AvatarImage src={s.avatar || undefined} className="object-cover" />
                           <AvatarFallback>{s.name.slice(0,2)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
