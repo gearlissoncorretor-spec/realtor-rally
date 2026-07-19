@@ -256,23 +256,23 @@ const Gaming = () => {
 
   return (
     <div className={cn(
-      "min-h-screen relative overflow-hidden bg-background text-foreground selection:bg-primary/30 transition-colors duration-700",
-      tvMode && "fixed inset-0 z-[100] bg-background lg:ml-0"
+      "min-h-screen relative overflow-hidden bg-[#F0F4FF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700",
+      tvMode && "fixed inset-0 z-[100] bg-[#F0F4FF] dark:bg-[#0A0D1E] lg:ml-0"
     )}>
       {/* Dynamic Arena Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div 
-          className="absolute top-0 left-0 w-full h-full opacity-30 dark:opacity-10"
+          className="absolute top-0 left-0 w-full h-full opacity-40 dark:opacity-20"
           animate={{ 
             background: [
-              "radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.15), transparent 60%)",
-              "radial-gradient(circle at 80% 80%, hsl(var(--primary) / 0.15), transparent 60%)",
-              "radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.15), transparent 60%)",
+              "radial-gradient(circle at 20% 20%, #2563EB22, transparent 60%)",
+              "radial-gradient(circle at 80% 80%, #2563EB22, transparent 60%)",
+              "radial-gradient(circle at 20% 20%, #2563EB22, transparent 60%)",
             ]
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
         />
-        <div className="absolute inset-0 opacity-20 dark:opacity-5" style={{ backgroundImage: "linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute inset-0 opacity-30 dark:opacity-10" style={{ backgroundImage: "linear-gradient(#2563EB11 1px, transparent 1px), linear-gradient(90deg, #2563EB11 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       </div>
 
       <ConfettiCanvas active={confetti} />
