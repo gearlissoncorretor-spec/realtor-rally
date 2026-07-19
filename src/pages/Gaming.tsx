@@ -430,7 +430,7 @@ const Gaming = () => {
             </div>
 
             {/* Ranking List */}
-            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="flex items-center justify-between mb-6">
                  <div>
                     <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Medal className="w-4 h-4 text-primary" /> Ranking IPM</h3>
