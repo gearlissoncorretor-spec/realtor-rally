@@ -340,7 +340,7 @@ const Gaming = () => {
                       </Select>
                    </div>
                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setTvMode(!tvMode)} className={cn(tvMode && "bg-primary text-white border-primary")}>
+                      <Button size="sm" variant="outline" onClick={() => window.open(window.location.origin + window.location.pathname + '?tv=true', '_blank')} className={cn(tvMode && "bg-primary text-white border-primary")}>
                         {tvMode ? <Maximize2 className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setSoundEnabled(!soundEnabled)}>
