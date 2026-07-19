@@ -23,6 +23,7 @@ import { CountUp } from "@/components/gaming/CountUp";
 
 const DISPLAY = "'Sora', 'Inter', system-ui, sans-serif";
 const ANGULAR_CLIP = "polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px)";
+const MODERN_CARD_SHADOW = "shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)]";
 const CORPORATE_BLUE = "#2563EB";
 const SUCCESS_GREEN = "#10B981";
 
@@ -153,9 +154,9 @@ const Gaming = () => {
   }, [sales]);
 
   const months = [
-    { v: "all", l: "Todos" }, { v: "1", l: "Janeiro" }, { v: "2", l: "Fevereiro" }, { v: "3", l: "Março" },
-    { v: "4", l: "Abril" }, { v: "5", l: "Maio" }, { v: "6", l: "Junho" }, { v: "7", l: "Julho" },
-    { v: "8", l: "Agosto" }, { v: "9", l: "Setembro" }, { v: "10", l: "Outubro" }, { v: "11", l: "Novembro" }, { v: "12", l: "Dezembro" },
+    { v: "all", l: "Todos" }, { v: "1", l: "Jan" }, { v: "2", l: "Fev" }, { v: "3", l: "Mar" },
+    { v: "4", l: "Abr" }, { v: "5", l: "Mai" }, { v: "6", l: "Jun" }, { v: "7", l: "Jul" },
+    { v: "8", l: "Ago" }, { v: "9", l: "Set" }, { v: "10", l: "Out" }, { v: "11", l: "Nov" }, { v: "12", l: "Dez" },
   ];
 
   const stats: Stats[] = useMemo(() => {
@@ -257,8 +258,8 @@ const Gaming = () => {
 
   return (
     <div className={cn(
-      "min-h-screen relative bg-[#F8FAFF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700 shadow-inner overflow-y-auto overflow-x-hidden",
-      tvMode && "fixed inset-0 z-[100] bg-[#F8FAFF] dark:bg-[#0A0D1E] lg:ml-0 overflow-y-auto"
+      "min-h-screen relative bg-[#F5F7FF] dark:bg-[#021944] text-foreground selection:bg-primary/30 transition-colors duration-700 shadow-inner overflow-y-auto overflow-x-hidden",
+      tvMode && "fixed inset-0 z-[100] bg-[#F5F7FF] dark:bg-[#021944] lg:ml-0 overflow-y-auto"
     )}>
       {/* Dynamic Arena Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -297,7 +298,7 @@ const Gaming = () => {
           )}
           
           {/* Header Broadcast Style */}
-          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] transition-all border-primary/20 z-20" style={{ clipPath: ANGULAR_CLIP }}>
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card dark:bg-[#0A234F] backdrop-blur-xl shadow-xl transition-all border-primary/20 z-20" style={{ clipPath: ANGULAR_CLIP }}>
              {/* Corporate Accent Notches */}
              <div className="absolute top-0 left-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
              <div className="absolute bottom-0 right-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
@@ -322,7 +323,8 @@ const Gaming = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <h1 className="text-3xl sm:text-6xl font-black uppercase tracking-tighter leading-tight text-foreground relative z-[60] break-words max-w-full" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        <h1 className="text-2xl sm:text-4xl font-black uppercase tracking-tight leading-tight text-foreground relative z-[60] break-words max-w-full" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        <p className="hidden sm:block text-[10px] font-bold opacity-40 uppercase tracking-widest mt-1">Ranking de Performance dos Corretores</p>
                         {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 hover:bg-primary/10"><Pencil className="w-4 h-4" /></Button>}
                       </div>
                     )}
@@ -332,53 +334,61 @@ const Gaming = () => {
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                    <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border">
                       <Select value={month} onValueChange={setMonth}>
-                        <SelectTrigger className="w-[130px] h-9 border-0 bg-transparent font-bold uppercase text-[11px]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="w-[80px] h-9 border-0 bg-transparent font-bold uppercase text-[11px]"><SelectValue /></SelectTrigger>
                         <SelectContent>{months.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}</SelectContent>
                       </Select>
                       <Select value={year} onValueChange={setYear} disabled={month === "all"}>
-                        <SelectTrigger className="w-[100px] h-9 border-0 bg-transparent font-bold text-[11px]"><SelectValue /></SelectTrigger>
+                        <SelectTrigger className="w-[70px] h-9 border-0 bg-transparent font-bold text-[11px]"><SelectValue /></SelectTrigger>
                         <SelectContent>{years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
                       </Select>
                    </div>
                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="text-[10px] font-bold h-9 gap-1.5 border-primary/20">
+                        <TrendingUp className="w-3 h-3 text-primary" />
+                        Ajustar
+                      </Button>
                       <Button 
                         size="sm" 
                         variant="outline" 
                         onClick={() => window.open(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'tv=true', '_blank')} 
-                        className={cn("font-bold uppercase tracking-widest text-[10px] transition-all hover:shadow-md", tvMode && "bg-primary text-white border-primary")}
+                        className={cn("font-bold uppercase tracking-widest text-[10px] h-9 transition-all hover:shadow-md", tvMode && "bg-primary text-white border-primary")}
                       >
-                        {tvMode ? <Maximize2 className="w-4 h-4 mr-2" /> : <Monitor className="w-4 h-4 mr-2" />}
-                        Modo TV
+                        {tvMode ? <Maximize2 className="w-3.5 h-3.5 mr-2" /> : <Monitor className="w-3.5 h-3.5 mr-2" />}
+                        TV
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => setSoundEnabled(!soundEnabled)}>
-                        {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                      <Button size="sm" variant="outline" className="h-9" onClick={() => setSoundEnabled(!soundEnabled)}>
+                        {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                       </Button>
-                      <Button size="sm" onClick={triggerCelebration} className="font-bold uppercase tracking-widest bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25">
-                        <Zap className="w-4 h-4 mr-2" /> Comemorar
+                      <Button size="sm" onClick={triggerCelebration} className="h-9 font-bold uppercase tracking-widest bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25">
+                        <Zap className="w-3.5 h-3.5 mr-2" />
                       </Button>
                    </div>
                 </div>
              </div>
 
              {/* Hero Stats */}
-             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+             <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mt-10">
                 {[
-                  { l: "VGV Total", v: formatCurrency(totals.vgv), i: DollarSign, color: "text-emerald-600" },
-                  { l: "Vendas", v: totals.vendas, i: Trophy, color: "text-amber-500" },
-                  { l: "Leads", v: totals.leads, i: Flame, color: "text-orange-500" },
-                  { l: "Negociações", v: totals.negociacoes, i: Handshake, color: "text-primary" },
+                  { l: "Vendas", v: totals.vendas, i: Trophy, color: "text-amber-500", desc: "Contratos assinados" },
+                  { l: "VGV Total", v: formatCurrency(totals.vgv), i: DollarSign, color: "text-emerald-600", desc: "Volume geral de vendas" },
                 ].map((k) => (
-                  <div key={k.l} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 hover:bg-muted/50 transition-colors group shadow-sm hover:shadow-md">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 flex items-center gap-1.5">
-                      <k.i className={cn("w-3 h-3", k.color)} /> {k.l}
-                    </p>
-                    <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight group-hover:scale-105 transition-transform origin-left">{k.v}</p>
+                  <div key={k.l} className={cn("p-6 rounded-2xl bg-card border border-primary/5 hover:bg-muted/50 transition-all group hover:shadow-xl", MODERN_CARD_SHADOW)}>
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-muted/50 group-hover:bg-primary/10 transition-colors">
+                        <k.i className={cn("w-6 h-6", k.color)} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">{k.l}</p>
+                        <p className="text-xl sm:text-3xl font-black tabular-nums tracking-tight group-hover:scale-105 transition-transform origin-left">{k.v}</p>
+                        <p className="text-[9px] opacity-30 mt-1 uppercase font-bold">{k.desc}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
-          </div>
+             </div>
 
           {(settings as any)?.gaming_show_goal && (
-            <div className="p-8 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-lg border-primary/10 relative overflow-hidden" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className={cn("p-8 rounded-[2rem] border bg-card dark:bg-[#0A234F] relative overflow-hidden", MODERN_CARD_SHADOW)} style={{ clipPath: ANGULAR_CLIP }}>
               <div className="absolute top-0 right-0 p-4 opacity-5">
                 <Target className="w-24 h-24" />
               </div>
@@ -420,7 +430,7 @@ const Gaming = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             
             {/* Podium Glass Pedestals */}
-            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-10" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className={cn("lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card dark:bg-[#0A234F] relative z-10", MODERN_CARD_SHADOW)} style={{ clipPath: ANGULAR_CLIP }}>
                <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style={{ background: "radial-gradient(circle at 50% 100%, hsl(var(--primary)), transparent 80%)" }} />
                
                <div className="relative text-center mb-12">
@@ -475,7 +485,7 @@ const Gaming = () => {
             </div>
 
             {/* Ranking List */}
-            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-10" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className={cn("lg:col-span-2 p-6 rounded-[2rem] border bg-card dark:bg-[#0A234F] flex flex-col z-10", MODERN_CARD_SHADOW)} style={{ clipPath: ANGULAR_CLIP }}>
                <div className="flex items-center justify-between mb-6">
                  <div>
                     <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Medal className="w-4 h-4 text-primary" /> Ranking IPM</h3>
@@ -497,8 +507,8 @@ const Gaming = () => {
                         <div className="flex-1 min-w-0">
                           <p className="font-black text-sm truncate uppercase tracking-tight" style={{ fontFamily: DISPLAY }}>{s.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
-                              <motion.div className="h-full bg-primary" initial={{ width: 0 }} animate={{ width: `${s.ipm}%` }} />
+                            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden shadow-inner">
+                              <motion.div className="h-full bg-primary shadow-[0_0_10px_rgba(37,99,235,0.5)]" initial={{ width: 0 }} animate={{ width: `${s.ipm}%` }} />
                             </div>
                             <span className="text-[10px] font-black opacity-40">{s.ipm.toFixed(1)}</span>
                           </div>
@@ -517,13 +527,13 @@ const Gaming = () => {
 
           {/* Secondary Stats & Missions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5">
+             <Card className={cn("rounded-[2rem] border-primary/10 overflow-hidden bg-card dark:bg-[#0A234F]", MODERN_CARD_SHADOW)}>
                 <CardContent className="p-8">
                    <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Target className="w-5 h-5 text-primary" /> Missões Ativas</h3>
                    <div className="space-y-4">
                       {[
-                        { n: "Prospectador Pro", d: "Cadastre 10 novos leads", p: (enriched[0]?.leads ?? 0) / 10 * 100, r: "500 PTS" },
-                        { n: "Mestre da Conversão", d: "Feche 2 vendas no período", p: (enriched[0]?.vendas ?? 0) / 2 * 100, r: "1000 PTS" },
+                        { n: "🎯 Prospectador Pro", d: "Cadastre 10 novos leads", p: (enriched[0]?.leads ?? 0) / 10 * 100, r: "500 PTS" },
+                        { n: "🔥 Mestre da Conversão", d: "Feche 2 vendas no período", p: (enriched[0]?.vendas ?? 0) / 2 * 100, r: "1000 PTS" },
                       ].map(m => (
                         <div key={m.n} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 space-y-3">
                            <div className="flex justify-between items-center">
@@ -540,7 +550,7 @@ const Gaming = () => {
                 </CardContent>
              </Card>
 
-             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5">
+             <Card className={cn("rounded-[2rem] border-primary/10 overflow-hidden bg-card dark:bg-[#0A234F]", MODERN_CARD_SHADOW)}>
                 <CardContent className="p-8">
                    <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><TrendingUp className="w-5 h-5 text-emerald-500" /> Como Pontuar</h3>
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -561,7 +571,7 @@ const Gaming = () => {
       </main>
 
       {/* Corporate Broadcast Ticker */}
-      <div className="fixed bottom-0 left-0 w-full h-14 bg-card/95 backdrop-blur-xl border-t border-primary/20 z-[105] flex items-center overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
+      <div className="fixed bottom-0 left-0 w-full h-14 bg-card dark:bg-[#0A234F] backdrop-blur-xl border-t border-primary/20 z-[105] flex items-center overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
         <div className="bg-primary h-full px-8 flex items-center gap-3 skew-x-[-15deg] -ml-4 z-10 shadow-[10px_0_30px_rgba(37,99,235,0.3)] border-r border-white/20">
           <div className="skew-x-[15deg] flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-white animate-pulse" />
