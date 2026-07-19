@@ -288,33 +288,33 @@ const Gaming = () => {
           )}
           
           {/* Header Broadcast Style */}
-          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all" style={{ clipPath: ANGULAR_CLIP }}>
-             {/* Red esports notches */}
-             <div className="absolute top-0 left-0 h-1.5 w-32 bg-[#FF4655] shadow-[0_0_15px_#FF4655]" />
-             <div className="absolute bottom-0 right-0 h-1.5 w-32 bg-[#FF4655] shadow-[0_0_15px_#FF4655]" />
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
+             {/* Corporate Accent Notches */}
+             <div className="absolute top-0 left-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+             <div className="absolute bottom-0 right-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
              
              <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
-                  <div className="w-20 h-20 rounded-3xl bg-primary/10 grid place-items-center shadow-inner relative group">
+                  <div className="w-20 h-20 rounded-3xl bg-primary/10 grid place-items-center shadow-inner relative group border border-primary/20">
                     <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     {logo ? <img src={logo} className="w-12 h-12 object-contain" /> : <Trophy className="w-10 h-10 text-primary" />}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" /> LIVE
+                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Sincronização em Tempo Real
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">CHAMPIONS SEASON • {year}</span>
+                      <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest opacity-60 border-primary/20">EDição {year}</Badge>
                     </div>
                     {editing ? (
                       <div className="flex gap-2">
-                        <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="font-black uppercase tracking-tighter text-2xl" autoFocus />
-                        <Button size="icon" onClick={saveName}><Check className="w-4 h-4" /></Button>
+                        <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="font-black uppercase tracking-tighter text-2xl border-primary/30" autoFocus />
+                        <Button size="icon" onClick={saveName} className="bg-primary text-white"><Check className="w-4 h-4" /></Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
-                        {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100"><Pencil className="w-4 h-4" /></Button>}
+                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none text-foreground" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 hover:bg-primary/10"><Pencil className="w-4 h-4" /></Button>}
                       </div>
                     )}
                   </div>
