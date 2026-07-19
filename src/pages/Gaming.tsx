@@ -296,7 +296,7 @@ const Gaming = () => {
           )}
           
           {/* Header Broadcast Style */}
-          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] transition-all border-primary/20 z-20" style={{ clipPath: ANGULAR_CLIP }}>
              {/* Corporate Accent Notches */}
              <div className="absolute top-0 left-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
              <div className="absolute bottom-0 right-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
@@ -321,7 +321,7 @@ const Gaming = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none text-foreground" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        <h1 className="text-3xl sm:text-6xl font-black uppercase tracking-tighter leading-tight text-foreground relative z-30 break-words max-w-full" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
                         {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 hover:bg-primary/10"><Pencil className="w-4 h-4" /></Button>}
                       </div>
                     )}
@@ -390,7 +390,7 @@ const Gaming = () => {
                   </h2>
                </div>
 
-               <div className="relative flex items-end justify-center gap-3 sm:gap-8 min-h-[400px] pb-4">
+               <div className="relative flex items-end justify-center gap-2 sm:gap-8 min-h-[420px] pb-4 overflow-x-auto no-scrollbar">
                  {podiumOrder.map((s) => {
                     const pos = enriched.indexOf(s) + 1;
                     const isFirst = pos === 1;
