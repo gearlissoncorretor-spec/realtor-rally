@@ -35,6 +35,10 @@ const BrandingSettings = () => {
     support_phone: '',
     primary_color: '#3b82f6',
     secondary_color: '#10b981',
+    gaming_name: 'LIGA DOS CAMPEÕES',
+    gaming_award: '',
+    gaming_goal: 0,
+    gaming_show_goal: false,
   });
 
   // TV Sound query
