@@ -256,8 +256,8 @@ const Gaming = () => {
 
   return (
     <div className={cn(
-      "min-h-screen relative overflow-hidden bg-[#F8FAFF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700 shadow-inner",
-      tvMode && "fixed inset-0 z-[100] bg-[#F8FAFF] dark:bg-[#0A0D1E] lg:ml-0"
+      "min-h-screen relative bg-[#F8FAFF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700 shadow-inner overflow-y-auto overflow-x-hidden",
+      tvMode && "fixed inset-0 z-[100] bg-[#F8FAFF] dark:bg-[#0A0D1E] lg:ml-0 overflow-y-auto"
     )}>
       {/* Dynamic Arena Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -381,16 +381,16 @@ const Gaming = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             
             {/* Podium Glass Pedestals */}
-            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-10" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style={{ background: "radial-gradient(circle at 50% 100%, hsl(var(--primary)), transparent 80%)" }} />
                
                <div className="relative text-center mb-12">
-                 <h2 className="text-3xl font-black uppercase tracking-[0.2em] inline-flex items-center gap-3" style={{ fontFamily: DISPLAY }}>
-                   <Crown className="w-8 h-8 text-amber-400" /> Pódio Master <Crown className="w-8 h-8 text-amber-400" />
-                 </h2>
+                  <h2 className="text-3xl font-black uppercase tracking-[0.2em] inline-flex items-center gap-3 relative z-30" style={{ fontFamily: DISPLAY }}>
+                    <Crown className="w-8 h-8 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" /> Pódio Master <Crown className="w-8 h-8 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
+                  </h2>
                </div>
 
-               <div className="relative flex items-end justify-center gap-3 sm:gap-8 h-[400px]">
+               <div className="relative flex items-end justify-center gap-3 sm:gap-8 min-h-[400px] pb-4">
                  {podiumOrder.map((s) => {
                     const pos = enriched.indexOf(s) + 1;
                     const isFirst = pos === 1;
@@ -415,7 +415,7 @@ const Gaming = () => {
                              <AvatarImage src={s.avatar || undefined} className="object-cover" />
                              <AvatarFallback className="font-black text-2xl bg-muted">{s.name.slice(0,2)}</AvatarFallback>
                            </Avatar>
-                           {isFirst && <div className="absolute -top-10 left-1/2 -translate-x-1/2 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"><Crown className="w-12 h-12 text-amber-400 animate-bounce" /></div>}
+                           {isFirst && <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-40 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]"><Crown className="w-14 h-14 text-amber-400 animate-bounce" /></div>}
                          </div>
                          
                          <div className="text-center mb-6 z-10">
@@ -436,7 +436,7 @@ const Gaming = () => {
             </div>
 
             {/* Ranking List */}
-            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-10" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="flex items-center justify-between mb-6">
                  <div>
                     <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Medal className="w-4 h-4 text-primary" /> Ranking IPM</h3>
