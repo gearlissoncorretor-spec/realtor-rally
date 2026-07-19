@@ -486,6 +486,55 @@ const Gaming = () => {
         </div>
       </main>
 
+      {/* Esports Broadcast Ticker */}
+      <div className="fixed bottom-0 left-0 w-full h-12 bg-[#021944] border-t border-[#FF4655]/30 z-[105] flex items-center overflow-hidden">
+        <div className="bg-[#FF4655] h-full px-6 flex items-center gap-2 skew-x-[-20deg] -ml-4 z-10 shadow-[5px_0_15px_rgba(255,70,85,0.4)]">
+          <TrendingUp className="w-5 h-5 text-white skew-x-[20deg]" />
+          <span className="text-white font-black italic tracking-tighter skew-x-[20deg] text-sm">BREAKING NEWS</span>
+        </div>
+        
+        <div className="flex-1 relative overflow-hidden h-full flex items-center">
+          <motion.div 
+            className="flex whitespace-nowrap gap-24 items-center"
+            animate={{ x: ["100%", "-100%"] }}
+            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+          >
+            {recentEvents.map((e) => (
+              <div key={e.id} className="flex items-center gap-3">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
+                )} />
+                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  {e.text}
+                </span>
+                <span className="text-[#FF4655]/40 font-black">//</span>
+              </div>
+            ))}
+            {/* Repeat for continuous loop */}
+            {recentEvents.map((e) => (
+              <div key={`${e.id}-clone`} className="flex items-center gap-3">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
+                )} />
+                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  {e.text}
+                </span>
+                <span className="text-[#FF4655]/40 font-black">//</span>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        <div className="bg-[#021944] h-full px-8 flex items-center border-l border-white/10 hidden sm:flex">
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] font-black text-[#FF4655] tracking-widest uppercase">Global VGV</span>
+            <span className="text-white font-mono font-bold text-xs tabular-nums">{formatCurrency(totals.vgv)}</span>
+          </div>
+        </div>
+      </div>
+
       <style>{`
         @keyframes shine {
           0% { background-position: -200% 0; }
