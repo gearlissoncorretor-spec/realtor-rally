@@ -83,7 +83,11 @@ const BrandingSettings = () => {
       support_phone: formData.support_phone || null,
       primary_color: formData.primary_color,
       secondary_color: formData.secondary_color,
-    });
+      gaming_name: formData.gaming_name,
+      gaming_award: formData.gaming_award || null,
+      gaming_goal: formData.gaming_goal,
+      gaming_show_goal: formData.gaming_show_goal,
+    } as any);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
