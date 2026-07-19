@@ -85,6 +85,7 @@ const Gaming = () => {
   const logo = getEffectiveLogo();
 
   const [editing, setEditing] = useState(false);
+  const [tvMode, setTvMode] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   useEffect(() => { setNameDraft((settings as any)?.gaming_name || "LIGA DOS CAMPEÕES"); }, [settings]);
   const screenName = (settings as any)?.gaming_name || "LIGA DOS CAMPEÕES";
@@ -95,6 +96,16 @@ const Gaming = () => {
     setConfetti(true);
     setTimeout(() => setConfetti(false), 3500);
   };
+
+  // TV Mode Auto-cycle
+  const [tvTab, setTvTab] = useState("all");
+  useEffect(() => {
+    if (!tvMode) return;
+    const interval = setInterval(() => {
+      setTvTab(prev => prev === "all" ? "ipm" : "all");
+    }, 15000); // Cycle every 15s
+    return () => clearInterval(interval);
+  }, [tvMode]);
 
   const now = new Date();
   const hasSalesThisMonth = useMemo(
