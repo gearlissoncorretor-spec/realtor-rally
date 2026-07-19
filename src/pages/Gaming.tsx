@@ -214,8 +214,42 @@ const Gaming = () => {
     setEditing(false);
   };
 
+  // Recent Events for Ticker
+  const recentEvents = useMemo(() => {
+    const events: { id: string, text: string, type: 'sale' | 'lead' | 'neg' }[] = [];
+    
+    // Last 5 sales
+    sales.slice(0, 5).forEach((s: any) => {
+      const broker = brokers.find(b => b.id === s.broker_id);
+      if (broker) {
+        events.push({
+          id: `sale-${s.id}`,
+          text: `NOVA VENDA! ${broker.name.split(' ')[0]} ACABA DE FECHAR ${formatCurrency(s.vgv)}`,
+          type: 'sale'
+        });
+      }
+    });
+
+    // Last 5 leads
+    leads.slice(0, 5).forEach((l: any) => {
+      const broker = brokers.find(b => b.user_id === l.user_id);
+      if (broker) {
+        events.push({
+          id: `lead-${l.id}`,
+          text: `NOVO LEAD! ${broker.name.split(' ')[0]} RECEBEU UM CLIENTE DE ${l.origem || 'Origem Direta'}`,
+          type: 'lead'
+        });
+      }
+    });
+
+    return events.sort(() => Math.random() - 0.5);
+  }, [sales, leads, brokers]);
+
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background text-foreground selection:bg-primary/30">
+    <div className={cn(
+      "min-h-screen relative overflow-hidden bg-background text-foreground selection:bg-primary/30",
+      tvMode && "fixed inset-0 z-[100] bg-background lg:ml-0"
+    )}>
       {/* Light Mode Arena Background */}
       <div className="fixed inset-0 pointer-events-none opacity-30 dark:opacity-10">
         <div className="absolute top-0 left-0 w-full h-full" style={{ background: "radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.15), transparent 70%)" }} />
@@ -223,10 +257,24 @@ const Gaming = () => {
       </div>
 
       <ConfettiCanvas active={confetti} />
-      <Navigation />
+      {!tvMode && <Navigation />}
 
-      <main className="relative lg:ml-72 pt-16 pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <main className={cn(
+        "relative pt-16 pb-24 px-4 sm:px-6 lg:px-8 transition-all duration-500",
+        !tvMode && "lg:ml-72"
+      )}>
+        <div className={cn("max-w-7xl mx-auto space-y-6", tvMode && "max-w-none")}>
+          
+          {tvMode && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setTvMode(false)}
+              className="fixed top-4 right-4 z-[110] bg-background/50 backdrop-blur-md"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          )}
           
           {/* Header Broadcast Style */}
           <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all" style={{ clipPath: ANGULAR_CLIP }}>
