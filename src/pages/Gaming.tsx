@@ -20,13 +20,14 @@ import { cn } from "@/lib/utils";
 import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
 import { CountUp } from "@/components/gaming/CountUp";
 
-const DISPLAY = "'Chakra Petch', 'Rajdhani', 'Sora', system-ui, sans-serif";
-const ANGULAR_CLIP = "polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px)";
-const ESPORTS_RED = "#FF4655";
+const DISPLAY = "'Sora', 'Inter', system-ui, sans-serif";
+const ANGULAR_CLIP = "polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px)";
+const CORPORATE_BLUE = "#2563EB";
+const SUCCESS_GREEN = "#10B981";
 
-const GOLD = "#FFD54A";
-const SILVER = "#94A3B8";
-const BRONZE = "#B45309";
+const GOLD = "#FFD700";
+const SILVER = "#C0C0C0";
+const BRONZE = "#CD7F32";
 
 const POINTS = {
   lead: 5,
@@ -287,33 +288,33 @@ const Gaming = () => {
           )}
           
           {/* Header Broadcast Style */}
-          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all" style={{ clipPath: ANGULAR_CLIP }}>
-             {/* Red esports notches */}
-             <div className="absolute top-0 left-0 h-1.5 w-32 bg-[#FF4655] shadow-[0_0_15px_#FF4655]" />
-             <div className="absolute bottom-0 right-0 h-1.5 w-32 bg-[#FF4655] shadow-[0_0_15px_#FF4655]" />
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
+             {/* Corporate Accent Notches */}
+             <div className="absolute top-0 left-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+             <div className="absolute bottom-0 right-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
              
              <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-5">
-                  <div className="w-20 h-20 rounded-3xl bg-primary/10 grid place-items-center shadow-inner relative group">
+                  <div className="w-20 h-20 rounded-3xl bg-primary/10 grid place-items-center shadow-inner relative group border border-primary/20">
                     <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     {logo ? <img src={logo} className="w-12 h-12 object-contain" /> : <Trophy className="w-10 h-10 text-primary" />}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" /> LIVE
+                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 shadow-sm">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Sincronização em Tempo Real
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">CHAMPIONS SEASON • {year}</span>
+                      <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest opacity-60 border-primary/20">EDição {year}</Badge>
                     </div>
                     {editing ? (
                       <div className="flex gap-2">
-                        <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="font-black uppercase tracking-tighter text-2xl" autoFocus />
-                        <Button size="icon" onClick={saveName}><Check className="w-4 h-4" /></Button>
+                        <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="font-black uppercase tracking-tighter text-2xl border-primary/30" autoFocus />
+                        <Button size="icon" onClick={saveName} className="bg-primary text-white"><Check className="w-4 h-4" /></Button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
-                        {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100"><Pencil className="w-4 h-4" /></Button>}
+                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none text-foreground" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 hover:bg-primary/10"><Pencil className="w-4 h-4" /></Button>}
                       </div>
                     )}
                   </div>
@@ -377,36 +378,46 @@ const Gaming = () => {
 
                <div className="relative flex items-end justify-center gap-3 sm:gap-8 h-[400px]">
                  {podiumOrder.map((s) => {
-                   const pos = enriched.indexOf(s) + 1;
-                   const isFirst = pos === 1;
-                   const accent = isFirst ? GOLD : pos === 2 ? SILVER : BRONZE;
-                   return (
-                     <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 max-w-[180px]">
-                        <div className="relative mb-6">
-                          <AnimatePresence>
-                            {isFirst && (
-                              <motion.div className="absolute inset-0 -m-4 rounded-full bg-amber-400/20 blur-2xl" animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 3, repeat: Infinity }} />
-                            )}
-                          </AnimatePresence>
-                          <Avatar className={cn("ring-offset-background transition-all", isFirst ? "h-24 w-24 sm:h-32 sm:w-32 ring-4 ring-amber-400 shadow-2xl" : "h-16 w-16 sm:h-20 sm:w-20 ring-2 ring-muted shadow-lg")}>
-                            <AvatarImage src={s.avatar || undefined} />
-                            <AvatarFallback className="font-black text-xl">{s.name.slice(0,2)}</AvatarFallback>
-                          </Avatar>
-                          {isFirst && <div className="absolute -top-6 left-1/2 -translate-x-1/2"><Crown className="w-10 h-10 text-amber-400 animate-bounce" /></div>}
-                        </div>
-                        
-                        <div className="text-center mb-4">
-                          <p className={cn("font-black uppercase leading-tight line-clamp-1 mb-1", isFirst ? "text-lg sm:text-xl" : "text-sm")} style={{ fontFamily: DISPLAY }}>{s.name}</p>
-                          <Badge variant="secondary" className="font-black tabular-nums">{s.points} PTS</Badge>
-                        </div>
+                    const pos = enriched.indexOf(s) + 1;
+                    const isFirst = pos === 1;
+                    const isSecond = pos === 2;
+                    const isThird = pos === 3;
+                    
+                    const pedestalColors = isFirst 
+                      ? "from-amber-400 via-yellow-500 to-amber-600 border-amber-300 shadow-[0_0_30px_rgba(251,191,36,0.3)]" 
+                      : isSecond 
+                        ? "from-slate-300 via-slate-400 to-slate-500 border-slate-200 shadow-[0_0_20px_rgba(148,163,184,0.2)]" 
+                        : "from-amber-700 via-amber-800 to-amber-900 border-amber-600 shadow-[0_0_20px_rgba(180,83,9,0.2)]";
 
-                        <div className={cn("w-full rounded-t-3xl border-x border-t relative group overflow-hidden transition-all", isFirst ? "h-56 bg-gradient-to-b from-amber-400/20 to-transparent border-amber-400/40" : pos === 2 ? "h-40 bg-gradient-to-b from-slate-400/10 to-transparent border-slate-400/20" : "h-28 bg-gradient-to-b from-amber-700/10 to-transparent border-amber-700/20")}>
-                           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-5xl sm:text-7xl font-black opacity-40 italic" style={{ fontFamily: DISPLAY }}>{pos}</div>
-                        </div>
-                     </motion.div>
-                   );
-                 })}
+                    return (
+                      <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 max-w-[200px]">
+                         <div className="relative mb-8">
+                           <AnimatePresence>
+                             {isFirst && (
+                               <motion.div className="absolute inset-0 -m-6 rounded-full bg-amber-400/30 blur-3xl" animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 4, repeat: Infinity }} />
+                             )}
+                           </AnimatePresence>
+                           <Avatar className={cn("ring-offset-background transition-all duration-500", isFirst ? "h-28 w-28 sm:h-36 sm:w-36 ring-8 ring-amber-400 shadow-[0_0_40px_rgba(251,191,36,0.5)] scale-110" : isSecond ? "h-20 w-20 sm:h-24 sm:w-24 ring-4 ring-slate-400 shadow-xl" : "h-18 w-18 sm:h-22 sm:w-22 ring-4 ring-amber-800 shadow-lg")}>
+                             <AvatarImage src={s.avatar || undefined} className="object-cover" />
+                             <AvatarFallback className="font-black text-2xl bg-muted">{s.name.slice(0,2)}</AvatarFallback>
+                           </Avatar>
+                           {isFirst && <div className="absolute -top-10 left-1/2 -translate-x-1/2 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"><Crown className="w-12 h-12 text-amber-400 animate-bounce" /></div>}
+                         </div>
+                         
+                         <div className="text-center mb-6 z-10">
+                           <p className={cn("font-black uppercase leading-tight line-clamp-1 mb-1 tracking-tight text-foreground", isFirst ? "text-xl sm:text-2xl" : "text-sm sm:text-base")} style={{ fontFamily: DISPLAY }}>{s.name}</p>
+                           <Badge variant={isFirst ? "default" : "secondary"} className={cn("font-black tabular-nums px-3 py-1", isFirst && "bg-amber-500 hover:bg-amber-600 text-black")}>{s.points.toLocaleString()} PTS</Badge>
+                         </div>
+
+                         <div className={cn("w-full rounded-t-[2.5rem] border-x border-t relative group overflow-hidden transition-all duration-700 bg-gradient-to-b", pedestalColors, isFirst ? "h-64" : isSecond ? "h-44" : "h-32")}>
+                            <div className="absolute inset-0 bg-white/10 opacity-20 animate-pulse" />
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]" />
+                            <div className="absolute top-6 left-1/2 -translate-x-1/2 text-6xl sm:text-8xl font-black text-white/20 italic tracking-tighter drop-shadow-lg" style={{ fontFamily: DISPLAY }}>{pos}</div>
+                            {isFirst && <div className="absolute bottom-0 left-0 w-full h-1 bg-white/30" />}
+                         </div>
+                      </motion.div>
+                    );
+                  })}
                </div>
             </div>
 
@@ -496,51 +507,57 @@ const Gaming = () => {
         </div>
       </main>
 
-      {/* Esports Broadcast Ticker */}
-      <div className="fixed bottom-0 left-0 w-full h-12 bg-[#021944] border-t border-[#FF4655]/30 z-[105] flex items-center overflow-hidden">
-        <div className="bg-[#FF4655] h-full px-6 flex items-center gap-2 skew-x-[-20deg] -ml-4 z-10 shadow-[5px_0_15px_rgba(255,70,85,0.4)]">
-          <TrendingUp className="w-5 h-5 text-white skew-x-[20deg]" />
-          <span className="text-white font-black italic tracking-tighter skew-x-[20deg] text-sm">BREAKING NEWS</span>
+      {/* Corporate Broadcast Ticker */}
+      <div className="fixed bottom-0 left-0 w-full h-14 bg-card/95 backdrop-blur-xl border-t border-primary/20 z-[105] flex items-center overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
+        <div className="bg-primary h-full px-8 flex items-center gap-3 skew-x-[-15deg] -ml-4 z-10 shadow-[10px_0_30px_rgba(37,99,235,0.3)] border-r border-white/20">
+          <div className="skew-x-[15deg] flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-white animate-pulse" />
+            <span className="text-white font-black tracking-widest text-[10px] uppercase">PLANTÃO DE VENDAS</span>
+          </div>
         </div>
         
         <div className="flex-1 relative overflow-hidden h-full flex items-center">
           <motion.div 
-            className="flex whitespace-nowrap gap-24 items-center"
+            className="flex whitespace-nowrap gap-32 items-center"
             animate={{ x: ["100%", "-100%"] }}
-            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 70, repeat: Infinity, ease: "linear" }}
           >
             {recentEvents.map((e) => (
-              <div key={e.id} className="flex items-center gap-3">
+              <div key={e.id} className="flex items-center gap-4">
                 <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
-                )} />
-                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  "px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-tighter",
+                  e.type === 'sale' ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-primary/20 text-primary"
+                )}>
+                  {e.type === 'sale' ? 'VENDA' : 'NOVO LEAD'}
+                </div>
+                <span className="text-foreground font-bold uppercase tracking-wide text-[11px] font-sans">
                   {e.text}
                 </span>
-                <span className="text-[#FF4655]/40 font-black">//</span>
+                <span className="text-primary/30 font-black tracking-widest px-4">|</span>
               </div>
             ))}
             {/* Repeat for continuous loop */}
             {recentEvents.map((e) => (
-              <div key={`${e.id}-clone`} className="flex items-center gap-3">
+              <div key={`${e.id}-clone`} className="flex items-center gap-4">
                 <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
-                )} />
-                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  "px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-tighter",
+                  e.type === 'sale' ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-primary/20 text-primary"
+                )}>
+                  {e.type === 'sale' ? 'VENDA' : 'NOVO LEAD'}
+                </div>
+                <span className="text-foreground font-bold uppercase tracking-wide text-[11px] font-sans">
                   {e.text}
                 </span>
-                <span className="text-[#FF4655]/40 font-black">//</span>
+                <span className="text-primary/30 font-black tracking-widest px-4">|</span>
               </div>
             ))}
           </motion.div>
         </div>
 
-        <div className="bg-[#021944] h-full px-8 flex items-center border-l border-white/10 hidden sm:flex">
+        <div className="bg-muted/50 h-full px-10 flex items-center border-l border-border/50 hidden md:flex">
           <div className="flex flex-col items-end">
-            <span className="text-[9px] font-black text-[#FF4655] tracking-widest uppercase">Global VGV</span>
-            <span className="text-white font-mono font-bold text-xs tabular-nums">{formatCurrency(totals.vgv)}</span>
+            <span className="text-[9px] font-black text-primary tracking-widest uppercase mb-0.5">VGV Global do Mês</span>
+            <span className="text-foreground font-sans font-black text-sm tabular-nums tracking-tight">{formatCurrency(totals.vgv)}</span>
           </div>
         </div>
       </div>
