@@ -256,8 +256,8 @@ const Gaming = () => {
 
   return (
     <div className={cn(
-      "min-h-screen relative overflow-hidden bg-[#F8FAFF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700 shadow-inner",
-      tvMode && "fixed inset-0 z-[100] bg-[#F8FAFF] dark:bg-[#0A0D1E] lg:ml-0"
+      "min-h-screen relative bg-[#F8FAFF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700 shadow-inner overflow-y-auto overflow-x-hidden",
+      tvMode && "fixed inset-0 z-[100] bg-[#F8FAFF] dark:bg-[#0A0D1E] lg:ml-0 overflow-y-auto"
     )}>
       {/* Dynamic Arena Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -279,10 +279,10 @@ const Gaming = () => {
       {!tvMode && <Navigation />}
 
       <main className={cn(
-        "relative pt-16 pb-24 px-4 sm:px-6 lg:px-8 transition-all duration-500",
-        !tvMode && "lg:ml-72"
+        "relative pb-24 px-4 sm:px-6 lg:px-8 transition-all duration-500",
+        !tvMode ? "lg:ml-72 pt-16" : "pt-6"
       )}>
-        <div className={cn("max-w-7xl mx-auto space-y-6", tvMode && "max-w-none")}>
+        <div className={cn("max-w-7xl mx-auto space-y-8", tvMode && "max-w-none px-4 sm:px-10")}>
           
           {tvMode && (
             <Button 
@@ -296,7 +296,7 @@ const Gaming = () => {
           )}
           
           {/* Header Broadcast Style */}
-          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] transition-all border-primary/20 z-20" style={{ clipPath: ANGULAR_CLIP }}>
              {/* Corporate Accent Notches */}
              <div className="absolute top-0 left-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
              <div className="absolute bottom-0 right-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
@@ -321,7 +321,7 @@ const Gaming = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none text-foreground" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        <h1 className="text-3xl sm:text-6xl font-black uppercase tracking-tighter leading-tight text-foreground relative z-30 break-words max-w-full" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
                         {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 hover:bg-primary/10"><Pencil className="w-4 h-4" /></Button>}
                       </div>
                     )}
@@ -381,16 +381,16 @@ const Gaming = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             
             {/* Podium Glass Pedestals */}
-            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-10" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style={{ background: "radial-gradient(circle at 50% 100%, hsl(var(--primary)), transparent 80%)" }} />
                
                <div className="relative text-center mb-12">
-                 <h2 className="text-3xl font-black uppercase tracking-[0.2em] inline-flex items-center gap-3" style={{ fontFamily: DISPLAY }}>
-                   <Crown className="w-8 h-8 text-amber-400" /> Pódio Master <Crown className="w-8 h-8 text-amber-400" />
-                 </h2>
+                  <h2 className="text-3xl font-black uppercase tracking-[0.2em] inline-flex items-center gap-3 relative z-30" style={{ fontFamily: DISPLAY }}>
+                    <Crown className="w-8 h-8 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" /> Pódio Master <Crown className="w-8 h-8 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
+                  </h2>
                </div>
 
-               <div className="relative flex items-end justify-center gap-3 sm:gap-8 h-[400px]">
+               <div className="relative flex items-end justify-center gap-2 sm:gap-8 min-h-[420px] pb-4 overflow-x-auto no-scrollbar">
                  {podiumOrder.map((s) => {
                     const pos = enriched.indexOf(s) + 1;
                     const isFirst = pos === 1;
@@ -404,7 +404,7 @@ const Gaming = () => {
                         : "from-amber-700 via-amber-800 to-amber-900 border-amber-600 shadow-[0_0_20px_rgba(180,83,9,0.2)]";
 
                     return (
-                      <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 max-w-[200px]">
+                      <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 min-w-[120px] max-w-[200px] relative z-20">
                          <div className="relative mb-8">
                            <AnimatePresence>
                              {isFirst && (
@@ -415,7 +415,7 @@ const Gaming = () => {
                              <AvatarImage src={s.avatar || undefined} className="object-cover" />
                              <AvatarFallback className="font-black text-2xl bg-muted">{s.name.slice(0,2)}</AvatarFallback>
                            </Avatar>
-                           {isFirst && <div className="absolute -top-10 left-1/2 -translate-x-1/2 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"><Crown className="w-12 h-12 text-amber-400 animate-bounce" /></div>}
+                           {isFirst && <div className="absolute -top-12 left-1/2 -translate-x-1/2 z-40 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]"><Crown className="w-14 h-14 text-amber-400 animate-bounce" /></div>}
                          </div>
                          
                          <div className="text-center mb-6 z-10">
@@ -423,7 +423,7 @@ const Gaming = () => {
                            <Badge variant={isFirst ? "default" : "secondary"} className={cn("font-black tabular-nums px-3 py-1", isFirst && "bg-amber-500 hover:bg-amber-600 text-black")}>{s.points.toLocaleString()} PTS</Badge>
                          </div>
 
-                         <div className={cn("w-full rounded-t-[2.5rem] border-x border-t relative group overflow-hidden transition-all duration-700 bg-gradient-to-b", pedestalColors, isFirst ? "h-64" : isSecond ? "h-44" : "h-32")}>
+                         <div className={cn("w-full rounded-t-[2.5rem] border-x border-t relative group overflow-hidden transition-all duration-700 bg-gradient-to-b z-10", pedestalColors, isFirst ? "h-64" : isSecond ? "h-44" : "h-32")}>
                             <div className="absolute inset-0 bg-white/10 opacity-20 animate-pulse" />
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)]" />
                             <div className="absolute top-6 left-1/2 -translate-x-1/2 text-6xl sm:text-8xl font-black text-white/20 italic tracking-tighter drop-shadow-lg" style={{ fontFamily: DISPLAY }}>{pos}</div>
@@ -436,7 +436,7 @@ const Gaming = () => {
             </div>
 
             {/* Ranking List */}
-            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-10" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="flex items-center justify-between mb-6">
                  <div>
                     <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Medal className="w-4 h-4 text-primary" /> Ranking IPM</h3>
@@ -452,7 +452,7 @@ const Gaming = () => {
                       <motion.div key={s.brokerId} layout className="group flex items-center gap-3 p-3 rounded-2xl border bg-muted/20 hover:bg-primary/5 hover:border-primary/20 transition-all cursor-default">
                         <div className={cn("w-10 h-10 rounded-xl grid place-items-center font-black italic", isTop ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-muted text-muted-foreground")} style={{ fontFamily: DISPLAY }}>{i + 1}</div>
                         <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                          <AvatarImage src={s.avatar || undefined} />
+                          <AvatarImage src={s.avatar || undefined} className="object-cover" />
                           <AvatarFallback>{s.name.slice(0,2)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
