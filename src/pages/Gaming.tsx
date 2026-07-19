@@ -88,7 +88,15 @@ const Gaming = () => {
   const [editing, setEditing] = useState(false);
   const [tvMode, setTvMode] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "LIGA DOS CAMPEÕES"); }, [settings]);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tv') === 'true') {
+      setTvMode(true);
+    }
+    setNameDraft((settings as any)?.gaming_name || "LIGA DOS CAMPEÕES");
+  }, [settings]);
+
   const screenName = (settings as any)?.gaming_name || "LIGA DOS CAMPEÕES";
 
   const { playReveal, soundEnabled, setSoundEnabled } = useRankingSounds();
@@ -248,23 +256,23 @@ const Gaming = () => {
 
   return (
     <div className={cn(
-      "min-h-screen relative overflow-hidden bg-background text-foreground selection:bg-primary/30 transition-colors duration-700",
-      tvMode && "fixed inset-0 z-[100] bg-background lg:ml-0"
+      "min-h-screen relative overflow-hidden bg-[#F0F4FF] dark:bg-[#0A0D1E] text-foreground selection:bg-primary/30 transition-colors duration-700",
+      tvMode && "fixed inset-0 z-[100] bg-[#F0F4FF] dark:bg-[#0A0D1E] lg:ml-0"
     )}>
       {/* Dynamic Arena Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <motion.div 
-          className="absolute top-0 left-0 w-full h-full opacity-30 dark:opacity-10"
+          className="absolute top-0 left-0 w-full h-full opacity-40 dark:opacity-20"
           animate={{ 
             background: [
-              "radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.15), transparent 60%)",
-              "radial-gradient(circle at 80% 80%, hsl(var(--primary) / 0.15), transparent 60%)",
-              "radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.15), transparent 60%)",
+              "radial-gradient(circle at 20% 20%, #2563EB22, transparent 60%)",
+              "radial-gradient(circle at 80% 80%, #2563EB22, transparent 60%)",
+              "radial-gradient(circle at 20% 20%, #2563EB22, transparent 60%)",
             ]
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
         />
-        <div className="absolute inset-0 opacity-20 dark:opacity-5" style={{ backgroundImage: "linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="absolute inset-0 opacity-30 dark:opacity-10" style={{ backgroundImage: "linear-gradient(#2563EB11 1px, transparent 1px), linear-gradient(90deg, #2563EB11 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       </div>
 
       <ConfettiCanvas active={confetti} />
@@ -288,7 +296,7 @@ const Gaming = () => {
           )}
           
           {/* Header Broadcast Style */}
-          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
              {/* Corporate Accent Notches */}
              <div className="absolute top-0 left-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
              <div className="absolute bottom-0 right-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
@@ -332,7 +340,7 @@ const Gaming = () => {
                       </Select>
                    </div>
                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setTvMode(!tvMode)} className={cn(tvMode && "bg-primary text-white border-primary")}>
+                      <Button size="sm" variant="outline" onClick={() => window.open(window.location.origin + window.location.pathname + '?tv=true', '_blank')} className={cn(tvMode && "bg-primary text-white border-primary")}>
                         {tvMode ? <Maximize2 className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setSoundEnabled(!soundEnabled)}>
@@ -353,7 +361,7 @@ const Gaming = () => {
                   { l: "Leads", v: totals.leads, i: Flame, color: "text-orange-500" },
                   { l: "Negociações", v: totals.negociacoes, i: Handshake, color: "text-primary" },
                 ].map((k) => (
-                  <div key={k.l} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 hover:bg-muted/50 transition-colors group">
+                  <div key={k.l} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 hover:bg-muted/50 transition-colors group shadow-sm hover:shadow-md">
                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 flex items-center gap-1.5">
                       <k.i className={cn("w-3 h-3", k.color)} /> {k.l}
                     </p>
@@ -367,7 +375,7 @@ const Gaming = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             
             {/* Podium Glass Pedestals */}
-            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative overflow-hidden" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style={{ background: "radial-gradient(circle at 50% 100%, hsl(var(--primary)), transparent 80%)" }} />
                
                <div className="relative text-center mb-12">
@@ -422,7 +430,7 @@ const Gaming = () => {
             </div>
 
             {/* Ranking List */}
-            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="flex items-center justify-between mb-6">
                  <div>
                     <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Medal className="w-4 h-4 text-primary" /> Ranking IPM</h3>
@@ -442,7 +450,7 @@ const Gaming = () => {
                           <AvatarFallback>{s.name.slice(0,2)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm truncate">{s.name}</p>
+                          <p className="font-black text-sm truncate uppercase tracking-tight" style={{ fontFamily: DISPLAY }}>{s.name}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
                               <motion.div className="h-full bg-primary" initial={{ width: 0 }} animate={{ width: `${s.ipm}%` }} />
@@ -464,7 +472,7 @@ const Gaming = () => {
 
           {/* Secondary Stats & Missions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm">
+             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5">
                 <CardContent className="p-8">
                    <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Target className="w-5 h-5 text-primary" /> Missões Ativas</h3>
                    <div className="space-y-4">
@@ -487,7 +495,7 @@ const Gaming = () => {
                 </CardContent>
              </Card>
 
-             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm">
+             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5">
                 <CardContent className="p-8">
                    <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><TrendingUp className="w-5 h-5 text-emerald-500" /> Como Pontuar</h3>
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
