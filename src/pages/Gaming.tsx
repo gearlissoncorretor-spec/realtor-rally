@@ -495,7 +495,7 @@ const Gaming = () => {
                 </CardContent>
              </Card>
 
-             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm">
+             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5">
                 <CardContent className="p-8">
                    <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><TrendingUp className="w-5 h-5 text-emerald-500" /> Como Pontuar</h3>
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
