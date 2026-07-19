@@ -472,7 +472,7 @@ const Gaming = () => {
 
           {/* Secondary Stats & Missions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm">
+             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm shadow-xl shadow-primary/5">
                 <CardContent className="p-8">
                    <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Target className="w-5 h-5 text-primary" /> Missões Ativas</h3>
                    <div className="space-y-4">
