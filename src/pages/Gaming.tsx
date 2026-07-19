@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useData } from "@/contexts/DataContext";
 import { useLeads } from "@/hooks/useLeads";
@@ -13,7 +14,7 @@ import { useNegotiations } from "@/hooks/useNegotiations";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
-import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal, Volume2, VolumeX, Crown, Zap, Monitor, Maximize2, MoveRight } from "lucide-react";
+import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal, Volume2, VolumeX, Crown, Zap, Monitor, Maximize2, MoveRight, Award } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
@@ -374,7 +375,45 @@ const Gaming = () => {
                     <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight group-hover:scale-105 transition-transform origin-left">{k.v}</p>
                   </div>
                 ))}
-             </div>
+          </div>
+
+          {(settings as any)?.gaming_show_goal && (
+            <div className="p-8 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-lg border-primary/10 relative overflow-hidden" style={{ clipPath: ANGULAR_CLIP }}>
+              <div className="absolute top-0 right-0 p-4 opacity-5">
+                <Target className="w-24 h-24" />
+              </div>
+              
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                <div className="flex-1 w-full space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-1">Meta de Vendas do Mês</h3>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black tabular-nums">{formatCurrency(totals.vgv)}</span>
+                        <span className="text-xs font-bold opacity-40 uppercase">de {formatCurrency(Number((settings as any).gaming_goal) || 0)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-black uppercase tracking-widest opacity-40 mb-1">Progresso</p>
+                      <span className="text-2xl font-black text-primary">{Math.min(100, Math.round((totals.vgv / (Number((settings as any).gaming_goal) || 1)) * 100))}%</span>
+                    </div>
+                  </div>
+                  
+                  <Progress 
+                    value={Math.min(100, (totals.vgv / (Number((settings as any).gaming_goal) || 1)) * 100)} 
+                    className="h-4 bg-primary/10" 
+                  />
+                  
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-amber-500" />
+                    <span className="text-xs font-bold uppercase tracking-tight">
+                      Prêmio em disputa: <span className="text-primary">{(settings as any).gaming_award || "A Definir"}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           </div>
 
           {/* Main Grid: Podium & Ranking */}

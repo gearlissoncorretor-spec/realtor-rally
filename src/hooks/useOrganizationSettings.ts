@@ -6,6 +6,10 @@ export interface OrganizationSettings {
   id: string;
   organization_name: string;
   organization_tagline: string | null;
+  gaming_name: string | null;
+  gaming_award: string | null;
+  gaming_goal: number | null;
+  gaming_show_goal: boolean | null;
   logo_url: string | null;
   logo_icon_url: string | null;
   primary_color: string;

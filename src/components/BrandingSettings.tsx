@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { 
   Palette, Image, Building2, Upload, Trash2, Link as LinkIcon, 
-  LayoutDashboard, TrendingUp, Handshake, Eye, Music, Play, Pause, Volume2, Loader2
+  LayoutDashboard, TrendingUp, Handshake, Eye, Music, Play, Pause, Volume2, Loader2,
+  Trophy, Target, Award
 } from 'lucide-react';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +36,10 @@ const BrandingSettings = () => {
     support_phone: '',
     primary_color: '#3b82f6',
     secondary_color: '#10b981',
+    gaming_name: 'LIGA DOS CAMPEÕES',
+    gaming_award: '',
+    gaming_goal: 0,
+    gaming_show_goal: false,
   });
 
   // TV Sound query
@@ -61,6 +67,10 @@ const BrandingSettings = () => {
         support_phone: (settings as any).support_phone || '',
         primary_color: settings.primary_color || '#3b82f6',
         secondary_color: (settings as any).secondary_color || '#10b981',
+        gaming_name: (settings as any).gaming_name || 'LIGA DOS CAMPEÕES',
+        gaming_award: (settings as any).gaming_award || '',
+        gaming_goal: Number((settings as any).gaming_goal) || 0,
+        gaming_show_goal: Boolean((settings as any).gaming_show_goal),
       });
     }
   }, [settings]);
@@ -74,7 +84,11 @@ const BrandingSettings = () => {
       support_phone: formData.support_phone || null,
       primary_color: formData.primary_color,
       secondary_color: formData.secondary_color,
-    });
+      gaming_name: formData.gaming_name,
+      gaming_award: formData.gaming_award || null,
+      gaming_goal: formData.gaming_goal,
+      gaming_show_goal: formData.gaming_show_goal,
+    } as any);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,7 +199,7 @@ const BrandingSettings = () => {
   return (
     <div className="space-y-2 animate-fade-in">
       <Tabs defaultValue="identity" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
+        <TabsList className="grid w-full grid-cols-4 mb-4">
           <TabsTrigger value="identity" className="text-xs gap-1.5">
             <Building2 className="w-3.5 h-3.5" />
             Identidade
@@ -194,9 +208,13 @@ const BrandingSettings = () => {
             <Palette className="w-3.5 h-3.5" />
             Aparência
           </TabsTrigger>
+          <TabsTrigger value="gaming" className="text-xs gap-1.5">
+            <Trophy className="w-3.5 h-3.5" />
+            Gaming
+          </TabsTrigger>
           <TabsTrigger value="sound" className="text-xs gap-1.5">
             <Music className="w-3.5 h-3.5" />
-            Som do Ranking
+            Som
           </TabsTrigger>
         </TabsList>
 
@@ -381,6 +399,69 @@ const BrandingSettings = () => {
           <div className="pt-2">
             <Button onClick={handleSave} disabled={isUpdating} className="gap-2">
               {isUpdating ? 'Salvando...' : 'Salvar Aparência'}
+            </Button>
+          </div>
+        </TabsContent>
+        
+        {/* === GAMING TAB === */}
+        <TabsContent value="gaming" className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="gaming-name" className="flex items-center gap-2 text-sm font-medium">
+                <Trophy className="w-4 h-4 text-primary" />
+                Nome da Competição
+              </Label>
+              <Input
+                id="gaming-name"
+                value={formData.gaming_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, gaming_name: e.target.value }))}
+                placeholder="Ex: LIGA DOS CAMPEÕES"
+              />
+              <p className="text-xs text-muted-foreground">Nome exibido no topo da tela de Gaming</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gaming-award" className="flex items-center gap-2 text-sm font-medium">
+                <Award className="w-4 h-4 text-primary" />
+                Premiação do Mês
+              </Label>
+              <Input
+                id="gaming-award"
+                value={formData.gaming_award}
+                onChange={(e) => setFormData(prev => ({ ...prev, gaming_award: e.target.value }))}
+                placeholder="Ex: Viagem para Gramado"
+              />
+              <p className="text-xs text-muted-foreground">O prêmio que está em disputa no período</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="gaming-goal" className="flex items-center gap-2 text-sm font-medium">
+                <Target className="w-4 h-4 text-primary" />
+                Meta de VGV (R$)
+              </Label>
+              <Input
+                id="gaming-goal"
+                type="number"
+                value={formData.gaming_goal}
+                onChange={(e) => setFormData(prev => ({ ...prev, gaming_goal: Number(e.target.value) }))}
+                placeholder="Ex: 1000000"
+              />
+              <p className="text-xs text-muted-foreground">Meta global de vendas para a barra de progresso</p>
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch 
+                id="show-goal" 
+                checked={formData.gaming_show_goal} 
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, gaming_show_goal: checked }))} 
+              />
+              <Label htmlFor="show-goal" className="text-sm font-medium">Mostrar meta e barra de progresso</Label>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button onClick={handleSave} disabled={isUpdating} className="gap-2">
+              {isUpdating ? 'Salvando...' : 'Salvar Configurações Gaming'}
             </Button>
           </div>
         </TabsContent>
