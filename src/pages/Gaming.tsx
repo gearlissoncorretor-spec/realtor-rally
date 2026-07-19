@@ -296,7 +296,7 @@ const Gaming = () => {
           )}
           
           {/* Header Broadcast Style */}
-          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-[0_20px_50px_rgba(37,99,235,0.15)] transition-all border-primary/20" style={{ clipPath: ANGULAR_CLIP }}>
              {/* Corporate Accent Notches */}
              <div className="absolute top-0 left-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
              <div className="absolute bottom-0 right-0 h-2 w-32 bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
