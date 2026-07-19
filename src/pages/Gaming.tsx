@@ -13,7 +13,7 @@ import { useNegotiations } from "@/hooks/useNegotiations";
 import { useOrganizationSettings } from "@/hooks/useOrganizationSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/utils/formatting";
-import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal, Volume2, VolumeX, Crown, Zap } from "lucide-react";
+import { Trophy, Flame, Phone, Handshake, DollarSign, TrendingUp, Target, Pencil, Check, X, Sparkles, Medal, Volume2, VolumeX, Crown, Zap, Monitor, Maximize2, MoveRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { parseLocalDate } from "@/utils/dateParsing";
 import { cn } from "@/lib/utils";
@@ -85,6 +85,7 @@ const Gaming = () => {
   const logo = getEffectiveLogo();
 
   const [editing, setEditing] = useState(false);
+  const [tvMode, setTvMode] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   useEffect(() => { setNameDraft((settings as any)?.gaming_name || "LIGA DOS CAMPEÕES"); }, [settings]);
   const screenName = (settings as any)?.gaming_name || "LIGA DOS CAMPEÕES";
@@ -95,6 +96,16 @@ const Gaming = () => {
     setConfetti(true);
     setTimeout(() => setConfetti(false), 3500);
   };
+
+  // TV Mode Auto-cycle
+  const [tvTab, setTvTab] = useState("all");
+  useEffect(() => {
+    if (!tvMode) return;
+    const interval = setInterval(() => {
+      setTvTab(prev => prev === "all" ? "ipm" : "all");
+    }, 15000); // Cycle every 15s
+    return () => clearInterval(interval);
+  }, [tvMode]);
 
   const now = new Date();
   const hasSalesThisMonth = useMemo(
@@ -203,19 +214,77 @@ const Gaming = () => {
     setEditing(false);
   };
 
+  // Recent Events for Ticker
+  const recentEvents = useMemo(() => {
+    const events: { id: string, text: string, type: 'sale' | 'lead' | 'neg' }[] = [];
+    
+    // Last 5 sales
+    sales.slice(0, 5).forEach((s: any) => {
+      const broker = brokers.find(b => b.id === s.broker_id);
+      if (broker) {
+        events.push({
+          id: `sale-${s.id}`,
+          text: `NOVA VENDA! ${broker.name.split(' ')[0]} ACABA DE FECHAR ${formatCurrency(s.vgv)}`,
+          type: 'sale'
+        });
+      }
+    });
+
+    // Last 5 leads
+    leads.slice(0, 5).forEach((l: any) => {
+      const broker = brokers.find(b => b.user_id === l.user_id);
+      if (broker) {
+        events.push({
+          id: `lead-${l.id}`,
+          text: `NOVO LEAD! ${broker.name.split(' ')[0]} RECEBEU UM CLIENTE DE ${l.origem || 'Origem Direta'}`,
+          type: 'lead'
+        });
+      }
+    });
+
+    return events.sort(() => Math.random() - 0.5);
+  }, [sales, leads, brokers]);
+
   return (
-    <div className="min-h-screen relative overflow-hidden bg-background text-foreground selection:bg-primary/30">
-      {/* Light Mode Arena Background */}
-      <div className="fixed inset-0 pointer-events-none opacity-30 dark:opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full" style={{ background: "radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.15), transparent 70%)" }} />
-        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+    <div className={cn(
+      "min-h-screen relative overflow-hidden bg-background text-foreground selection:bg-primary/30 transition-colors duration-700",
+      tvMode && "fixed inset-0 z-[100] bg-background lg:ml-0"
+    )}>
+      {/* Dynamic Arena Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <motion.div 
+          className="absolute top-0 left-0 w-full h-full opacity-30 dark:opacity-10"
+          animate={{ 
+            background: [
+              "radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.15), transparent 60%)",
+              "radial-gradient(circle at 80% 80%, hsl(var(--primary) / 0.15), transparent 60%)",
+              "radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.15), transparent 60%)",
+            ]
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        />
+        <div className="absolute inset-0 opacity-20 dark:opacity-5" style={{ backgroundImage: "linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
       </div>
 
       <ConfettiCanvas active={confetti} />
-      <Navigation />
+      {!tvMode && <Navigation />}
 
-      <main className="relative lg:ml-72 pt-16 pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <main className={cn(
+        "relative pt-16 pb-24 px-4 sm:px-6 lg:px-8 transition-all duration-500",
+        !tvMode && "lg:ml-72"
+      )}>
+        <div className={cn("max-w-7xl mx-auto space-y-6", tvMode && "max-w-none")}>
+          
+          {tvMode && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setTvMode(false)}
+              className="fixed top-4 right-4 z-[110] bg-background/50 backdrop-blur-md"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          )}
           
           {/* Header Broadcast Style */}
           <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all" style={{ clipPath: ANGULAR_CLIP }}>
@@ -262,6 +331,9 @@ const Gaming = () => {
                       </Select>
                    </div>
                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setTvMode(!tvMode)} className={cn(tvMode && "bg-primary text-white border-primary")}>
+                        {tvMode ? <Maximize2 className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => setSoundEnabled(!soundEnabled)}>
                         {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                       </Button>
@@ -423,6 +495,55 @@ const Gaming = () => {
 
         </div>
       </main>
+
+      {/* Esports Broadcast Ticker */}
+      <div className="fixed bottom-0 left-0 w-full h-12 bg-[#021944] border-t border-[#FF4655]/30 z-[105] flex items-center overflow-hidden">
+        <div className="bg-[#FF4655] h-full px-6 flex items-center gap-2 skew-x-[-20deg] -ml-4 z-10 shadow-[5px_0_15px_rgba(255,70,85,0.4)]">
+          <TrendingUp className="w-5 h-5 text-white skew-x-[20deg]" />
+          <span className="text-white font-black italic tracking-tighter skew-x-[20deg] text-sm">BREAKING NEWS</span>
+        </div>
+        
+        <div className="flex-1 relative overflow-hidden h-full flex items-center">
+          <motion.div 
+            className="flex whitespace-nowrap gap-24 items-center"
+            animate={{ x: ["100%", "-100%"] }}
+            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+          >
+            {recentEvents.map((e) => (
+              <div key={e.id} className="flex items-center gap-3">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
+                )} />
+                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  {e.text}
+                </span>
+                <span className="text-[#FF4655]/40 font-black">//</span>
+              </div>
+            ))}
+            {/* Repeat for continuous loop */}
+            {recentEvents.map((e) => (
+              <div key={`${e.id}-clone`} className="flex items-center gap-3">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
+                )} />
+                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  {e.text}
+                </span>
+                <span className="text-[#FF4655]/40 font-black">//</span>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        <div className="bg-[#021944] h-full px-8 flex items-center border-l border-white/10 hidden sm:flex">
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] font-black text-[#FF4655] tracking-widest uppercase">Global VGV</span>
+            <span className="text-white font-mono font-bold text-xs tabular-nums">{formatCurrency(totals.vgv)}</span>
+          </div>
+        </div>
+      </div>
 
       <style>{`
         @keyframes shine {
