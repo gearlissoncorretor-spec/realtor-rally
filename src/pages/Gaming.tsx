@@ -375,7 +375,7 @@ const Gaming = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             
             {/* Podium Glass Pedestals */}
-            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative overflow-hidden" style={{ clipPath: ANGULAR_CLIP }}>
+            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]" style={{ clipPath: ANGULAR_CLIP }}>
                <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style={{ background: "radial-gradient(circle at 50% 100%, hsl(var(--primary)), transparent 80%)" }} />
                
                <div className="relative text-center mb-12">
