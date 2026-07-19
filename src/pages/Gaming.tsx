@@ -321,7 +321,7 @@ const Gaming = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <h1 className="text-3xl sm:text-6xl font-black uppercase tracking-tighter leading-tight text-foreground relative z-30 break-words max-w-full" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        <h1 className="text-3xl sm:text-6xl font-black uppercase tracking-tighter leading-tight text-foreground relative z-[60] break-words max-w-full" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
                         {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100 hover:bg-primary/10"><Pencil className="w-4 h-4" /></Button>}
                       </div>
                     )}
