@@ -402,6 +402,69 @@ const BrandingSettings = () => {
             </Button>
           </div>
         </TabsContent>
+        
+        {/* === GAMING TAB === */}
+        <TabsContent value="gaming" className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="gaming-name" className="flex items-center gap-2 text-sm font-medium">
+                <Trophy className="w-4 h-4 text-primary" />
+                Nome da Competição
+              </Label>
+              <Input
+                id="gaming-name"
+                value={formData.gaming_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, gaming_name: e.target.value }))}
+                placeholder="Ex: LIGA DOS CAMPEÕES"
+              />
+              <p className="text-xs text-muted-foreground">Nome exibido no topo da tela de Gaming</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gaming-award" className="flex items-center gap-2 text-sm font-medium">
+                <Award className="w-4 h-4 text-primary" />
+                Premiação do Mês
+              </Label>
+              <Input
+                id="gaming-award"
+                value={formData.gaming_award}
+                onChange={(e) => setFormData(prev => ({ ...prev, gaming_award: e.target.value }))}
+                placeholder="Ex: Viagem para Gramado"
+              />
+              <p className="text-xs text-muted-foreground">O prêmio que está em disputa no período</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="gaming-goal" className="flex items-center gap-2 text-sm font-medium">
+                <Target className="w-4 h-4 text-primary" />
+                Meta de VGV (R$)
+              </Label>
+              <Input
+                id="gaming-goal"
+                type="number"
+                value={formData.gaming_goal}
+                onChange={(e) => setFormData(prev => ({ ...prev, gaming_goal: Number(e.target.value) }))}
+                placeholder="Ex: 1000000"
+              />
+              <p className="text-xs text-muted-foreground">Meta global de vendas para a barra de progresso</p>
+            </div>
+            <div className="flex items-center space-x-2 pt-8">
+              <Switch 
+                id="show-goal" 
+                checked={formData.gaming_show_goal} 
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, gaming_show_goal: checked }))} 
+              />
+              <Label htmlFor="show-goal" className="text-sm font-medium">Mostrar meta e barra de progresso</Label>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button onClick={handleSave} disabled={isUpdating} className="gap-2">
+              {isUpdating ? 'Salvando...' : 'Salvar Configurações Gaming'}
+            </Button>
+          </div>
+        </TabsContent>
 
         {/* === SOUND TAB === */}
         <TabsContent value="sound" className="space-y-5">
