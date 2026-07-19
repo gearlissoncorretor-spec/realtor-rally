@@ -450,7 +450,7 @@ const Gaming = () => {
                           <AvatarFallback>{s.name.slice(0,2)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm truncate">{s.name}</p>
+                          <p className="font-black text-sm truncate uppercase tracking-tight" style={{ fontFamily: DISPLAY }}>{s.name}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
                               <motion.div className="h-full bg-primary" initial={{ width: 0 }} animate={{ width: `${s.ipm}%` }} />
