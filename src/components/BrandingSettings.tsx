@@ -66,6 +66,10 @@ const BrandingSettings = () => {
         support_phone: (settings as any).support_phone || '',
         primary_color: settings.primary_color || '#3b82f6',
         secondary_color: (settings as any).secondary_color || '#10b981',
+        gaming_name: (settings as any).gaming_name || 'LIGA DOS CAMPEÕES',
+        gaming_award: (settings as any).gaming_award || '',
+        gaming_goal: Number((settings as any).gaming_goal) || 0,
+        gaming_show_goal: Boolean((settings as any).gaming_show_goal),
       });
     }
   }, [settings]);
