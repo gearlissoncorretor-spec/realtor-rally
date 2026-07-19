@@ -21,7 +21,12 @@ import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEf
 import { CountUp } from "@/components/gaming/CountUp";
 
 const DISPLAY = "'Chakra Petch', 'Rajdhani', 'Sora', system-ui, sans-serif";
-const ANGULAR_CLIP = "polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)";
+const ANGULAR_CLIP = "polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px)";
+const ESPORTS_RED = "#FF4655";
+
+const GOLD = "#FFD54A";
+const SILVER = "#94A3B8";
+const BRONZE = "#B45309";
 
 const POINTS = {
   lead: 5,
@@ -81,8 +86,8 @@ const Gaming = () => {
 
   const [editing, setEditing] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
-  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "Liga dos Campeões"); }, [settings]);
-  const screenName = (settings as any)?.gaming_name || "Liga dos Campeões";
+  useEffect(() => { setNameDraft((settings as any)?.gaming_name || "LIGA DOS CAMPEÕES"); }, [settings]);
+  const screenName = (settings as any)?.gaming_name || "LIGA DOS CAMPEÕES";
 
   const { playReveal, soundEnabled, setSoundEnabled } = useRankingSounds();
   const [confetti, setConfetti] = useState(false);
@@ -125,6 +130,12 @@ const Gaming = () => {
     sales.forEach((s: any) => { const d = parseLocalDate(s.sale_date); if (d) set.add(d.getFullYear()); });
     return Array.from(set).sort((a, b) => b - a);
   }, [sales]);
+
+  const months = [
+    { v: "all", l: "Todos" }, { v: "1", l: "Janeiro" }, { v: "2", l: "Fevereiro" }, { v: "3", l: "Março" },
+    { v: "4", l: "Abril" }, { v: "5", l: "Maio" }, { v: "6", l: "Junho" }, { v: "7", l: "Julho" },
+    { v: "8", l: "Agosto" }, { v: "9", l: "Setembro" }, { v: "10", l: "Outubro" }, { v: "11", l: "Novembro" }, { v: "12", l: "Dezembro" },
+  ];
 
   const stats: Stats[] = useMemo(() => {
     return brokers
@@ -177,74 +188,253 @@ const Gaming = () => {
     })).sort((a, b) => b.ipm - a.ipm);
   }, [stats]);
 
+  const totals = useMemo(() => ({
+    vgv: enriched.reduce((a, s) => a + s.vgv, 0),
+    vendas: enriched.reduce((a, s) => a + s.vendas, 0),
+    leads: enriched.reduce((a, s) => a + s.leads, 0),
+    negociacoes: enriched.reduce((a, s) => a + s.negociacoes, 0),
+  }), [enriched]);
+
   const podium = enriched.slice(0, 3);
   const podiumOrder = [podium[1], podium[0], podium[2]].filter(Boolean);
 
+  const saveName = async () => {
+    updateSettings({ gaming_name: nameDraft.trim() || "LIGA DOS CAMPEÕES" } as any);
+    setEditing(false);
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors">
+    <div className="min-h-screen relative overflow-hidden bg-background text-foreground selection:bg-primary/30">
+      {/* Light Mode Arena Background */}
+      <div className="fixed inset-0 pointer-events-none opacity-30 dark:opacity-10">
+        <div className="absolute top-0 left-0 w-full h-full" style={{ background: "radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.15), transparent 70%)" }} />
+        <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+      </div>
+
       <ConfettiCanvas active={confetti} />
       <Navigation />
 
-      <main className="lg:ml-72 pt-16 pb-24 px-4 sm:px-6">
+      <main className="relative lg:ml-72 pt-16 pb-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-6">
           
-          {/* Header */}
-          <header className="flex flex-col sm:flex-row justify-between items-start gap-4 p-6 rounded-3xl border bg-card shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 grid place-items-center">
-                <Trophy className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-black uppercase tracking-tight">{screenName}</h1>
-                <p className="text-muted-foreground">Competição ativa - Temporada {now.getFullYear()}</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => triggerCelebration()}><Zap className="w-4 h-4 mr-2" /> Comemorar</Button>
-            </div>
-          </header>
+          {/* Header Broadcast Style */}
+          <div className="relative overflow-hidden p-6 sm:p-10 rounded-[2rem] border bg-card/80 backdrop-blur-xl shadow-2xl transition-all" style={{ clipPath: ANGULAR_CLIP }}>
+             {/* Red esports notches */}
+             <div className="absolute top-0 left-0 h-1.5 w-32 bg-[#FF4655] shadow-[0_0_15px_#FF4655]" />
+             <div className="absolute bottom-0 right-0 h-1.5 w-32 bg-[#FF4655] shadow-[0_0_15px_#FF4655]" />
+             
+             <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                  <div className="w-20 h-20 rounded-3xl bg-primary/10 grid place-items-center shadow-inner relative group">
+                    <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {logo ? <img src={logo} className="w-12 h-12 object-contain" /> : <Trophy className="w-10 h-10 text-primary" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" /> LIVE
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">CHAMPIONS SEASON • {year}</span>
+                    </div>
+                    {editing ? (
+                      <div className="flex gap-2">
+                        <Input value={nameDraft} onChange={e => setNameDraft(e.target.value)} className="font-black uppercase tracking-tighter text-2xl" autoFocus />
+                        <Button size="icon" onClick={saveName}><Check className="w-4 h-4" /></Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter leading-none" style={{ fontFamily: DISPLAY }}>{screenName}</h1>
+                        {canEdit && <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="opacity-40 hover:opacity-100"><Pencil className="w-4 h-4" /></Button>}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-          {/* Grid Arena */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 border-primary/20 overflow-hidden">
-               <CardContent className="p-6">
-                 <h2 className="text-xl font-bold uppercase mb-8 flex items-center justify-center gap-2">
-                   <Crown className="text-yellow-500" /> Pódio
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                   <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl border">
+                      <Select value={month} onValueChange={setMonth}>
+                        <SelectTrigger className="w-[130px] h-9 border-0 bg-transparent font-bold uppercase text-[11px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>{months.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}</SelectContent>
+                      </Select>
+                      <Select value={year} onValueChange={setYear} disabled={month === "all"}>
+                        <SelectTrigger className="w-[100px] h-9 border-0 bg-transparent font-bold text-[11px]"><SelectValue /></SelectTrigger>
+                        <SelectContent>{years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+                      </Select>
+                   </div>
+                   <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setSoundEnabled(!soundEnabled)}>
+                        {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                      </Button>
+                      <Button size="sm" onClick={triggerCelebration} className="font-bold uppercase tracking-widest bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25">
+                        <Zap className="w-4 h-4 mr-2" /> Comemorar
+                      </Button>
+                   </div>
+                </div>
+             </div>
+
+             {/* Hero Stats */}
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+                {[
+                  { l: "VGV Total", v: formatCurrency(totals.vgv), i: DollarSign, color: "text-emerald-600" },
+                  { l: "Vendas", v: totals.vendas, i: Trophy, color: "text-amber-500" },
+                  { l: "Leads", v: totals.leads, i: Flame, color: "text-orange-500" },
+                  { l: "Negociações", v: totals.negociacoes, i: Handshake, color: "text-primary" },
+                ].map((k) => (
+                  <div key={k.l} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 hover:bg-muted/50 transition-colors group">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 flex items-center gap-1.5">
+                      <k.i className={cn("w-3 h-3", k.color)} /> {k.l}
+                    </p>
+                    <p className="text-xl sm:text-2xl font-black tabular-nums tracking-tight group-hover:scale-105 transition-transform origin-left">{k.v}</p>
+                  </div>
+                ))}
+             </div>
+          </div>
+
+          {/* Main Grid: Podium & Ranking */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            
+            {/* Podium Glass Pedestals */}
+            <div className="lg:col-span-3 p-8 sm:p-12 rounded-[2rem] border bg-card/40 backdrop-blur-md relative overflow-hidden" style={{ clipPath: ANGULAR_CLIP }}>
+               <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20" style={{ background: "radial-gradient(circle at 50% 100%, hsl(var(--primary)), transparent 80%)" }} />
+               
+               <div className="relative text-center mb-12">
+                 <h2 className="text-3xl font-black uppercase tracking-[0.2em] inline-flex items-center gap-3" style={{ fontFamily: DISPLAY }}>
+                   <Crown className="w-8 h-8 text-amber-400" /> Pódio Master <Crown className="w-8 h-8 text-amber-400" />
                  </h2>
-                 <div className="flex items-end justify-center gap-4 h-64">
-                    {podiumOrder.map((s, idx) => (
-                      <div key={s.brokerId} className="flex flex-col items-center flex-1">
-                        <Avatar className={cn("mb-2 border-2", idx === 1 ? "w-20 h-20 border-yellow-500" : "w-16 h-16 border-slate-300")}>
+               </div>
+
+               <div className="relative flex items-end justify-center gap-3 sm:gap-8 h-[400px]">
+                 {podiumOrder.map((s) => {
+                   const pos = enriched.indexOf(s) + 1;
+                   const isFirst = pos === 1;
+                   const accent = isFirst ? GOLD : pos === 2 ? SILVER : BRONZE;
+                   return (
+                     <motion.div key={s.brokerId} layout initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center flex-1 max-w-[180px]">
+                        <div className="relative mb-6">
+                          <AnimatePresence>
+                            {isFirst && (
+                              <motion.div className="absolute inset-0 -m-4 rounded-full bg-amber-400/20 blur-2xl" animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 3, repeat: Infinity }} />
+                            )}
+                          </AnimatePresence>
+                          <Avatar className={cn("ring-offset-background transition-all", isFirst ? "h-24 w-24 sm:h-32 sm:w-32 ring-4 ring-amber-400 shadow-2xl" : "h-16 w-16 sm:h-20 sm:w-20 ring-2 ring-muted shadow-lg")}>
+                            <AvatarImage src={s.avatar || undefined} />
+                            <AvatarFallback className="font-black text-xl">{s.name.slice(0,2)}</AvatarFallback>
+                          </Avatar>
+                          {isFirst && <div className="absolute -top-6 left-1/2 -translate-x-1/2"><Crown className="w-10 h-10 text-amber-400 animate-bounce" /></div>}
+                        </div>
+                        
+                        <div className="text-center mb-4">
+                          <p className={cn("font-black uppercase leading-tight line-clamp-1 mb-1", isFirst ? "text-lg sm:text-xl" : "text-sm")} style={{ fontFamily: DISPLAY }}>{s.name}</p>
+                          <Badge variant="secondary" className="font-black tabular-nums">{s.points} PTS</Badge>
+                        </div>
+
+                        <div className={cn("w-full rounded-t-3xl border-x border-t relative group overflow-hidden transition-all", isFirst ? "h-56 bg-gradient-to-b from-amber-400/20 to-transparent border-amber-400/40" : pos === 2 ? "h-40 bg-gradient-to-b from-slate-400/10 to-transparent border-slate-400/20" : "h-28 bg-gradient-to-b from-amber-700/10 to-transparent border-amber-700/20")}>
+                           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-5xl sm:text-7xl font-black opacity-40 italic" style={{ fontFamily: DISPLAY }}>{pos}</div>
+                        </div>
+                     </motion.div>
+                   );
+                 })}
+               </div>
+            </div>
+
+            {/* Ranking List */}
+            <div className="lg:col-span-2 p-6 rounded-[2rem] border bg-card/60 backdrop-blur-md flex flex-col" style={{ clipPath: ANGULAR_CLIP }}>
+               <div className="flex items-center justify-between mb-6">
+                 <div>
+                    <h3 className="font-black uppercase tracking-wider text-sm flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Medal className="w-4 h-4 text-primary" /> Ranking IPM</h3>
+                    <p className="text-[10px] opacity-40 uppercase font-bold tracking-widest mt-1">Top 10 Performance</p>
+                 </div>
+                 <Badge variant="outline" className="font-black text-[10px] tracking-widest">REAL-TIME</Badge>
+               </div>
+
+               <div className="space-y-3 flex-1">
+                 {enriched.slice(0, 10).map((s, i) => {
+                    const isTop = i < 3;
+                    return (
+                      <motion.div key={s.brokerId} layout className="group flex items-center gap-3 p-3 rounded-2xl border bg-muted/20 hover:bg-primary/5 hover:border-primary/20 transition-all cursor-default">
+                        <div className={cn("w-10 h-10 rounded-xl grid place-items-center font-black italic", isTop ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-muted text-muted-foreground")} style={{ fontFamily: DISPLAY }}>{i + 1}</div>
+                        <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
                           <AvatarImage src={s.avatar || undefined} />
                           <AvatarFallback>{s.name.slice(0,2)}</AvatarFallback>
                         </Avatar>
-                        <div className={cn("w-full rounded-t-lg grid place-items-center font-black", idx === 1 ? "h-32 bg-yellow-500" : "h-24 bg-slate-300")}>
-                          {enriched.indexOf(s) + 1}º
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm truncate">{s.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                              <motion.div className="h-full bg-primary" initial={{ width: 0 }} animate={{ width: `${s.ipm}%` }} />
+                            </div>
+                            <span className="text-[10px] font-black opacity-40">{s.ipm.toFixed(1)}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                 </div>
-               </CardContent>
-            </Card>
+                        <div className="text-right">
+                          <p className="font-black tabular-nums text-sm">{s.points}</p>
+                          <p className="text-[8px] font-bold opacity-30 uppercase tracking-tighter">POINTS</p>
+                        </div>
+                      </motion.div>
+                    );
+                 })}
+               </div>
+            </div>
 
-            <Card className="border-primary/20">
-              <CardContent className="p-6">
-                <h3 className="font-bold mb-4 uppercase text-sm text-muted-foreground">Ranking IPM</h3>
-                <div className="space-y-4">
-                  {enriched.slice(0, 5).map((s, i) => (
-                    <div key={s.brokerId} className="flex items-center gap-3">
-                      <div className="font-mono font-bold w-6 text-primary">{i + 1}º</div>
-                      <Avatar className="w-8 h-8"><AvatarImage src={s.avatar || undefined} /></Avatar>
-                      <div className="flex-1 font-semibold text-sm truncate">{s.name}</div>
-                      <div className="text-xs font-bold bg-primary/10 px-2 py-1 rounded">{s.ipm.toFixed(1)}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
+
+          {/* Secondary Stats & Missions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm">
+                <CardContent className="p-8">
+                   <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><Target className="w-5 h-5 text-primary" /> Missões Ativas</h3>
+                   <div className="space-y-4">
+                      {[
+                        { n: "Prospectador Pro", d: "Cadastre 10 novos leads", p: (enriched[0]?.leads ?? 0) / 10 * 100, r: "500 PTS" },
+                        { n: "Mestre da Conversão", d: "Feche 2 vendas no período", p: (enriched[0]?.vendas ?? 0) / 2 * 100, r: "1000 PTS" },
+                      ].map(m => (
+                        <div key={m.n} className="p-4 rounded-2xl bg-muted/30 border border-primary/5 space-y-3">
+                           <div className="flex justify-between items-center">
+                             <p className="font-bold text-sm">{m.n}</p>
+                             <Badge className="bg-primary/10 text-primary border-0 font-bold">{m.r}</Badge>
+                           </div>
+                           <p className="text-xs opacity-50">{m.d}</p>
+                           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                             <motion.div className="h-full bg-primary" initial={{ width: 0 }} animate={{ width: `${Math.min(100, m.p)}%` }} />
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </CardContent>
+             </Card>
+
+             <Card className="rounded-[2rem] border-primary/10 overflow-hidden bg-card/50 backdrop-blur-sm">
+                <CardContent className="p-8">
+                   <h3 className="font-black uppercase tracking-widest mb-6 flex items-center gap-2" style={{ fontFamily: DISPLAY }}><TrendingUp className="w-5 h-5 text-emerald-500" /> Como Pontuar</h3>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        ["Venda", POINTS.venda], ["Negociação", POINTS.negociacao], ["Proposta", POINTS.proposta], ["Visita", POINTS.visita], ["Lead", POINTS.lead], ["Atendimento", POINTS.atendimento]
+                      ].map(([l, p]) => (
+                        <div key={l as string} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-primary/5 hover:bg-primary/5 transition-colors">
+                          <span className="text-xs font-bold opacity-60 uppercase tracking-wider">{l}</span>
+                          <span className="text-xs font-black text-primary">+{p}</span>
+                        </div>
+                      ))}
+                   </div>
+                </CardContent>
+             </Card>
+          </div>
+
         </div>
       </main>
+
+      <style>{`
+        @keyframes shine {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .animate-shine {
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+          background-size: 200% 100%;
+          animation: shine 3s infinite;
+        }
+      `}</style>
     </div>
   );
 };
