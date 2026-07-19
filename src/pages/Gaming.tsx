@@ -507,51 +507,57 @@ const Gaming = () => {
         </div>
       </main>
 
-      {/* Esports Broadcast Ticker */}
-      <div className="fixed bottom-0 left-0 w-full h-12 bg-[#021944] border-t border-[#FF4655]/30 z-[105] flex items-center overflow-hidden">
-        <div className="bg-[#FF4655] h-full px-6 flex items-center gap-2 skew-x-[-20deg] -ml-4 z-10 shadow-[5px_0_15px_rgba(255,70,85,0.4)]">
-          <TrendingUp className="w-5 h-5 text-white skew-x-[20deg]" />
-          <span className="text-white font-black italic tracking-tighter skew-x-[20deg] text-sm">BREAKING NEWS</span>
+      {/* Corporate Broadcast Ticker */}
+      <div className="fixed bottom-0 left-0 w-full h-14 bg-card/95 backdrop-blur-xl border-t border-primary/20 z-[105] flex items-center overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
+        <div className="bg-primary h-full px-8 flex items-center gap-3 skew-x-[-15deg] -ml-4 z-10 shadow-[10px_0_30px_rgba(37,99,235,0.3)] border-r border-white/20">
+          <div className="skew-x-[15deg] flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-white animate-pulse" />
+            <span className="text-white font-black tracking-widest text-[10px] uppercase">PLANTÃO DE VENDAS</span>
+          </div>
         </div>
         
         <div className="flex-1 relative overflow-hidden h-full flex items-center">
           <motion.div 
-            className="flex whitespace-nowrap gap-24 items-center"
+            className="flex whitespace-nowrap gap-32 items-center"
             animate={{ x: ["100%", "-100%"] }}
-            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 70, repeat: Infinity, ease: "linear" }}
           >
             {recentEvents.map((e) => (
-              <div key={e.id} className="flex items-center gap-3">
+              <div key={e.id} className="flex items-center gap-4">
                 <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
-                )} />
-                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  "px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-tighter",
+                  e.type === 'sale' ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-primary/20 text-primary"
+                )}>
+                  {e.type === 'sale' ? 'VENDA' : 'NOVO LEAD'}
+                </div>
+                <span className="text-foreground font-bold uppercase tracking-wide text-[11px] font-sans">
                   {e.text}
                 </span>
-                <span className="text-[#FF4655]/40 font-black">//</span>
+                <span className="text-primary/30 font-black tracking-widest px-4">|</span>
               </div>
             ))}
             {/* Repeat for continuous loop */}
             {recentEvents.map((e) => (
-              <div key={`${e.id}-clone`} className="flex items-center gap-3">
+              <div key={`${e.id}-clone`} className="flex items-center gap-4">
                 <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  e.type === 'sale' ? "bg-amber-400" : e.type === 'lead' ? "bg-primary" : "bg-blue-400"
-                )} />
-                <span className="text-white font-bold uppercase tracking-widest text-[11px] font-mono">
+                  "px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-tighter",
+                  e.type === 'sale' ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : "bg-primary/20 text-primary"
+                )}>
+                  {e.type === 'sale' ? 'VENDA' : 'NOVO LEAD'}
+                </div>
+                <span className="text-foreground font-bold uppercase tracking-wide text-[11px] font-sans">
                   {e.text}
                 </span>
-                <span className="text-[#FF4655]/40 font-black">//</span>
+                <span className="text-primary/30 font-black tracking-widest px-4">|</span>
               </div>
             ))}
           </motion.div>
         </div>
 
-        <div className="bg-[#021944] h-full px-8 flex items-center border-l border-white/10 hidden sm:flex">
+        <div className="bg-muted/50 h-full px-10 flex items-center border-l border-border/50 hidden md:flex">
           <div className="flex flex-col items-end">
-            <span className="text-[9px] font-black text-[#FF4655] tracking-widest uppercase">Global VGV</span>
-            <span className="text-white font-mono font-bold text-xs tabular-nums">{formatCurrency(totals.vgv)}</span>
+            <span className="text-[9px] font-black text-primary tracking-widest uppercase mb-0.5">VGV Global do Mês</span>
+            <span className="text-foreground font-sans font-black text-sm tabular-nums tracking-tight">{formatCurrency(totals.vgv)}</span>
           </div>
         </div>
       </div>
