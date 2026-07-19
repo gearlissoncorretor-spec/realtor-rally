@@ -20,13 +20,14 @@ import { cn } from "@/lib/utils";
 import { ConfettiCanvas, useRankingSounds } from "@/components/ranking/RankingEffects";
 import { CountUp } from "@/components/gaming/CountUp";
 
-const DISPLAY = "'Chakra Petch', 'Rajdhani', 'Sora', system-ui, sans-serif";
-const ANGULAR_CLIP = "polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px)";
-const ESPORTS_RED = "#FF4655";
+const DISPLAY = "'Sora', 'Inter', system-ui, sans-serif";
+const ANGULAR_CLIP = "polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px)";
+const CORPORATE_BLUE = "#2563EB";
+const SUCCESS_GREEN = "#10B981";
 
-const GOLD = "#FFD54A";
-const SILVER = "#94A3B8";
-const BRONZE = "#B45309";
+const GOLD = "#FFD700";
+const SILVER = "#C0C0C0";
+const BRONZE = "#CD7F32";
 
 const POINTS = {
   lead: 5,
