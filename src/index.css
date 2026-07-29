@@ -379,6 +379,54 @@
   .dark .badge-tint-info    { color: hsl(217 91% 75%); }
   .dark .badge-tint-neutral { color: hsl(215 20% 78%); }
 
+  /* -------- Shadow depth policy (3 tiers, tokens only) -------- */
+  /* Elevation-1: resting surface. Elevation-2: hover / floating. Elevation-3: overlays. */
+  .elev-1 { box-shadow: var(--shadow-sm); }
+  .elev-2 { box-shadow: var(--shadow-md); }
+  .elev-3 { box-shadow: var(--shadow-lg); }
+  /* Opt-out for cards that should NOT lift on hover (dashboards, dense grids) */
+  .card-static { transition: none !important; }
+  .card-static:hover { transform: none !important; box-shadow: var(--shadow-sm) !important; }
+
+  /* -------- Micro-details: icon sizes, table rows, focus polish -------- */
+  .icon-sm  > svg { width: 14px; height: 14px; }
+  .icon-md  > svg { width: 18px; height: 18px; }
+  .icon-lg  > svg { width: 22px; height: 22px; }
+
+  /* Dense data tables: 52px row rhythm for scan-ability */
+  .table-comfy tbody tr { height: 52px; }
+  .table-comfy thead th { height: 44px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--muted-foreground)); font-weight: 600; }
+  .table-comfy tbody tr:nth-child(even) { background: hsl(var(--muted) / 0.35); }
+
+  /* Consistent focus ring accent (subtle blue halo) */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.55);
+  }
+
+  /* Skeleton shimmer — richer than plain pulse */
+  .skeleton-shimmer {
+    position: relative; overflow: hidden;
+    background: hsl(var(--muted));
+  }
+  .skeleton-shimmer::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.06), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+
+  /* Empty-state decorative dot animation (used by EmptyState) */
+  @keyframes bounce-gentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .animate-bounce-gentle { animation: bounce-gentle 2.2s ease-in-out infinite; }
+
+  /* -------- Sparkline mini-viz container (for KPI cards) -------- */
+  .sparkline { height: 32px; width: 100%; opacity: 0.85; }
+  .sparkline path { fill: none; stroke: hsl(var(--primary)); stroke-width: 1.5; }
+  .sparkline .sparkline-fill { fill: hsl(var(--primary) / 0.10); stroke: none; }
+
   /* Monochromatic blue ramp for charts — reduces color noise */
   :root {
     --chart-1: 221 83% 53%;
