@@ -353,6 +353,49 @@
   .stage-tint-green  { background-color: #ECFDF5; }
   .stage-tint-slate  { background-color: #F8FAFC; }
 
+  /* Density: unified card padding (desktop 20px / mobile 16px) */
+  .card-density { padding: 1rem; }
+  @media (min-width: 640px) { .card-density { padding: 1.25rem; } }
+
+  /* Standard block/inline gaps to unify rhythm */
+  .stack-lg > * + * { margin-top: 1.5rem; } /* 24px between blocks */
+  .stack-md > * + * { margin-top: 1rem; }   /* 16px inside blocks */
+
+  /* Tinted badges — quiet, low-saturation status chips */
+  .badge-tint {
+    display: inline-flex; align-items: center; gap: 0.375rem;
+    padding: 0.125rem 0.5rem; border-radius: 9999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.01em;
+    border: 1px solid transparent;
+  }
+  .badge-tint-success { background: hsl(142 71% 45% / 0.10); color: hsl(142 65% 30%); border-color: hsl(142 71% 45% / 0.18); }
+  .badge-tint-danger  { background: hsl(0 84% 60% / 0.10);  color: hsl(0 70% 42%);   border-color: hsl(0 84% 60% / 0.18); }
+  .badge-tint-warning { background: hsl(38 92% 50% / 0.12); color: hsl(30 80% 34%);  border-color: hsl(38 92% 50% / 0.22); }
+  .badge-tint-info    { background: hsl(217 91% 60% / 0.10); color: hsl(221 83% 40%); border-color: hsl(217 91% 60% / 0.20); }
+  .badge-tint-neutral { background: hsl(215 16% 47% / 0.10); color: hsl(215 20% 30%); border-color: hsl(215 16% 47% / 0.18); }
+  .dark .badge-tint-success { color: hsl(142 71% 70%); }
+  .dark .badge-tint-danger  { color: hsl(0 84% 75%); }
+  .dark .badge-tint-warning { color: hsl(38 92% 70%); }
+  .dark .badge-tint-info    { color: hsl(217 91% 75%); }
+  .dark .badge-tint-neutral { color: hsl(215 20% 78%); }
+
+  /* Monochromatic blue ramp for charts — reduces color noise */
+  :root {
+    --chart-1: 221 83% 53%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 213 94% 68%;
+    --chart-4: 212 96% 78%;
+    --chart-5: 214 95% 87%;
+    --chart-accent: 142 71% 45%;
+  }
+  .dark {
+    --chart-1: 217 91% 60%;
+    --chart-2: 213 94% 68%;
+    --chart-3: 212 96% 76%;
+    --chart-4: 210 90% 82%;
+    --chart-5: 210 60% 88%;
+  }
+
   /* Premium animations */
   @keyframes float-up {
     0% {
