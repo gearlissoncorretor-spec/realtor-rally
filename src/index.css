@@ -143,11 +143,19 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-tap-highlight-color: transparent;
+    font-feature-settings: "ss01", "cv11";
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Sora', 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+    font-weight: 700;
+  }
+
+  /* Tabular numbers everywhere numeric content lives */
+  .tabular, td, th, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "cv11" 1;
   }
 
   /* Accessibility improvements */
