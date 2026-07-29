@@ -41,10 +41,10 @@ export function EmptyState({
         "relative w-24 h-24 rounded-3xl flex items-center justify-center mb-6",
         `bg-gradient-to-br ${config.gradient}`
       )}>
-        <Icon className="w-10 h-10 text-muted-foreground/50" strokeWidth={1.5} />
+        <Icon className="w-10 h-10 text-muted-foreground/60" strokeWidth={1.5} />
         {/* Decorative dots */}
-        <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary/20 animate-bounce-gentle" />
-        <div className="absolute -bottom-2 -left-1 w-2 h-2 rounded-full bg-muted-foreground/15" />
+        <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-primary/30 animate-bounce-gentle" />
+        <div className="absolute -bottom-2 -left-1 w-2 h-2 rounded-full bg-muted-foreground/20" />
       </div>
 
       <h3 className="text-lg font-semibold text-foreground mb-2">
