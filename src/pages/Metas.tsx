@@ -31,7 +31,7 @@ import {
   Trophy,
   Zap
 } from 'lucide-react';
-import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
+import { QuickGoalDialog } from '@/components/goals/QuickGoalDialog';
 import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
 import { MetasSkeleton } from '@/components/skeletons/MetasSkeleton';
