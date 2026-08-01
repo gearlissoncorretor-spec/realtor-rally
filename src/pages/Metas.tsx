@@ -74,7 +74,8 @@ const Metas = () => {
   
   const rawRole = getUserRole();
   const userRole = rawRole === 'admin' ? 'diretor' : rawRole;
-  const canManageGoals = ['diretor', 'gerente'].includes(userRole);
+  // Todos podem criar metas (própria); permissões finas por meta ficam em canEditGoal/canDeleteGoal
+  const canManageGoals = true;
   const isDirectorView = isDiretor() || isAdmin();
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
