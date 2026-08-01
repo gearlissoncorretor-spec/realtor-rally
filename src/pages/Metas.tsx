@@ -31,7 +31,7 @@ import {
   Trophy,
   Zap
 } from 'lucide-react';
-import { CreateGoalDialog } from '@/components/goals/CreateGoalDialog';
+import { QuickGoalDialog } from '@/components/goals/QuickGoalDialog';
 import { GoalDetailsDialog } from '@/components/goals/GoalDetailsDialog';
 import TasksOverviewTab from '@/components/goals/TasksOverviewTab';
 import { MetasSkeleton } from '@/components/skeletons/MetasSkeleton';
@@ -74,7 +74,8 @@ const Metas = () => {
   
   const rawRole = getUserRole();
   const userRole = rawRole === 'admin' ? 'diretor' : rawRole;
-  const canManageGoals = ['diretor', 'gerente'].includes(userRole);
+  // Todos podem criar metas (própria); permissões finas por meta ficam em canEditGoal/canDeleteGoal
+  const canManageGoals = true;
   const isDirectorView = isDiretor() || isAdmin();
 
   const currentBroker = brokers.find(b => b.user_id === user?.id);
@@ -690,12 +691,19 @@ const Metas = () => {
                 </Tabs>
               ) : (
                 <Card className="border-border/50">
-                  <CardContent className="p-12 text-center">
-                    <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                    <p className="text-muted-foreground">Nenhum corretor encontrado.</p>
+                  <CardContent className="p-12 text-center space-y-4">
+                    <Users className="w-16 h-16 mx-auto text-muted-foreground/30" />
+                    <p className="text-muted-foreground">
+                      Nenhum corretor vinculado ao seu acesso. Você ainda pode criar metas de equipe ou da loja.
+                    </p>
+                    <Button onClick={() => setCreateDialogOpen(true)}>
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      Nova Meta
+                    </Button>
                   </CardContent>
                 </Card>
               )}
+
             </TabsContent>
 
             <TabsContent value="tarefas" className="mt-6">
@@ -705,13 +713,14 @@ const Metas = () => {
         </div>
       </div>
 
-      <CreateGoalDialog
+      <QuickGoalDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onCreate={createGoal}
-        preSelectedBrokerId={selectedBrokerId}
+        defaultBrokerId={selectedBrokerId}
+        defaultMonth={selectedMonth}
       />
-      
+
       {selectedGoal && (
         <GoalDetailsDialog
           goal={selectedGoal}
@@ -720,9 +729,10 @@ const Metas = () => {
             if (!open) { setSelectedGoalId(null); setEditingGoal(null); }
           }}
           onUpdate={updateGoal}
-          canEdit={canManageGoals}
+          canEdit={canEditGoal(selectedGoal)}
         />
       )}
+
 
       <AlertDialog open={!!deleteGoalId} onOpenChange={() => setDeleteGoalId(null)}>
         <AlertDialogContent>
