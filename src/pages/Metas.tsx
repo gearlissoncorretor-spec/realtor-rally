@@ -706,13 +706,14 @@ const Metas = () => {
         </div>
       </div>
 
-      <CreateGoalDialog
+      <QuickGoalDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onCreate={createGoal}
-        preSelectedBrokerId={selectedBrokerId}
+        defaultBrokerId={selectedBrokerId}
+        defaultMonth={selectedMonth}
       />
-      
+
       {selectedGoal && (
         <GoalDetailsDialog
           goal={selectedGoal}
@@ -721,9 +722,10 @@ const Metas = () => {
             if (!open) { setSelectedGoalId(null); setEditingGoal(null); }
           }}
           onUpdate={updateGoal}
-          canEdit={canManageGoals}
+          canEdit={canEditGoal(selectedGoal)}
         />
       )}
+
 
       <AlertDialog open={!!deleteGoalId} onOpenChange={() => setDeleteGoalId(null)}>
         <AlertDialogContent>
