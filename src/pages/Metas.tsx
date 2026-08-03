@@ -112,11 +112,18 @@ const Metas = () => {
     return accessibleBrokers.filter(b => b.team_id === selectedTeamId);
   }, [accessibleBrokers, selectedTeamId, isDirectorView]);
 
+  // Aba "Agência/Equipe": metas coletivas (sem corretor específico)
+  const showAgencyTab = !isCorretor();
+  const AGENCY_TAB = '__agency__';
+
   useEffect(() => {
+    if (selectedBrokerId === AGENCY_TAB && showAgencyTab) return;
     if (visibleBrokers.length > 0 && (!selectedBrokerId || !visibleBrokers.find(b => b.id === selectedBrokerId))) {
-      setSelectedBrokerId(visibleBrokers[0].id);
+      setSelectedBrokerId(showAgencyTab ? AGENCY_TAB : visibleBrokers[0].id);
+    } else if (visibleBrokers.length === 0 && showAgencyTab && !selectedBrokerId) {
+      setSelectedBrokerId(AGENCY_TAB);
     }
-  }, [visibleBrokers, selectedBrokerId]);
+  }, [visibleBrokers, selectedBrokerId, showAgencyTab]);
 
   const goToPreviousMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
   const goToNextMonth = () => {
@@ -124,20 +131,43 @@ const Metas = () => {
     if (nextMonth <= addMonths(new Date(), 12)) setSelectedMonth(nextMonth);
   };
 
+  const inSelectedMonth = (goal: Goal) => {
+    const monthStart = startOfMonth(selectedMonth);
+    const monthEnd = endOfMonth(selectedMonth);
+    const goalStart = new Date(`${goal.start_date}T12:00:00`);
+    const goalEnd = new Date(`${goal.end_date}T12:00:00`);
+    return goalStart <= monthEnd && goalEnd >= monthStart;
+  };
+
   const filteredGoals = useMemo(() => {
     if (!selectedBrokerId) return [];
-    const selectedBrokerData = visibleBrokers.find(b => b.id === selectedBrokerId);
-    return goals.filter(goal => {
-      const matchesBroker = goal.broker_id === selectedBrokerId || 
-        (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id) ||
-        (!goal.broker_id && !goal.team_id);
-      const monthStart = startOfMonth(selectedMonth);
-      const monthEnd = endOfMonth(selectedMonth);
-      const goalStart = new Date(goal.start_date);
-      const goalEnd = new Date(goal.end_date);
-      return matchesBroker && goalStart <= monthEnd && goalEnd >= monthStart;
-    });
-  }, [goals, selectedBrokerId, selectedMonth, visibleBrokers]);
+
+    if (selectedBrokerId === AGENCY_TAB) {
+      // Metas da loja e das equipes acessíveis (nunca metas individuais)
+      const accessibleTeamIds = new Set(
+        (isDirectorView ? teams.map(t => t.id) : [userTeamId]).filter(Boolean) as string[]
+      );
+      return goals.filter(goal => {
+        if (goal.broker_id) return false;
+        if (goal.team_id && !accessibleTeamIds.has(goal.team_id)) return false;
+        if (isDirectorView && selectedTeamId !== 'all' && goal.team_id && goal.team_id !== selectedTeamId) return false;
+        return inSelectedMonth(goal);
+      });
+    }
+
+    // Metas individuais do corretor selecionado
+    return goals.filter(goal => goal.broker_id === selectedBrokerId && inSelectedMonth(goal));
+  }, [goals, selectedBrokerId, selectedMonth, teams, userTeamId, isDirectorView, selectedTeamId]);
+
+  const scopeTabs = useMemo(() => {
+    const tabs: { id: string; name: string }[] = [];
+    if (showAgencyTab) {
+      tabs.push({ id: AGENCY_TAB, name: isDirectorView ? 'Loja & Equipes' : 'Minha Equipe' });
+    }
+    visibleBrokers.forEach(b => tabs.push({ id: b.id, name: b.name }));
+    return tabs;
+  }, [showAgencyTab, isDirectorView, visibleBrokers]);
+
 
   const stats = useMemo(() => {
     const active = filteredGoals.filter(g => g.status === 'active').length;
@@ -366,25 +396,26 @@ const Metas = () => {
                 </div>
               )}
 
-              {/* Broker Tabs */}
-              {visibleBrokers.length > 0 ? (
+              {/* Scope Tabs (Agência + Corretores) */}
+              {scopeTabs.length > 0 ? (
                 <Tabs value={selectedBrokerId} onValueChange={setSelectedBrokerId} className="w-full">
                   <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
                     <TabsList className="inline-flex h-11 bg-card border border-border shadow-sm rounded-xl p-1 gap-0.5 min-w-max">
-                      {visibleBrokers.map((broker) => (
+                      {scopeTabs.map((broker) => (
                         <TabsTrigger
                           key={broker.id}
                           value={broker.id}
                           className="px-4 py-2 text-sm font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
                         >
-                          {broker.name.split(' ')[0]}
+                          {broker.id === AGENCY_TAB ? broker.name : broker.name.split(' ')[0]}
                         </TabsTrigger>
                       ))}
                     </TabsList>
                   </div>
 
-                  {visibleBrokers.map((broker) => (
+                  {scopeTabs.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
+
                       
                       {/* KPI Cards */}
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -448,7 +479,7 @@ const Metas = () => {
                         <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-muted/30 to-transparent">
                           <CardTitle className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                             <Target className="w-5 h-5 text-primary" />
-                            Metas de {broker.name}
+                            {broker.id === AGENCY_TAB ? 'Metas coletivas' : `Metas de ${broker.name}`}
                           </CardTitle>
                           {canManageGoals && (
                             <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="w-full sm:w-auto shadow-sm">
@@ -462,7 +493,7 @@ const Metas = () => {
                             <EmptyState
                               variant="goals"
                               title="Nenhuma meta neste período"
-                              description={`Crie uma meta para começar a acompanhar o desempenho de ${broker.name.split(' ')[0]}.`}
+                              description={broker.id === AGENCY_TAB ? 'Nenhuma meta de loja ou equipe neste período.' : `Crie uma meta para começar a acompanhar o desempenho de ${broker.name.split(' ')[0]}.`}
                               actionLabel={canManageGoals ? 'Criar meta' : undefined}
                               onAction={canManageGoals ? () => setCreateDialogOpen(true) : undefined}
                             />
@@ -477,7 +508,7 @@ const Metas = () => {
                                       <div key={`motivation-${goal.id}`} className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-500/20">
                                         <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
                                         <p className="text-sm font-medium text-foreground">
-                                          <span className="font-bold">{broker.name.split(' ')[0]}</span>
+                                          <span className="font-bold">{broker.id === AGENCY_TAB ? 'Equipe' : broker.name.split(' ')[0]}</span>
                                           {' — '}
                                           <span className="text-amber-600 dark:text-amber-400">
                                             Falta {formatValue(goal.target_value - goal.current_value, goal.target_type)} para {goal.title}! 🔥
@@ -717,7 +748,7 @@ const Metas = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onCreate={createGoal}
-        defaultBrokerId={selectedBrokerId}
+        defaultBrokerId={selectedBrokerId === AGENCY_TAB ? undefined : selectedBrokerId}
         defaultMonth={selectedMonth}
       />
 
