@@ -159,6 +159,15 @@ const Metas = () => {
     return goals.filter(goal => goal.broker_id === selectedBrokerId && inSelectedMonth(goal));
   }, [goals, selectedBrokerId, selectedMonth, teams, userTeamId, isDirectorView, selectedTeamId]);
 
+  const scopeTabs = useMemo(() => {
+    const tabs: { id: string; name: string }[] = [];
+    if (showAgencyTab) {
+      tabs.push({ id: AGENCY_TAB, name: isDirectorView ? 'Loja & Equipes' : 'Minha Equipe' });
+    }
+    visibleBrokers.forEach(b => tabs.push({ id: b.id, name: b.name }));
+    return tabs;
+  }, [showAgencyTab, isDirectorView, visibleBrokers]);
+
 
   const stats = useMemo(() => {
     const active = filteredGoals.filter(g => g.status === 'active').length;
