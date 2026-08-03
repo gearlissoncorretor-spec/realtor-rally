@@ -479,7 +479,7 @@ const Metas = () => {
                         <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-muted/30 to-transparent">
                           <CardTitle className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
                             <Target className="w-5 h-5 text-primary" />
-                            Metas de {broker.name}
+                            {broker.id === AGENCY_TAB ? 'Metas coletivas' : `Metas de ${broker.name}`}
                           </CardTitle>
                           {canManageGoals && (
                             <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="w-full sm:w-auto shadow-sm">
@@ -493,7 +493,7 @@ const Metas = () => {
                             <EmptyState
                               variant="goals"
                               title="Nenhuma meta neste período"
-                              description={`Crie uma meta para começar a acompanhar o desempenho de ${broker.name.split(' ')[0]}.`}
+                              description={broker.id === AGENCY_TAB ? 'Nenhuma meta de loja ou equipe neste período.' : `Crie uma meta para começar a acompanhar o desempenho de ${broker.name.split(' ')[0]}.`}
                               actionLabel={canManageGoals ? 'Criar meta' : undefined}
                               onAction={canManageGoals ? () => setCreateDialogOpen(true) : undefined}
                             />
@@ -508,7 +508,7 @@ const Metas = () => {
                                       <div key={`motivation-${goal.id}`} className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-500/20">
                                         <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
                                         <p className="text-sm font-medium text-foreground">
-                                          <span className="font-bold">{broker.name.split(' ')[0]}</span>
+                                          <span className="font-bold">{broker.id === AGENCY_TAB ? 'Equipe' : broker.name.split(' ')[0]}</span>
                                           {' — '}
                                           <span className="text-amber-600 dark:text-amber-400">
                                             Falta {formatValue(goal.target_value - goal.current_value, goal.target_type)} para {goal.title}! 🔥
@@ -748,7 +748,7 @@ const Metas = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onCreate={createGoal}
-        defaultBrokerId={selectedBrokerId}
+        defaultBrokerId={selectedBrokerId === AGENCY_TAB ? undefined : selectedBrokerId}
         defaultMonth={selectedMonth}
       />
 
