@@ -14,6 +14,7 @@ import { LeadSourceBadge, LEAD_SOURCES } from '@/components/leads/LeadSourceBadg
 import { DistributeLeadDialog } from '@/components/leads/DistributeLeadDialog';
 import { CreateLeadDialog } from '@/components/leads/CreateLeadDialog';
 import { MyIntegrations } from '@/components/leads/MyIntegrations';
+import { FacebookIntegrationCard } from '@/components/leads/FacebookIntegrationCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -242,6 +243,7 @@ const Leads = () => {
         </Card>
 
         {/* My Integrations */}
+        <FacebookIntegrationCard />
         <MyIntegrations />
         </div>
       </main>

@@ -1,16 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Facebook, Globe, MessageCircle, Plug } from 'lucide-react';
+import { Globe, MessageCircle, Plug } from 'lucide-react';
 
 const INTEGRATIONS = [
-  {
-    id: 'facebook',
-    name: 'Facebook Lead Ads',
-    description: 'Receba leads diretamente das suas campanhas do Meta Ads.',
-    icon: Facebook,
-    color: 'text-blue-500',
-  },
   {
     id: 'site',
     name: 'Formulário do Site',
