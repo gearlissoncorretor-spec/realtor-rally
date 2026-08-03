@@ -112,11 +112,18 @@ const Metas = () => {
     return accessibleBrokers.filter(b => b.team_id === selectedTeamId);
   }, [accessibleBrokers, selectedTeamId, isDirectorView]);
 
+  // Aba "Agência/Equipe": metas coletivas (sem corretor específico)
+  const showAgencyTab = !isCorretor();
+  const AGENCY_TAB = '__agency__';
+
   useEffect(() => {
+    if (selectedBrokerId === AGENCY_TAB && showAgencyTab) return;
     if (visibleBrokers.length > 0 && (!selectedBrokerId || !visibleBrokers.find(b => b.id === selectedBrokerId))) {
-      setSelectedBrokerId(visibleBrokers[0].id);
+      setSelectedBrokerId(showAgencyTab ? AGENCY_TAB : visibleBrokers[0].id);
+    } else if (visibleBrokers.length === 0 && showAgencyTab && !selectedBrokerId) {
+      setSelectedBrokerId(AGENCY_TAB);
     }
-  }, [visibleBrokers, selectedBrokerId]);
+  }, [visibleBrokers, selectedBrokerId, showAgencyTab]);
 
   const goToPreviousMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
   const goToNextMonth = () => {
@@ -124,20 +131,34 @@ const Metas = () => {
     if (nextMonth <= addMonths(new Date(), 12)) setSelectedMonth(nextMonth);
   };
 
+  const inSelectedMonth = (goal: Goal) => {
+    const monthStart = startOfMonth(selectedMonth);
+    const monthEnd = endOfMonth(selectedMonth);
+    const goalStart = new Date(`${goal.start_date}T12:00:00`);
+    const goalEnd = new Date(`${goal.end_date}T12:00:00`);
+    return goalStart <= monthEnd && goalEnd >= monthStart;
+  };
+
   const filteredGoals = useMemo(() => {
     if (!selectedBrokerId) return [];
-    const selectedBrokerData = visibleBrokers.find(b => b.id === selectedBrokerId);
-    return goals.filter(goal => {
-      const matchesBroker = goal.broker_id === selectedBrokerId || 
-        (!goal.broker_id && goal.team_id === selectedBrokerData?.team_id) ||
-        (!goal.broker_id && !goal.team_id);
-      const monthStart = startOfMonth(selectedMonth);
-      const monthEnd = endOfMonth(selectedMonth);
-      const goalStart = new Date(goal.start_date);
-      const goalEnd = new Date(goal.end_date);
-      return matchesBroker && goalStart <= monthEnd && goalEnd >= monthStart;
-    });
-  }, [goals, selectedBrokerId, selectedMonth, visibleBrokers]);
+
+    if (selectedBrokerId === AGENCY_TAB) {
+      // Metas da loja e das equipes acessíveis (nunca metas individuais)
+      const accessibleTeamIds = new Set(
+        (isDirectorView ? teams.map(t => t.id) : [userTeamId]).filter(Boolean) as string[]
+      );
+      return goals.filter(goal => {
+        if (goal.broker_id) return false;
+        if (goal.team_id && !accessibleTeamIds.has(goal.team_id)) return false;
+        if (isDirectorView && selectedTeamId !== 'all' && goal.team_id && goal.team_id !== selectedTeamId) return false;
+        return inSelectedMonth(goal);
+      });
+    }
+
+    // Metas individuais do corretor selecionado
+    return goals.filter(goal => goal.broker_id === selectedBrokerId && inSelectedMonth(goal));
+  }, [goals, selectedBrokerId, selectedMonth, teams, userTeamId, isDirectorView, selectedTeamId]);
+
 
   const stats = useMemo(() => {
     const active = filteredGoals.filter(g => g.status === 'active').length;
