@@ -299,49 +299,50 @@ const Metas = () => {
     <>
       <Navigation />
       <div className="min-h-screen bg-background lg:ml-72">
-        <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
+        <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 pt-20 lg:pt-6 pb-28 lg:pb-6">
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3 w-full justify-center sm:justify-start">
-              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl border border-primary/20">
-                <Target className="w-7 h-7 text-primary" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl border border-primary/20 shrink-0">
+                <Target className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
               </div>
-              <div className="text-center sm:text-left">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight leading-tight">
                   Gestão de Metas
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   Acompanhe o progresso e performance
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-end">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Month Selector */}
+              <div className="flex flex-1 sm:flex-none items-center gap-1 bg-card border border-border rounded-xl p-1 sm:p-1.5 shadow-sm">
+                <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg shrink-0">
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex flex-1 items-center gap-2 sm:min-w-[160px] justify-center px-1">
+                  <Calendar className="w-4 h-4 text-primary shrink-0" />
+                  <span className="font-semibold text-foreground capitalize text-sm truncate">
+                    {format(selectedMonth, "MMM yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg shrink-0">
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
               {/* WhatsApp Share */}
               <WhatsAppShareDialog
                 goals={whatsAppGoals}
                 rankings={whatsAppRankings}
                 sales={whatsAppSales}
               />
-
-              {/* Month Selector */}
-              <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
-                <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg">
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="font-semibold text-foreground capitalize">
-                    {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
-                  </span>
-                </div>
-                <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg">
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
           </div>
+
 
           {/* Tabs */}
           <Tabs defaultValue="metas" className="w-full">
