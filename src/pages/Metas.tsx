@@ -346,7 +346,7 @@ const Metas = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="metas" className="w-full">
-            <TabsList className="h-11 bg-card border border-border shadow-sm rounded-xl p-1">
+            <TabsList className="h-11 w-full sm:w-auto grid grid-cols-2 sm:inline-flex bg-card border border-border shadow-sm rounded-xl p-1">
               <TabsTrigger value="metas" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                 <Target className="w-4 h-4" />
                 Metas
@@ -362,7 +362,8 @@ const Metas = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="metas" className="space-y-6 mt-6">
+            <TabsContent value="metas" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+
               {/* Team Tabs for Directors */}
               {isDirectorView && teamsWithBrokers.length > 0 && (
                 <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
