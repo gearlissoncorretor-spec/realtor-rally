@@ -317,6 +317,7 @@ export const QuickGoalDialog: React.FC<QuickGoalDialogProps> = ({
               <div className="space-y-1.5">
                 <Label className="text-sm">Período</Label>
                 <div className="grid grid-cols-4 gap-1 rounded-lg border border-border p-1">
+
                   {PERIODS.map(p => (
                     <button
                       key={p.key}
