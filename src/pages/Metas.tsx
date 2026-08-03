@@ -523,13 +523,15 @@ const Metas = () => {
 
                       {/* Goals Cards (Mobile) + Table (Desktop) */}
                       <Card className="border-border/50 bg-card shadow-sm overflow-hidden">
-                        <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-muted/30 to-transparent">
-                          <CardTitle className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                            <Target className="w-5 h-5 text-primary" />
-                            {broker.id === AGENCY_TAB ? 'Metas coletivas' : `Metas de ${broker.name}`}
+                        <CardHeader className="p-3 sm:p-6 sm:pb-4 flex flex-row items-center justify-between gap-3 bg-gradient-to-r from-muted/30 to-transparent">
+                          <CardTitle className="text-sm sm:text-lg font-semibold text-foreground flex items-center gap-2 min-w-0">
+                            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
+                            <span className="truncate">
+                              {broker.id === AGENCY_TAB ? 'Metas coletivas' : `Metas de ${broker.name.split(' ')[0]}`}
+                            </span>
                           </CardTitle>
                           {canManageGoals && (
-                            <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="w-full sm:w-auto shadow-sm">
+                            <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="hidden sm:inline-flex shadow-sm shrink-0">
                               <Plus className="w-4 h-4 mr-1.5" />
                               Nova Meta
                             </Button>
@@ -546,26 +548,26 @@ const Metas = () => {
                             />
                           ) : (
                             <>
-                              {/* Motivational Banner per Goal */}
-                              {filteredGoals.filter(g => g.status === 'active' && g.target_value - g.current_value > 0).length > 0 && (
-                                <div className="divide-y divide-border/30">
-                                  {filteredGoals
-                                    .filter(g => g.status === 'active' && g.target_value - g.current_value > 0)
-                                    .map(goal => (
-                                      <div key={`motivation-${goal.id}`} className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-500/20">
-                                        <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
-                                        <p className="text-sm font-medium text-foreground">
-                                          <span className="font-bold">{broker.id === AGENCY_TAB ? 'Equipe' : broker.name.split(' ')[0]}</span>
-                                          {' — '}
-                                          <span className="text-amber-600 dark:text-amber-400">
-                                            Falta {formatValue(goal.target_value - goal.current_value, goal.target_type)} para {goal.title}! 🔥
-                                          </span>
+                              {/* Motivational Banner (top 2) */}
+                              {(() => {
+                                const pending = filteredGoals
+                                  .filter(g => g.status === 'active' && g.target_value - g.current_value > 0)
+                                  .slice(0, 2);
+                                if (!pending.length) return null;
+                                return (
+                                  <div className="divide-y divide-amber-500/20">
+                                    {pending.map(goal => (
+                                      <div key={`motivation-${goal.id}`} className="flex items-center gap-2.5 px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent">
+                                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
+                                        <p className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400 line-clamp-2">
+                                          Falta {formatValue(goal.target_value - goal.current_value, goal.target_type)} para {goal.title}
                                         </p>
                                       </div>
-                                    ))
-                                  }
-                                </div>
-                              )}
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+
 
                               {/* Mobile: Goal Cards */}
                               <div className="sm:hidden divide-y divide-border">
