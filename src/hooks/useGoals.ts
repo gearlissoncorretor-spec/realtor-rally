@@ -86,13 +86,14 @@ export const useGoals = () => {
     }
   };
 
-  // Auto-calculate current_value for VGV and sales_count goals from sales data
+  // Auto-calculate current_value from sales data (loja / equipe / corretor)
   const syncGoalsFromSales = useCallback(async () => {
     if (!sales.length || !goals.length || syncingRef.current) return;
 
+    const SYNCABLE = ['sales_count', 'vgv', 'vgc', 'commission', 'revenue', 'captacao'];
     const autoSyncGoals = goals.filter(g => {
       const nt = normalizeGoalTargetType(g.target_type);
-      return nt === 'sales_count' || nt === 'vgv';
+      return !!nt && SYNCABLE.includes(nt);
     });
 
     if (!autoSyncGoals.length) return;
@@ -100,40 +101,47 @@ export const useGoals = () => {
     syncingRef.current = true;
     const updates: { id: string; current_value: number }[] = [];
 
+    const teamBrokerMap = new Map<string, Set<string>>();
+    brokers.forEach(b => {
+      if (!b.team_id) return;
+      if (!teamBrokerMap.has(b.team_id)) teamBrokerMap.set(b.team_id, new Set());
+      teamBrokerMap.get(b.team_id)!.add(b.id);
+    });
+
     for (const goal of autoSyncGoals) {
       const nt = normalizeGoalTargetType(goal.target_type);
       const startDate = goal.start_date;
       const endDate = goal.end_date;
 
-      // Filter sales within the goal's date range
+      // Período + regras de negócio: distrato/cancelada nunca contam
       let filteredSales = sales.filter(s => {
-        const saleDate = s.sale_date || s.created_at?.split('T')[0];
+        const saleDate = (s.sale_date || s.created_at?.split('T')[0] || '').slice(0, 10);
         if (!saleDate) return false;
-        return saleDate >= startDate && saleDate <= endDate;
+        if (saleDate < startDate || saleDate > endDate) return false;
+        if (s.status === 'distrato' || s.status === 'cancelada') return false;
+        return true;
       });
 
-      // If goal is assigned to a specific broker, filter by broker_id
+      // Escopo: corretor > equipe > loja (agência = todas as vendas visíveis)
       if (goal.broker_id) {
         filteredSales = filteredSales.filter(s => s.broker_id === goal.broker_id);
+      } else if (goal.team_id) {
+        const teamBrokers = teamBrokerMap.get(goal.team_id) ?? new Set<string>();
+        filteredSales = filteredSales.filter(s => s.broker_id && teamBrokers.has(s.broker_id));
       }
 
-      // If goal is for a specific team, filter by team brokers
-      if (goal.team_id && !goal.broker_id) {
-        const teamBrokerIds = new Set(
-          sales
-            .map(s => s.broker_id)
-            .filter(Boolean)
-        );
-        // We need to check which brokers belong to the team
-        // Use the brokers relation if available, otherwise skip team filtering here
-        // For now, we rely on broker_id being set on team-level goals
-      }
+      const isCaptacao = nt === 'captacao';
+      filteredSales = filteredSales.filter(s =>
+        isCaptacao ? s.tipo === 'captacao' : s.tipo !== 'captacao'
+      );
 
       let computedValue = 0;
-      if (nt === 'sales_count') {
+      if (nt === 'sales_count' || isCaptacao) {
         computedValue = filteredSales.length;
       } else if (nt === 'vgv') {
         computedValue = filteredSales.reduce((sum, s) => sum + (s.vgv || s.property_value || 0), 0);
+      } else if (nt === 'vgc' || nt === 'commission' || nt === 'revenue') {
+        computedValue = filteredSales.reduce((sum, s) => sum + (s.vgc || s.commission_value || 0), 0);
       }
 
       // Only update if value actually changed
@@ -141,6 +149,7 @@ export const useGoals = () => {
         updates.push({ id: goal.id, current_value: computedValue });
       }
     }
+
 
     if (updates.length > 0) {
       try {
