@@ -387,25 +387,26 @@ const Metas = () => {
                 </div>
               )}
 
-              {/* Broker Tabs */}
-              {visibleBrokers.length > 0 ? (
+              {/* Scope Tabs (Agência + Corretores) */}
+              {scopeTabs.length > 0 ? (
                 <Tabs value={selectedBrokerId} onValueChange={setSelectedBrokerId} className="w-full">
                   <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
                     <TabsList className="inline-flex h-11 bg-card border border-border shadow-sm rounded-xl p-1 gap-0.5 min-w-max">
-                      {visibleBrokers.map((broker) => (
+                      {scopeTabs.map((broker) => (
                         <TabsTrigger
                           key={broker.id}
                           value={broker.id}
                           className="px-4 py-2 text-sm font-medium rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
                         >
-                          {broker.name.split(' ')[0]}
+                          {broker.id === AGENCY_TAB ? broker.name : broker.name.split(' ')[0]}
                         </TabsTrigger>
                       ))}
                     </TabsList>
                   </div>
 
-                  {visibleBrokers.map((broker) => (
+                  {scopeTabs.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
+
                       
                       {/* KPI Cards */}
                       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
