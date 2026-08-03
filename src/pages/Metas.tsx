@@ -418,9 +418,53 @@ const Metas = () => {
                   {scopeTabs.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
 
-                      
-                      {/* KPI Cards */}
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                      {/* Resumo (Mobile) */}
+                      <Card className="sm:hidden border-border/60 overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="relative w-20 h-20 shrink-0">
+                              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" strokeWidth="9" className="stroke-muted/25" />
+                                <circle
+                                  cx="50" cy="50" r="42" fill="none" strokeWidth="9"
+                                  strokeLinecap="round"
+                                  className={cn(
+                                    "transition-all duration-1000 ease-out",
+                                    stats.avgProgress >= 90 ? "stroke-emerald-500" :
+                                    stats.avgProgress >= 50 ? "stroke-amber-500" : "stroke-primary"
+                                  )}
+                                  strokeDasharray={`${Math.min(stats.avgProgress, 100) * 2.64} 264`}
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-lg font-bold text-foreground tabular-nums">{stats.avgProgress.toFixed(0)}%</span>
+                              </div>
+                            </div>
+                            <div className="min-w-0 flex-1 grid grid-cols-2 gap-x-3 gap-y-2">
+                              {[
+                                { label: 'Ativas', value: stats.active, color: 'text-blue-500' },
+                                { label: 'Concluídas', value: stats.completed, color: 'text-emerald-500' },
+                                { label: 'Vencidas', value: stats.overdue, color: 'text-red-500' },
+                                { label: 'Total', value: stats.total, color: 'text-foreground' },
+                              ].map(s => (
+                                <div key={s.label} className="flex items-baseline gap-1.5">
+                                  <span className={cn("text-lg font-bold tabular-nums leading-none", s.color)}>{s.value}</span>
+                                  <span className="text-[11px] text-muted-foreground truncate">{s.label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {stats.overdue > 0 && (
+                            <p className="mt-3 text-xs text-red-500 flex items-center gap-1.5">
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                              {stats.overdue} meta{stats.overdue > 1 ? 's' : ''} vencida{stats.overdue > 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* KPI Cards (Desktop) */}
+                      <div className="hidden sm:grid sm:grid-cols-5 gap-3">
                         {kpiCards.map((kpi, i) => (
                           <Card key={i} className={cn("border overflow-hidden transition-all hover:shadow-md", kpi.borderColor)}>
                             <CardContent className="p-0">
@@ -440,9 +484,9 @@ const Metas = () => {
                         ))}
                       </div>
 
-                      {/* Circular Progress + Action */}
+                      {/* Circular Progress + Action (Desktop) */}
                       {stats.total > 0 && (
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-4">
+                        <div className="hidden sm:flex flex-row items-center justify-center gap-6 py-4">
                           <div className="relative w-32 h-32">
                             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                               <circle cx="50" cy="50" r="42" fill="none" strokeWidth="7" className="stroke-muted/20" />
@@ -462,12 +506,12 @@ const Metas = () => {
                               <span className="text-xs text-muted-foreground font-medium">média geral</span>
                             </div>
                           </div>
-                          <div className="text-center sm:text-left space-y-1">
+                          <div className="text-left space-y-1">
                             <p className="text-sm text-muted-foreground">
                               <span className="font-semibold text-foreground">{stats.completed}</span> de <span className="font-semibold text-foreground">{stats.total}</span> metas concluídas
                             </p>
                             {stats.overdue > 0 && (
-                              <p className="text-sm text-red-500 flex items-center gap-1.5 justify-center sm:justify-start">
+                              <p className="text-sm text-red-500 flex items-center gap-1.5">
                                 <AlertTriangle className="w-3.5 h-3.5" />
                                 {stats.overdue} meta{stats.overdue > 1 ? 's' : ''} vencida{stats.overdue > 1 ? 's' : ''}
                               </p>
@@ -475,6 +519,7 @@ const Metas = () => {
                           </div>
                         </div>
                       )}
+
 
                       {/* Goals Cards (Mobile) + Table (Desktop) */}
                       <Card className="border-border/50 bg-card shadow-sm overflow-hidden">
