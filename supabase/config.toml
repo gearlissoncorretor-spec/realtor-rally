@@ -41,3 +41,5 @@ project_id = "kwsnnwiwflsvsqiuzfja"
     verify_jwt = false
   [functions.slack-birthdays]
     verify_jwt = false
+  [functions.facebook-oauth]
+    verify_jwt = false
