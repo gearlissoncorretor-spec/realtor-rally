@@ -299,53 +299,54 @@ const Metas = () => {
     <>
       <Navigation />
       <div className="min-h-screen bg-background lg:ml-72">
-        <div className="p-4 lg:p-6 space-y-6 pt-20 lg:pt-6 pb-20 lg:pb-6">
+        <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 pt-20 lg:pt-6 pb-28 lg:pb-6">
           
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3 w-full justify-center sm:justify-start">
-              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl border border-primary/20">
-                <Target className="w-7 h-7 text-primary" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl border border-primary/20 shrink-0">
+                <Target className="w-5 h-5 sm:w-7 sm:h-7 text-primary" />
               </div>
-              <div className="text-center sm:text-left">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight leading-tight">
                   Gestão de Metas
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   Acompanhe o progresso e performance
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-end">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Month Selector */}
+              <div className="flex flex-1 sm:flex-none items-center gap-1 bg-card border border-border rounded-xl p-1 sm:p-1.5 shadow-sm">
+                <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg shrink-0">
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex flex-1 items-center gap-2 sm:min-w-[160px] justify-center px-1">
+                  <Calendar className="w-4 h-4 text-primary shrink-0" />
+                  <span className="font-semibold text-foreground capitalize text-sm truncate">
+                    {format(selectedMonth, "MMM yyyy", { locale: ptBR })}
+                  </span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg shrink-0">
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
               {/* WhatsApp Share */}
               <WhatsAppShareDialog
                 goals={whatsAppGoals}
                 rankings={whatsAppRankings}
                 sales={whatsAppSales}
               />
-
-              {/* Month Selector */}
-              <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1.5 shadow-sm">
-                <Button variant="ghost" size="icon" onClick={goToPreviousMonth} className="h-9 w-9 rounded-lg">
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <div className="flex items-center gap-2 min-w-[160px] justify-center px-2">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="font-semibold text-foreground capitalize">
-                    {format(selectedMonth, "MMMM yyyy", { locale: ptBR })}
-                  </span>
-                </div>
-                <Button variant="ghost" size="icon" onClick={goToNextMonth} className="h-9 w-9 rounded-lg">
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
           </div>
 
+
           {/* Tabs */}
           <Tabs defaultValue="metas" className="w-full">
-            <TabsList className="h-11 bg-card border border-border shadow-sm rounded-xl p-1">
+            <TabsList className="h-11 w-full sm:w-auto grid grid-cols-2 sm:inline-flex bg-card border border-border shadow-sm rounded-xl p-1">
               <TabsTrigger value="metas" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                 <Target className="w-4 h-4" />
                 Metas
@@ -361,7 +362,8 @@ const Metas = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="metas" className="space-y-6 mt-6">
+            <TabsContent value="metas" className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
+
               {/* Team Tabs for Directors */}
               {isDirectorView && teamsWithBrokers.length > 0 && (
                 <div className="overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
@@ -416,9 +418,53 @@ const Metas = () => {
                   {scopeTabs.map((broker) => (
                     <TabsContent key={broker.id} value={broker.id} className="mt-4 space-y-6">
 
-                      
-                      {/* KPI Cards */}
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                      {/* Resumo (Mobile) */}
+                      <Card className="sm:hidden border-border/60 overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="relative w-20 h-20 shrink-0">
+                              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" strokeWidth="9" className="stroke-muted/25" />
+                                <circle
+                                  cx="50" cy="50" r="42" fill="none" strokeWidth="9"
+                                  strokeLinecap="round"
+                                  className={cn(
+                                    "transition-all duration-1000 ease-out",
+                                    stats.avgProgress >= 90 ? "stroke-emerald-500" :
+                                    stats.avgProgress >= 50 ? "stroke-amber-500" : "stroke-primary"
+                                  )}
+                                  strokeDasharray={`${Math.min(stats.avgProgress, 100) * 2.64} 264`}
+                                />
+                              </svg>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-lg font-bold text-foreground tabular-nums">{stats.avgProgress.toFixed(0)}%</span>
+                              </div>
+                            </div>
+                            <div className="min-w-0 flex-1 grid grid-cols-2 gap-x-3 gap-y-2">
+                              {[
+                                { label: 'Ativas', value: stats.active, color: 'text-blue-500' },
+                                { label: 'Concluídas', value: stats.completed, color: 'text-emerald-500' },
+                                { label: 'Vencidas', value: stats.overdue, color: 'text-red-500' },
+                                { label: 'Total', value: stats.total, color: 'text-foreground' },
+                              ].map(s => (
+                                <div key={s.label} className="flex items-baseline gap-1.5">
+                                  <span className={cn("text-lg font-bold tabular-nums leading-none", s.color)}>{s.value}</span>
+                                  <span className="text-[11px] text-muted-foreground truncate">{s.label}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {stats.overdue > 0 && (
+                            <p className="mt-3 text-xs text-red-500 flex items-center gap-1.5">
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                              {stats.overdue} meta{stats.overdue > 1 ? 's' : ''} vencida{stats.overdue > 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+
+                      {/* KPI Cards (Desktop) */}
+                      <div className="hidden sm:grid sm:grid-cols-5 gap-3">
                         {kpiCards.map((kpi, i) => (
                           <Card key={i} className={cn("border overflow-hidden transition-all hover:shadow-md", kpi.borderColor)}>
                             <CardContent className="p-0">
@@ -438,9 +484,9 @@ const Metas = () => {
                         ))}
                       </div>
 
-                      {/* Circular Progress + Action */}
+                      {/* Circular Progress + Action (Desktop) */}
                       {stats.total > 0 && (
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-4">
+                        <div className="hidden sm:flex flex-row items-center justify-center gap-6 py-4">
                           <div className="relative w-32 h-32">
                             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                               <circle cx="50" cy="50" r="42" fill="none" strokeWidth="7" className="stroke-muted/20" />
@@ -460,12 +506,12 @@ const Metas = () => {
                               <span className="text-xs text-muted-foreground font-medium">média geral</span>
                             </div>
                           </div>
-                          <div className="text-center sm:text-left space-y-1">
+                          <div className="text-left space-y-1">
                             <p className="text-sm text-muted-foreground">
                               <span className="font-semibold text-foreground">{stats.completed}</span> de <span className="font-semibold text-foreground">{stats.total}</span> metas concluídas
                             </p>
                             {stats.overdue > 0 && (
-                              <p className="text-sm text-red-500 flex items-center gap-1.5 justify-center sm:justify-start">
+                              <p className="text-sm text-red-500 flex items-center gap-1.5">
                                 <AlertTriangle className="w-3.5 h-3.5" />
                                 {stats.overdue} meta{stats.overdue > 1 ? 's' : ''} vencida{stats.overdue > 1 ? 's' : ''}
                               </p>
@@ -474,15 +520,18 @@ const Metas = () => {
                         </div>
                       )}
 
+
                       {/* Goals Cards (Mobile) + Table (Desktop) */}
                       <Card className="border-border/50 bg-card shadow-sm overflow-hidden">
-                        <CardHeader className="pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-muted/30 to-transparent">
-                          <CardTitle className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
-                            <Target className="w-5 h-5 text-primary" />
-                            {broker.id === AGENCY_TAB ? 'Metas coletivas' : `Metas de ${broker.name}`}
+                        <CardHeader className="p-3 sm:p-6 sm:pb-4 flex flex-row items-center justify-between gap-3 bg-gradient-to-r from-muted/30 to-transparent">
+                          <CardTitle className="text-sm sm:text-lg font-semibold text-foreground flex items-center gap-2 min-w-0">
+                            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
+                            <span className="truncate">
+                              {broker.id === AGENCY_TAB ? 'Metas coletivas' : `Metas de ${broker.name.split(' ')[0]}`}
+                            </span>
                           </CardTitle>
                           {canManageGoals && (
-                            <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="w-full sm:w-auto shadow-sm">
+                            <Button onClick={() => setCreateDialogOpen(true)} size="sm" className="hidden sm:inline-flex shadow-sm shrink-0">
                               <Plus className="w-4 h-4 mr-1.5" />
                               Nova Meta
                             </Button>
@@ -499,93 +548,112 @@ const Metas = () => {
                             />
                           ) : (
                             <>
-                              {/* Motivational Banner per Goal */}
-                              {filteredGoals.filter(g => g.status === 'active' && g.target_value - g.current_value > 0).length > 0 && (
-                                <div className="divide-y divide-border/30">
-                                  {filteredGoals
-                                    .filter(g => g.status === 'active' && g.target_value - g.current_value > 0)
-                                    .map(goal => (
-                                      <div key={`motivation-${goal.id}`} className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-500/20">
-                                        <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
-                                        <p className="text-sm font-medium text-foreground">
-                                          <span className="font-bold">{broker.id === AGENCY_TAB ? 'Equipe' : broker.name.split(' ')[0]}</span>
-                                          {' — '}
-                                          <span className="text-amber-600 dark:text-amber-400">
-                                            Falta {formatValue(goal.target_value - goal.current_value, goal.target_type)} para {goal.title}! 🔥
-                                          </span>
+                              {/* Motivational Banner (top 2) */}
+                              {(() => {
+                                const pending = filteredGoals
+                                  .filter(g => g.status === 'active' && g.target_value - g.current_value > 0)
+                                  .slice(0, 2);
+                                if (!pending.length) return null;
+                                return (
+                                  <div className="divide-y divide-amber-500/20">
+                                    {pending.map(goal => (
+                                      <div key={`motivation-${goal.id}`} className="flex items-center gap-2.5 px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent">
+                                        <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
+                                        <p className="text-xs sm:text-sm font-medium text-amber-700 dark:text-amber-400 line-clamp-2">
+                                          Falta {formatValue(goal.target_value - goal.current_value, goal.target_type)} para {goal.title}
                                         </p>
                                       </div>
-                                    ))
-                                  }
-                                </div>
-                              )}
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+
 
                               {/* Mobile: Goal Cards */}
-                              <div className="sm:hidden divide-y divide-border">
+                              <div className="sm:hidden p-3 space-y-3">
                                 {filteredGoals.map(goal => {
                                   const progress = getProgress(goal);
                                   const statusInfo = getStatusInfo(goal);
                                   const dailyNeeded = getDailyNeeded(goal);
-                                  
+                                  const remaining = goal.target_value - goal.current_value;
+
                                   return (
                                     <div 
                                       key={goal.id} 
-                                      className="p-4 cursor-pointer hover:bg-muted/30 transition-colors active:bg-muted/50"
+                                      className={cn(
+                                        "rounded-xl border bg-background p-3.5 shadow-sm cursor-pointer transition-colors active:bg-muted/40 border-l-4",
+                                        progress >= 100 ? "border-l-emerald-500" :
+                                        progress >= 50 ? "border-l-amber-500" : "border-l-primary"
+                                      )}
                                       onClick={() => setSelectedGoalId(goal.id)}
                                     >
-                                      <div className="flex items-start justify-between gap-3 mb-3">
-                                        <div className="min-w-0 flex-1">
-                                          <p className="font-semibold text-foreground truncate">{goal.title}</p>
-                                          <div className="flex items-center gap-2 mt-1">
-                                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                                {getGoalTypeLabel(goal.target_type)}
-                                              </Badge>
-                                            <Badge variant={statusInfo.variant} className={cn("text-[10px] px-1.5 py-0", statusInfo.className)}>
-                                              {statusInfo.label}
-                                            </Badge>
-                                          </div>
-                                        </div>
+                                      {/* Linha 1: título + % */}
+                                      <div className="flex items-start justify-between gap-3">
+                                        <p className="font-semibold text-sm text-foreground leading-snug line-clamp-2 flex-1">
+                                          {goal.title}
+                                        </p>
                                         <span className={cn(
-                                          "text-xl font-bold tabular-nums shrink-0",
-                                          progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-red-500"
+                                          "text-lg font-bold tabular-nums shrink-0 leading-none",
+                                          progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-primary"
                                         )}>
                                           {progress}%
                                         </span>
                                       </div>
-                                      
-                                      <Progress value={progress} className="h-2 mb-2" />
-                                      
-                                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>{formatValueCompact(goal.current_value, goal.target_type)} / {formatValueCompact(goal.target_value, goal.target_type)}</span>
-                                        <span>{format(new Date(goal.end_date), 'dd/MM', { locale: ptBR })}</span>
+
+                                      {/* Linha 2: badges */}
+                                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                                          {getGoalTypeLabel(goal.target_type)}
+                                        </Badge>
+                                        <Badge variant={statusInfo.variant} className={cn("text-[10px] px-1.5 py-0 h-5", statusInfo.className)}>
+                                          {statusInfo.label}
+                                        </Badge>
+                                        <span className="text-[10px] text-muted-foreground ml-auto flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          {format(new Date(`${goal.end_date}T12:00:00`), 'dd/MM', { locale: ptBR })}
+                                        </span>
+                                      </div>
+
+                                      <Progress value={progress} className="h-2 mt-2.5" />
+
+                                      {/* Linha 3: valores */}
+                                      <div className="flex items-center justify-between gap-2 mt-2 text-[11px]">
+                                        <span className="text-muted-foreground truncate">
+                                          <span className="font-semibold text-foreground tabular-nums">{formatValueCompact(goal.current_value, goal.target_type)}</span>
+                                          {' / '}{formatValueCompact(goal.target_value, goal.target_type)}
+                                        </span>
+                                        <span className={cn("shrink-0 font-medium", remaining <= 0 ? "text-emerald-500" : "text-muted-foreground")}>
+                                          {remaining > 0 ? `Faltam ${formatValueCompact(remaining, goal.target_type)}` : 'Atingida ✅'}
+                                        </span>
                                       </div>
 
                                       {dailyNeeded && (
                                         <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
-                                          <TrendingUp className="w-3 h-3" />
-                                          Necessário: {formatValueCompact(dailyNeeded, goal.target_type)}/dia
+                                          <TrendingUp className="w-3 h-3 shrink-0" />
+                                          {formatValueCompact(dailyNeeded, goal.target_type)}/dia para bater a meta
                                         </p>
                                       )}
 
                                       {(canEditGoal(goal) || canDeleteGoal(goal)) && (
-                                        <div className="flex justify-end gap-1 mt-2" onClick={e => e.stopPropagation()}>
+                                        <div className="flex justify-end gap-1 mt-2 pt-2 border-t border-border/60" onClick={e => e.stopPropagation()}>
                                           {canEditGoal(goal) && (
                                             <Button 
                                               size="icon" variant="ghost" 
                                               onClick={() => updateGoal(goal.id, { status: goal.status === 'active' ? 'paused' : 'active' })}
-                                              className="h-7 w-7"
+                                              className="h-8 w-8"
+                                              aria-label={goal.status === 'active' ? 'Pausar meta' : 'Reativar meta'}
                                             >
-                                              {goal.status === 'active' ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                                              {goal.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                                             </Button>
                                           )}
                                           {canEditGoal(goal) && (
-                                            <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-7 w-7">
-                                              <Pencil className="w-3 h-3" />
+                                            <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-8 w-8" aria-label="Editar meta">
+                                              <Pencil className="w-3.5 h-3.5" />
                                             </Button>
                                           )}
                                           {canDeleteGoal(goal) && (
-                                            <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-7 w-7 text-destructive hover:text-destructive">
-                                              <Trash2 className="w-3 h-3" />
+                                            <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-8 w-8 text-destructive hover:text-destructive" aria-label="Excluir meta">
+                                              <Trash2 className="w-3.5 h-3.5" />
                                             </Button>
                                           )}
                                         </div>
@@ -594,6 +662,7 @@ const Metas = () => {
                                   );
                                 })}
                               </div>
+
 
                               {/* Desktop: Table */}
                               <div className="hidden sm:block overflow-x-auto">
@@ -737,12 +806,24 @@ const Metas = () => {
 
             </TabsContent>
 
-            <TabsContent value="tarefas" className="mt-6">
+            <TabsContent value="tarefas" className="mt-4 sm:mt-6">
               <TasksOverviewTab />
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* FAB mobile: nova meta */}
+        {canManageGoals && (
+          <Button
+            onClick={() => setCreateDialogOpen(true)}
+            className="sm:hidden fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg p-0"
+            aria-label="Nova meta"
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
+        )}
       </div>
+
 
       <QuickGoalDialog
         open={createDialogOpen}
