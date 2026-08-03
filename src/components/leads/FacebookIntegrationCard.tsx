@@ -33,8 +33,8 @@ const invoke = async (action: string, body?: Record<string, unknown>) => {
   if (error) {
     let details = error.message;
     try {
-      // @ts-expect-error context existe em FunctionsHttpError
-      if (error.context?.text) details = await error.context.text();
+      const ctx = (error as unknown as { context?: { text?: () => Promise<string> } }).context;
+      if (ctx?.text) details = await ctx.text();
     } catch { /* ignore */ }
     throw new Error(details);
   }
