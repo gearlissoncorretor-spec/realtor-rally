@@ -806,12 +806,24 @@ const Metas = () => {
 
             </TabsContent>
 
-            <TabsContent value="tarefas" className="mt-6">
+            <TabsContent value="tarefas" className="mt-4 sm:mt-6">
               <TasksOverviewTab />
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* FAB mobile: nova meta */}
+        {canManageGoals && (
+          <Button
+            onClick={() => setCreateDialogOpen(true)}
+            className="sm:hidden fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg p-0"
+            aria-label="Nova meta"
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
+        )}
       </div>
+
 
       <QuickGoalDialog
         open={createDialogOpen}
