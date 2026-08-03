@@ -570,71 +570,90 @@ const Metas = () => {
 
 
                               {/* Mobile: Goal Cards */}
-                              <div className="sm:hidden divide-y divide-border">
+                              <div className="sm:hidden p-3 space-y-3">
                                 {filteredGoals.map(goal => {
                                   const progress = getProgress(goal);
                                   const statusInfo = getStatusInfo(goal);
                                   const dailyNeeded = getDailyNeeded(goal);
-                                  
+                                  const remaining = goal.target_value - goal.current_value;
+
                                   return (
                                     <div 
                                       key={goal.id} 
-                                      className="p-4 cursor-pointer hover:bg-muted/30 transition-colors active:bg-muted/50"
+                                      className={cn(
+                                        "rounded-xl border bg-background p-3.5 shadow-sm cursor-pointer transition-colors active:bg-muted/40 border-l-4",
+                                        progress >= 100 ? "border-l-emerald-500" :
+                                        progress >= 50 ? "border-l-amber-500" : "border-l-primary"
+                                      )}
                                       onClick={() => setSelectedGoalId(goal.id)}
                                     >
-                                      <div className="flex items-start justify-between gap-3 mb-3">
-                                        <div className="min-w-0 flex-1">
-                                          <p className="font-semibold text-foreground truncate">{goal.title}</p>
-                                          <div className="flex items-center gap-2 mt-1">
-                                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                                {getGoalTypeLabel(goal.target_type)}
-                                              </Badge>
-                                            <Badge variant={statusInfo.variant} className={cn("text-[10px] px-1.5 py-0", statusInfo.className)}>
-                                              {statusInfo.label}
-                                            </Badge>
-                                          </div>
-                                        </div>
+                                      {/* Linha 1: título + % */}
+                                      <div className="flex items-start justify-between gap-3">
+                                        <p className="font-semibold text-sm text-foreground leading-snug line-clamp-2 flex-1">
+                                          {goal.title}
+                                        </p>
                                         <span className={cn(
-                                          "text-xl font-bold tabular-nums shrink-0",
-                                          progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-red-500"
+                                          "text-lg font-bold tabular-nums shrink-0 leading-none",
+                                          progress >= 90 ? "text-emerald-500" : progress >= 50 ? "text-amber-500" : "text-primary"
                                         )}>
                                           {progress}%
                                         </span>
                                       </div>
-                                      
-                                      <Progress value={progress} className="h-2 mb-2" />
-                                      
-                                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>{formatValueCompact(goal.current_value, goal.target_type)} / {formatValueCompact(goal.target_value, goal.target_type)}</span>
-                                        <span>{format(new Date(goal.end_date), 'dd/MM', { locale: ptBR })}</span>
+
+                                      {/* Linha 2: badges */}
+                                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5">
+                                          {getGoalTypeLabel(goal.target_type)}
+                                        </Badge>
+                                        <Badge variant={statusInfo.variant} className={cn("text-[10px] px-1.5 py-0 h-5", statusInfo.className)}>
+                                          {statusInfo.label}
+                                        </Badge>
+                                        <span className="text-[10px] text-muted-foreground ml-auto flex items-center gap-1">
+                                          <Clock className="w-3 h-3" />
+                                          {format(new Date(`${goal.end_date}T12:00:00`), 'dd/MM', { locale: ptBR })}
+                                        </span>
+                                      </div>
+
+                                      <Progress value={progress} className="h-2 mt-2.5" />
+
+                                      {/* Linha 3: valores */}
+                                      <div className="flex items-center justify-between gap-2 mt-2 text-[11px]">
+                                        <span className="text-muted-foreground truncate">
+                                          <span className="font-semibold text-foreground tabular-nums">{formatValueCompact(goal.current_value, goal.target_type)}</span>
+                                          {' / '}{formatValueCompact(goal.target_value, goal.target_type)}
+                                        </span>
+                                        <span className={cn("shrink-0 font-medium", remaining <= 0 ? "text-emerald-500" : "text-muted-foreground")}>
+                                          {remaining > 0 ? `Faltam ${formatValueCompact(remaining, goal.target_type)}` : 'Atingida ✅'}
+                                        </span>
                                       </div>
 
                                       {dailyNeeded && (
                                         <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 flex items-center gap-1">
-                                          <TrendingUp className="w-3 h-3" />
-                                          Necessário: {formatValueCompact(dailyNeeded, goal.target_type)}/dia
+                                          <TrendingUp className="w-3 h-3 shrink-0" />
+                                          {formatValueCompact(dailyNeeded, goal.target_type)}/dia para bater a meta
                                         </p>
                                       )}
 
                                       {(canEditGoal(goal) || canDeleteGoal(goal)) && (
-                                        <div className="flex justify-end gap-1 mt-2" onClick={e => e.stopPropagation()}>
+                                        <div className="flex justify-end gap-1 mt-2 pt-2 border-t border-border/60" onClick={e => e.stopPropagation()}>
                                           {canEditGoal(goal) && (
                                             <Button 
                                               size="icon" variant="ghost" 
                                               onClick={() => updateGoal(goal.id, { status: goal.status === 'active' ? 'paused' : 'active' })}
-                                              className="h-7 w-7"
+                                              className="h-8 w-8"
+                                              aria-label={goal.status === 'active' ? 'Pausar meta' : 'Reativar meta'}
                                             >
-                                              {goal.status === 'active' ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                                              {goal.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                                             </Button>
                                           )}
                                           {canEditGoal(goal) && (
-                                            <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-7 w-7">
-                                              <Pencil className="w-3 h-3" />
+                                            <Button size="icon" variant="ghost" onClick={() => handleEdit(goal)} className="h-8 w-8" aria-label="Editar meta">
+                                              <Pencil className="w-3.5 h-3.5" />
                                             </Button>
                                           )}
                                           {canDeleteGoal(goal) && (
-                                            <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-7 w-7 text-destructive hover:text-destructive">
-                                              <Trash2 className="w-3 h-3" />
+                                            <Button size="icon" variant="ghost" onClick={() => setDeleteGoalId(goal.id)} className="h-8 w-8 text-destructive hover:text-destructive" aria-label="Excluir meta">
+                                              <Trash2 className="w-3.5 h-3.5" />
                                             </Button>
                                           )}
                                         </div>
@@ -643,6 +662,7 @@ const Metas = () => {
                                   );
                                 })}
                               </div>
+
 
                               {/* Desktop: Table */}
                               <div className="hidden sm:block overflow-x-auto">
