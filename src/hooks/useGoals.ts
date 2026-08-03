@@ -57,7 +57,7 @@ export const useGoals = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, profile, getUserRole, isAdmin, isDiretor, isGerente, isCorretor } = useAuth();
-  const { sales } = useData();
+  const { sales, brokers } = useData();
   const syncingRef = useRef(false);
 
   const fetchGoals = async () => {
@@ -173,7 +173,7 @@ export const useGoals = () => {
     }
 
     syncingRef.current = false;
-  }, [sales, goals]);
+  }, [sales, goals, brokers]);
 
   const createGoal = async (goalData: Partial<Goal>) => {
     try {
