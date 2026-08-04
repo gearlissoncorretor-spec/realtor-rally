@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
   const action = url.pathname.split('/').filter(Boolean).pop();
 
   try {
-    const NEEDS_APP = ['start', 'callback', 'sync', 'subscribe'];
+    const NEEDS_APP = ['start', 'callback', 'sync'];
     if ((!APP_ID || !APP_SECRET) && NEEDS_APP.includes(action ?? '')) {
       if (action === 'callback') {
         return new Response('Integração do Facebook não configurada (FACEBOOK_APP_ID/SECRET).', { status: 500 });
