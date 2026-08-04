@@ -83,12 +83,14 @@ Deno.serve(async (req) => {
   const action = url.pathname.split('/').filter(Boolean).pop();
 
   try {
-    if (!APP_ID || !APP_SECRET) {
+    const NEEDS_APP = ['start', 'callback', 'sync', 'subscribe'];
+    if ((!APP_ID || !APP_SECRET) && NEEDS_APP.includes(action ?? '')) {
       if (action === 'callback') {
         return new Response('Integração do Facebook não configurada (FACEBOOK_APP_ID/SECRET).', { status: 500 });
       }
-      return json({ error: 'not_configured', message: 'Faltam os segredos FACEBOOK_APP_ID e FACEBOOK_APP_SECRET.' }, 400);
+      return json({ error: 'not_configured', message: 'Faltam os segredos FACEBOOK_APP_ID e FACEBOOK_APP_SECRET. Use a conexão manual (Page ID + Form ID).' }, 400);
     }
+
 
     // ---- OAuth callback (Meta redireciona aqui) ----
     if (action === 'callback') {
