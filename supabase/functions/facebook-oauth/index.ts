@@ -176,14 +176,14 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'pages') {
-      const { data: conn } = await admin
+      const { data: conns } = await admin
         .from('facebook_connections')
-        .select('id, facebook_user_name, facebook_user_email, status, last_synced_at, token_expires_at')
+        .select('id, facebook_user_id, facebook_user_name, facebook_user_email, status, last_synced_at, token_expires_at')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
-      if (!conn) return json({ connection: null, pages: [] });
+      const conn = (conns ?? [])[0] ?? null;
 
       const { data: pages } = await admin
         .from('facebook_pages')
@@ -191,8 +191,141 @@ Deno.serve(async (req) => {
         .eq('user_id', user.id)
         .order('page_name');
 
-      return json({ connection: conn, pages: pages ?? [] });
+      const { data: forms } = await admin
+        .from('facebook_lead_forms')
+        .select('id, page_id, form_id, form_name, status, leads_count')
+        .eq('user_id', user.id)
+        .order('created_at');
+
+      return json({
+        connection: conn,
+        manual: conn?.facebook_user_id?.startsWith('manual:') ?? false,
+        pages: pages ?? [],
+        forms: forms ?? [],
+      });
     }
+
+    // ---- Conexão manual: cadastrar página + formulário sem OAuth ----
+    if (action === 'manual-page') {
+      const pageId = String(body.page_id ?? '').trim();
+      const pageName = String(body.page_name ?? '').trim();
+      const formId = String(body.form_id ?? '').trim();
+      const formName = String(body.form_name ?? '').trim();
+
+      if (!/^\d{5,25}$/.test(pageId)) return json({ error: 'invalid_page_id', message: 'Page ID deve conter apenas números (5 a 25 dígitos).' }, 400);
+      if (!pageName || pageName.length > 120) return json({ error: 'invalid_page_name', message: 'Informe um nome de página válido (até 120 caracteres).' }, 400);
+      if (formId && !/^\d{5,25}$/.test(formId)) return json({ error: 'invalid_form_id', message: 'Form ID deve conter apenas números (5 a 25 dígitos).' }, 400);
+      if (formName.length > 120) return json({ error: 'invalid_form_name', message: 'Nome do formulário muito longo.' }, 400);
+
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('company_id, agency_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const { data: conn, error: connErr } = await admin
+        .from('facebook_connections')
+        .upsert(
+          {
+            user_id: user.id,
+            company_id: profile?.company_id ?? null,
+            agency_id: profile?.agency_id ?? null,
+            facebook_user_id: `manual:${user.id}`,
+            facebook_user_name: 'Conexão manual',
+            facebook_user_email: null,
+            access_token: 'manual',
+            scopes: [],
+            status: 'active',
+            last_synced_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id,facebook_user_id' },
+        )
+        .select()
+        .single();
+      if (connErr || !conn) return json({ error: 'connection_error', message: connErr?.message ?? 'Falha ao salvar conexão.' }, 400);
+
+      const { data: page, error: pageErr } = await admin
+        .from('facebook_pages')
+        .upsert(
+          {
+            connection_id: conn.id,
+            user_id: user.id,
+            company_id: profile?.company_id ?? null,
+            agency_id: profile?.agency_id ?? null,
+            page_id: pageId,
+            page_name: pageName,
+            page_access_token: 'manual',
+            category: 'Manual',
+            subscribed: true,
+          },
+          { onConflict: 'user_id,page_id' },
+        )
+        .select()
+        .single();
+      if (pageErr || !page) return json({ error: 'page_error', message: pageErr?.message ?? 'Falha ao salvar página.' }, 400);
+
+      if (formId) {
+        const { error: formErr } = await admin.from('facebook_lead_forms').upsert(
+          {
+            page_id: page.id,
+            user_id: user.id,
+            company_id: profile?.company_id ?? null,
+            agency_id: profile?.agency_id ?? null,
+            form_id: formId,
+            form_name: formName || `Formulário ${formId}`,
+            status: 'active',
+          },
+          { onConflict: 'user_id,form_id' },
+        );
+        if (formErr) return json({ error: 'form_error', message: formErr.message }, 400);
+      }
+
+      return json({ ok: true, page_id: page.id });
+    }
+
+    if (action === 'manual-form') {
+      const pageRowId = String(body.page_row_id ?? '');
+      const formId = String(body.form_id ?? '').trim();
+      const formName = String(body.form_name ?? '').trim();
+      if (!/^\d{5,25}$/.test(formId)) return json({ error: 'invalid_form_id', message: 'Form ID deve conter apenas números (5 a 25 dígitos).' }, 400);
+
+      const { data: page } = await admin
+        .from('facebook_pages')
+        .select('id, company_id, agency_id')
+        .eq('id', pageRowId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!page) return json({ error: 'page_not_found' }, 404);
+
+      const { error } = await admin.from('facebook_lead_forms').upsert(
+        {
+          page_id: page.id,
+          user_id: user.id,
+          company_id: page.company_id,
+          agency_id: page.agency_id,
+          form_id: formId,
+          form_name: formName || `Formulário ${formId}`,
+          status: 'active',
+        },
+        { onConflict: 'user_id,form_id' },
+      );
+      if (error) return json({ error: 'form_error', message: error.message }, 400);
+      return json({ ok: true });
+    }
+
+    if (action === 'manual-remove') {
+      const pageRowId = body.page_row_id ? String(body.page_row_id) : null;
+      const formRowId = body.form_row_id ? String(body.form_row_id) : null;
+      if (formRowId) {
+        await admin.from('facebook_lead_forms').delete().eq('id', formRowId).eq('user_id', user.id);
+      } else if (pageRowId) {
+        await admin.from('facebook_lead_forms').delete().eq('page_id', pageRowId).eq('user_id', user.id);
+        await admin.from('facebook_pages').delete().eq('id', pageRowId).eq('user_id', user.id);
+      }
+      return json({ ok: true });
+    }
+
+
 
     if (action === 'sync') {
       const { data: conn } = await admin
