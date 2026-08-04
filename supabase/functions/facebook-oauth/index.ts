@@ -350,6 +350,13 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (!page) return json({ error: 'page_not_found' }, 404);
 
+      // Página cadastrada manualmente: apenas liga/desliga o recebimento no sistema
+      if (page.page_access_token === 'manual') {
+        await admin.from('facebook_pages').update({ subscribed: enable }).eq('id', page.id);
+        return json({ ok: true, subscribed: enable, manual: true });
+      }
+
+
       const endpoint = `${FB_API}/${page.page_id}/subscribed_apps`;
       const res = await fetch(endpoint, {
         method: enable ? 'POST' : 'DELETE',
