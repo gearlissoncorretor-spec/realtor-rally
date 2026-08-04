@@ -275,7 +275,7 @@ Deno.serve(async (req) => {
             form_name: formName || `Formulário ${formId}`,
             status: 'active',
           },
-          { onConflict: 'user_id,form_id' },
+          { onConflict: 'page_id,form_id' },
         );
         if (formErr) return json({ error: 'form_error', message: formErr.message }, 400);
       }
@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
           form_name: formName || `Formulário ${formId}`,
           status: 'active',
         },
-        { onConflict: 'user_id,form_id' },
+        { onConflict: 'page_id,form_id' },
       );
       if (error) return json({ error: 'form_error', message: error.message }, 400);
       return json({ ok: true });
