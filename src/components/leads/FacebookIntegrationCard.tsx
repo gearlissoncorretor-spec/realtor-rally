@@ -73,6 +73,9 @@ export const FacebookIntegrationCard = () => {
   const [configError, setConfigError] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [form, setForm] = useState({ page_id: '', page_name: '', form_id: '', form_name: '' });
+  const [addFormFor, setAddFormFor] = useState<string | null>(null);
+  const [newForm, setNewForm] = useState({ form_id: '', form_name: '' });
+
   const [credStatus, setCredStatus] = useState<{ configured: boolean; valid: boolean; message: string; app_id?: string; redirect_uri?: string } | null>(null);
   const [validating, setValidating] = useState(false);
 
@@ -225,6 +228,55 @@ export const FacebookIntegrationCard = () => {
       setWorking(false);
     }
   };
+
+  const toggleForm = async (f: FbForm, enable: boolean) => {
+    setForms((prev) => prev.map((x) => (x.id === f.id ? { ...x, status: enable ? 'active' : 'paused' } : x)));
+    try {
+      await invoke('form-toggle', { form_row_id: f.id, enable });
+      toast.success(enable ? `Recebendo leads de ${f.form_name || f.form_id}` : `Campanha pausada: ${f.form_name || f.form_id}`);
+    } catch (err) {
+      setForms((prev) => prev.map((x) => (x.id === f.id ? { ...x, status: enable ? 'paused' : 'active' } : x)));
+      toast.error((err as Error).message);
+    }
+  };
+
+  const addForm = async (pageRowId: string) => {
+    if (!/^\d{5,25}$/.test(newForm.form_id.trim())) {
+      toast.error('Informe um Form ID válido (apenas números).');
+      return;
+    }
+    setWorking(true);
+    try {
+      await invoke('manual-form', {
+        page_row_id: pageRowId,
+        form_id: newForm.form_id.trim(),
+        form_name: newForm.form_name.trim().slice(0, 120),
+      });
+      toast.success('Campanha cadastrada');
+      setNewForm({ form_id: '', form_name: '' });
+      setAddFormFor(null);
+      await load();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const removeForm = async (formRowId: string) => {
+    setWorking(true);
+    try {
+      await invoke('manual-remove', { form_row_id: formRowId });
+      toast.success('Campanha removida');
+      await load();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+
 
   const copyWebhook = () => {
     navigator.clipboard.writeText(WEBHOOK_URL);
@@ -446,21 +498,81 @@ export const FacebookIntegrationCard = () => {
                             </Button>
                           </div>
                         </div>
-                        {pageForms.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pl-11">
-                            {pageForms.map((f) => (
-                              <Badge key={f.id} variant="secondary" className="text-[10px]">
-                                {f.form_name || f.form_id} · {f.leads_count} leads
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+
+                        {/* Campanhas / formulários da página */}
+                        <div className="pl-11 space-y-1.5">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                            Campanhas (formulários)
+                          </p>
+                          {pageForms.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">
+                              Nenhuma campanha cadastrada — adicione o Form ID para escolher de qual campanha receber leads.
+                            </p>
+                          ) : (
+                            pageForms.map((f) => (
+                              <div key={f.id} className="flex items-center justify-between gap-2 rounded-md border bg-muted/20 px-2.5 py-1.5">
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium truncate">{f.form_name || `Formulário ${f.form_id}`}</p>
+                                  <p className="text-[10px] text-muted-foreground truncate">ID {f.form_id} · {f.leads_count} leads</p>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <Badge variant="outline" className={f.status === 'active' ? 'text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30' : 'text-[10px] bg-muted/50'}>
+                                    {f.status === 'active' ? 'Recebendo' : 'Pausada'}
+                                  </Badge>
+                                  <Switch
+                                    checked={f.status === 'active'}
+                                    onCheckedChange={(v) => toggleForm(f, v)}
+                                    disabled={working}
+                                    aria-label={`Receber leads de ${f.form_name || f.form_id}`}
+                                  />
+                                  <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => removeForm(f.id)} disabled={working} aria-label={`Remover ${f.form_name || f.form_id}`}>
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+
+                          {addFormFor === p.id ? (
+                            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                              <Input
+                                placeholder="Form ID (somente números)"
+                                inputMode="numeric"
+                                value={newForm.form_id}
+                                onChange={(e) => setNewForm((n) => ({ ...n, form_id: e.target.value.replace(/\D/g, '').slice(0, 25) }))}
+                                className="h-8 text-xs"
+                              />
+                              <Input
+                                placeholder="Nome da campanha"
+                                maxLength={120}
+                                value={newForm.form_name}
+                                onChange={(e) => setNewForm((n) => ({ ...n, form_name: e.target.value }))}
+                                className="h-8 text-xs"
+                              />
+                              <div className="flex gap-1.5">
+                                <Button size="sm" className="h-8" onClick={() => addForm(p.id)} disabled={working}>Salvar</Button>
+                                <Button size="sm" variant="ghost" className="h-8" onClick={() => setAddFormFor(null)} disabled={working}>Cancelar</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 gap-1 text-xs"
+                              onClick={() => { setAddFormFor(p.id); setNewForm({ form_id: '', form_name: '' }); }}
+                              disabled={working}
+                            >
+                              <Plus className="w-3 h-3" /> Adicionar campanha
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     );
                   })
                 )}
               </div>
             )}
+
           </div>
         )}
       </CardContent>
