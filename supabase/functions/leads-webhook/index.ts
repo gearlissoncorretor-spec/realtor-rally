@@ -86,14 +86,34 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Se o payload traz o form_id (campanha do Facebook), respeita a escolha feita no sistema:
+    // só recebe leads de formulários cadastrados e com status "active".
+    let formRow: { company_id: string | null; agency_id: string | null; user_id: string | null; status: string | null; form_name: string | null; id: string; leads_count: number } | null = null;
+    const formId = payload.form_id?.toString().trim();
+    if (formId) {
+      const { data } = await supabase
+        .from('facebook_lead_forms')
+        .select('id, company_id, agency_id, user_id, status, form_name, leads_count')
+        .eq('form_id', formId)
+        .maybeSingle();
+      formRow = data ?? null;
+
+      if (!formRow || formRow.status !== 'active') {
+        return new Response(
+          JSON.stringify({ success: true, ignored: true, reason: formRow ? 'form_paused' : 'form_not_registered' }),
+          { status: 200, headers: { ...headers, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
+
     const insert = {
-      company_id: payload.company_id ?? null,
-      agency_id: payload.agency_id ?? null,
+      company_id: payload.company_id ?? formRow?.company_id ?? null,
+      agency_id: payload.agency_id ?? formRow?.agency_id ?? null,
       name: payload.name.trim().slice(0, 200),
       phone: payload.phone?.toString().slice(0, 30) ?? null,
       email: payload.email?.toString().slice(0, 200) ?? null,
       source: payload.source ?? 'facebook',
-      campaign: payload.campaign?.toString().slice(0, 200) ?? null,
+      campaign: payload.campaign?.toString().slice(0, 200) ?? formRow?.form_name?.slice(0, 200) ?? null,
       adset: payload.adset?.toString().slice(0, 200) ?? null,
       ad: payload.ad?.toString().slice(0, 200) ?? null,
       utm_source: payload.utm_source?.toString().slice(0, 200) ?? null,
@@ -103,6 +123,7 @@ Deno.serve(async (req) => {
       raw_payload: payload as unknown as Record<string, unknown>,
       status: 'novo',
     };
+
 
     const { data, error } = await supabase.from('leads').insert(insert).select().single();
     if (error) throw error;
