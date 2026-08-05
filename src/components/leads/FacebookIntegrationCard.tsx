@@ -73,6 +73,26 @@ export const FacebookIntegrationCard = () => {
   const [configError, setConfigError] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [form, setForm] = useState({ page_id: '', page_name: '', form_id: '', form_name: '' });
+  const [credStatus, setCredStatus] = useState<{ configured: boolean; valid: boolean; message: string; app_id?: string; redirect_uri?: string } | null>(null);
+  const [validating, setValidating] = useState(false);
+
+  const validateCredentials = async (notify = true) => {
+    setValidating(true);
+    try {
+      const data = await invoke('validate');
+      setCredStatus(data);
+      if (notify) {
+        if (data?.valid) toast.success(data.message);
+        else toast.error(data?.message || 'Credenciais inválidas');
+      }
+      if (data?.valid) setConfigError(null);
+    } catch (err) {
+      if (notify) toast.error((err as Error).message);
+    } finally {
+      setValidating(false);
+    }
+  };
+
 
   const load = async () => {
     setLoading(true);
