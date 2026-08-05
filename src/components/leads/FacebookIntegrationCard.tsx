@@ -116,6 +116,8 @@ export const FacebookIntegrationCard = () => {
 
   useEffect(() => {
     load();
+    validateCredentials(false);
+
     const params = new URLSearchParams(window.location.search);
     if (params.get('fb') === 'connected') {
       toast.success('Facebook conectado com sucesso!');
