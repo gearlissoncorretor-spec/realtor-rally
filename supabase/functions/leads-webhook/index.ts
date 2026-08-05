@@ -128,6 +128,14 @@ Deno.serve(async (req) => {
     const { data, error } = await supabase.from('leads').insert(insert).select().single();
     if (error) throw error;
 
+    if (formRow) {
+      await supabase
+        .from('facebook_lead_forms')
+        .update({ leads_count: (formRow.leads_count ?? 0) + 1, last_synced_at: new Date().toISOString() })
+        .eq('id', formRow.id);
+    }
+
+
     return new Response(JSON.stringify({ success: true, lead_id: data.id }), {
       status: 201,
       headers: { ...headers, 'Content-Type': 'application/json' },
