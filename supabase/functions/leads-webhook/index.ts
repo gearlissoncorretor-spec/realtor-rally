@@ -6,6 +6,7 @@ import { corsHeaders } from 'https://esm.sh/@supabase/supabase-js@2.95.0/cors';
 interface LeadPayload {
   company_id?: string;
   agency_id?: string;
+  form_id?: string;
   name: string;
   phone?: string;
   email?: string;
@@ -18,6 +19,7 @@ interface LeadPayload {
   utm_medium?: string;
   notes?: string;
 }
+
 
 const headers = corsHeaders ?? {
   'Access-Control-Allow-Origin': '*',
