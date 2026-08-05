@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
           configured: true,
           valid: true,
           app_id: APP_ID,
-          redirect_uri: `${url.origin}/functions/v1/facebook-oauth/callback`,
+          redirect_uri: `https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/facebook-oauth/callback`,
           message: 'Credenciais válidas. A conexão via botão "Conectar com Facebook" está liberada.',
         });
       } catch (e) {
