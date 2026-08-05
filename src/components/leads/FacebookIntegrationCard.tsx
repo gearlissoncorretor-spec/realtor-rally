@@ -229,6 +229,55 @@ export const FacebookIntegrationCard = () => {
     }
   };
 
+  const toggleForm = async (f: FbForm, enable: boolean) => {
+    setForms((prev) => prev.map((x) => (x.id === f.id ? { ...x, status: enable ? 'active' : 'paused' } : x)));
+    try {
+      await invoke('form-toggle', { form_row_id: f.id, enable });
+      toast.success(enable ? `Recebendo leads de ${f.form_name || f.form_id}` : `Campanha pausada: ${f.form_name || f.form_id}`);
+    } catch (err) {
+      setForms((prev) => prev.map((x) => (x.id === f.id ? { ...x, status: enable ? 'paused' : 'active' } : x)));
+      toast.error((err as Error).message);
+    }
+  };
+
+  const addForm = async (pageRowId: string) => {
+    if (!/^\d{5,25}$/.test(newForm.form_id.trim())) {
+      toast.error('Informe um Form ID válido (apenas números).');
+      return;
+    }
+    setWorking(true);
+    try {
+      await invoke('manual-form', {
+        page_row_id: pageRowId,
+        form_id: newForm.form_id.trim(),
+        form_name: newForm.form_name.trim().slice(0, 120),
+      });
+      toast.success('Campanha cadastrada');
+      setNewForm({ form_id: '', form_name: '' });
+      setAddFormFor(null);
+      await load();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const removeForm = async (formRowId: string) => {
+    setWorking(true);
+    try {
+      await invoke('manual-remove', { form_row_id: formRowId });
+      toast.success('Campanha removida');
+      await load();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+
+
   const copyWebhook = () => {
     navigator.clipboard.writeText(WEBHOOK_URL);
     toast.success('URL do webhook copiada');
