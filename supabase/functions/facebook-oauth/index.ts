@@ -91,6 +91,41 @@ Deno.serve(async (req) => {
       return json({ error: 'not_configured', message: 'Faltam os segredos FACEBOOK_APP_ID e FACEBOOK_APP_SECRET. Use a conexão manual (Page ID + Form ID).' }, 400);
     }
 
+    // ---- Validação das credenciais do app (App ID / App Secret) ----
+    if (action === 'validate') {
+      if (!APP_ID || !APP_SECRET) {
+        return json({
+          configured: false,
+          valid: false,
+          message: 'Segredos FACEBOOK_APP_ID e/ou FACEBOOK_APP_SECRET não configurados.',
+        });
+      }
+      try {
+        const res = await fetch(
+          `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=client_credentials&client_id=${encodeURIComponent(APP_ID)}&client_secret=${encodeURIComponent(APP_SECRET)}`,
+        );
+        const data = await res.json();
+        if (!res.ok || !data.access_token) {
+          return json({
+            configured: true,
+            valid: false,
+            message: data?.error?.message ?? 'Credenciais inválidas junto à Meta.',
+          });
+        }
+        return json({
+          configured: true,
+          valid: true,
+          app_id: APP_ID,
+          redirect_uri: `https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/facebook-oauth/callback`,
+          message: 'Credenciais válidas. A conexão via botão "Conectar com Facebook" está liberada.',
+        });
+      } catch (e) {
+        return json({ configured: true, valid: false, message: (e as Error).message });
+      }
+    }
+
+
+
 
     // ---- OAuth callback (Meta redireciona aqui) ----
     if (action === 'callback') {

@@ -73,6 +73,26 @@ export const FacebookIntegrationCard = () => {
   const [configError, setConfigError] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [form, setForm] = useState({ page_id: '', page_name: '', form_id: '', form_name: '' });
+  const [credStatus, setCredStatus] = useState<{ configured: boolean; valid: boolean; message: string; app_id?: string; redirect_uri?: string } | null>(null);
+  const [validating, setValidating] = useState(false);
+
+  const validateCredentials = async (notify = true) => {
+    setValidating(true);
+    try {
+      const data = await invoke('validate');
+      setCredStatus(data);
+      if (notify) {
+        if (data?.valid) toast.success(data.message);
+        else toast.error(data?.message || 'Credenciais inválidas');
+      }
+      if (data?.valid) setConfigError(null);
+    } catch (err) {
+      if (notify) toast.error((err as Error).message);
+    } finally {
+      setValidating(false);
+    }
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -96,6 +116,8 @@ export const FacebookIntegrationCard = () => {
 
   useEffect(() => {
     load();
+    validateCredentials(false);
+
     const params = new URLSearchParams(window.location.search);
     if (params.get('fb') === 'connected') {
       toast.success('Facebook conectado com sucesso!');
@@ -293,6 +315,58 @@ export const FacebookIntegrationCard = () => {
                 </div>
               </div>
             )}
+
+            {/* Credenciais do app Meta */}
+            <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-xs">
+                  <p className="font-semibold text-sm">Credenciais do app Meta</p>
+                  <p className="text-muted-foreground">
+                    {credStatus
+                      ? credStatus.message
+                      : 'Verificando FACEBOOK_APP_ID e FACEBOOK_APP_SECRET...'}
+                  </p>
+                  {credStatus?.app_id && (
+                    <p className="text-muted-foreground mt-1">
+                      App ID: <span className="font-mono">{credStatus.app_id}</span>
+                    </p>
+                  )}
+                </div>
+                <Badge
+                  variant="outline"
+                  className={
+                    credStatus?.valid
+                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                      : 'bg-amber-500/10 text-amber-600 border-amber-500/30'
+                  }
+                >
+                  {credStatus?.valid ? 'Válidas' : credStatus?.configured ? 'Inválidas' : 'Ausentes'}
+                </Badge>
+              </div>
+              {credStatus?.redirect_uri && (
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={credStatus.redirect_uri} className="h-8 text-[11px] font-mono" />
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-8 w-8 shrink-0"
+                    aria-label="Copiar URI de redirecionamento"
+                    onClick={() => {
+                      navigator.clipboard.writeText(credStatus.redirect_uri!);
+                      toast.success('URI de redirecionamento copiada');
+                    }}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              )}
+              <Button size="sm" variant="outline" onClick={() => validateCredentials()} disabled={validating} className="gap-1.5">
+                <RefreshCw className={`w-3.5 h-3.5 ${validating ? 'animate-spin' : ''}`} />
+                Validar credenciais
+              </Button>
+            </div>
+
+
 
             {!connection && (
               <div className="space-y-3">
