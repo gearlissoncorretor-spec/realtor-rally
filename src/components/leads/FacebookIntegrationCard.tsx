@@ -73,6 +73,9 @@ export const FacebookIntegrationCard = () => {
   const [configError, setConfigError] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [form, setForm] = useState({ page_id: '', page_name: '', form_id: '', form_name: '' });
+  const [addFormFor, setAddFormFor] = useState<string | null>(null);
+  const [newForm, setNewForm] = useState({ form_id: '', form_name: '' });
+
   const [credStatus, setCredStatus] = useState<{ configured: boolean; valid: boolean; message: string; app_id?: string; redirect_uri?: string } | null>(null);
   const [validating, setValidating] = useState(false);
 
