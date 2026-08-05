@@ -348,6 +348,19 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === 'form-toggle') {
+      const formRowId = String(body.form_row_id ?? '');
+      const enable = body.enable !== false;
+      if (!formRowId) return json({ error: 'invalid_form', message: 'Formulário inválido.' }, 400);
+      const { error } = await admin
+        .from('facebook_lead_forms')
+        .update({ status: enable ? 'active' : 'paused' })
+        .eq('id', formRowId)
+        .eq('user_id', user.id);
+      if (error) return json({ error: 'form_error', message: error.message }, 400);
+      return json({ ok: true });
+    }
+
     if (action === 'manual-remove') {
       const pageRowId = body.page_row_id ? String(body.page_row_id) : null;
       const formRowId = body.form_row_id ? String(body.form_row_id) : null;
