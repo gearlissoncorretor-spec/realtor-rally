@@ -76,11 +76,15 @@ const Leads = () => {
             </p>
           </div>
           {!isBroker && (
-            <Button onClick={() => setCreateOpen(true)} className="gap-2 w-full sm:w-auto">
-              <Plus className="w-4 h-4" />
-              Novo Lead
-            </Button>
-          )}
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {!isBroker && <LeadsImportExport leads={filtered} onImport={createLead} />}
+            {!isBroker && (
+              <Button onClick={() => setCreateOpen(true)} className="gap-2 w-full sm:w-auto">
+                <Plus className="w-4 h-4" />
+                Novo Lead
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* KPI Cards */}
