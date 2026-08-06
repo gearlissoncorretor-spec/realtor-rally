@@ -54,7 +54,115 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const payload = (await req.json()) as LeadPayload;
+    const raw = await req.json();
+    console.log('leads-webhook payload:', JSON.stringify(raw).slice(0, 2000));
+
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+
+    // ---- Formato nativo do Meta (Lead Ads): { object: "page", entry: [{ changes: [{ field: "leadgen", value: {...} }] }] }
+    if (raw?.object === 'page' && Array.isArray(raw?.entry)) {
+      const APP_ID = Deno.env.get('FACEBOOK_APP_ID') ?? '';
+      const APP_SECRET = Deno.env.get('FACEBOOK_APP_SECRET') ?? '';
+      const results: unknown[] = [];
+
+      for (const entry of raw.entry) {
+        for (const change of entry?.changes ?? []) {
+          if (change?.field !== 'leadgen') continue;
+          const v = change.value ?? {};
+          const leadgenId = String(v.leadgen_id ?? '');
+          const formId = String(v.form_id ?? '');
+          const pageId = String(v.page_id ?? entry.id ?? '');
+
+          const { data: form } = await supabaseAdmin
+            .from('facebook_lead_forms')
+            .select('id, company_id, agency_id, user_id, status, form_name, leads_count, page_id')
+            .eq('form_id', formId)
+            .maybeSingle();
+
+          if (!form || form.status !== 'active') {
+            results.push({ leadgenId, ignored: true, reason: form ? 'form_paused' : 'form_not_registered' });
+            continue;
+          }
+
+          const { data: page } = await supabaseAdmin
+            .from('facebook_pages')
+            .select('id, page_access_token, company_id, agency_id')
+            .eq('id', form.page_id)
+            .maybeSingle();
+
+          // Busca os dados do lead na Graph API
+          const token =
+            page?.page_access_token && page.page_access_token !== 'manual'
+              ? page.page_access_token
+              : APP_ID && APP_SECRET
+                ? `${APP_ID}|${APP_SECRET}`
+                : '';
+
+          let fields: Record<string, string> = {};
+          let fetchError: string | null = null;
+          if (token && leadgenId) {
+            const res = await fetch(
+              `https://graph.facebook.com/v21.0/${leadgenId}?access_token=${encodeURIComponent(token)}`,
+            );
+            const body = await res.json().catch(() => ({}));
+            if (res.ok && Array.isArray(body?.field_data)) {
+              for (const f of body.field_data) {
+                fields[String(f.name).toLowerCase()] = String(f.values?.[0] ?? '');
+              }
+            } else {
+              fetchError = body?.error?.message ?? `HTTP ${res.status}`;
+            }
+          } else {
+            fetchError = 'sem token para consultar a Graph API';
+          }
+
+          const name =
+            fields['full_name'] || fields['nome'] || fields['name'] || fields['first_name'] || 'Lead do Facebook';
+          const phone = fields['phone_number'] || fields['telefone'] || fields['phone'] || null;
+          const email = fields['email'] || fields['e-mail'] || null;
+
+          const { data: inserted, error: insErr } = await supabaseAdmin
+            .from('leads')
+            .insert({
+              company_id: form.company_id ?? page?.company_id ?? null,
+              agency_id: form.agency_id ?? page?.agency_id ?? null,
+              name: name.slice(0, 200),
+              phone: phone?.slice(0, 30) ?? null,
+              email: email?.slice(0, 200) ?? null,
+              source: 'facebook',
+              campaign: form.form_name?.slice(0, 200) ?? null,
+              notes: fetchError ? `Não foi possível ler os campos do formulário: ${fetchError}` : null,
+              raw_payload: { leadgen_id: leadgenId, form_id: formId, page_id: pageId, fields },
+              status: 'novo',
+            })
+            .select('id')
+            .single();
+
+          if (insErr) {
+            console.error('lead insert error:', insErr.message);
+            results.push({ leadgenId, error: insErr.message });
+            continue;
+          }
+
+          await supabaseAdmin
+            .from('facebook_lead_forms')
+            .update({ leads_count: (form.leads_count ?? 0) + 1, last_synced_at: new Date().toISOString() })
+            .eq('id', form.id);
+
+          results.push({ leadgenId, lead_id: inserted.id });
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, results }), {
+        status: 200,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const payload = raw as LeadPayload;
 
     if (!payload?.name || typeof payload.name !== 'string') {
       return new Response(JSON.stringify({ error: 'Field "name" is required' }), {
@@ -62,6 +170,7 @@ Deno.serve(async (req) => {
         headers: { ...headers, 'Content-Type': 'application/json' },
       });
     }
+
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
