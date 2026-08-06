@@ -15,6 +15,7 @@ import { DistributeLeadDialog } from '@/components/leads/DistributeLeadDialog';
 import { CreateLeadDialog } from '@/components/leads/CreateLeadDialog';
 import { MyIntegrations } from '@/components/leads/MyIntegrations';
 import { FacebookIntegrationCard } from '@/components/leads/FacebookIntegrationCard';
+import { LeadsImportExport } from '@/components/leads/LeadsImportExport';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
