@@ -15,13 +15,14 @@ import { DistributeLeadDialog } from '@/components/leads/DistributeLeadDialog';
 import { CreateLeadDialog } from '@/components/leads/CreateLeadDialog';
 import { MyIntegrations } from '@/components/leads/MyIntegrations';
 import { FacebookIntegrationCard } from '@/components/leads/FacebookIntegrationCard';
+import { LeadsImportExport } from '@/components/leads/LeadsImportExport';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Leads = () => {
   const { isCorretor } = useAuth();
-  const { leads, loading, assignLead, updateLead } = useLeads();
+  const { leads, loading, assignLead, updateLead, createLead } = useLeads();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
@@ -75,10 +76,13 @@ const Leads = () => {
             </p>
           </div>
           {!isBroker && (
-            <Button onClick={() => setCreateOpen(true)} className="gap-2 w-full sm:w-auto">
-              <Plus className="w-4 h-4" />
-              Novo Lead
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <LeadsImportExport leads={filtered} onImport={createLead} />
+              <Button onClick={() => setCreateOpen(true)} className="gap-2 w-full sm:w-auto">
+                <Plus className="w-4 h-4" />
+                Novo Lead
+              </Button>
+            </div>
           )}
         </div>
 
