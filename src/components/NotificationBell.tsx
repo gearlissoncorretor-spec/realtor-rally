@@ -99,6 +99,21 @@ export const NotificationBell = () => {
                       <p className="text-[10px] text-muted-foreground/60 mt-1">
                         {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
                       </p>
+                      {waLink(n) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 mt-2 text-[11px] gap-1.5 border-green-600/40 text-green-700 dark:text-green-400 hover:bg-green-600/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!n.read) markRead(n.id);
+                            window.open(waLink(n) as string, '_blank', 'noopener');
+                          }}
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Falar no WhatsApp
+                        </Button>
+                      )}
                     </div>
                     <button
                       className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
