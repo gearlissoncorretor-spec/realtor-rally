@@ -628,16 +628,61 @@ export const FacebookIntegrationCard = () => {
                               </div>
                             </div>
                           ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 gap-1 text-xs"
-                              onClick={() => { setAddFormFor(p.id); setNewForm({ form_id: '', form_name: '' }); }}
-                              disabled={working}
-                            >
-                              <Plus className="w-3 h-3" /> Adicionar campanha
-                            </Button>
+                            <div className="flex flex-wrap gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="h-7 gap-1 text-xs"
+                                onClick={() => discoverForms(p.id)}
+                                disabled={working || discovering}
+                              >
+                                <RefreshCw className={`w-3 h-3 ${discovering && discoverFor === p.id ? 'animate-spin' : ''}`} />
+                                Buscar campanhas do Facebook
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 gap-1 text-xs"
+                                onClick={() => { setAddFormFor(p.id); setNewForm({ form_id: '', form_name: '' }); }}
+                                disabled={working}
+                              >
+                                <Plus className="w-3 h-3" /> Adicionar manualmente
+                              </Button>
+                            </div>
                           )}
+
+                          {discoverFor === p.id && discovered.length > 0 && (
+                            <div className="mt-2 rounded-md border bg-muted/10 p-2 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                  Campanhas encontradas ({discovered.length})
+                                </p>
+                                <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => { setDiscoverFor(null); setDiscovered([]); }}>
+                                  Fechar
+                                </Button>
+                              </div>
+                              {discovered.map((d) => (
+                                <div key={d.form_id} className="flex items-center justify-between gap-2 rounded-md border bg-card px-2.5 py-1.5">
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-medium truncate">{d.form_name}</p>
+                                    <p className="text-[10px] text-muted-foreground truncate">
+                                      ID {d.form_id} · {String(d.status).toLowerCase() === 'active' ? 'Ativa' : d.status}
+                                    </p>
+                                  </div>
+                                  {d.already_added ? (
+                                    <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shrink-0">
+                                      Ativada
+                                    </Badge>
+                                  ) : (
+                                    <Button size="sm" className="h-7 text-xs shrink-0" onClick={() => activateDiscovered(p.id, d)} disabled={working}>
+                                      Ativar
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                         </div>
                       </div>
                     );
