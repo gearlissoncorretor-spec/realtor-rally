@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Bell, Check, Trash2, AlertTriangle, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bell, Check, Trash2, AlertTriangle, Info, CheckCircle2, AlertCircle, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -22,6 +22,19 @@ const severityColor: Record<AppNotification['severity'], string> = {
   error: 'text-destructive',
   success: 'text-green-500',
 };
+
+// Link direto de WhatsApp para notificações que trazem telefone (ex.: novo lead)
+const waLink = (n: AppNotification): string | null => {
+  const meta = (n.metadata || {}) as Record<string, unknown>;
+  const raw = typeof meta.phone === 'string' ? meta.phone : '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 10) return null;
+  const full = digits.startsWith('55') ? digits : `55${digits}`;
+  const name = typeof meta.name === 'string' ? meta.name : '';
+  const text = encodeURIComponent(`Olá${name ? ` ${name}` : ''}! Tudo bem? Recebi seu contato e sou consultor(a) da My Broker.`);
+  return `https://wa.me/${full}?text=${text}`;
+};
+
 
 export const NotificationBell = () => {
   const navigate = useNavigate();
@@ -99,6 +112,21 @@ export const NotificationBell = () => {
                       <p className="text-[10px] text-muted-foreground/60 mt-1">
                         {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
                       </p>
+                      {waLink(n) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 mt-2 text-[11px] gap-1.5 border-green-600/40 text-green-700 dark:text-green-400 hover:bg-green-600/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!n.read) markRead(n.id);
+                            window.open(waLink(n) as string, '_blank', 'noopener');
+                          }}
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          Falar no WhatsApp
+                        </Button>
+                      )}
                     </div>
                     <button
                       className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0"
