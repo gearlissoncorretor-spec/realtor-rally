@@ -294,6 +294,38 @@ export const FacebookIntegrationCard = () => {
     }
   };
 
+  const discoverForms = async (pageRowId: string) => {
+    setDiscoverFor(pageRowId);
+    setDiscovering(true);
+    setDiscovered([]);
+    try {
+      const data = await invoke('discover-forms', { page_row_id: pageRowId });
+      const list = (data?.forms ?? []) as DiscoveredForm[];
+      setDiscovered(list);
+      if (list.length === 0) toast.info('Nenhuma campanha encontrada nessa página.');
+    } catch (err) {
+      toast.error((err as Error).message);
+      setDiscoverFor(null);
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  const activateDiscovered = async (pageRowId: string, f: DiscoveredForm) => {
+    setWorking(true);
+    try {
+      await invoke('manual-form', { page_row_id: pageRowId, form_id: f.form_id, form_name: f.form_name });
+      toast.success(`Campanha ativada: ${f.form_name}`);
+      setDiscovered((prev) => prev.map((x) => (x.form_id === f.form_id ? { ...x, already_added: true } : x)));
+      await load();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+
 
 
   const copyWebhook = () => {
