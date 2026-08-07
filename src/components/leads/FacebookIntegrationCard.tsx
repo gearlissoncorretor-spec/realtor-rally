@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Facebook, RefreshCw, Link2Off, AlertTriangle, CheckCircle2, Plus, Trash2, Copy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { FacebookLoginButton } from './FacebookLoginButton';
 
 interface FbPage {
   id: string;
@@ -458,6 +459,12 @@ export const FacebookIntegrationCard = () => {
                     Conectar manualmente
                   </Button>
                 </div>
+                <FacebookLoginButton
+                  onStatusChange={(res) => {
+                    if (res.status === 'connected') load();
+                  }}
+                />
+
               </div>
             )}
 
