@@ -23,6 +23,19 @@ const severityColor: Record<AppNotification['severity'], string> = {
   success: 'text-green-500',
 };
 
+// Link direto de WhatsApp para notificações que trazem telefone (ex.: novo lead)
+const waLink = (n: AppNotification): string | null => {
+  const meta = (n.metadata || {}) as Record<string, unknown>;
+  const raw = typeof meta.phone === 'string' ? meta.phone : '';
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 10) return null;
+  const full = digits.startsWith('55') ? digits : `55${digits}`;
+  const name = typeof meta.name === 'string' ? meta.name : '';
+  const text = encodeURIComponent(`Olá${name ? ` ${name}` : ''}! Tudo bem? Recebi seu contato e sou consultor(a) da My Broker.`);
+  return `https://wa.me/${full}?text=${text}`;
+};
+
+
 export const NotificationBell = () => {
   const navigate = useNavigate();
   const { notifications, unreadCount, markRead, markAllRead, remove, hasMore, loadMore, isFetching } = useNotifications();
