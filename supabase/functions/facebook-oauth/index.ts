@@ -203,11 +203,16 @@ Deno.serve(async (req) => {
 
     if (action === 'start') {
       const state = crypto.randomUUID();
-      await admin.from('facebook_oauth_states').insert({
+      const { error: stateErr } = await admin.from('facebook_oauth_states').insert({
         state,
         user_id: user.id,
         redirect_to: typeof body.redirect_to === 'string' ? body.redirect_to : null,
       });
+      if (stateErr) {
+        console.error('start: state insert failed', stateErr);
+        return json({ error: 'state_error', message: `Não foi possível iniciar a autorização: ${stateErr.message}` }, 400);
+      }
+
       const authUrl = new URL('https://www.facebook.com/v21.0/dialog/oauth');
       authUrl.searchParams.set('client_id', APP_ID);
       authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
