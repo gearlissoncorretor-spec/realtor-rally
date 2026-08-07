@@ -458,6 +458,12 @@ export const FacebookIntegrationCard = () => {
                     Conectar manualmente
                   </Button>
                 </div>
+                <FacebookLoginButton
+                  onStatusChange={(res) => {
+                    if (res.status === 'connected') refetch?.();
+                  }}
+                />
+
               </div>
             )}
 
