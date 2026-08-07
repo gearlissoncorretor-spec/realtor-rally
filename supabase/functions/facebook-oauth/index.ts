@@ -224,11 +224,12 @@ Deno.serve(async (req) => {
         return json({ error: 'state_error', message: `Não foi possível iniciar a autorização: ${stateErr.message}` }, 400);
       }
 
+      const requested = body.mode === 'basic' ? BASIC_SCOPES : SCOPES;
       const authUrl = new URL('https://www.facebook.com/v21.0/dialog/oauth');
       authUrl.searchParams.set('client_id', APP_ID);
       authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
       authUrl.searchParams.set('state', state);
-      authUrl.searchParams.set('scope', SCOPES.join(','));
+      authUrl.searchParams.set('scope', requested.join(','));
       authUrl.searchParams.set('response_type', 'code');
       return json({ url: authUrl.toString() });
     }
