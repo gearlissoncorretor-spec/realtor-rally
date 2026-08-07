@@ -7,8 +7,22 @@ declare global {
   }
 }
 
+export interface FBStatusResponse {
+  status: 'connected' | 'not_authorized' | 'unknown';
+  authResponse?: {
+    accessToken: string;
+    expiresIn: string | number;
+    signedRequest: string;
+    userID: string;
+  };
+}
+
 const API_VERSION = 'v21.0';
 let started = false;
+let ready = false;
+let lastStatus: FBStatusResponse | null = null;
+let readyResolvers: Array<() => void> = [];
+
 
 /**
  * Carrega o SDK do Facebook para JavaScript de forma assíncrona.
