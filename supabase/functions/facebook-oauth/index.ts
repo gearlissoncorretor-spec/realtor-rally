@@ -15,7 +15,18 @@ const json = (body: unknown, status = 200) =>
   });
 
 const FB_API = 'https://graph.facebook.com/v21.0';
-const SCOPES = ['pages_show_list', 'leads_retrieval', 'pages_read_engagement', 'pages_manage_metadata'];
+// Escopos avançados exigem que o produto "Facebook Login for Business" / permissões
+// estejam adicionados no app da Meta. Se não estiverem, a Meta devolve "Invalid Scopes".
+// Por isso permitimos sobrescrever via segredo e oferecemos um modo básico de fallback.
+const ENV_SCOPES = (Deno.env.get('FACEBOOK_SCOPES') ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+const FULL_SCOPES = ENV_SCOPES.length
+  ? ENV_SCOPES
+  : ['public_profile', 'pages_show_list', 'pages_read_engagement', 'leads_retrieval'];
+const BASIC_SCOPES = ['public_profile', 'pages_show_list'];
+const SCOPES = FULL_SCOPES;
 
 const APP_ID = Deno.env.get('FACEBOOK_APP_ID') ?? '';
 const APP_SECRET = Deno.env.get('FACEBOOK_APP_SECRET') ?? '';
