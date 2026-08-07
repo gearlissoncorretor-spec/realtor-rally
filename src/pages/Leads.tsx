@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/EmptyState';
-import { Phone, Plus, Search, UserPlus, Users, Inbox, TrendingUp, Target } from 'lucide-react';
+import { Phone, Plus, Search, UserPlus, Users, Inbox, TrendingUp, Target, PlayCircle } from 'lucide-react';
 import { useLeads, type Lead } from '@/hooks/useLeads';
 import { LeadStatusBadge, LEAD_STATUSES } from '@/components/leads/LeadStatusBadge';
 import { LeadSourceBadge, LEAD_SOURCES } from '@/components/leads/LeadSourceBadge';
@@ -22,7 +22,7 @@ import { ptBR } from 'date-fns/locale';
 
 const Leads = () => {
   const { isCorretor } = useAuth();
-  const { leads, loading, assignLead, updateLead, createLead } = useLeads();
+  const { leads, loading, assignLead, updateLead, createLead, startService, startingService } = useLeads();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
@@ -54,6 +54,17 @@ const Leads = () => {
     atendimento: leads.filter((l) => l.status === 'atendimento').length,
     convertidos: leads.filter((l) => l.status === 'convertido').length,
   }), [leads]);
+
+  // Tempo entre a chegada/distribuição do lead e o início do atendimento
+  const responseTime = (lead: Lead) => {
+    if (!lead.first_contact_at) return '—';
+    const start = new Date(lead.assigned_at || lead.created_at).getTime();
+    const diffMin = Math.max(0, Math.round((new Date(lead.first_contact_at).getTime() - start) / 60000));
+    if (diffMin < 60) return `${diffMin} min`;
+    const hours = Math.floor(diffMin / 60);
+    if (hours < 24) return `${hours}h ${diffMin % 60}min`;
+    return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+  };
 
   const formatPhone = (phone: string | null) => phone || '—';
   const phoneHref = (phone: string | null) => {
@@ -169,7 +180,8 @@ const Leads = () => {
                       <TableHead className="hidden lg:table-cell">Entrada</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Responsável</TableHead>
-                      {!isBroker && <TableHead className="text-right">Ações</TableHead>}
+                      <TableHead className="hidden lg:table-cell">Atendimento</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -224,19 +236,48 @@ const Leads = () => {
                             <span className="text-xs text-muted-foreground italic">Sem responsável</span>
                           )}
                         </TableCell>
-                        {!isBroker && (
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1"
-                              onClick={() => setDistributeLead(lead)}
-                            >
-                              <Users className="w-3 h-3" />
-                              Distribuir
-                            </Button>
-                          </TableCell>
-                        )}
+                        <TableCell className="hidden lg:table-cell text-xs">
+                          {lead.first_contact_at ? (
+                            <span className="text-muted-foreground">
+                              Iniciado {format(new Date(lead.first_contact_at), "dd/MM HH:mm", { locale: ptBR })}
+                              <span className="block text-[11px] text-primary font-medium">
+                                Resposta em {responseTime(lead)}
+                              </span>
+                            </span>
+                          ) : lead.user_id ? (
+                            <span className="text-amber-600 dark:text-amber-500 font-medium">
+                              Aguardando início
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {!lead.first_contact_at && lead.user_id && (
+                              <Button
+                                size="sm"
+                                className="gap-1"
+                                disabled={startingService}
+                                onClick={() => startService(lead)}
+                              >
+                                <PlayCircle className="w-3 h-3" />
+                                Iniciar atendimento
+                              </Button>
+                            )}
+                            {!isBroker && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1"
+                                onClick={() => setDistributeLead(lead)}
+                              >
+                                <Users className="w-3 h-3" />
+                                Distribuir
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

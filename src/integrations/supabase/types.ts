@@ -2147,11 +2147,14 @@ export type Database = {
           ad: string | null
           adset: string | null
           agency_id: string | null
+          assigned_at: string | null
           campaign: string | null
           company_id: string | null
           created_at: string
           created_by: string | null
           email: string | null
+          first_contact_at: string | null
+          follow_up_id: string | null
           id: string
           name: string
           notes: string | null
@@ -2169,11 +2172,14 @@ export type Database = {
           ad?: string | null
           adset?: string | null
           agency_id?: string | null
+          assigned_at?: string | null
           campaign?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
+          first_contact_at?: string | null
+          follow_up_id?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -2191,11 +2197,14 @@ export type Database = {
           ad?: string | null
           adset?: string | null
           agency_id?: string | null
+          assigned_at?: string | null
           campaign?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
+          first_contact_at?: string | null
+          follow_up_id?: string | null
           id?: string
           name?: string
           notes?: string | null
@@ -2229,6 +2238,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_follow_up_id_fkey"
+            columns: ["follow_up_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
             referencedColumns: ["id"]
           },
           {

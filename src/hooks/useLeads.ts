@@ -27,6 +27,9 @@ export interface Lead {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  assigned_at?: string | null;
+  first_contact_at?: string | null;
+  follow_up_id?: string | null;
   // Joined responsible profile
   responsible?: { id: string; full_name: string; email: string } | null;
 }
@@ -122,7 +125,7 @@ export const useLeads = () => {
     mutationFn: async ({ leadId, brokerUserId }: { leadId: string; brokerUserId: string }) => {
       const { data, error } = await supabase
         .from('leads')
-        .update({ user_id: brokerUserId, status: 'atendimento' } as any)
+        .update({ user_id: brokerUserId, status: 'novo', assigned_at: new Date().toISOString() } as any)
         .eq('id', leadId)
         .select()
         .single();
@@ -134,6 +137,66 @@ export const useLeads = () => {
       toast.success('Lead distribuído com sucesso');
     },
     onError: (e: any) => toast.error(`Erro ao distribuir: ${e.message}`),
+  });
+
+  // Corretor inicia o atendimento: grava o horário e transfere o lead para Clientes
+  const startService = useMutation({
+    mutationFn: async (lead: Lead) => {
+      const now = new Date().toISOString();
+
+      let followUpId = lead.follow_up_id ?? null;
+
+      if (!followUpId) {
+        const { data: broker } = await supabase
+          .from('brokers')
+          .select('id')
+          .eq('user_id', lead.user_id ?? user?.id ?? '')
+          .maybeSingle();
+
+        if (!broker?.id) {
+          throw new Error('Corretor responsável não encontrado no cadastro de corretores.');
+        }
+
+        const { data: followUp, error: followUpError } = await supabase
+          .from('follow_ups')
+          .insert({
+            broker_id: broker.id,
+            client_name: lead.name,
+            client_phone: lead.phone,
+            origem: lead.source || 'lead',
+            status: 'Primeiro contato',
+            observations: [lead.campaign ? `Campanha: ${lead.campaign}` : null, lead.notes]
+              .filter(Boolean)
+              .join('\n') || null,
+            created_by: user?.id ?? null,
+            company_id: lead.company_id,
+            agency_id: lead.agency_id,
+          } as any)
+          .select('id')
+          .single();
+
+        if (followUpError) throw followUpError;
+        followUpId = followUp.id;
+      }
+
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          status: 'atendimento',
+          first_contact_at: lead.first_contact_at ?? now,
+          follow_up_id: followUpId,
+        } as any)
+        .eq('id', lead.id);
+      if (error) throw error;
+
+      return followUpId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
+      toast.success('Atendimento iniciado — cliente criado na tela de Clientes');
+    },
+    onError: (e: any) => toast.error(`Erro ao iniciar atendimento: ${e.message}`),
   });
 
   const deleteLead = useMutation({
@@ -155,6 +218,8 @@ export const useLeads = () => {
     createLead: createLead.mutateAsync,
     updateLead: updateLead.mutateAsync,
     assignLead: assignLead.mutateAsync,
+    startService: startService.mutateAsync,
+    startingService: startService.isPending,
     deleteLead: deleteLead.mutateAsync,
   };
 };
