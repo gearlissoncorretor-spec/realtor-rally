@@ -9,5 +9,10 @@ import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
 import "./index.css";
 import "./i18n";
+import { loadFacebookSdk } from "./lib/facebookSdk";
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Carrega o SDK do Facebook (assíncrono, não bloqueia a renderização)
+loadFacebookSdk();
+
