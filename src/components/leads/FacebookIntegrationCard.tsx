@@ -445,9 +445,13 @@ export const FacebookIntegrationCard = () => {
                   <li className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-primary mt-0.5" /> Distribua para os corretores com um clique</li>
                 </ul>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Button onClick={handleConnect} disabled={working} className="gap-2 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white">
+                  <Button onClick={() => handleConnect()} disabled={working} className="gap-2 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white">
                     <Facebook className="w-4 h-4" />
                     Conectar com Facebook
+                  </Button>
+                  <Button variant="secondary" onClick={() => handleConnect('basic')} disabled={working} className="gap-2">
+                    <Facebook className="w-4 h-4" />
+                    Conectar (modo básico)
                   </Button>
                   <Button variant="outline" onClick={() => setShowManual((v) => !v)} disabled={working} className="gap-2">
                     <Plus className="w-4 h-4" />
