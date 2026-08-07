@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/EmptyState';
-import { Phone, Plus, Search, UserPlus, Users, Inbox, TrendingUp, Target } from 'lucide-react';
+import { Phone, Plus, Search, UserPlus, Users, Inbox, TrendingUp, Target, PlayCircle } from 'lucide-react';
 import { useLeads, type Lead } from '@/hooks/useLeads';
 import { LeadStatusBadge, LEAD_STATUSES } from '@/components/leads/LeadStatusBadge';
 import { LeadSourceBadge, LEAD_SOURCES } from '@/components/leads/LeadSourceBadge';
