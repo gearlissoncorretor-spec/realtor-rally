@@ -225,19 +225,48 @@ const Leads = () => {
                             <span className="text-xs text-muted-foreground italic">Sem responsável</span>
                           )}
                         </TableCell>
-                        {!isBroker && (
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1"
-                              onClick={() => setDistributeLead(lead)}
-                            >
-                              <Users className="w-3 h-3" />
-                              Distribuir
-                            </Button>
-                          </TableCell>
-                        )}
+                        <TableCell className="hidden lg:table-cell text-xs">
+                          {lead.first_contact_at ? (
+                            <span className="text-muted-foreground">
+                              Iniciado {format(new Date(lead.first_contact_at), "dd/MM HH:mm", { locale: ptBR })}
+                              <span className="block text-[11px] text-primary font-medium">
+                                Resposta em {responseTime(lead)}
+                              </span>
+                            </span>
+                          ) : lead.user_id ? (
+                            <span className="text-amber-600 dark:text-amber-500 font-medium">
+                              Aguardando início
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {!lead.first_contact_at && lead.user_id && (
+                              <Button
+                                size="sm"
+                                className="gap-1"
+                                disabled={startingService}
+                                onClick={() => startService(lead)}
+                              >
+                                <PlayCircle className="w-3 h-3" />
+                                Iniciar atendimento
+                              </Button>
+                            )}
+                            {!isBroker && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="gap-1"
+                                onClick={() => setDistributeLead(lead)}
+                              >
+                                <Users className="w-3 h-3" />
+                                Distribuir
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
