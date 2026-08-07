@@ -39,7 +39,16 @@ interface FbConnection {
   last_synced_at: string | null;
 }
 
+interface DiscoveredForm {
+  form_id: string;
+  form_name: string;
+  status: string;
+  leads_count: number;
+  already_added: boolean;
+}
+
 const WEBHOOK_URL = 'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/leads-webhook';
+
 
 const invoke = async (action: string, body?: Record<string, unknown>) => {
   const { data, error } = await supabase.functions.invoke(`facebook-oauth/${action}`, {
@@ -76,6 +85,10 @@ export const FacebookIntegrationCard = () => {
   const [form, setForm] = useState({ page_id: '', page_name: '', form_id: '', form_name: '' });
   const [addFormFor, setAddFormFor] = useState<string | null>(null);
   const [newForm, setNewForm] = useState({ form_id: '', form_name: '' });
+  const [discoverFor, setDiscoverFor] = useState<string | null>(null);
+  const [discovering, setDiscovering] = useState(false);
+  const [discovered, setDiscovered] = useState<DiscoveredForm[]>([]);
+
 
   const [credStatus, setCredStatus] = useState<{ configured: boolean; valid: boolean; message: string; app_id?: string; redirect_uri?: string } | null>(null);
   const [validating, setValidating] = useState(false);
@@ -293,6 +306,38 @@ export const FacebookIntegrationCard = () => {
       setWorking(false);
     }
   };
+
+  const discoverForms = async (pageRowId: string) => {
+    setDiscoverFor(pageRowId);
+    setDiscovering(true);
+    setDiscovered([]);
+    try {
+      const data = await invoke('discover-forms', { page_row_id: pageRowId });
+      const list = (data?.forms ?? []) as DiscoveredForm[];
+      setDiscovered(list);
+      if (list.length === 0) toast.info('Nenhuma campanha encontrada nessa página.');
+    } catch (err) {
+      toast.error((err as Error).message);
+      setDiscoverFor(null);
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  const activateDiscovered = async (pageRowId: string, f: DiscoveredForm) => {
+    setWorking(true);
+    try {
+      await invoke('manual-form', { page_row_id: pageRowId, form_id: f.form_id, form_name: f.form_name });
+      toast.success(`Campanha ativada: ${f.form_name}`);
+      setDiscovered((prev) => prev.map((x) => (x.form_id === f.form_id ? { ...x, already_added: true } : x)));
+      await load();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
 
 
 
@@ -583,16 +628,61 @@ export const FacebookIntegrationCard = () => {
                               </div>
                             </div>
                           ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 gap-1 text-xs"
-                              onClick={() => { setAddFormFor(p.id); setNewForm({ form_id: '', form_name: '' }); }}
-                              disabled={working}
-                            >
-                              <Plus className="w-3 h-3" /> Adicionar campanha
-                            </Button>
+                            <div className="flex flex-wrap gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="h-7 gap-1 text-xs"
+                                onClick={() => discoverForms(p.id)}
+                                disabled={working || discovering}
+                              >
+                                <RefreshCw className={`w-3 h-3 ${discovering && discoverFor === p.id ? 'animate-spin' : ''}`} />
+                                Buscar campanhas do Facebook
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 gap-1 text-xs"
+                                onClick={() => { setAddFormFor(p.id); setNewForm({ form_id: '', form_name: '' }); }}
+                                disabled={working}
+                              >
+                                <Plus className="w-3 h-3" /> Adicionar manualmente
+                              </Button>
+                            </div>
                           )}
+
+                          {discoverFor === p.id && discovered.length > 0 && (
+                            <div className="mt-2 rounded-md border bg-muted/10 p-2 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                  Campanhas encontradas ({discovered.length})
+                                </p>
+                                <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => { setDiscoverFor(null); setDiscovered([]); }}>
+                                  Fechar
+                                </Button>
+                              </div>
+                              {discovered.map((d) => (
+                                <div key={d.form_id} className="flex items-center justify-between gap-2 rounded-md border bg-card px-2.5 py-1.5">
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-medium truncate">{d.form_name}</p>
+                                    <p className="text-[10px] text-muted-foreground truncate">
+                                      ID {d.form_id} · {String(d.status).toLowerCase() === 'active' ? 'Ativa' : d.status}
+                                    </p>
+                                  </div>
+                                  {d.already_added ? (
+                                    <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shrink-0">
+                                      Ativada
+                                    </Badge>
+                                  ) : (
+                                    <Button size="sm" className="h-7 text-xs shrink-0" onClick={() => activateDiscovered(p.id, d)} disabled={working}>
+                                      Ativar
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                         </div>
                       </div>
                     );

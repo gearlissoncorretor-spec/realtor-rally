@@ -372,7 +372,61 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ---- Descobrir campanhas (formulários) ativos da página via Graph API ----
+    if (action === 'discover-forms') {
+      const pageRowId = String(body.page_row_id ?? '');
+      const { data: page } = await admin
+        .from('facebook_pages')
+        .select('id, page_id, page_access_token, connection_id')
+        .eq('id', pageRowId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!page) return json({ error: 'page_not_found', message: 'Página não encontrada.' }, 404);
+
+      let token = page.page_access_token;
+      if (!token || token === 'manual') {
+        const { data: conn } = await admin
+          .from('facebook_connections')
+          .select('access_token')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+        token = conn?.access_token ?? '';
+      }
+      if (!token || token === 'manual') {
+        return json({
+          error: 'no_token',
+          message: 'Conecte a conta com o botão "Conectar com Facebook" para buscar as campanhas automaticamente.',
+        }, 400);
+      }
+
+      try {
+        const data = await fbFetch(`/${page.page_id}/leadgen_forms`, {
+          access_token: token,
+          fields: 'id,name,status,created_time,leads_count',
+          limit: '200',
+        });
+        const { data: existing } = await admin
+          .from('facebook_lead_forms')
+          .select('form_id')
+          .eq('user_id', user.id)
+          .eq('page_id', page.id);
+        const saved = new Set((existing ?? []).map((f: any) => String(f.form_id)));
+        const forms = (data?.data ?? []).map((f: any) => ({
+          form_id: String(f.id),
+          form_name: f.name ?? `Formulário ${f.id}`,
+          status: f.status ?? 'UNKNOWN',
+          leads_count: f.leads_count ?? 0,
+          already_added: saved.has(String(f.id)),
+        }));
+        return json({ ok: true, forms });
+      } catch (e) {
+        return json({ error: 'facebook_error', message: (e as Error).message }, 400);
+      }
+    }
+
     if (action === 'form-toggle') {
+
       const formRowId = String(body.form_row_id ?? '');
       const enable = body.enable !== false;
       if (!formRowId) return json({ error: 'invalid_form', message: 'Formulário inválido.' }, 400);
