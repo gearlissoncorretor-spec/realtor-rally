@@ -169,7 +169,8 @@ const Leads = () => {
                       <TableHead className="hidden lg:table-cell">Entrada</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Responsável</TableHead>
-                      {!isBroker && <TableHead className="text-right">Ações</TableHead>}
+                      <TableHead className="hidden lg:table-cell">Atendimento</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
