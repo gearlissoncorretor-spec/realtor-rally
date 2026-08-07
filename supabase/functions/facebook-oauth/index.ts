@@ -131,6 +131,10 @@ Deno.serve(async (req) => {
     if (action === 'callback') {
       const code = url.searchParams.get('code');
       const state = url.searchParams.get('state') ?? '';
+      const fbError =
+        url.searchParams.get('error_description') ||
+        url.searchParams.get('error_reason') ||
+        url.searchParams.get('error');
       const { data: stateRow } = await admin
         .from('facebook_oauth_states')
         .select('*')
@@ -141,8 +145,11 @@ Deno.serve(async (req) => {
       const fail = (msg: string) =>
         Response.redirect(`${redirectTo}?fb=error&message=${encodeURIComponent(msg)}`, 302);
 
-      if (!code || !stateRow) return fail('Sessão de autorização inválida ou expirada.');
+      if (fbError) return fail(`Meta: ${fbError}`);
+      if (!code) return fail('A Meta não retornou o código de autorização.');
+      if (!stateRow) return fail('Sessão de autorização inválida ou expirada. Tente conectar novamente.');
       if (new Date(stateRow.expires_at) < new Date()) return fail('Sessão de autorização expirada.');
+
 
       // troca code -> token curto -> token longo
       const short = await fbFetch('/oauth/access_token', {
