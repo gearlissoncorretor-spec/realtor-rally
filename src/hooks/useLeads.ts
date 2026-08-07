@@ -27,6 +27,9 @@ export interface Lead {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  assigned_at?: string | null;
+  first_contact_at?: string | null;
+  follow_up_id?: string | null;
   // Joined responsible profile
   responsible?: { id: string; full_name: string; email: string } | null;
 }
