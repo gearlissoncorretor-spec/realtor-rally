@@ -132,10 +132,10 @@ export const FacebookIntegrationCard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleConnect = async () => {
+  const handleConnect = async (mode?: 'basic') => {
     setWorking(true);
     try {
-      const data = await invoke('start', { redirect_to: window.location.origin + window.location.pathname });
+      const data = await invoke('start', { redirect_to: window.location.origin + window.location.pathname, mode });
       if (!data?.url) throw new Error(data?.message || 'Não foi possível iniciar a autorização.');
       // O Facebook bloqueia o diálogo de login dentro de iframes (preview),
       // então abrimos em uma nova aba / janela de topo.
