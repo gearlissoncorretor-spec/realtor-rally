@@ -55,6 +55,17 @@ const Leads = () => {
     convertidos: leads.filter((l) => l.status === 'convertido').length,
   }), [leads]);
 
+  // Tempo entre a chegada/distribuição do lead e o início do atendimento
+  const responseTime = (lead: Lead) => {
+    if (!lead.first_contact_at) return '—';
+    const start = new Date(lead.assigned_at || lead.created_at).getTime();
+    const diffMin = Math.max(0, Math.round((new Date(lead.first_contact_at).getTime() - start) / 60000));
+    if (diffMin < 60) return `${diffMin} min`;
+    const hours = Math.floor(diffMin / 60);
+    if (hours < 24) return `${hours}h ${diffMin % 60}min`;
+    return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+  };
+
   const formatPhone = (phone: string | null) => phone || '—';
   const phoneHref = (phone: string | null) => {
     if (!phone) return undefined;
