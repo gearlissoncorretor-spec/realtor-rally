@@ -39,7 +39,16 @@ interface FbConnection {
   last_synced_at: string | null;
 }
 
+interface DiscoveredForm {
+  form_id: string;
+  form_name: string;
+  status: string;
+  leads_count: number;
+  already_added: boolean;
+}
+
 const WEBHOOK_URL = 'https://kwsnnwiwflsvsqiuzfja.supabase.co/functions/v1/leads-webhook';
+
 
 const invoke = async (action: string, body?: Record<string, unknown>) => {
   const { data, error } = await supabase.functions.invoke(`facebook-oauth/${action}`, {
