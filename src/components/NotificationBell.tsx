@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Bell, Check, Trash2, AlertTriangle, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Bell, Check, Trash2, AlertTriangle, Info, CheckCircle2, AlertCircle, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
