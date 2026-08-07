@@ -22,7 +22,7 @@ import { ptBR } from 'date-fns/locale';
 
 const Leads = () => {
   const { isCorretor } = useAuth();
-  const { leads, loading, assignLead, updateLead, createLead } = useLeads();
+  const { leads, loading, assignLead, updateLead, createLead, startService, startingService } = useLeads();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
