@@ -93,7 +93,11 @@ Deno.serve(async (req) => {
     if (action === 'broadcast') {
       const cronSecret = req.headers.get('x-cron-secret')
       const expected = Deno.env.get('CRON_SECRET')
-      if (!expected || cronSecret !== expected) return errorResponse('Unauthorized', 401)
+      const notifySecret = Deno.env.get('NOTIFY_SECRET')
+      const authorized =
+        (!!expected && cronSecret === expected) ||
+        (!!notifySecret && cronSecret === notifySecret)
+      if (!authorized) return errorResponse('Unauthorized', 401)
 
       const payload = await req.json() as {
         user_ids: string[]
