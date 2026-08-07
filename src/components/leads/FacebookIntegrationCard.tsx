@@ -136,14 +136,31 @@ export const FacebookIntegrationCard = () => {
     setWorking(true);
     try {
       const data = await invoke('start', { redirect_to: window.location.origin + window.location.pathname });
-      if (data?.url) window.location.href = data.url;
-      else throw new Error(data?.message || 'Não foi possível iniciar a autorização.');
+      if (!data?.url) throw new Error(data?.message || 'Não foi possível iniciar a autorização.');
+      // O Facebook bloqueia o diálogo de login dentro de iframes (preview),
+      // então abrimos em uma nova aba / janela de topo.
+      const inIframe = window.self !== window.top;
+      if (inIframe) {
+        const win = window.open(data.url, '_blank', 'noopener,noreferrer');
+        if (!win) {
+          try {
+            (window.top as Window).location.href = data.url;
+          } catch {
+            throw new Error('Permita pop-ups para conectar com o Facebook, ou abra o app em uma nova aba.');
+          }
+        } else {
+          toast.info('Continue a autorização na nova aba do Facebook.');
+        }
+      } else {
+        window.location.href = data.url;
+      }
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
       setWorking(false);
     }
   };
+
 
   const handleSync = async () => {
     setWorking(true);

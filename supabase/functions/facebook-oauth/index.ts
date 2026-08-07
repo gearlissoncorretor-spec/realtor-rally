@@ -131,6 +131,10 @@ Deno.serve(async (req) => {
     if (action === 'callback') {
       const code = url.searchParams.get('code');
       const state = url.searchParams.get('state') ?? '';
+      const fbError =
+        url.searchParams.get('error_description') ||
+        url.searchParams.get('error_reason') ||
+        url.searchParams.get('error');
       const { data: stateRow } = await admin
         .from('facebook_oauth_states')
         .select('*')
@@ -141,8 +145,11 @@ Deno.serve(async (req) => {
       const fail = (msg: string) =>
         Response.redirect(`${redirectTo}?fb=error&message=${encodeURIComponent(msg)}`, 302);
 
-      if (!code || !stateRow) return fail('Sessão de autorização inválida ou expirada.');
+      if (fbError) return fail(`Meta: ${fbError}`);
+      if (!code) return fail('A Meta não retornou o código de autorização.');
+      if (!stateRow) return fail('Sessão de autorização inválida ou expirada. Tente conectar novamente.');
       if (new Date(stateRow.expires_at) < new Date()) return fail('Sessão de autorização expirada.');
+
 
       // troca code -> token curto -> token longo
       const short = await fbFetch('/oauth/access_token', {
@@ -196,11 +203,16 @@ Deno.serve(async (req) => {
 
     if (action === 'start') {
       const state = crypto.randomUUID();
-      await admin.from('facebook_oauth_states').insert({
+      const { error: stateErr } = await admin.from('facebook_oauth_states').insert({
         state,
         user_id: user.id,
         redirect_to: typeof body.redirect_to === 'string' ? body.redirect_to : null,
       });
+      if (stateErr) {
+        console.error('start: state insert failed', stateErr);
+        return json({ error: 'state_error', message: `Não foi possível iniciar a autorização: ${stateErr.message}` }, 400);
+      }
+
       const authUrl = new URL('https://www.facebook.com/v21.0/dialog/oauth');
       authUrl.searchParams.set('client_id', APP_ID);
       authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
