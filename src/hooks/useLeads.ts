@@ -218,6 +218,8 @@ export const useLeads = () => {
     createLead: createLead.mutateAsync,
     updateLead: updateLead.mutateAsync,
     assignLead: assignLead.mutateAsync,
+    startService: startService.mutateAsync,
+    startingService: startService.isPending,
     deleteLead: deleteLead.mutateAsync,
   };
 };
