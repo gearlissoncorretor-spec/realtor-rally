@@ -465,32 +465,56 @@ const Navigation = () => {
         </div>
       </div>
 
-      <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border/40 z-50 overflow-hidden">
+      <nav className={cn(
+        "hidden lg:flex lg:flex-col fixed left-0 top-0 h-full bg-card/95 backdrop-blur-xl border-r border-border/40 z-50 overflow-hidden transition-[width] duration-200",
+        collapsed ? "w-[4.5rem]" : "w-72"
+      )}>
         <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-primary/[0.01] pointer-events-none" />
         
-        <div className="relative p-5 flex flex-col h-full min-h-0">
-          <div className="mb-5 shrink-0">
-            {renderLogo()}
+        <div className={cn("relative flex flex-col h-full min-h-0", collapsed ? "p-2" : "p-5")}>
+          <div className={cn("shrink-0 flex items-center", collapsed ? "mb-3 justify-center" : "mb-5 justify-between gap-2")}>
+            {!collapsed && <div className="min-w-0 flex-1">{renderLogo()}</div>}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              onClick={() => setCollapsed(v => !v)}
+              title={collapsed ? "Expandir menu" : "Recolher menu"}
+              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+            >
+              {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+            </Button>
           </div>
 
-          <div className="mb-4">
-            <AgencySelector />
-          </div>
+          {!collapsed && (
+            <div className="mb-4">
+              <AgencySelector />
+            </div>
+          )}
 
           <button
             onClick={() => setCommandOpen(true)}
-            className="flex items-center gap-2.5 px-3 py-2 mb-5 rounded-lg bg-muted/40 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border/50 transition-all duration-200 text-sm shrink-0 group"
+            className={cn(
+              "flex items-center rounded-lg bg-muted/40 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border/50 transition-all duration-200 text-sm shrink-0 group",
+              collapsed ? "justify-center w-11 h-9 mx-auto mb-3" : "gap-2.5 px-3 py-2 mb-5"
+            )}
+            title="Buscar"
           >
             <Search className="w-3.5 h-3.5 opacity-50 group-hover:opacity-80 transition-opacity" />
-            <span className="flex-1 text-left text-xs">Buscar...</span>
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/40 bg-background/60 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/60">
-              ⌘K
-            </kbd>
+            {!collapsed && (
+              <>
+                <span className="flex-1 text-left text-xs">Buscar...</span>
+                <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/40 bg-background/60 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/60">
+                  ⌘K
+                </kbd>
+              </>
+            )}
           </button>
 
           <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 hover:scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20 pr-1 -mr-1">
-            {renderGroupedNav()}
+            {renderGroupedNav(undefined, collapsed)}
           </div>
+
           
           <div className="mt-3 pt-3 border-t border-border/30 space-y-2 shrink-0">
             {renderUserProfile()}
