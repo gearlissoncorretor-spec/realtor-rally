@@ -13,6 +13,7 @@ type WatchedTable = {
 
 const WATCHED_TABLES: WatchedTable[] = [
   { table: 'sales', label: 'Vendas', queryKey: ['sales'] },
+  { table: 'leads', label: 'Leads', queryKey: ['leads'] },
   { table: 'brokers', label: 'Corretores', queryKey: ['brokers'] },
   { table: 'negotiations', label: 'Negociações', queryKey: ['negotiations'] },
   { table: 'goals', label: 'Metas', queryKey: ['goals'] },
