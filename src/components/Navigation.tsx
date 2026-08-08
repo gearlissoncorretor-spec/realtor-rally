@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { prefetchRoute } from "@/lib/routePrefetch";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   LayoutGrid, 
   Trophy, 
@@ -31,7 +31,10 @@ import {
   FileText,
   Inbox,
   ListChecks,
-  Sparkles
+  Sparkles,
+  Star,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -136,6 +139,36 @@ const Navigation = () => {
   const [commandOpen, setCommandOpen] = useState(false);
   const pendingCount = usePendingUsersCount();
 
+  const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('gm-sidebar-collapsed') === '1');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('gm-nav-favorites') || '[]'); } catch { return []; }
+  });
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('gm-nav-groups') || '{}'); } catch { return {}; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gm-sidebar-collapsed', collapsed ? '1' : '0');
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    return () => document.body.classList.remove('sidebar-collapsed');
+  }, [collapsed]);
+
+  const toggleFavorite = useCallback((href: string) => {
+    setFavorites(prev => {
+      const next = prev.includes(href) ? prev.filter(h => h !== href) : [...prev, href];
+      localStorage.setItem('gm-nav-favorites', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const setGroupOpen = useCallback((label: string, open: boolean) => {
+    setOpenGroups(prev => {
+      const next = { ...prev, [label]: open };
+      localStorage.setItem('gm-nav-groups', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const allNavItems: NavItem[] = [
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
     { href: "/central-gestor", label: "Central do Gestor", icon: TrendingUp, screen: "central-gestor" },
@@ -173,7 +206,7 @@ const Navigation = () => {
     return roleHasScreenAccess(userRole, item.screen) && hasAccess(item.screen);
   });
 
-  const navGroups: NavGroup[] = [
+  const baseGroups: NavGroup[] = [
     {
       label: "Super Admin",
       defaultOpen: true,
@@ -211,6 +244,27 @@ const Navigation = () => {
     },
 
   ].filter(g => g.items.length > 0);
+
+  // Ordem dos grupos varia conforme o perfil do usuário
+  const roleGroupOrder: Record<string, string[]> = {
+    corretor: ["Principal", "Comercial", "Produtividade", "Relatórios", "Financeiro", "Administração", "Sistema"],
+    gerente: ["Comercial", "Principal", "Produtividade", "Relatórios", "Administração", "Financeiro", "Sistema"],
+    diretor: ["Principal", "Relatórios", "Comercial", "Financeiro", "Administração", "Produtividade", "Sistema"],
+    socio: ["Principal", "Relatórios", "Comercial", "Financeiro", "Administração", "Produtividade", "Sistema"],
+  };
+
+  const currentRole = getUserRole();
+  const order = roleGroupOrder[currentRole];
+  const navGroups: NavGroup[] = order
+    ? [...baseGroups].sort((a, b) => {
+        const ia = order.indexOf(a.label);
+        const ib = order.indexOf(b.label);
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+      })
+    : baseGroups;
+
+  const favoriteItems = navItems.filter(i => favorites.includes(i.href));
+  const flatItems = navGroups.flatMap(g => g.items);
 
   const userRole = getUserRole();
   const roleLabelMap: Record<string, string> = {
@@ -273,59 +327,122 @@ const Navigation = () => {
     </UserProfileDialog>
   );
 
-  const renderNavLink = (item: NavItem, onClick?: () => void) => {
+  const renderNavLink = (item: NavItem, onClick?: () => void, opts?: { iconOnly?: boolean; keyPrefix?: string }) => {
     const Icon = item.icon;
     const isActive = location.pathname === item.href;
     const showBadge = item.screen === 'gestao-usuarios' && pendingCount > 0;
-    return (
+    const isFav = favorites.includes(item.href);
+    const iconOnly = opts?.iconOnly;
+
+    const link = (
       <Link
-        key={item.href}
+        key={(opts?.keyPrefix || '') + item.href}
         to={item.href}
         onMouseEnter={() => prefetchRoute(item.href)}
         onTouchStart={() => prefetchRoute(item.href)}
         onClick={onClick}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-300 group relative overflow-hidden",
+          "flex items-center rounded-lg text-[13px] font-medium transition-all duration-300 group relative overflow-hidden",
+          iconOnly ? "justify-center px-0 py-2 w-11 mx-auto" : "gap-3 px-3 py-2",
           isActive
             ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-1 ring-primary/20"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:translate-x-1"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/50" + (iconOnly ? "" : " hover:translate-x-1")
         )}
       >
-        {isActive && (
+        {isActive && !iconOnly && (
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
         )}
         <Icon className={cn(
           "w-[18px] h-[18px] shrink-0 transition-colors",
           isActive ? "text-primary" : "text-muted-foreground/70 group-hover:text-foreground"
         )} />
-        <span className="truncate">{item.label}</span>
+        {!iconOnly && <span className="truncate">{item.label}</span>}
         {showBadge && (
-          <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center">
+          <Badge variant="destructive" className={cn(
+            "text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center",
+            iconOnly ? "absolute -top-0.5 -right-0.5" : "ml-auto"
+          )}>
             {pendingCount}
           </Badge>
         )}
       </Link>
     );
+
+    if (iconOnly) {
+      return (
+        <Tooltip key={(opts?.keyPrefix || '') + item.href} delayDuration={100}>
+          <TooltipTrigger asChild>{link}</TooltipTrigger>
+          <TooltipContent side="right">{item.label}</TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return (
+      <div key={(opts?.keyPrefix || '') + item.href} className="relative group/nav">
+        {link}
+        <button
+          type="button"
+          aria-label={isFav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(item.href); }}
+          className={cn(
+            "absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md transition-opacity",
+            isFav ? "opacity-100 text-primary" : "opacity-0 group-hover/nav:opacity-100 text-muted-foreground/60 hover:text-foreground"
+          )}
+        >
+          <Star className={cn("w-3.5 h-3.5", isFav && "fill-current")} />
+        </button>
+      </div>
+    );
   };
 
-  const renderGroupedNav = (onClick?: () => void) => (
-    <div className="space-y-3">
-      {navGroups.map((group) => {
-        const hasActive = group.items.some(i => location.pathname === i.href);
-        return (
-          <Collapsible key={group.label} defaultOpen={group.defaultOpen || hasActive}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors group">
-              <span>{group.label}</span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground/40 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-0.5 mt-1">
-              {group.items.map(item => renderNavLink(item, onClick))}
-            </CollapsibleContent>
-          </Collapsible>
-        );
-      })}
-    </div>
-  );
+  const renderGroupedNav = (onClick?: () => void, iconOnly = false) => {
+    if (iconOnly) {
+      return (
+        <TooltipProvider>
+          <div className="space-y-1">
+            {favoriteItems.length > 0 && (
+              <>
+                {favoriteItems.map(item => renderNavLink(item, onClick, { iconOnly: true, keyPrefix: 'fav-' }))}
+                <div className="my-2 mx-3 border-t border-border/40" />
+              </>
+            )}
+            {flatItems.map(item => renderNavLink(item, onClick, { iconOnly: true }))}
+          </div>
+        </TooltipProvider>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {favoriteItems.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50">
+              <Star className="w-3 h-3 fill-current text-primary" />
+              <span>Favoritos</span>
+            </div>
+            <div className="space-y-0.5 mt-1">
+              {favoriteItems.map(item => renderNavLink(item, onClick, { keyPrefix: 'fav-' }))}
+            </div>
+          </div>
+        )}
+        {navGroups.map((group) => {
+          const hasActive = group.items.some(i => location.pathname === i.href);
+          const isOpen = openGroups[group.label] ?? (group.defaultOpen || hasActive);
+          return (
+            <Collapsible key={group.label} open={isOpen} onOpenChange={(o) => setGroupOpen(group.label, o)}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors group">
+                <span>{group.label}</span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground/40 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-0.5 mt-1">
+                {group.items.map(item => renderNavLink(item, onClick))}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -348,33 +465,79 @@ const Navigation = () => {
         </div>
       </div>
 
-      <nav className="hidden lg:flex lg:flex-col fixed left-0 top-0 h-full w-72 bg-card/95 backdrop-blur-xl border-r border-border/40 z-50 overflow-hidden">
+      <nav className={cn(
+        "hidden lg:flex lg:flex-col fixed left-0 top-0 h-full bg-card/95 backdrop-blur-xl border-r border-border/40 z-50 overflow-hidden transition-[width] duration-200",
+        collapsed ? "w-[4.5rem]" : "w-72"
+      )}>
         <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-primary/[0.01] pointer-events-none" />
         
-        <div className="relative p-5 flex flex-col h-full min-h-0">
-          <div className="mb-5 shrink-0">
-            {renderLogo()}
+        <div className={cn("relative flex flex-col h-full min-h-0", collapsed ? "p-2" : "p-5")}>
+          <div className={cn("shrink-0 flex items-center", collapsed ? "mb-3 justify-center" : "mb-5 justify-between gap-2")}>
+            {!collapsed && <div className="min-w-0 flex-1">{renderLogo()}</div>}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              onClick={() => setCollapsed(v => !v)}
+              title={collapsed ? "Expandir menu" : "Recolher menu"}
+              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+            >
+              {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+            </Button>
           </div>
 
-          <div className="mb-4">
-            <AgencySelector />
-          </div>
+          {!collapsed && (
+            <div className="mb-4">
+              <AgencySelector />
+            </div>
+          )}
 
           <button
             onClick={() => setCommandOpen(true)}
-            className="flex items-center gap-2.5 px-3 py-2 mb-5 rounded-lg bg-muted/40 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border/50 transition-all duration-200 text-sm shrink-0 group"
+            className={cn(
+              "flex items-center rounded-lg bg-muted/40 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-muted/60 hover:border-border/50 transition-all duration-200 text-sm shrink-0 group",
+              collapsed ? "justify-center w-11 h-9 mx-auto mb-3" : "gap-2.5 px-3 py-2 mb-5"
+            )}
+            title="Buscar"
           >
             <Search className="w-3.5 h-3.5 opacity-50 group-hover:opacity-80 transition-opacity" />
-            <span className="flex-1 text-left text-xs">Buscar...</span>
-            <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/40 bg-background/60 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/60">
-              ⌘K
-            </kbd>
+            {!collapsed && (
+              <>
+                <span className="flex-1 text-left text-xs">Buscar...</span>
+                <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border/40 bg-background/60 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/60">
+                  ⌘K
+                </kbd>
+              </>
+            )}
           </button>
 
           <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 hover:scrollbar-thumb-muted-foreground/50 scrollbar-track-muted/20 pr-1 -mr-1">
-            {renderGroupedNav()}
+            {renderGroupedNav(undefined, collapsed)}
           </div>
+
           
+          {collapsed ? (
+            <div className="mt-3 pt-3 border-t border-border/30 flex flex-col items-center gap-2 shrink-0">
+              <UserProfileDialog>
+                <button className="p-1 rounded-lg hover:bg-accent/60 transition-colors" title={profile?.full_name || 'Usuário'}>
+                  <UserAvatar name={profile?.full_name} avatarUrl={profile?.avatar_url} size="sm" />
+                </button>
+              </UserProfileDialog>
+              <NotificationBell />
+              <ThemeToggle />
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => signOut()}
+                  title="Sair"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ) : (
           <div className="mt-3 pt-3 border-t border-border/30 space-y-2 shrink-0">
             {renderUserProfile()}
             <div className="flex items-center justify-between px-2">
@@ -411,6 +574,7 @@ const Navigation = () => {
               <p className="text-[10px] text-muted-foreground/50 font-medium">Versão 3.1</p>
             </div>
           </div>
+          )}
         </div>
       </nav>
 
