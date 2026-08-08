@@ -222,8 +222,8 @@ const Acompanhamento = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Status Vendas</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Acompanhe o progresso de cada venda no pipeline</p>
+            <h1 className="text-[22px] md:text-[28px] font-bold text-foreground leading-tight">Status Vendas</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">Acompanhe o progresso de cada venda no pipeline</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={handleExportPdf} disabled={exportingPdf || processCards.length === 0}>
