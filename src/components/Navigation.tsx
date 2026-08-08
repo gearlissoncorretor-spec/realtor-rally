@@ -516,6 +516,28 @@ const Navigation = () => {
           </div>
 
           
+          {collapsed ? (
+            <div className="mt-3 pt-3 border-t border-border/30 flex flex-col items-center gap-2 shrink-0">
+              <UserProfileDialog>
+                <button className="p-1 rounded-lg hover:bg-accent/60 transition-colors" title={profile?.full_name || 'Usuário'}>
+                  <UserAvatar name={profile?.full_name} avatarUrl={profile?.avatar_url} size="sm" />
+                </button>
+              </UserProfileDialog>
+              <NotificationBell />
+              <ThemeToggle />
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => signOut()}
+                  title="Sair"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ) : (
           <div className="mt-3 pt-3 border-t border-border/30 space-y-2 shrink-0">
             {renderUserProfile()}
             <div className="flex items-center justify-between px-2">
@@ -552,6 +574,7 @@ const Navigation = () => {
               <p className="text-[10px] text-muted-foreground/50 font-medium">Versão 3.1</p>
             </div>
           </div>
+          )}
         </div>
       </nav>
 
