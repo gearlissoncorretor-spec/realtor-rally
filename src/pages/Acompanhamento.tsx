@@ -297,7 +297,7 @@ const Acompanhamento = () => {
               </div>
             )}
 
-            <div ref={mainScrollRef} className="flex flex-row gap-4 overflow-x-auto overflow-y-hidden scrollbar-styled pb-4 flex-1">
+            <div ref={mainScrollRef} className="flex flex-row gap-3 lg:gap-4 overflow-x-auto overflow-y-hidden scrollbar-styled pb-4 flex-1">
               {stages.map(stage => {
                 const stageCards = getCardsForStage(stage.id);
                 const stageVGV = stageCards.reduce((s, c) => s + c.value, 0);
@@ -305,10 +305,10 @@ const Acompanhamento = () => {
                 const pct = totalVGV > 0 ? (stageVGV / totalVGV) * 100 : 0;
 
                 return (
-                  <div key={stage.id} className="flex flex-col min-w-[240px] md:min-w-[252px] max-w-[268px] flex-shrink-0 h-full">
-                    <Card className="mb-3">
-                      <CardHeader className="p-4 pb-3">
-                        <div className="flex items-center justify-between">
+                  <div key={stage.id} className="flex flex-col w-[86vw] sm:w-[320px] min-w-[280px] sm:min-w-[320px] max-w-[320px] flex-shrink-0 h-full">
+                    <Card className="mb-2.5 border-border/70">
+                      <CardHeader className="p-3 pb-2.5 space-y-0">
+                        <div className="flex items-center justify-between gap-1">
                           {editingStage === stage.id ? (
                             <div className="flex items-center gap-1.5 flex-1">
                               <Input value={editingTitle} onChange={e => setEditingTitle(e.target.value)} className="h-7 text-sm" onKeyDown={e => e.key === "Enter" && handleEditStage(stage.id, editingTitle)} />
@@ -317,36 +317,34 @@ const Acompanhamento = () => {
                             </div>
                           ) : (
                             <>
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
-                                <CardTitle className="text-sm">{stage.title}</CardTitle>
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
+                                <CardTitle className="text-[18px] font-semibold leading-tight truncate">{stage.title}</CardTitle>
                               </div>
-                              <div className="flex items-center gap-0.5">
-                                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingStage(stage.id); setEditingTitle(stage.title); }}>
-                                  <Edit2 className="h-3.5 w-3.5" />
+                              <div className="flex items-center gap-0.5 shrink-0 opacity-60 hover:opacity-100 transition-opacity">
+                                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditingStage(stage.id); setEditingTitle(stage.title); }}>
+                                  <Edit2 className="h-3 w-3" />
                                 </Button>
                                 {!stage.is_default && (
-                                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDeleteStage(stage.id)}>
-                                    <Trash2 className="h-3.5 w-3.5" />
+                                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleDeleteStage(stage.id)}>
+                                    <Trash2 className="h-3 w-3" />
                                   </Button>
                                 )}
                               </div>
                             </>
                           )}
                         </div>
-                        <div className="flex flex-col mt-1">
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary" className="text-xs">{stageCards.length} vendas</Badge>
-                            <span className="text-[10px] text-muted-foreground font-medium">{formatCurrency(stageVGV)}</span>
+                        <div className="flex items-center justify-between gap-2 mt-1.5">
+                          <span className="text-[12px] text-muted-foreground tabular-nums">{stageCards.length} vendas</span>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[12px] font-semibold text-foreground tabular-nums truncate">{formatCurrency(stageVGV)}</span>
+                            {stageVGC > 0 && (
+                              <span className="text-[11px] font-medium text-success tabular-nums truncate">{formatCurrency(stageVGC)}</span>
+                            )}
                           </div>
-                          {stageVGC > 0 && (
-                            <div className="flex items-center justify-end mt-0.5">
-                              <span className="text-[9px] text-success font-semibold">VGC: {formatCurrency(stageVGC)}</span>
-                            </div>
-                          )}
                         </div>
                         {/* Mini progress bar */}
-                        <div className="h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
+                        <div className="h-1 bg-muted rounded-full mt-2 overflow-hidden">
                           <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: stage.color }} />
                         </div>
                       </CardHeader>
@@ -357,7 +355,7 @@ const Acompanhamento = () => {
                         <div
                           {...provided.droppableProps}
                           ref={provided.innerRef}
-                          className={`flex-1 space-y-2.5 p-2 rounded-lg border-2 border-dashed transition-colors overflow-y-auto scrollbar-styled ${
+                          className={`flex-1 space-y-2 p-1.5 rounded-lg border-2 border-dashed transition-colors overflow-y-auto scrollbar-styled ${
                             snapshot.isDraggingOver ? "border-primary bg-primary/5" : "border-transparent"
                           }`}
                         >
@@ -366,7 +364,9 @@ const Acompanhamento = () => {
                               key={card.id}
                               card={card}
                               index={index}
+                              stageColor={stage.color}
                               stages={stages.map(s => ({ id: s.id, title: s.title, color: s.color }))}
+
                               onMoveStage={async (cardId, stageId) => {
                                 try {
                                   await updateSale(cardId, { process_stage_id: stageId });
