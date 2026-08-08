@@ -11,6 +11,7 @@ interface KPICardProps {
   trend?: "up" | "down" | "neutral";
   className?: string;
   variant?: "default" | "hero";
+  compact?: boolean;
   comparisonLabel?: string;
 }
 
