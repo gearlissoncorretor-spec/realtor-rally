@@ -113,7 +113,7 @@ const KPICard = ({
                 </span>
               </span>
             )}
-            {comparisonLabel && (
+            {comparisonLabel && !compact && (
               <span className="text-[11px] text-muted-foreground">
                 {comparisonLabel}
               </span>
