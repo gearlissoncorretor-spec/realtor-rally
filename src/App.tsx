@@ -1,6 +1,9 @@
 import { lazy, Suspense, Component, ErrorInfo, ReactNode } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { prefetchCommonRoutes } from "@/lib/routePrefetch";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AgencyProvider } from "@/contexts/AgencyContext";
 import { DataProvider } from "@/contexts/DataContext";
@@ -107,13 +110,28 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 2 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
+      gcTime: 24 * 60 * 60 * 1000,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       retry: 1,
     },
   },
 });
+
+// Persiste o cache no localStorage: ao reabrir o app os dados aparecem
+// instantaneamente enquanto a atualização acontece em segundo plano.
+if (typeof window !== "undefined") {
+  try {
+    persistQueryClient({
+      queryClient,
+      persister: createSyncStoragePersister({ storage: window.localStorage, key: "gm-query-cache" }),
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+  } catch {
+    // localStorage indisponível — segue sem persistência
+  }
+  prefetchCommonRoutes();
+}
 
 const LazyPage = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<LoadingFallback />}>

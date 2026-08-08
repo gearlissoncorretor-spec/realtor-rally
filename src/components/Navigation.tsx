@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { prefetchRoute } from "@/lib/routePrefetch";
 import { useState } from "react";
 import { 
   LayoutGrid, 
@@ -280,6 +281,8 @@ const Navigation = () => {
       <Link
         key={item.href}
         to={item.href}
+        onMouseEnter={() => prefetchRoute(item.href)}
+        onTouchStart={() => prefetchRoute(item.href)}
         onClick={onClick}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-300 group relative overflow-hidden",
