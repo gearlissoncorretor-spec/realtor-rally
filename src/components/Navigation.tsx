@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { prefetchRoute } from "@/lib/routePrefetch";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   LayoutGrid, 
   Trophy, 
