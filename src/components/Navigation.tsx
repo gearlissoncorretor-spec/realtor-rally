@@ -327,59 +327,122 @@ const Navigation = () => {
     </UserProfileDialog>
   );
 
-  const renderNavLink = (item: NavItem, onClick?: () => void) => {
+  const renderNavLink = (item: NavItem, onClick?: () => void, opts?: { iconOnly?: boolean; keyPrefix?: string }) => {
     const Icon = item.icon;
     const isActive = location.pathname === item.href;
     const showBadge = item.screen === 'gestao-usuarios' && pendingCount > 0;
-    return (
+    const isFav = favorites.includes(item.href);
+    const iconOnly = opts?.iconOnly;
+
+    const link = (
       <Link
-        key={item.href}
+        key={(opts?.keyPrefix || '') + item.href}
         to={item.href}
         onMouseEnter={() => prefetchRoute(item.href)}
         onTouchStart={() => prefetchRoute(item.href)}
         onClick={onClick}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-300 group relative overflow-hidden",
+          "flex items-center rounded-lg text-[13px] font-medium transition-all duration-300 group relative overflow-hidden",
+          iconOnly ? "justify-center px-0 py-2 w-11 mx-auto" : "gap-3 px-3 py-2",
           isActive
             ? "bg-primary/10 text-primary shadow-[0_0_20px_rgba(59,130,246,0.15)] ring-1 ring-primary/20"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:translate-x-1"
+            : "text-muted-foreground hover:text-foreground hover:bg-accent/50" + (iconOnly ? "" : " hover:translate-x-1")
         )}
       >
-        {isActive && (
+        {isActive && !iconOnly && (
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
         )}
         <Icon className={cn(
           "w-[18px] h-[18px] shrink-0 transition-colors",
           isActive ? "text-primary" : "text-muted-foreground/70 group-hover:text-foreground"
         )} />
-        <span className="truncate">{item.label}</span>
+        {!iconOnly && <span className="truncate">{item.label}</span>}
         {showBadge && (
-          <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center">
+          <Badge variant="destructive" className={cn(
+            "text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center",
+            iconOnly ? "absolute -top-0.5 -right-0.5" : "ml-auto"
+          )}>
             {pendingCount}
           </Badge>
         )}
       </Link>
     );
+
+    if (iconOnly) {
+      return (
+        <Tooltip key={(opts?.keyPrefix || '') + item.href} delayDuration={100}>
+          <TooltipTrigger asChild>{link}</TooltipTrigger>
+          <TooltipContent side="right">{item.label}</TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return (
+      <div key={(opts?.keyPrefix || '') + item.href} className="relative group/nav">
+        {link}
+        <button
+          type="button"
+          aria-label={isFav ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(item.href); }}
+          className={cn(
+            "absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md transition-opacity",
+            isFav ? "opacity-100 text-primary" : "opacity-0 group-hover/nav:opacity-100 text-muted-foreground/60 hover:text-foreground"
+          )}
+        >
+          <Star className={cn("w-3.5 h-3.5", isFav && "fill-current")} />
+        </button>
+      </div>
+    );
   };
 
-  const renderGroupedNav = (onClick?: () => void) => (
-    <div className="space-y-3">
-      {navGroups.map((group) => {
-        const hasActive = group.items.some(i => location.pathname === i.href);
-        return (
-          <Collapsible key={group.label} defaultOpen={group.defaultOpen || hasActive}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors group">
-              <span>{group.label}</span>
-              <ChevronDown className="w-3 h-3 text-muted-foreground/40 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-0.5 mt-1">
-              {group.items.map(item => renderNavLink(item, onClick))}
-            </CollapsibleContent>
-          </Collapsible>
-        );
-      })}
-    </div>
-  );
+  const renderGroupedNav = (onClick?: () => void, iconOnly = false) => {
+    if (iconOnly) {
+      return (
+        <TooltipProvider>
+          <div className="space-y-1">
+            {favoriteItems.length > 0 && (
+              <>
+                {favoriteItems.map(item => renderNavLink(item, onClick, { iconOnly: true, keyPrefix: 'fav-' }))}
+                <div className="my-2 mx-3 border-t border-border/40" />
+              </>
+            )}
+            {flatItems.map(item => renderNavLink(item, onClick, { iconOnly: true }))}
+          </div>
+        </TooltipProvider>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {favoriteItems.length > 0 && (
+          <div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50">
+              <Star className="w-3 h-3 fill-current text-primary" />
+              <span>Favoritos</span>
+            </div>
+            <div className="space-y-0.5 mt-1">
+              {favoriteItems.map(item => renderNavLink(item, onClick, { keyPrefix: 'fav-' }))}
+            </div>
+          </div>
+        )}
+        {navGroups.map((group) => {
+          const hasActive = group.items.some(i => location.pathname === i.href);
+          const isOpen = openGroups[group.label] ?? (group.defaultOpen || hasActive);
+          return (
+            <Collapsible key={group.label} open={isOpen} onOpenChange={(o) => setGroupOpen(group.label, o)}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors group">
+                <span>{group.label}</span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground/40 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-0.5 mt-1">
+                {group.items.map(item => renderNavLink(item, onClick))}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <>
