@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/utils/formatting";
-import { Clock, AlertTriangle, MoveRight } from "lucide-react";
+import { Clock, AlertTriangle, MoveRight, Building2, Home, LandPlot, Store, Trees } from "lucide-react";
 import { Draggable } from "react-beautiful-dnd";
 
 interface ProcessCardData {
@@ -32,13 +32,13 @@ interface ProcessKanbanCardProps {
   index: number;
   stages?: StageOption[];
   onMoveStage?: (cardId: string, stageId: string) => void;
+  stageColor?: string;
 }
 
 const getDaysInStage = (saleDate: string) => {
   const sale = new Date(saleDate);
   const now = new Date();
-  const diff = Math.floor((now.getTime() - sale.getTime()) / (1000 * 60 * 60 * 24));
-  return diff;
+  return Math.floor((now.getTime() - sale.getTime()) / (1000 * 60 * 60 * 24));
 };
 
 const getUrgencyLevel = (days: number): "normal" | "warning" | "critical" => {
@@ -47,7 +47,18 @@ const getUrgencyLevel = (days: number): "normal" | "warning" | "critical" => {
   return "normal";
 };
 
-const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCardProps) => {
+const PropertyIcon = ({ type }: { type: string }) => {
+  const t = (type || "").toLowerCase();
+  const cls = "h-3 w-3 shrink-0";
+  if (t.includes("apart")) return <Building2 className={cls} />;
+  if (t.includes("casa")) return <Home className={cls} />;
+  if (t.includes("terreno")) return <LandPlot className={cls} />;
+  if (t.includes("comerc")) return <Store className={cls} />;
+  if (t.includes("rural")) return <Trees className={cls} />;
+  return <Building2 className={cls} />;
+};
+
+const ProcessKanbanCard = ({ card, index, stages, onMoveStage, stageColor }: ProcessKanbanCardProps) => {
   const daysInStage = getDaysInStage(card.saleDate);
   const urgency = getUrgencyLevel(daysInStage);
 
@@ -55,14 +66,13 @@ const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCa
     card.status === "cancelada" ? "Cancelada" :
     card.status === "distrato" ? "Distrato" : "Pendente";
 
-  const statusVariant = card.status === "confirmada" ? "default" :
-    card.status === "cancelada" || card.status === "distrato" ? "destructive" : "secondary";
+  const statusClass = card.status === "confirmada"
+    ? "bg-success/10 text-success border-success/20"
+    : card.status === "cancelada" || card.status === "distrato"
+    ? "bg-destructive/10 text-destructive border-destructive/20"
+    : "bg-muted text-muted-foreground border-border";
 
-  // Left accent: destructive (critical), amber (warning), primary otherwise
-  const accentColor =
-    urgency === "critical" ? "hsl(var(--destructive))" :
-    urgency === "warning" ? "hsl(38 92% 50%)" :
-    "hsl(var(--primary))";
+  const accentColor = stageColor || "hsl(var(--primary))";
 
   return (
     <Draggable draggableId={card.id} index={index}>
@@ -74,96 +84,99 @@ const ProcessKanbanCard = ({ card, index, stages, onMoveStage }: ProcessKanbanCa
           style={{
             ...provided.draggableProps.style,
             borderLeft: `4px solid ${accentColor}`,
-            background: "linear-gradient(180deg, #FFFFFF 0%, #FAFBFD 100%)",
           }}
-          className={`cursor-move group border border-border shadow-elegant transition-all duration-200 ease-out ${
+          className={`cursor-move group bg-card border border-border/70 transition-all duration-200 ease-out ${
             snapshot.isDragging
-              ? "ring-2 ring-primary/30 rotate-1 shadow-lg"
-              : "hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
+              ? "ring-2 ring-primary/30 shadow-lg"
+              : "shadow-sm hover:-translate-y-0.5 hover:shadow-md"
           }`}
         >
-          <CardContent className="p-3.5">
-            <div className="space-y-2">
-              {/* Header: client + status */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex flex-col gap-1">
-                  <h4 className="font-semibold text-sm text-foreground leading-tight">{card.clientName}</h4>
-                  {card.tipo === 'captacao' && (
-                    <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[10px] h-4 w-fit px-1">
-                      Captação
-                    </Badge>
-                  )}
-                </div>
-                <Badge variant={statusVariant} className="text-[11px] px-2 py-0.5 shrink-0 shadow-sm border-current/20">
-                  {statusLabel}
-                </Badge>
-              </div>
+          <CardContent className="p-2.5 space-y-2">
+            {/* Status */}
+            <div className="flex items-center justify-between gap-2">
+              <Badge variant="outline" className={`text-[11px] px-1.5 py-0 h-5 font-medium ${statusClass}`}>
+                {statusLabel}
+              </Badge>
+              {card.tipo === "captacao" && (
+                <span className="text-[11px] font-medium text-primary">Captação</span>
+              )}
+            </div>
 
-              {/* Property info */}
-              <p className="text-xs text-muted-foreground capitalize">{card.propertyType}</p>
-              <p className="text-xs text-muted-foreground truncate">{card.propertyAddress}</p>
+            {/* Cliente + empreendimento */}
+            <div className="min-w-0">
+              <h4 className="text-[16px] font-semibold text-foreground leading-tight truncate">{card.clientName}</h4>
+              <p className="text-[12px] text-muted-foreground truncate">{card.propertyAddress || "—"}</p>
+            </div>
 
-              {/* Broker */}
-              <div className="flex items-center gap-2">
+            {/* Valores */}
+            <div className="pt-1.5 border-t border-border/60">
+              <p className="text-[22px] font-bold text-foreground leading-none tabular-nums tracking-tight">
+                {formatCurrency(card.value)}
+              </p>
+              {card.vgc !== undefined && card.vgc > 0 && (
+                <p className="text-[12px] font-medium text-success mt-0.5 tabular-nums">
+                  VGC {formatCurrency(card.vgc)}
+                </p>
+              )}
+            </div>
+
+            {/* Corretor + tipo + dias */}
+            <div className="pt-1.5 border-t border-border/60 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
                 <Avatar className="h-5 w-5">
                   <AvatarImage src={card.brokerAvatar} />
                   <AvatarFallback className="text-[10px]">{card.brokerName.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <span className="text-xs text-muted-foreground truncate">{card.brokerName}</span>
+                <span className="text-[12px] text-muted-foreground truncate">{card.brokerName}</span>
               </div>
-
-              {/* Footer: value + time */}
-              <div className="pt-2 border-t border-border/50 flex items-center justify-between">
-                <div className="flex flex-col">
-                  <p className="text-sm font-bold text-primary">{formatCurrency(card.value)}</p>
-                  {card.vgc !== undefined && card.vgc > 0 && (
-                    <p className="text-[10px] font-medium text-success">VGC: {formatCurrency(card.vgc)}</p>
-                  )}
-                </div>
-                <div className={`flex items-center gap-1 text-[10px] ${
-                  urgency === "critical" ? "text-destructive" :
-                  urgency === "warning" ? "text-amber-500" : "text-muted-foreground"
-                }`}>
-                  {urgency === "critical" ? <AlertTriangle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                  <span>{daysInStage}d</span>
-                </div>
+              <div className={`flex items-center gap-1 text-[11px] shrink-0 ${
+                urgency === "critical" ? "text-destructive" :
+                urgency === "warning" ? "text-amber-500" : "text-muted-foreground"
+              }`}>
+                {urgency === "critical" ? <AlertTriangle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                <span className="tabular-nums">{daysInStage}d</span>
               </div>
-
-              {/* Stage selector — mobile-friendly alternative to drag */}
-              {stages && stages.length > 0 && onMoveStage && (
-                <div
-                  className="pt-2 border-t border-border/50"
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  <Select
-                    value={card.stageId}
-                    onValueChange={(value) => {
-                      if (value !== card.stageId) onMoveStage(card.id, value);
-                    }}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <MoveRight className="h-3 w-3 text-muted-foreground" />
-                        <SelectValue placeholder="Mover para..." />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stages.map((s) => (
-                        <SelectItem key={s.id} value={s.id} className="text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-                            {s.title}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
+
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground capitalize">
+              <PropertyIcon type={card.propertyType} />
+              <span className="truncate">{card.propertyType || "—"}</span>
+            </div>
+
+            {/* Ações */}
+            {stages && stages.length > 0 && onMoveStage && (
+              <div
+                className="pt-1.5 border-t border-border/60"
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <Select
+                  value={card.stageId}
+                  onValueChange={(value) => {
+                    if (value !== card.stageId) onMoveStage(card.id, value);
+                  }}
+                >
+                  <SelectTrigger className="h-7 text-[12px] px-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <MoveRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <SelectValue placeholder="Mover para..." />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages.map((s) => (
+                      <SelectItem key={s.id} value={s.id} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
+                          {s.title}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
