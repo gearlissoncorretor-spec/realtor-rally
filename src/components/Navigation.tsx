@@ -206,7 +206,7 @@ const Navigation = () => {
     return roleHasScreenAccess(userRole, item.screen) && hasAccess(item.screen);
   });
 
-  const navGroups: NavGroup[] = [
+  const baseGroups: NavGroup[] = [
     {
       label: "Super Admin",
       defaultOpen: true,
@@ -244,6 +244,27 @@ const Navigation = () => {
     },
 
   ].filter(g => g.items.length > 0);
+
+  // Ordem dos grupos varia conforme o perfil do usuário
+  const roleGroupOrder: Record<string, string[]> = {
+    corretor: ["Principal", "Comercial", "Produtividade", "Relatórios", "Financeiro", "Administração", "Sistema"],
+    gerente: ["Comercial", "Principal", "Produtividade", "Relatórios", "Administração", "Financeiro", "Sistema"],
+    diretor: ["Principal", "Relatórios", "Comercial", "Financeiro", "Administração", "Produtividade", "Sistema"],
+    socio: ["Principal", "Relatórios", "Comercial", "Financeiro", "Administração", "Produtividade", "Sistema"],
+  };
+
+  const currentRole = getUserRole();
+  const order = roleGroupOrder[currentRole];
+  const navGroups: NavGroup[] = order
+    ? [...baseGroups].sort((a, b) => {
+        const ia = order.indexOf(a.label);
+        const ib = order.indexOf(b.label);
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+      })
+    : baseGroups;
+
+  const favoriteItems = navItems.filter(i => favorites.includes(i.href));
+  const flatItems = navGroups.flatMap(g => g.items);
 
   const userRole = getUserRole();
   const roleLabelMap: Record<string, string> = {
