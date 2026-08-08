@@ -23,6 +23,7 @@ const KPICard = ({
   trend = "neutral",
   className,
   variant = "default",
+  compact = false,
   comparisonLabel = "vs mês anterior",
 }: KPICardProps) => {
   const getTrendColor = () => {
