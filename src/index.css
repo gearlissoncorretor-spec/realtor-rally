@@ -838,3 +838,55 @@
 .dark aside button span {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6), 0 0 8px rgba(0, 0, 0, 0.35);
 }
+
+/* =========================================================
+   ESCALA VISUAL GLOBAL — Densidade compacta (HubSpot/Pipedrive-like)
+   Apenas tipografia, espaçamento e dimensionamento. TV Mode isento.
+   ========================================================= */
+body:not(.tv-mode) .text-xs   { font-size: 11px; line-height: 1.35; }
+body:not(.tv-mode) .text-sm   { font-size: 13px; line-height: 1.4; }
+body:not(.tv-mode) .text-base { font-size: 14px; line-height: 1.45; }
+body:not(.tv-mode) .text-lg   { font-size: 15px; line-height: 1.4; }
+body:not(.tv-mode) .text-xl   { font-size: 16px; line-height: 1.35; }
+body:not(.tv-mode) .text-2xl  { font-size: 20px; line-height: 1.25; }
+body:not(.tv-mode) .text-3xl  { font-size: 22px; line-height: 1.2; }
+body:not(.tv-mode) .text-4xl  { font-size: 26px; line-height: 1.15; }
+body:not(.tv-mode) .text-5xl,
+body:not(.tv-mode) .text-6xl,
+body:not(.tv-mode) .text-7xl  { font-size: 28px; line-height: 1.1; }
+
+body:not(.tv-mode) h1 { font-size: 28px; line-height: 1.2; }
+body:not(.tv-mode) h2 { font-size: 22px; line-height: 1.25; }
+body:not(.tv-mode) h3 { font-size: 16px; line-height: 1.3; }
+
+@media (max-width: 768px) {
+  body:not(.tv-mode) h1 { font-size: 22px; }
+  body:not(.tv-mode) h2 { font-size: 18px; }
+  body:not(.tv-mode) button:not([data-size="sm"]):not(.size-sm) { min-height: 38px; }
+}
+
+/* Tabelas mais densas */
+body:not(.tv-mode) .table-comfy tbody tr { height: 40px; }
+body:not(.tv-mode) .table-comfy thead th { height: 34px; font-size: 11px; }
+
+/* Cards / KPIs mais baixos */
+body:not(.tv-mode) .card-density { padding: 0.75rem; }
+@media (min-width: 640px) { body:not(.tv-mode) .card-density { padding: 1rem; } }
+body:not(.tv-mode) .stack-lg > * + * { margin-top: 1rem; }
+body:not(.tv-mode) .stack-md > * + * { margin-top: 0.75rem; }
+
+/* Sidebar / navegação: itens mais baixos e ícones menores */
+body:not(.tv-mode) aside nav a,
+body:not(.tv-mode) aside nav button,
+body:not(.tv-mode) [data-sidebar="menu-button"] {
+  min-height: 34px;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  font-size: 13px;
+}
+body:not(.tv-mode) aside nav a > svg,
+body:not(.tv-mode) aside nav button > svg,
+body:not(.tv-mode) [data-sidebar="menu-button"] > svg {
+  width: 16px;
+  height: 16px;
+}

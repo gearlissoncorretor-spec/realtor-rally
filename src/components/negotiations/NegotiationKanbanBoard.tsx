@@ -85,7 +85,7 @@ export const NegotiationKanbanBoard: React.FC<NegotiationKanbanBoardProps> = ({
           const items = grouped.map[stage.id] || [];
           const totalValue = items.reduce((sum, n) => sum + Number(n.negotiated_value || 0), 0);
           return (
-            <div key={stage.id} className="flex flex-col min-w-[300px] max-w-[320px] flex-shrink-0">
+            <div key={stage.id} className="flex flex-col min-w-[248px] max-w-[268px] flex-shrink-0">
               <Card className="mb-3 border-t-4" style={{ borderTopColor: stage.color }}>
                 <CardContent className="py-3 px-4">
                   <div className="flex items-center justify-between gap-2">
@@ -227,7 +227,7 @@ export const NegotiationKanbanBoard: React.FC<NegotiationKanbanBoardProps> = ({
         })}
 
         {grouped.unassigned.length > 0 && (
-          <div className="flex flex-col min-w-[300px] max-w-[320px] flex-shrink-0">
+          <div className="flex flex-col min-w-[248px] max-w-[268px] flex-shrink-0">
             <Card className="mb-3 border-t-4 border-t-muted-foreground/40">
               <CardContent className="py-3 px-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-muted-foreground">Sem etapa</h3>

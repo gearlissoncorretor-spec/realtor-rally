@@ -24,7 +24,7 @@ const AcompanhamentoSkeleton = () => {
       {/* Kanban columns skeleton */}
       <div className="flex gap-4 overflow-hidden">
         {[1, 2, 3, 4].map(col => (
-          <div key={col} className="min-w-[280px] space-y-3">
+          <div key={col} className="min-w-[248px] space-y-3">
             <Card className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Skeleton className="h-3 w-3 rounded-full" />
