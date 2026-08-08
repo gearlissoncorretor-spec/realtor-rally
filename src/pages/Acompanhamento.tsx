@@ -304,7 +304,7 @@ const Acompanhamento = () => {
                 const pct = totalVGV > 0 ? (stageVGV / totalVGV) * 100 : 0;
 
                 return (
-                  <div key={stage.id} className="flex flex-col min-w-[270px] md:min-w-[290px] max-w-[320px] flex-shrink-0 h-full">
+                  <div key={stage.id} className="flex flex-col min-w-[240px] md:min-w-[252px] max-w-[268px] flex-shrink-0 h-full">
                     <Card className="mb-3">
                       <CardHeader className="p-4 pb-3">
                         <div className="flex items-center justify-between">

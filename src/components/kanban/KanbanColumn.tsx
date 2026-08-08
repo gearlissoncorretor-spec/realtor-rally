@@ -31,7 +31,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   const progress = targetCount > 0 ? Math.min((completedCount / targetCount) * 100, 100) : 0;
 
   return (
-    <div className="flex flex-col min-w-[280px] max-w-[320px] flex-shrink-0 h-full">
+    <div className="flex flex-col min-w-[244px] max-w-[268px] flex-shrink-0 h-full">
       {/* Column Header */}
       <Card className="mb-3 border-t-4" style={{ borderTopColor: stage.color }}>
         <CardHeader className="py-3 px-4">
