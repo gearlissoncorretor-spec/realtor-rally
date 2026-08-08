@@ -139,6 +139,36 @@ const Navigation = () => {
   const [commandOpen, setCommandOpen] = useState(false);
   const pendingCount = usePendingUsersCount();
 
+  const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('gm-sidebar-collapsed') === '1');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('gm-nav-favorites') || '[]'); } catch { return []; }
+  });
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('gm-nav-groups') || '{}'); } catch { return {}; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gm-sidebar-collapsed', collapsed ? '1' : '0');
+    document.body.classList.toggle('sidebar-collapsed', collapsed);
+    return () => document.body.classList.remove('sidebar-collapsed');
+  }, [collapsed]);
+
+  const toggleFavorite = useCallback((href: string) => {
+    setFavorites(prev => {
+      const next = prev.includes(href) ? prev.filter(h => h !== href) : [...prev, href];
+      localStorage.setItem('gm-nav-favorites', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const setGroupOpen = useCallback((label: string, open: boolean) => {
+    setOpenGroups(prev => {
+      const next = { ...prev, [label]: open };
+      localStorage.setItem('gm-nav-groups', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const allNavItems: NavItem[] = [
     { href: "/", label: "Dashboard", icon: LayoutGrid, screen: "dashboard" },
     { href: "/central-gestor", label: "Central do Gestor", icon: TrendingUp, screen: "central-gestor" },
