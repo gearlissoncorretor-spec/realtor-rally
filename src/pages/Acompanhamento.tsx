@@ -266,26 +266,27 @@ const Acompanhamento = () => {
 
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          <KPICard title="Total Pipeline" value={String(totalCards)} icon={<Layers className="h-5 w-5 text-primary" />} />
-          <KPICard title="VGV Total" value={formatCurrency(totalVGV)} icon={<DollarSign className="h-5 w-5 text-primary" />} />
-          <KPICard title="VGC Total" value={formatCurrency(totalVGC)} icon={<TrendingUp className="h-5 w-5 text-success" />} />
-          <KPICard title="Ticket Médio" value={formatCurrency(avgTicket)} icon={<BarChart3 className="h-5 w-5 text-primary" />} />
-          <KPICard title="Confirmadas" value={String(confirmedCount)} icon={<Check className="h-5 w-5 text-success" />} trend={confirmedCount > 0 ? "up" : "neutral"} />
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5">
+          <KPICard compact title="Total Pipeline" value={String(totalCards)} icon={<Layers className="h-5 w-5 text-primary" />} />
+          <KPICard compact title="VGV Total" value={formatCurrency(totalVGV)} icon={<DollarSign className="h-5 w-5 text-primary" />} />
+          <KPICard compact title="VGC Total" value={formatCurrency(totalVGC)} icon={<TrendingUp className="h-5 w-5 text-success" />} />
+          <KPICard compact title="Ticket Médio" value={formatCurrency(avgTicket)} icon={<BarChart3 className="h-5 w-5 text-primary" />} />
+          <KPICard compact title="Confirmadas" value={String(confirmedCount)} icon={<Check className="h-5 w-5 text-success" />} trend={confirmedCount > 0 ? "up" : "neutral"} />
         </div>
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Buscar cliente ou corretor..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9"
+              className="h-[42px] pl-9 text-[14px] rounded-lg bg-card border-border/70 shadow-sm focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary transition-colors"
             />
           </div>
         </div>
+
 
         {/* Kanban Board */}
         <DragDropContext onDragEnd={handleDragEnd}>
