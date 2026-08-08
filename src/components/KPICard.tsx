@@ -11,6 +11,7 @@ interface KPICardProps {
   trend?: "up" | "down" | "neutral";
   className?: string;
   variant?: "default" | "hero";
+  compact?: boolean;
   comparisonLabel?: string;
 }
 
@@ -22,6 +23,7 @@ const KPICard = ({
   trend = "neutral",
   className,
   variant = "default",
+  compact = false,
   comparisonLabel = "vs mês anterior",
 }: KPICardProps) => {
   const getTrendColor = () => {
@@ -58,36 +60,43 @@ const KPICard = ({
   return (
     <Card
       className={cn(
-        "relative overflow-hidden p-3 sm:p-5 group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]",
-        "min-h-[100px] sm:min-h-[120px] flex flex-col justify-between",
+        "relative overflow-hidden group transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]",
+        compact
+          ? "p-2.5 sm:p-3 min-h-[74px] sm:min-h-[84px] flex flex-col justify-between"
+          : "p-3 sm:p-5 min-h-[100px] sm:min-h-[120px] flex flex-col justify-between",
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground truncate">
+      <div className="flex items-center justify-between gap-2">
+        <p className={cn(
+          "uppercase tracking-wider font-semibold text-muted-foreground truncate",
+          compact ? "text-[11px]" : "text-[11px]"
+        )}>
           {title}
         </p>
         <div
           className={cn(
-            "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+            "rounded-lg flex items-center justify-center shrink-0",
+            compact ? "w-7 h-7" : "w-9 h-9 rounded-xl",
             iconWrapBg
           )}
         >
-          <span className="[&_svg]:w-[18px] [&_svg]:h-[18px]">{icon}</span>
+          <span className={compact ? "[&_svg]:w-[15px] [&_svg]:h-[15px]" : "[&_svg]:w-[18px] [&_svg]:h-[18px]"}>{icon}</span>
         </div>
       </div>
 
-      <div className="mt-3 min-w-0">
+      <div className={cn("min-w-0", compact ? "mt-1" : "mt-3")}>
         <AutoFitText
-          max={isHero ? 42 : 36}
-          min={20}
+          max={compact ? 24 : isHero ? 42 : 36}
+          min={compact ? 15 : 20}
           className="font-display font-bold text-foreground tracking-tight tabular-nums"
         >
           {value}
         </AutoFitText>
 
-        {(change !== undefined || comparisonLabel) && (
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
+        {(change !== undefined || (comparisonLabel && !compact)) && (
+          <div className={cn("flex items-center gap-2 flex-wrap", compact ? "mt-0.5" : "mt-2")}>
+
             {change !== undefined && (
               <span
                 className={cn(
@@ -104,7 +113,7 @@ const KPICard = ({
                 </span>
               </span>
             )}
-            {comparisonLabel && (
+            {comparisonLabel && !compact && (
               <span className="text-[11px] text-muted-foreground">
                 {comparisonLabel}
               </span>
